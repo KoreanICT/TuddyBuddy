@@ -15,6 +15,7 @@ import BoardManagement from "../cont/admin/board/BoardManagement";
 import StudentCode from "../cont/friend/StudentCode";
 import FriendAdd from "../cont/friend/FriendAdd";
 import FriendList from "../cont/friend/FriendList";
+import Community from "../cont/community/Community";
 
 interface RouteItem {
     path: string;
@@ -31,6 +32,7 @@ const AppRoutes: React.FC = () => {
     const routeList: RouteItem[] = [
         { path: '/', element: <Home /> },
         { path: '/videoSummary', element: <VideoSummary /> },
+        { path: '/community', element: <Community /> }, 
 
 
         { path: '/createGroup', element: <Group_Create /> },
