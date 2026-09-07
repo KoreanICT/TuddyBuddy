@@ -102,7 +102,7 @@ const Home: React.FC = () => {
 
             <div className={styles.visual}>
               <img
-                src="/images/selfStudy.png"
+                src="/images/SelfStudy.png"
                 alt="개인 학습 공간에서 공부하는 모습"
                 className={styles.sectionImage}
               />
