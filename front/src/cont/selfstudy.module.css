@@ -1,0 +1,577 @@
+/* =========================
+   Layout & Header
+========================= */
+.pageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.pageHeader h2 {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.subText {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+.contentArea {
+  display: flex;
+  gap: 32px;
+  align-items: flex-start;
+  min-height: 500px;
+}
+.headerButtonGroup {
+  display: flex;
+  gap: 10px;
+}
+
+.navBtn {
+  padding: 8px 16px;
+  border: 1px solid #e5e7eb;
+  background-color: #ffffff;
+  color: #374151;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.navBtn:hover {
+  background-color: #2563eb;
+}
+
+.activeBtn {
+  background-color: #2563eb;
+  color: #ffffff;
+  border-color: #2563eb;
+  font-weight: 600;
+}
+
+.badgeCount {
+  background-color: #ef4444;
+  color: #ffffff;
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  margin-left: 4px;
+}
+/* =========================
+   Sidebar / Create Button
+========================= */
+.sidebar {
+  width: 220px;
+  flex-shrink: 0;
+}
+
+.createCardWrapper {
+  position: relative;
+  width: 100%;
+}
+
+.createCard {
+  width: 100%;
+  height: 120px;
+  border: 2px dashed #cbd5e1;
+  border-radius: var(--radius-lg);
+  background-color: var(--background-secondary);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.createCard:hover {
+  border-color: var(--primary);
+  background-color: #eff6ff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.08);
+}
+
+.iconCircle {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background-color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+.createText {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* Dropdown */
+.dropdownMenu {
+  position: absolute;
+  top: 130px;
+  left: 0;
+  width: 100%;
+  background-color: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  padding: 8px;
+  z-index: 50;
+}
+
+.menuItem {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  font-size: 13px;
+  border-radius: var(--radius-sm);
+  color: var(--text);
+}
+
+.menuItem:hover:not(:disabled) {
+  background-color: var(--background-secondary);
+}
+
+.menuItem:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.badge {
+  font-size: 10px;
+  background-color: #dbeafe;
+  color: var(--primary);
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-weight: bold;
+}
+
+/* =========================
+   Main Container & Tabs
+========================= */
+.mainContainer {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.tabBar {
+  display: flex;
+  gap: 8px;
+  border-bottom: 2px solid var(--border);
+  margin-bottom: 24px;
+}
+
+.tabItem {
+  padding: 12px 20px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tabItem:hover {
+  color: var(--primary);
+}
+
+.activeTab {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+
+.countBadge {
+  background-color: #fee2e2;
+  color: #dc2626;
+  font-size: 12px;
+  padding: 2px 7px;
+  border-radius: 10px;
+}
+
+/* =========================
+   Quiz Cards & Content
+========================= */
+.tabContent {
+  min-height: 350px;
+}
+
+.quizList {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.quizCard {
+  padding: 24px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background-color: var(--background);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+}
+
+.quizHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.quizIndex {
+  background-color: #e0e7ff;
+  color: var(--primary);
+  font-weight: 700;
+  font-size: 13px;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.quizTitle {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.optionList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.optionItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background-color: var(--background-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+}
+
+.optionItem:hover {
+  border-color: var(--primary);
+  background-color: #f0f6ff;
+}
+
+.selectedOption {
+  background-color: #dbeafe !important;
+  border-color: var(--primary) !important;
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.optionNum {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.explanationBox {
+  padding: 16px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  line-height: 1.6;
+  margin-top: 16px;
+}
+
+.correctBox {
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+}
+
+.wrongBox {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+}
+
+.resultTitle {
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+/* =========================
+   AI Summary & Empty State
+========================= */
+.summaryCard {
+  padding: 28px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background-color: #f8fafc;
+}
+
+.summaryCard h3 {
+  font-size: 18px;
+  margin-bottom: 12px;
+  color: var(--primary);
+}
+
+.summaryText {
+  line-height: 1.7;
+  color: #334155;
+  font-size: 15px;
+}
+
+.divider {
+  height: 1px;
+  background-color: var(--border);
+  margin: 20px 0;
+}
+
+.tagWrapper {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.keywordTag {
+  padding: 6px 14px;
+  background-color: #fff;
+  border: 1px solid #cbd5e1;
+  color: var(--primary);
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.emptyStateCard {
+  padding: 60px 20px;
+  border: 2px dashed var(--border);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background-color: var(--background-secondary);
+}
+
+.emptyIconWrapper {
+  width: 80px;
+  height: 80px;
+  background-color: #eff6ff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.emptyStateCard h3 {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.emptyStateCard p {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+/* =========================
+   Action Bar & Buttons
+========================= */
+.actionBar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.actionBtn {
+  padding: 10px 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background-color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.actionBtn:hover {
+  background-color: var(--background-secondary);
+}
+
+.actionPrimaryBtn {
+  padding: 10px 20px;
+  border-radius: var(--radius-sm);
+  background-color: var(--primary);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.actionPrimaryBtn:hover {
+  background-color: var(--primary-hover);
+}
+
+/* =========================
+   Modal Style
+========================= */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modalContent {
+  width: 100%;
+  max-width: 500px;
+  background-color: #fff;
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.modalHeader h3 {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.closeBtn {
+  font-size: 24px;
+  color: var(--text-secondary);
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 16px;
+}
+
+.formRow {
+  display: flex;
+  gap: 12px;
+}
+
+.formRow .formGroup {
+  flex: 1;
+}
+
+.label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 6px;
+}
+
+.selectInput,
+.textInput {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  outline: none;
+}
+
+.selectInput:focus,
+.textInput:focus {
+  border-color: var(--primary);
+}
+
+.imageUploadBox {
+  width: 100%;
+  height: 120px;
+  border: 2px dashed var(--border);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background-color: var(--background-secondary);
+}
+
+.uploadPlaceholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.uploadIcon {
+  font-size: 24px;
+}
+
+.previewImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.modalFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.cancelBtn {
+  padding: 10px 18px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.submitBtn {
+  padding: 10px 20px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 600;
+  background-color: var(--primary);
+  color: #fff;
+}
+
+.submitBtn:hover:not(:disabled) {
+  background-color: var(--primary-hover);
+}
+
+.submitBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

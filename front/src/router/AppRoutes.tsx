@@ -1,6 +1,6 @@
 import { Route, Routes } from "react-router-dom";
 import Home from "../cont/Home";
-
+import SelfStudy from "../cont/SelfStudy";
 interface RouteItem {
     path: string;
     element: React.ReactElement;
@@ -11,6 +11,7 @@ interface RouteItem {
 const AppRoutes: React.FC = () => {
     const routeList = [
         { path: '/', element: <Home /> },
+        { path: '/selfStudy', element: <SelfStudy /> },
     ]
     return (
         <Routes>
@@ -19,6 +20,7 @@ const AppRoutes: React.FC = () => {
                     <Route key={idx} {...route} />
                 ))
             }
+            
         </Routes>
     )
 }

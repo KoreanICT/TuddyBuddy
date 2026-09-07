@@ -41,7 +41,7 @@ const Navbar: React.FC = () => {
                         </li>
 
                         <li>
-                            <NavLink to="/selfStudy" className={linkClass}>
+                            <NavLink to="/SelfStudy" className={linkClass}>
                                 개인 스터디
                             </NavLink>
                         </li>
