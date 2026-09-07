@@ -1,3 +1,7 @@
+
+import Home from "../cont/Home";
+import { ProductSelector } from "../cont/point/ProductSelector";
+import PerformanceAnalytics from "../cont/statistics/PerformanceAnalytics";
 import React from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
 
@@ -19,6 +23,7 @@ import ReportList from "../cont/admin/report/ReportList";
 import ReportDetail from "../cont/admin/report/ReportDetail";
 import ReportReply from "../cont/admin/report/ReportReply";
 
+import SelfStudy from "../cont/SelfStudy";
 interface RouteItem {
     path: string;
     element: React.ReactElement;
@@ -60,27 +65,20 @@ const AppRoutes: React.FC = () => {
         // user? auth? account?
     ];
 
+        { path: '/point', element: <ProductSelector/> },
+        { path: '/statistics', element: <PerformanceAnalytics/> }
+        { path: '/selfStudy', element: <SelfStudy /> },
+    ]
     return (
-        <>
-            {isManage ? (
-                <AdminLayout>
-                    <Routes>
-                        {routeList.map((route, idx) => (
-                            <Route key={idx} {...route} />
-                        ))}
-                    </Routes>
-                </AdminLayout>
-            ) : (
-                <Layout>
-                    <Routes>
-                        {routeList.map((route, idx) => (
-                            <Route key={idx} {...route} />
-                        ))}
-                    </Routes>
-                </Layout>
-            )}
-        </>
-    );
-};
+        <Routes>
+            {
+                routeList.map((route, idx) => (
+                    <Route key={idx} {...route} />
+                ))
+            }
+            
+        </Routes>
+    )
+}
 
 export default AppRoutes;
