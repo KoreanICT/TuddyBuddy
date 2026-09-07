@@ -95,12 +95,26 @@ p {
   --radius-lg: 16px;
 
   --max-width: 1200px;
+
+  /* Admin */
+  --admin-primary: #1e293b;
+  --admin-primary-hover: #334155;
+
+  --admin-sidebar: #0f172a;
+  --admin-sidebar-hover: #1e293b;
+  --admin-sidebar-active: #2563eb;
+
+  --admin-text: #f8fafc;
+  --admin-text-secondary: #cbd5e1;
+
+  --admin-background: #f8fafc;
+  --admin-card: #fff;
+
+  --admin--boardbox: #FFA500;
 }
 
 
-/* =========================
-   Common
-========================= */
+/* Common */
 
 .container {
   width: 100%;

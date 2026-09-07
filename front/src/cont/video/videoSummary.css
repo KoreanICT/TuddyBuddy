@@ -1,0 +1,567 @@
+
+/* VideoSummary css */
+
+
+.vSummary {
+  min-height: 100vh;
+
+  padding: 40px 0 80px;
+
+  background-color: var(--background-secondary);
+}
+
+.vsContent {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(320px, 0.8fr);
+  gap: 24px;
+
+  margin-top: 40px;
+}
+
+@media (max-width: 900px) {
+  .vsContent {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .vSummary {
+    padding: 24px 0 60px;
+  }
+
+  .vUpload {
+    padding-top: 30px;
+  }
+
+  .vuContent {
+    padding: 40px 20px;
+  }
+
+  .vuTitle {
+    font-size: 24px;
+  }
+
+  .spHeader,
+  .spContent {
+    padding: 20px;
+  }
+}
+
+
+
+/* VideoUpload css */
+
+.vUpload {
+  padding: 80px 0 40px;
+}
+
+.vuContent {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 60px 40px;
+
+  text-align: center;
+
+  background-color: var(--background);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.vuIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 64px;
+  height: 64px;
+
+  margin: 0 auto 20px;
+
+  font-size: 28px;
+
+  background-color: var(--background-secondary);
+  border-radius: 50%;
+}
+
+.vuTitle {
+  font-size: 28px;
+  font-weight: 700;
+
+  color: var(--text);
+}
+
+.vuDescription {
+  margin-top: 12px;
+
+  color: var(--text-secondary);
+}
+
+.vuButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 140px;
+  height: 48px;
+
+  margin-top: 32px;
+  padding: 0 24px;
+
+  color: #fff;
+  background-color: var(--primary);
+
+  border-radius: var(--radius-md);
+
+  transition: background-color 0.2s ease;
+}
+
+.vuButton:hover {
+  background-color: var(--primary-hover);
+}
+
+
+
+/* VideoPlayer css */
+
+.vPlayer {
+  overflow: hidden;
+
+  background-color: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.vpHeader {
+  padding: 20px 24px;
+
+  border-bottom: 1px solid var(--border);
+}
+
+.vpTitle {
+  font-size: 18px;
+  font-weight: 700;
+
+  color: var(--text);
+}
+
+.vpContent {
+  padding: 20px;
+}
+
+.vpPlaceholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  aspect-ratio: 16 / 9;
+
+  background-color: #111;
+  border-radius: var(--radius-md);
+}
+
+.vpIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 64px;
+  height: 64px;
+
+  color: #fff;
+  background-color: rgba(255, 255, 255, 0.15);
+
+  border-radius: 50%;
+
+  font-size: 24px;
+}
+
+.vpText {
+  margin-top: 16px;
+
+  color: #aaa;
+}
+
+
+
+
+/* SummaryPanel css */
+
+
+.sPanel {
+  height: 100%;
+
+  background-color: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.spHeader {
+  padding: 24px;
+
+  border-bottom: 1px solid var(--border);
+}
+
+.spLabel {
+  display: block;
+
+  font-size: 12px;
+  font-weight: 700;
+
+  color: var(--primary);
+}
+
+.spTitle {
+  margin-top: 6px;
+
+  font-size: 24px;
+  font-weight: 700;
+
+  color: var(--text);
+}
+
+.spContent {
+  padding: 24px;
+}
+
+.sSection + .sSection {
+  margin-top: 32px;
+}
+
+.ssTitle {
+  margin-bottom: 12px;
+
+  font-size: 16px;
+  font-weight: 700;
+
+  color: var(--text);
+}
+
+.ssText {
+  color: var(--text-secondary);
+
+  line-height: 1.7;
+}
+
+.skList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.sKeyword {
+  padding: 6px 12px;
+
+  font-size: 14px;
+
+  color: var(--primary);
+  background-color: var(--background-secondary);
+
+  border-radius: var(--radius-sm);
+}
+
+.sList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.slItem {
+  padding: 16px;
+
+  background-color: var(--background-secondary);
+  border-radius: var(--radius-md);
+}
+
+.slItem {
+  display: inline-block;
+
+  font-size: 13px;
+  font-weight: 700;
+
+  color: var(--primary);
+}
+
+.slItem p {
+  margin-top: 6px;
+
+  color: var(--text-secondary);
+}
+
+
+
+/* O/X Quiz css */
+
+.oxQuiz {
+  padding: 28px;
+
+  background-color: var(--background);
+
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.oxHeader {
+  margin-bottom: 24px;
+}
+
+.oxLabel {
+  display: block;
+
+  font-size: 12px;
+  font-weight: 700;
+
+  color: var(--primary);
+}
+
+.oxTitle {
+  margin-top: 6px;
+
+  font-size: 22px;
+  font-weight: 700;
+
+  color: var(--text);
+}
+
+.oxDescription {
+  margin-top: 8px;
+
+  font-size: 14px;
+
+  color: var(--text-secondary);
+}
+
+
+/* 문제 진행 상태 */
+
+.oxProgress {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 16px;
+
+  font-size: 13px;
+
+  color: var(--text-secondary);
+}
+
+
+/* 문제 */
+
+.oxQuestion {
+  padding: 20px;
+
+  font-size: 16px;
+  font-weight: 600;
+
+  line-height: 1.6;
+
+  background-color: var(--background-secondary);
+
+  border-radius: var(--radius-md);
+}
+
+
+/* O / X 버튼 */
+
+.oxButtons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+
+  gap: 12px;
+
+  margin-top: 16px;
+}
+
+.button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  height: 80px;
+
+  font-size: 28px;
+  font-weight: 700;
+
+  color: var(--text);
+
+  background-color: var(--background);
+
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.button:hover {
+  border-color: var(--primary);
+
+  background-color: var(--background-secondary);
+
+  transform: translateY(-2px);
+}
+
+
+/* 선택된 버튼 */
+
+.button.is-selected {
+  color: var(--primary);
+
+  border-color: var(--primary);
+
+  background-color: #eff6ff;
+}
+
+
+
+
+/* MindMap css */
+
+.mindMap {
+  padding: 28px;
+
+  background-color: var(--background);
+
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.mmHeader {
+  margin-bottom: 24px;
+}
+
+.mmLabel {
+  display: block;
+
+  font-size: 12px;
+  font-weight: 700;
+
+  color: var(--primary);
+}
+
+.mmTitle {
+  margin-top: 6px;
+
+  font-size: 22px;
+  font-weight: 700;
+
+  color: var(--text);
+}
+
+
+/* 마인드맵 영역 */
+
+.mmContent {
+  position: relative;
+
+  min-height: 360px;
+
+  background-color: var(--background-secondary);
+
+  border-radius: var(--radius-md);
+
+  overflow: hidden;
+}
+
+
+/* 중앙 노드 */
+
+.mmcenter {
+  position: absolute;
+
+  top: 50%;
+  left: 50%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 90px;
+  height: 90px;
+
+  color: #fff;
+
+  background-color: var(--primary);
+
+  border-radius: 50%;
+
+  font-size: 15px;
+  font-weight: 700;
+
+  transform: translate(-50%, -50%);
+
+  z-index: 2;
+}
+
+
+/* 주변 노드 */
+
+.mmNode {
+  position: absolute;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 80px;
+  height: 40px;
+
+  padding: 0 16px;
+
+  color: var(--text);
+
+  background-color: var(--background);
+
+  border: 1px solid var(--border);
+
+  border-radius: 999px;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  z-index: 2;
+}
+
+
+/* 위 */
+
+.mmTop {
+  top: 30px;
+  left: 50%;
+
+  transform: translateX(-50%);
+}
+
+
+/* 왼쪽 */
+
+.mmLeft {
+  top: 50%;
+  left: 30px;
+
+  transform: translateY(-50%);
+}
+
+
+/* 오른쪽 */
+
+.mmRight {
+  top: 50%;
+  right: 30px;
+
+  transform: translateY(-50%);
+}
+
+
+/* 아래 */
+
+.mmBottom {
+  bottom: 30px;
+  left: 50%;
+
+  transform: translateX(-50%);
+}

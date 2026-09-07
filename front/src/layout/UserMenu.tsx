@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 import styles from './userMenu.module.css';
 
 const UserMenu: React.FC = () => {
     // TODO: 추후 useAuth()로 교체
-    const [isLogin,setIsLogin] = useState(true);
+    const [isLogin, setIsLogin] = useState(true);
     const [isAdmin, setIsAdmin] = useState(true)
     const [isOpen, setIsOpen] = useState(false);
 
@@ -16,19 +16,28 @@ const UserMenu: React.FC = () => {
     if (!isLogin) {
         return (
             <div className={styles.userMenu}>
-                <button className={styles.authButton}>
+                <Link to="/login" className={styles.authButton}>
                     로그인
-                </button>
+                </Link>
 
-                <button className={styles.authButton}>
+                <Link to="/signup" className={styles.authButton}>
                     회원가입
-                </button>
+                </Link>
             </div>
         );
     }
 
-    return (
+    else return (
         <>
+            <div className={styles.userMenu}>
+                <Link to="/login" className={styles.authButton}>
+                    로그인
+                </Link>
+
+                <Link to="/signup" className={styles.authButton}>
+                    회원가입
+                </Link>
+            </div>
             {/* 프로필 버튼 */}
             <div className={styles.userMenu}>
                 <button
@@ -86,11 +95,17 @@ const UserMenu: React.FC = () => {
                         포인트 구매
                     </NavLink>
 
-                    {isAdmin && (
-                        <NavLink to="/admin" onClick={closeMenu}>
-                            관리자 메뉴
-                        </NavLink>
-                    )}
+                    {/* {isAdmin && ( */}
+                    <NavLink to="/admin" onClick={closeMenu}>
+                        관리자 메뉴
+                    </NavLink>
+                    {/* )} */}
+                    <NavLink to="/friend/list" onClick={closeMenu}>
+                        내 친구
+                    </NavLink>
+                    <NavLink to="/friend/code" onClick={closeMenu}>
+                        내 스터던트 코드
+                    </NavLink>
                 </nav>
 
                 {/* Logout */}
