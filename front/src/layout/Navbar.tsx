@@ -47,8 +47,8 @@ const Navbar: React.FC = () => {
                         </li> */}
 
                         <li>
-                            <NavLink to="/test1" className={linkClass}>
-                                테스트1
+                            <NavLink to="/statistics" className={linkClass}>
+                                평가분석
                             </NavLink>
                         </li>
                         <li>

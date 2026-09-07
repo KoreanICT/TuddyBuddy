@@ -1,3 +1,7 @@
+
+import Home from "../cont/Home";
+import { ProductSelector } from "../cont/point/ProductSelector";
+import PerformanceAnalytics from "../cont/statistics/PerformanceAnalytics";
 import React from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
 
@@ -17,6 +21,8 @@ const AppRoutes: React.FC = () => {
 
     const routeList: RouteItem[] = [
         { path: '/', element: <Home /> },
+        { path: '/point', element: <ProductSelector/> },
+        { path: '/statistics', element: <PerformanceAnalytics/> }
         { path: '/selfStudy', element: <SelfStudy /> },
     ]
     return (
