@@ -1,0 +1,108 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+.card {
+  width: 100%;
+  max-width: 600px;
+  background-color: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08);
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+/* Hover 및 Active 효과 */
+.productItem {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 16px 20px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-md);
+  background-color: var(--background);
+  transition: all 0.2s ease-in-out;
+}
+
+.productItem:hover {
+  border-color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.12);
+}
+
+.productItem.selected {
+  border-color: var(--primary);
+  background-color: var(--background-secondary);
+  box-shadow: 0 0 0 1px var(--primary);
+}
+
+.productName {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.productPrice {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+/* 주문 버튼 구역 */
+.orderSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  border-top: 1px solid var(--border);
+  padding-top: 24px;
+}
+
+.selectedInfo {
+  font-size: 1rem;
+  color: var(--text-secondary);
+}
+
+.selectedInfo strong {
+  color: var(--primary);
+}
+
+.orderButton {
+  width: 100%;
+  padding: 14px 0;
+  background-color: var(--primary);
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  transition: background-color 0.2s ease;
+}
+
+.orderButton:hover:not(:disabled) {
+  background-color: var(--primary-hover);
+}
+
+.orderButton:disabled {
+  background-color: var(--border);
+  color: var(--text-secondary);
+  cursor: not-allowed;
+}
