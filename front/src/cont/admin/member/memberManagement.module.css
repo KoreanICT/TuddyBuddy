@@ -1,0 +1,205 @@
+.member {
+    width: 100%;
+}
+
+.header {
+    margin-bottom: 24px;
+}
+
+.header h1 {
+    margin-bottom: 6px;
+
+    color: var(--text);
+    font-size: 28px;
+    font-weight: 700;
+}
+
+.header p {
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+
+/* =========================
+   Filter
+========================= */
+
+.filter {
+    display: flex;
+    gap: 4px;
+
+    margin-bottom: 16px;
+}
+
+.filter button {
+    padding: 9px 18px;
+
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+
+    color: var(--text-secondary);
+    background-color: var(--background);
+
+    font-size: 14px;
+
+    transition:
+        background-color 0.2s,
+        color 0.2s,
+        border-color 0.2s;
+}
+
+.filter button:hover {
+    background-color: var(--background-secondary);
+}
+
+.filter .activeFilter {
+    background-color: var(--admin-primary);
+    border-color: var(--admin-primary);
+
+    color: var(--admin-text);
+}
+
+
+/* =========================
+   Search
+========================= */
+
+.search {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+
+    margin-bottom: 20px;
+}
+
+.search input {
+    width: 280px;
+
+    padding: 10px 12px;
+
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+
+    outline: none;
+
+    color: var(--text);
+    background-color: var(--background);
+}
+
+.search input:focus {
+    border-color: var(--admin-primary);
+}
+
+.search button {
+    padding: 10px 18px;
+
+    background-color: var(--admin-primary);
+    border-radius: var(--radius-sm);
+
+    color: var(--admin-text);
+
+    font-size: 14px;
+}
+
+
+/* =========================
+   Table
+========================= */
+
+.tableWrapper {
+    overflow: hidden;
+
+    background-color: var(--admin-card);
+
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+}
+
+.table {
+    width: 100%;
+
+    border-collapse: collapse;
+
+    font-size: 14px;
+}
+
+.table th,
+.table td {
+    padding: 14px 16px;
+
+    border-bottom: 1px solid var(--border);
+
+    text-align: center;
+}
+
+.table th {
+    background-color: var(--admin-background);
+
+    color: var(--text-secondary);
+
+    font-weight: 600;
+}
+
+.table td {
+    color: var(--text);
+}
+
+.table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+
+/* =========================
+   Select
+========================= */
+
+.select {
+    min-width: 90px;
+
+    padding: 6px 8px;
+
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+
+    background-color: var(--background);
+
+    color: var(--text);
+
+    font-size: 13px;
+
+    cursor: pointer;
+}
+
+
+/* =========================
+   Apply Button
+========================= */
+
+.applyButton {
+    padding: 6px 14px;
+
+    border-radius: var(--radius-sm);
+
+    background-color: var(--admin-primary);
+
+    color: var(--admin-text);
+
+    font-size: 13px;
+
+    transition: background-color 0.2s;
+}
+
+.applyButton:hover {
+    background-color: var(--admin-primary-hover);
+}
+
+
+/* =========================
+   Empty
+========================= */
+
+.empty {
+    height: 150px;
+
+    color: var(--text-secondary) !important;
+}

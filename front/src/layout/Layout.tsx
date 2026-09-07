@@ -1,4 +1,6 @@
 import React from 'react';
+import styles from './layout.module.css'
+import Navbar from './Navbar';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -7,17 +9,18 @@ interface LayoutProps {
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
     <>
-      <header>
-        {/* Header */}
-      </header>
+      <div className={styles.layout}>
+        <header className={styles.header}>
+          <div className="container">
+            {/* Header */}
+            <Navbar />
+          </div>
+        </header>
 
-      <main>
-        {children}
-      </main>
-
-      <footer>
-        {/* ooter */}
-      </footer>
+        <main className={styles.main}>
+          {children}
+        </main>
+      </div>
     </>
   );
 };

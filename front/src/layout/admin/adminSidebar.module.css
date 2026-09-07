@@ -1,0 +1,49 @@
+.sidebar {
+    width: 240px;
+    min-height: calc(100vh - 70px);
+    padding: 24px 16px;
+
+    background-color: var(--admin-sidebar);
+    border-right: 1px solid var(--border);
+
+    box-sizing: border-box;
+}
+
+.title {
+    padding: 0 12px 20px;
+
+    color: var(--admin-text);
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.menu {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.menuItem {
+    display: block;
+    padding: 12px;
+
+    border-radius: var(--radius-sm);
+
+    color: var(--admin-text-secondary);
+    font-size: 15px;
+
+    transition:
+        background-color 0.2s,
+        color 0.2s;
+}
+
+.menuItem:hover {
+    background-color: var(--admin-sidebar-hover);
+    color: var(--admin-text);
+}
+
+.active {
+    background-color: var(--admin-sidebar-active);
+    color: var(--admin-text);
+    font-weight: 600;
+}

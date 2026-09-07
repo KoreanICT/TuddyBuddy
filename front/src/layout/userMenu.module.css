@@ -1,0 +1,206 @@
+/* =========================
+   User Menu
+========================= */
+
+.userMenu {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-left: auto;
+}
+
+
+/* =========================
+   Auth
+========================= */
+
+.authButton {
+  font-size: 14px;
+  color: var(--text-secondary);
+
+  transition: color 0.2s ease;
+}
+
+.authButton:hover {
+  color: var(--text);
+}
+
+
+/* =========================
+   Profile Button
+========================= */
+
+.profileButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+
+  transition: color 0.2s ease;
+}
+
+.profileButton:hover {
+  color: var(--primary);
+}
+
+.profileIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 32px;
+  height: 32px;
+
+  border: 1px solid var(--border);
+  border-radius: 50%;
+
+  font-size: 16px;
+}
+
+
+/* =========================
+   Overlay
+========================= */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+
+  background: rgba(0, 0, 0, 0.4);
+
+  opacity: 0;
+  visibility: hidden;
+
+  transition:
+    opacity 0.3s ease,
+    visibility 0.3s ease;
+
+  z-index: 200;
+}
+
+.overlay.open {
+  opacity: 1;
+  visibility: visible;
+}
+
+
+/* =========================
+   Drawer
+========================= */
+
+.drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+
+  width: 320px;
+  height: 100vh;
+
+  display: flex;
+  flex-direction: column;
+
+  background-color: var(--background);
+
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+
+  z-index: 300;
+}
+
+.drawer.open {
+  transform: translateX(0);
+}
+
+
+/* =========================
+   Drawer Header
+========================= */
+
+.drawerHeader {
+  height: 72px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 0 24px;
+
+  border-bottom: 1px solid var(--border);
+}
+
+.drawerTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.closeButton {
+  font-size: 28px;
+  line-height: 1;
+  color: var(--text-secondary);
+
+  transition: color 0.2s ease;
+}
+
+.closeButton:hover {
+  color: var(--text);
+}
+
+
+/* =========================
+   Drawer Menu
+========================= */
+
+.drawerMenu {
+  display: flex;
+  flex-direction: column;
+
+  padding: 16px 0;
+}
+
+.drawerMenu a {
+  display: flex;
+  align-items: center;
+
+  min-height: 52px;
+  padding: 0 24px;
+
+  font-size: 15px;
+  color: var(--text);
+
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.drawerMenu a:hover {
+  background-color: var(--background-secondary);
+  color: var(--primary);
+}
+
+
+/* =========================
+   Drawer Footer
+========================= */
+
+.drawerFooter {
+  margin-top: auto;
+
+  padding: 20px 24px;
+
+  border-top: 1px solid var(--border);
+}
+
+.drawerFooter button {
+  font-size: 14px;
+  color: var(--text-secondary);
+
+  transition: color 0.2s ease;
+}
+
+.drawerFooter button:hover {
+  color: var(--text);
+}
