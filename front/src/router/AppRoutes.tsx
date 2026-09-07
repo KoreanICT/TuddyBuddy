@@ -15,6 +15,9 @@ import BoardManagement from "../cont/admin/board/BoardManagement";
 import StudentCode from "../cont/friend/StudentCode";
 import FriendAdd from "../cont/friend/FriendAdd";
 import FriendList from "../cont/friend/FriendList";
+import ReportList from "../cont/admin/report/ReportList";
+import ReportDetail from "../cont/admin/report/ReportDetail";
+import ReportReply from "../cont/admin/report/ReportReply";
 
 interface RouteItem {
     path: string;
@@ -49,6 +52,10 @@ const AppRoutes: React.FC = () => {
         { path: "/admin", element: <AdminHome /> },
         { path: "/admin/memberManagement", element: <MemberManagement /> },
         { path: "/admin/boardManagement", element: <BoardManagement /> },
+        { path: "/admin/reportList", element: <ReportList /> },
+        { path: "/admin/reportDetail/:id", element: <ReportDetail /> },
+        { path: "/admin/reportReply/:id", element: <ReportReply /> },
+
 
         // user? auth? account?
     ];
