@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import styles from './home.module.css';
 
 import fullpage from 'fullpage.js';
@@ -17,7 +17,8 @@ const Home: React.FC = () => {
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
   const [isEmailPolicyOpen, setIsEmailPolicyOpen] = useState(false);
 
-
+  const navigate = useNavigate()
+  
   // =========================
   // FullPage
   // =========================
@@ -73,7 +74,7 @@ const Home: React.FC = () => {
                 함께 공부해보세요.
               </p>
 
-              <button className={styles.primaryButton}>
+              <button className={styles.primaryButton} onClick={()=>{navigate('/homeGroup')}}>
                 스터디 그룹 참가하기
               </button>
 
@@ -124,7 +125,7 @@ const Home: React.FC = () => {
                 학습 현황을 기록하며 꾸준히 공부할 수 있어요.
               </p>
 
-              <button className={styles.primaryButton}>
+              <button className={styles.primaryButton} onClick={()=>{navigate('/homeGroup')}}>
                 개인 스터디 시작하기
               </button>
 

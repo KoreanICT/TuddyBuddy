@@ -1,0 +1,278 @@
+/* 레이아웃 */
+.study_page_layout {
+    display: flex;
+    gap: 32px;
+    margin-top: 32px;
+    margin-bottom: 32px;
+}
+
+.study_main_content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.study_section_header h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 8px;
+}
+
+/* 카드 목록 */
+.study_list_wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.study_card {
+    padding: 20px 24px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background-color: var(--background);
+    color: var(--text);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.study_card_header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.study_card_title {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.study_card_desc {
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.study_card_footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--border);
+}
+
+/* 태그 & 배지 */
+.study_tags {
+    display: flex;
+    gap: 8px;
+}
+
+.study_tag {
+    font-size: 12px;
+    color: var(--primary);
+    background-color: var(--background-secondary);
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
+}
+
+.study_badge.my_role {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 2px 8px;
+    background-color: var(--background-secondary);
+    color: var(--primary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+}
+
+/* 카드 하단 우측 영역 (인원 수 & 버튼) */
+.study_card_info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.study_capacity {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.study_capacity.full {
+    color: #ef4444; /* 정원 초과 시 빨간색 */
+}
+
+/* 버튼 시리즈 */
+.study_action_btn {
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: var(--radius-sm);
+    transition: background-color 0.2s;
+}
+
+.study_action_btn.primary {
+    background-color: var(--primary);
+    color: var(--background);
+}
+
+.study_action_btn.primary:hover {
+    background-color: var(--primary-hover);
+}
+
+.study_action_btn.secondary {
+    background-color: var(--background-secondary);
+    color: var(--text);
+    border: 1px solid var(--border);
+}
+
+.study_action_btn.secondary:hover {
+    background-color: var(--border);
+}
+
+.study_action_btn.disabled {
+    background-color: var(--background-secondary);
+    color: var(--text-secondary);
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.study_empty_card {
+    padding: 40px;
+    text-align: center;
+    color: var(--text-secondary);
+    border: 1px dashed var(--border);
+    border-radius: var(--radius-md);
+}
+
+/* 우측 사이드바 컨테이너 */
+.study_sidebar_container {
+    width: 240px;
+    position: sticky;
+    top: 32px;
+    height: fit-content;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* 상단 메뉴 상자 */
+.study_menu_box {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 12px;
+    background-color: var(--background);
+}
+
+.study_menu_button {
+    width: 100%;
+    padding: 12px 16px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    border-radius: var(--radius-sm);
+    text-align: center;
+    transition: all 0.2s;
+}
+
+.study_menu_button:hover {
+    background-color: var(--background-secondary);
+    color: var(--text);
+}
+
+.study_menu_button.active {
+    color: var(--primary);
+    background-color: var(--background-secondary);
+}
+
+.study_menu_divider {
+    height: 1px;
+    background-color: var(--border);
+    margin: 6px 0;
+}
+
+/* 통합 검색 상자 */
+.sidebar_search_box {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background-color: var(--background);
+}
+
+.sidebar_search_select {
+    width: 100%;
+    padding: 8px 10px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background-color: var(--background-secondary);
+    outline: none;
+    cursor: pointer;
+}
+
+.sidebar_search_select:focus {
+    border-color: var(--primary);
+}
+
+.sidebar_search_input {
+    width: 100%;
+    padding: 8px 12px;
+    font-size: 14px;
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background-color: var(--background);
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.sidebar_search_input:focus {
+    border-color: var(--primary);
+}
+
+/* 모달 */
+.study_modal_overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.4);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.study_modal_box {
+    background-color: var(--background);
+    padding: 32px;
+    border-radius: var(--radius-md);
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.study_modal_close-btn {
+    padding: 8px 16px;
+    background-color: var(--primary);
+    color: var(--background);
+    border-radius: var(--radius-sm);
+    align-self: flex-end;
+}
+
+.study_modal_close_btn:hover {
+    background-color: var(--primary-hover);
+}

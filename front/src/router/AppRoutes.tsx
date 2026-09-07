@@ -1,4 +1,6 @@
-import { Route, Routes } from "react-router-dom";
+import React from "react";
+import { Route, Routes, useLocation } from "react-router-dom";
+
 import Home from "../cont/Home";
 import SelfStudy from "../cont/SelfStudy";
 interface RouteItem {
@@ -9,7 +11,11 @@ interface RouteItem {
 }
 
 const AppRoutes: React.FC = () => {
-    const routeList = [
+    const { pathname } = useLocation();
+
+    const isManage = pathname.startsWith("/admin");
+
+    const routeList: RouteItem[] = [
         { path: '/', element: <Home /> },
         { path: '/selfStudy', element: <SelfStudy /> },
     ]
@@ -25,4 +31,4 @@ const AppRoutes: React.FC = () => {
     )
 }
 
-export default AppRoutes
+export default AppRoutes;

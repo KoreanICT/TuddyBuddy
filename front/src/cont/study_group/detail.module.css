@@ -1,0 +1,199 @@
+/* 상단 내비게이션 (돌아가기 버튼 영역) */
+.top_navigation {
+    margin-top: 24px;
+    margin-bottom: 20px;
+}
+
+/* 입장하기 버튼과 동일한 규격 및 스타일 */
+.action_btn {
+    display: inline-block;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: var(--radius-sm);
+    transition: background-color 0.2s;
+    text-align: center;
+    line-height: normal;
+}
+
+.action_btn.primary {
+    background-color: var(--primary);
+    color: var(--background);
+}
+
+.action_btn.primary:hover {
+    background-color: var(--primary-hover);
+}
+
+/* 전체 페이지 레이아웃 */
+.detail_page_layout {
+    display: flex;
+    gap: 32px;
+    margin-bottom: 32px;
+}
+
+.detail_main_content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px; /* 상단 헤더 카드와 하단 탭 콘텐츠 간 간격 */
+}
+
+.detail_content_wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* 우측 사이드바 컨테이너 */
+.detail_sidebar_container {
+    width: 240px;
+    position: sticky;
+    top: 32px;
+    height: fit-content;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* 사이드바 메뉴 둥근 상자 */
+.detail_menu_box {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 12px;
+    background-color: var(--background);
+}
+
+.detail_menu_button {
+    width: 100%;
+    padding: 12px 16px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    border-radius: var(--radius-sm);
+    text-align: center;
+    transition: all 0.2s;
+}
+
+.detail_menu_button:hover {
+    background-color: var(--background-secondary);
+    color: var(--text);
+}
+
+.detail_menu_button.active {
+    color: var(--primary);
+    background-color: var(--background-secondary);
+}
+
+.detail_menu_divider {
+    height: 1px;
+    background-color: var(--border);
+    margin: 6px 0;
+}
+
+/* 상단 고정 스터디 프로필 헤더 카드 */
+.group_header_card {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 24px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background-color: var(--background);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.group_icon {
+    width: 56px;
+    height: 56px;
+    border-radius: var(--radius-md);
+    background-color: #6366f1;
+    color: #fff;
+    font-size: 24px;
+    font-weight: 700;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.group_title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.group_desc {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+}
+
+/* 상세 공통 섹션 카드 */
+.detail_section_card {
+    padding: 24px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background-color: var(--background);
+}
+
+.section_title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 16px;
+}
+
+.section_desc {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+}
+
+/* empty state 표시 */
+.empty_state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 0;
+    color: var(--text-secondary);
+}
+
+.clock_icon {
+    font-size: 32px;
+    margin-bottom: 8px;
+}
+
+.sub_text {
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+.empty_notice {
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+/* 업로드 창 플레이스홀더 */
+.upload_placeholder {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius-md);
+    padding: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--background-secondary);
+}
+
+.upload_btn {
+    padding: 10px 20px;
+    background-color: var(--primary);
+    color: var(--background);
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+}
+
+.upload_btn:hover {
+    background-color: var(--primary-hover);
+}
