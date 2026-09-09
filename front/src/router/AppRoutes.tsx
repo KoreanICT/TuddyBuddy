@@ -6,7 +6,6 @@ import React from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
 import VideoSummary from "../cont/video/VideoSummary";
 import { Group_Home } from "../cont/study_group/Group_Home";
-import Group_Create from "../cont/study_group/Group_Create";
 import { Group_Detail } from "../cont/study_group/Group_Detail";
 import AdminHome from "../cont/admin/AdminHome";
 import MemberManagement from "../cont/admin/member/MemberManagement";
@@ -22,6 +21,7 @@ import Layout from "../layout/Layout";
 import AdminLayout from "../layout/admin/AdminLayout";
 
 import SelfStudy from "../cont/SelfStudy";
+import TestParent from "../cont/study_group/TestParent";
 interface RouteItem {
     path: string;
     element: React.ReactElement;
@@ -39,10 +39,10 @@ const AppRoutes: React.FC = () => {
         { path: '/videoSummary', element: <VideoSummary /> },
 
 
-        { path: '/createGroup', element: <Group_Create /> },
         { path: '/homeGroup', element: <Group_Home /> },
         { path: '/group/detail', element: <Group_Detail /> },
-
+        { path: '/test', element: <TestParent /> },
+    
 
         // common
         { path: "/", element: <Home /> },
