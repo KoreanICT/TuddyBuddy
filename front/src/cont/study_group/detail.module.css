@@ -4,9 +4,11 @@
     margin-bottom: 20px;
 }
 
-/* 입장하기 버튼과 동일한 규격 및 스타일 */
+/* 입장하기 버튼 및 모달 내 액션 버튼 공통 규격 */
 .action_btn {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     padding: 6px 14px;
     font-size: 13px;
     font-weight: 600;
@@ -14,6 +16,7 @@
     transition: background-color 0.2s;
     text-align: center;
     line-height: normal;
+    white-space: nowrap; /* 버튼 텍스트 줄바꿈 방지 */
 }
 
 .action_btn.primary {
@@ -46,7 +49,7 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 20px; /* 상단 헤더 카드와 하단 탭 콘텐츠 간 간격 */
+    gap: 20px;
 }
 
 .detail_content_wrapper {
@@ -292,7 +295,6 @@
 
 /* Inputs & Selects */
 .form_input,
-.form_textarea,
 .form_select {
     width: 100%;
     padding: 10px 12px;
@@ -302,6 +304,21 @@
     color: var(--text);
     font-size: 14px;
     outline: none;
+    transition: border-color 0.2s;
+}
+
+/* 스터디룸 소개 텍스트 영역 높이 확장 및 리사이즈 비활성화 */
+.form_textarea {
+    width: 100%;
+    min-height: 120px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background-color: var(--background);
+    color: var(--text);
+    font-size: 14px;
+    outline: none;
+    resize: none; /* 리사이즈 핸들 제거 및 변경 불가 처리 */
     transition: border-color 0.2s;
 }
 
@@ -321,7 +338,7 @@
 .top_row_group {
     display: flex;
     gap: 16px;
-    align-items: flex-end;
+    align-items: flex-start; /* top 정렬로 스터디룸 이름 항목과 상단 높이 맞춤 */
 }
 
 .thumbnail_field {
@@ -478,7 +495,7 @@
 .form_label_inline {
     font-size: 13px;
     font-weight: 600;
-    color: var(--text);
+    color: var(--text); 
 }
 
 .compact_select {
@@ -503,4 +520,28 @@
     justify-content: flex-end;
     gap: 10px;
     margin-top: 12px;
+}
+
+/* --- 모달 스크롤바 서식 --- */
+
+/* 모달 스크롤 바 높이 */
+.modal_overlay ::-webkit-scrollbar {
+    width: 10px;
+    height: 20px;
+}
+
+.modal_overlay ::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px
+}
+
+.modal_overlay ::-webkit-scrollbar-button:vertical:start:decrement,
+.modal_overlay ::-webkit-scrollbar-button:vertical:start:increment {
+    display: block;
+    height: 25px;
+}
+.modal_overlay ::-webkit-scrollbar-button:vertical:end:increment,
+.modal_overlay ::-webkit-scrollbar-button:vertical:end:decrement {
+    display: block;
+    width: 25px;
 }

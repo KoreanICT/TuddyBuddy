@@ -13,7 +13,7 @@ interface TagItem {
     color: string;
 }
 
-const PRESET_COLORS = ['#e2e8f0', '#fef08a', '#bbf7d0', '#bfdbfe', '#fbcfe8', '#fed7aa'];
+const PRESET_COLORS = ['#e2e8f0', '#fef08a', '#bbf7d0', '#c0f2ff','#bfdbfe', '#fbcfe8', '#fed7aa'];
 
 export const Group_Create: React.FC<GroupCreateModalProps> = ({ isOpen, onClose, onSubmitSuccess }) => {
     const [title, setTitle] = useState('');
@@ -253,9 +253,9 @@ export const Group_Create: React.FC<GroupCreateModalProps> = ({ isOpen, onClose,
                             value={maxMembers}
                             onChange={(e) => setMaxMembers(Number(e.target.value))}
                         >
-                            <option value={5}>5명</option>
-                            <option value={10}>10명</option>
-                            <option value={15}>15명</option>
+                            <option value={5}>1명</option>
+                            <option value={10}>5명</option>
+                            <option value={15}>10명</option>
                             <option value={20}>20명</option>
                         </select>
                     </div>
