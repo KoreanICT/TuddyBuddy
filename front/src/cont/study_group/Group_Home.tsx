@@ -3,6 +3,8 @@ import { Group_Sidebar } from './Group_Sidebar';
 import { Group_Private } from './Group_Private';
 import { Group_Public } from './Group_Public';
 import styles from './group.module.css';
+import { Link } from 'react-router-dom';
+import { Group_Create } from './Group_Create';
 
 export const Group_Home: React.FC = () => {
     const [currentTab, setCurrentTab] = useState<'public' | 'my'>('public');
@@ -11,6 +13,10 @@ export const Group_Home: React.FC = () => {
     // 사이드바 공통 검색 상태
     const [searchType, setSearchType] = useState<'name' | 'tag'>('name');
     const [searchTerm, setSearchTerm] = useState<string>('');
+
+    // const [isCreateModalOpen, setIsCreateModalOpen] = useState<boolean>(false);
+    const openCreateModal = () => setIsModalOpen(true);
+    const closeCreateModal = () => setIsModalOpen(false);
 
     return (
         <div className="container">
@@ -37,17 +43,16 @@ export const Group_Home: React.FC = () => {
                 {isModalOpen && (
                     <div className={styles.study_modal_overlay} onClick={() => setIsModalOpen(false)}>
                         <div className={styles.study_modal_box} onClick={(e) => e.stopPropagation()}>
-                            <h2>스터디룸 생성</h2>
-                            <p>스터디 이름 및 정원(5명, 10명 등) 설정 폼 영역입니다.</p>
-                            <button
-                                className={styles.study_modal_close_btn}
-                                onClick={() => setIsModalOpen(false)}
-                            >
-                                닫기
-                            </button>
+                            
+                            <Group_Create isOpen={isModalOpen} onClose={closeCreateModal} />
                         </div>
                     </div>
                 )}
+
+                {/* <Group_Create
+                    isModalOpen={isModalOpen}
+                    onClose={closeCreateModal}
+                /> */}
             </div>
         </div>
     );
