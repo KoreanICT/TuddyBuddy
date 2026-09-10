@@ -6,6 +6,7 @@ import fullpage from 'fullpage.js';
 import 'fullpage.js/dist/fullpage.css';
 
 import Modal from './modal/Modal';
+import FaceDetector from './detect/FaceDetector';
 
 const Home: React.FC = () => {
 
@@ -18,7 +19,7 @@ const Home: React.FC = () => {
   const [isEmailPolicyOpen, setIsEmailPolicyOpen] = useState(false);
 
   const navigate = useNavigate()
-  
+
   // =========================
   // FullPage
   // =========================
@@ -74,7 +75,7 @@ const Home: React.FC = () => {
                 함께 공부해보세요.
               </p>
 
-              <button className={styles.primaryButton} onClick={()=>{navigate('/homeGroup')}}>
+              <button className={styles.primaryButton} onClick={() => { navigate('/homeGroup') }}>
                 스터디 그룹 참가하기
               </button>
 
@@ -82,11 +83,7 @@ const Home: React.FC = () => {
 
 
             <div className={styles.visual}>
-              <img
-                src="/images/groupStudy.png"
-                alt="스터디 그룹에서 함께 공부하는 모습"
-                className={styles.sectionImage}
-              />
+              <FaceDetector />
             </div>
 
           </div>
@@ -125,7 +122,7 @@ const Home: React.FC = () => {
                 학습 현황을 기록하며 꾸준히 공부할 수 있어요.
               </p>
 
-              <button className={styles.primaryButton} onClick={()=>{navigate('/homeGroup')}}>
+              <button className={styles.primaryButton} onClick={() => { navigate('/homeGroup') }}>
                 개인 스터디 시작하기
               </button>
 
