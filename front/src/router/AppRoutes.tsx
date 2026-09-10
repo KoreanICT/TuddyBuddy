@@ -13,6 +13,7 @@ import BoardManagement from "../cont/admin/board/BoardManagement";
 import StudentCode from "../cont/friend/StudentCode";
 import FriendAdd from "../cont/friend/FriendAdd";
 import FriendList from "../cont/friend/FriendList";
+import Community from "../cont/community/Community";
 import ReportList from "../cont/admin/report/ReportList";
 import ReportDetail from "../cont/admin/report/ReportDetail";
 import ReportReply from "../cont/admin/report/ReportReply";
@@ -22,11 +23,10 @@ import AdminLayout from "../layout/admin/AdminLayout";
 
 import SelfStudy from "../cont/SelfStudy";
 
+import ReportCreate from "../cont/report/ReportCreate";
 interface RouteItem {
     path: string;
     element: React.ReactElement;
-    private?: boolean;
-    role?: string;
 }
 
 const AppRoutes: React.FC = () => {
@@ -37,6 +37,7 @@ const AppRoutes: React.FC = () => {
     const routeList: RouteItem[] = [
         { path: '/', element: <Home /> },
         { path: '/videoSummary', element: <VideoSummary /> },
+        { path: '/community', element: <Community /> }, 
 
 
         { path: '/homeGroup', element: <Group_Home /> },
@@ -51,6 +52,7 @@ const AppRoutes: React.FC = () => {
         { path: '/point', element: <ProductSelector /> },
         { path: '/statistics', element: <PerformanceAnalytics /> },
         { path: '/selfStudy', element: <SelfStudy /> },
+        { path: '/reportCreate', element: <ReportCreate /> },
 
 
         // admin
@@ -65,7 +67,7 @@ const AppRoutes: React.FC = () => {
     ];
 
 
-return (
+    return (
         <>
             {isManage ? (
                 <AdminLayout>
