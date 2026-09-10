@@ -94,9 +94,9 @@ const FacePanel:
 
                     <video
                         ref={videoRef}
-                        autoPlay
                         muted
                         playsInline
+                        data-keepplaying
                         className={styles.video}
                     />
 
