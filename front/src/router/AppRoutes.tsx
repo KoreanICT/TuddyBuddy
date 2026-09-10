@@ -21,7 +21,7 @@ import Layout from "../layout/Layout";
 import AdminLayout from "../layout/admin/AdminLayout";
 
 import SelfStudy from "../cont/SelfStudy";
-import TestParent from "../cont/study_group/TestParent";
+
 interface RouteItem {
     path: string;
     element: React.ReactElement;
@@ -41,7 +41,6 @@ const AppRoutes: React.FC = () => {
 
         { path: '/homeGroup', element: <Group_Home /> },
         { path: '/group/detail', element: <Group_Detail /> },
-        { path: '/test', element: <TestParent /> },
     
 
         // common
