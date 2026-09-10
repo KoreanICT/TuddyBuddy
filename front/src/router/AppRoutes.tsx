@@ -23,11 +23,10 @@ import Layout from "../layout/Layout";
 import AdminLayout from "../layout/admin/AdminLayout";
 
 import SelfStudy from "../cont/SelfStudy";
+import ReportCreate from "../cont/report/ReportCreate";
 interface RouteItem {
     path: string;
     element: React.ReactElement;
-    private?: boolean;
-    role?: string;
 }
 
 const AppRoutes: React.FC = () => {
@@ -54,6 +53,7 @@ const AppRoutes: React.FC = () => {
         { path: '/point', element: <ProductSelector /> },
         { path: '/statistics', element: <PerformanceAnalytics /> },
         { path: '/selfStudy', element: <SelfStudy /> },
+        { path: '/reportCreate', element: <ReportCreate /> },
 
 
         // admin
@@ -68,7 +68,7 @@ const AppRoutes: React.FC = () => {
     ];
 
 
-return (
+    return (
         <>
             {isManage ? (
                 <AdminLayout>
