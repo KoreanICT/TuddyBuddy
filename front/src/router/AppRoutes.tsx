@@ -1,5 +1,8 @@
 
 import Home from "../cont/Home";
+import Login from "../member/Login";
+import Signup from "../member/Signup"
+import MyPage from "../mypage/MyPage";
 import { ProductSelector } from "../cont/point/ProductSelector";
 import PerformanceAnalytics from "../cont/statistics/PerformanceAnalytics";
 import React from "react";
@@ -36,6 +39,10 @@ const AppRoutes: React.FC = () => {
 
     const routeList: RouteItem[] = [
         { path: '/', element: <Home /> },
+        { path: '/member', element: <Login/>},
+        { path: '/signup', element: <Signup/>},
+        { path: '/mypage', element: <MyPage/>},
+
         { path: '/videoSummary', element: <VideoSummary /> },
         { path: '/community', element: <Community /> }, 
 
