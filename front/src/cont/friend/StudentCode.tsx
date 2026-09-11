@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import styles from './studentCode.module.css';
-import Modal from '../modal/Modal';
+import StudentCodeModal from './StudentCodeModal';
 
 const StudentCode: React.FC = () => {
 
@@ -48,32 +48,12 @@ const StudentCode: React.FC = () => {
             </div>
 
 
-            {/* Modal */}
-            <Modal
+            {/* Student Code Modal */}
+            <StudentCodeModal
                 isOpen={isOpen}
                 onClose={() => setIsOpen(false)}
-                title="내 스터던트 코드"
-            >
-                <div className={styles.modalContent}>
-
-                    <p className={styles.modalDescription}>
-                        친구가 나를 추가할 때 아래 코드를 입력하면 됩니다.
-                    </p>
-
-                    <div className={styles.codeBox}>
-                        {studentCode}
-                    </div>
-
-                    <button
-                        type="button"
-                        className={styles.confirmButton}
-                        onClick={() => setIsOpen(false)}
-                    >
-                        확인
-                    </button>
-
-                </div>
-            </Modal>
+                studentCode={studentCode}
+            />
 
         </div>
     );
