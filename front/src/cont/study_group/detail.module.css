@@ -1,0 +1,547 @@
+/* 상단 내비게이션 (돌아가기 버튼 영역) */
+.top_navigation {
+    margin-top: 24px;
+    margin-bottom: 20px;
+}
+
+/* 입장하기 버튼 및 모달 내 액션 버튼 공통 규격 */
+.action_btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: var(--radius-sm);
+    transition: background-color 0.2s;
+    text-align: center;
+    line-height: normal;
+    white-space: nowrap; /* 버튼 텍스트 줄바꿈 방지 */
+}
+
+.action_btn.primary {
+    background-color: var(--primary);
+    color: var(--background);
+}
+
+.action_btn.primary:hover {
+    background-color: var(--primary-hover);
+}
+
+.action_btn.secondary {
+    background-color: var(--background-secondary);
+    color: var(--text);
+    border: 1px solid var(--border);
+}
+
+.action_btn.secondary:hover {
+    background-color: var(--border);
+}
+
+/* 전체 페이지 레이아웃 */
+.detail_page_layout {
+    display: flex;
+    gap: 32px;
+    margin-bottom: 32px;
+}
+
+.detail_main_content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.detail_content_wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* 우측 사이드바 컨테이너 */
+.detail_sidebar_container {
+    width: 240px;
+    position: sticky;
+    top: 32px;
+    height: fit-content;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* 사이드바 메뉴 둥근 상자 */
+.detail_menu_box {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 12px;
+    background-color: var(--background);
+}
+
+.detail_menu_button {
+    width: 100%;
+    padding: 12px 16px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    border-radius: var(--radius-sm);
+    text-align: center;
+    transition: all 0.2s;
+}
+
+.detail_menu_button:hover {
+    background-color: var(--background-secondary);
+    color: var(--text);
+}
+
+.detail_menu_button.active {
+    color: var(--primary);
+    background-color: var(--background-secondary);
+}
+
+.detail_menu_divider {
+    height: 1px;
+    background-color: var(--border);
+    margin: 6px 0;
+}
+
+/* 상단 고정 스터디 프로필 헤더 카드 */
+.group_header_card {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 24px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background-color: var(--background);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.group_icon {
+    width: 56px;
+    height: 56px;
+    border-radius: var(--radius-md);
+    background-color: #6366f1;
+    color: #fff;
+    font-size: 24px;
+    font-weight: 700;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.group_title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.group_desc {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+}
+
+/* 상세 공통 섹션 카드 */
+.detail_section_card {
+    padding: 24px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background-color: var(--background);
+}
+
+.section_title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 16px;
+}
+
+.section_desc {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+}
+
+/* empty state 표시 */
+.empty_state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 0;
+    color: var(--text-secondary);
+}
+
+.clock_icon {
+    font-size: 32px;
+    margin-bottom: 8px;
+}
+
+.sub_text {
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+.empty_notice {
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+/* 업로드 창 플레이스홀더 */
+.upload_placeholder {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius-md);
+    padding: 24px;
+    text-align: center;
+    cursor: pointer;
+    color: var(--text-secondary);
+    background-color: var(--background-secondary);
+    transition: border-color 0.2s;
+}
+
+.upload_placeholder:hover {
+    border-color: var(--primary);
+}
+
+.upload_btn {
+    padding: 10px 20px;
+    background-color: var(--primary);
+    color: var(--background);
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+}
+
+.upload_btn:hover {
+    background-color: var(--primary-hover);
+}
+
+/* Modal Style */
+.modal_overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.4);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal_container {
+    background-color: var(--background);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    width: 100%;
+    max-width: 520px;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 24px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.modal_header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.modal_header h2 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.close_btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--text-secondary);
+}
+
+/* Form Styling */
+.create_form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.form_group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form_label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.form_label_sub {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 8px;
+    display: block;
+}
+
+.required {
+    color: #ef4444;
+}
+
+/* Inputs & Selects */
+.form_input,
+.form_select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background-color: var(--background);
+    color: var(--text);
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+/* 스터디룸 소개 텍스트 영역 높이 확장 및 리사이즈 비활성화 */
+.form_textarea {
+    width: 100%;
+    min-height: 120px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background-color: var(--background);
+    color: var(--text);
+    font-size: 14px;
+    outline: none;
+    resize: none; /* 리사이즈 핸들 제거 및 변경 불가 처리 */
+    transition: border-color 0.2s;
+}
+
+.form_input:focus,
+.form_textarea:focus,
+.form_select:focus {
+    border-color: var(--primary);
+}
+
+.inline_input_group {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+/* --- 상단 썸네일 + 이름 2컬럼 레이아웃 --- */
+.top_row_group {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start; /* top 정렬로 스터디룸 이름 항목과 상단 높이 맞춤 */
+}
+
+.thumbnail_field {
+    width: 100px;
+    flex-shrink: 0;
+}
+
+.title_field {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+/* 정사각형 썸네일 박스 (1:1 비율) */
+.square_image_upload_box {
+    width: 100px;
+    height: 100px;
+}
+
+.square_upload_placeholder {
+    width: 100%;
+    height: 100%;
+    border: 2px dashed var(--border);
+    border-radius: var(--radius-md);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    color: var(--text-secondary);
+    background-color: var(--background-secondary);
+    font-size: 12px;
+    text-align: center;
+    padding: 8px;
+    transition: border-color 0.2s;
+}
+
+.square_upload_placeholder:hover {
+    border-color: var(--primary);
+}
+
+.square_preview_wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.square_thumbnail_preview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+}
+
+.remove_img_btn {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 2px 6px;
+    font-size: 11px;
+    cursor: pointer;
+}
+
+/* Checkbox & Invite Code */
+.checkbox_label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.invite_code_box {
+    background-color: var(--background-secondary);
+    padding: 12px;
+    border-radius: var(--radius-md);
+    margin-top: 8px;
+}
+
+/* Tag Picker & Color Dots */
+.tag_color_picker {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.picker_title {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.color_dot {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+
+.color_dot.selected_color {
+    transform: scale(1.2);
+    border-color: var(--text);
+}
+
+.tag_list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+}
+
+.custom_tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    color: #1e293b;
+    font-weight: 500;
+}
+
+.remove_tag_btn {
+    background: none;
+    border: none;
+    font-size: 14px;
+    cursor: pointer;
+    color: #64748b;
+    padding: 0;
+    line-height: 1;
+}
+
+.remove_tag_btn:hover {
+    color: #0f172a;
+}
+
+/* --- 최하단 인원 설정 (우측 배치 및 축소) --- */
+.bottom_member_row {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.form_label_inline {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text); 
+}
+
+.compact_select {
+    width: auto;
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background-color: var(--background);
+    color: var(--text);
+    font-size: 13px;
+    outline: none;
+    cursor: pointer;
+}
+
+.compact_select:focus {
+    border-color: var(--primary);
+}
+
+/* Modal Actions */
+.modal_actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+/* --- 모달 스크롤바 서식 --- */
+
+/* 모달 스크롤 바 높이 */
+.modal_overlay ::-webkit-scrollbar {
+    width: 10px;
+    height: 20px;
+}
+
+.modal_overlay ::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px
+}
+
+.modal_overlay ::-webkit-scrollbar-button:vertical:start:decrement,
+.modal_overlay ::-webkit-scrollbar-button:vertical:start:increment {
+    display: block;
+    height: 25px;
+}
+.modal_overlay ::-webkit-scrollbar-button:vertical:end:increment,
+.modal_overlay ::-webkit-scrollbar-button:vertical:end:decrement {
+    display: block;
+    width: 25px;
+}

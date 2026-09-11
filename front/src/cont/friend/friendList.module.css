@@ -1,0 +1,163 @@
+.friendList {
+    width: 100%;
+}
+
+.header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+
+    margin-bottom: 30px;
+}
+
+.header h1 {
+    margin-bottom: 6px;
+
+    color: var(--text);
+
+    font-size: 28px;
+    font-weight: 700;
+}
+
+.header p {
+    color: var(--text-secondary);
+
+    font-size: 14px;
+}
+
+.count {
+    color: var(--text-secondary);
+
+    font-size: 14px;
+}
+
+
+/* =========================
+   Friend List
+========================= */
+
+.list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    max-width: 700px;
+}
+
+.friend {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 18px 20px;
+
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+
+    background-color: var(--background);
+
+    transition: box-shadow 0.2s;
+}
+
+.friend:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+
+/* =========================
+   Profile
+========================= */
+
+.profile {
+    display: flex;
+    align-items: center;
+}
+
+.profileImage {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 48px;
+    height: 48px;
+
+    margin-right: 14px;
+
+    border-radius: 50%;
+
+    background-color: var(--background-secondary);
+
+    font-size: 20px;
+}
+
+.info h2 {
+    margin-bottom: 3px;
+
+    color: var(--text);
+
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.info p {
+    color: var(--text-secondary);
+
+    font-size: 13px;
+}
+
+
+/* =========================
+   Right
+========================= */
+
+.right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.status {
+    font-size: 13px;
+}
+
+.online {
+    color: #16a34a;
+}
+
+.offline {
+    color: var(--text-secondary);
+}
+
+.deleteButton {
+    padding: 8px 14px;
+
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+
+    color: var(--text-secondary);
+
+    font-size: 13px;
+}
+
+.deleteButton:hover {
+    background-color: var(--background-secondary);
+    color: var(--text);
+}
+
+
+/* =========================
+   Empty
+========================= */
+
+.empty {
+    padding: 60px 20px;
+
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+
+    background-color: var(--background-secondary);
+
+    color: var(--text-secondary);
+
+    text-align: center;
+}
