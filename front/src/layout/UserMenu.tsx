@@ -83,11 +83,11 @@ const UserMenu: React.FC = () => {
                         내정보
                     </NavLink>
 
-                    <NavLink to="/learning" onClick={closeMenu}>
+                    <NavLink to="/homeGroup" onClick={closeMenu}>
                         학습현황
                     </NavLink>
 
-                    <NavLink to="/study/create" onClick={closeMenu}>
+                    <NavLink to="/homeGroup" onClick={closeMenu}>
                         스터디 생성
                     </NavLink>
 
