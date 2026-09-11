@@ -16,7 +16,7 @@ const UserMenu: React.FC = () => {
     if (!isLogin) {
         return (
             <div className={styles.userMenu}>
-                <Link to="/login" className={styles.authButton}>
+                <Link to="/member" className={styles.authButton}>
                     로그인
                 </Link>
 
@@ -30,7 +30,7 @@ const UserMenu: React.FC = () => {
     else return (
         <>
             <div className={styles.userMenu}>
-                <Link to="/login" className={styles.authButton}>
+                <Link to="/member" className={styles.authButton}>
                     로그인
                 </Link>
 
