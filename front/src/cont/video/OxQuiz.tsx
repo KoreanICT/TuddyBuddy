@@ -1,31 +1,31 @@
 import React from 'react'
-import style from './videoSummary.module.css'
+import styles from './videoSummary.module.css'
 
 
 const OxQuiz: React.FC = () => {
     return (
-        <section className={style.oxQuiz}>
-            <div className={style.oxHeader}>
-                <span className={style.oxLabel}>
+        <section className={styles.oxQuiz}>
+            <div className={styles.oxHeader}>
+                <span className={styles.oxLabel}>
                     QUIZ
                 </span>
-                <h2 className={style.oxTitle}>
+                <h2 className={styles.oxTitle}>
                     O/X 퀴즈
                 </h2>
-                <p className={style.oxDescription}>
+                <p className={styles.oxDescription}>
                     영상 내용을 얼마나 이해했는지 확인해보세요.
                 </p>
             </div>
-            <div className={style.oxProgress}>
+            <div className={styles.oxProgress}>
                 <span>문제 1</span>
                 <span>1 / 5</span>
             </div>
-            <p className={style.oxQuestion}>
+            <p className={styles.oxQuestion}>
                 문제 1. 내용
             </p>
-            <div className={style.oxButtons}>
-                <button type='button' className={style.oxButton}>O</button>
-                <button type='button' className={style.oxButton}>X</button>
+            <div className={styles.oxButtons}>
+                <button type='button' className={styles.oxButton}>O</button>
+                <button type='button' className={styles.oxButton}>X</button>
             </div>
         </section>
     )

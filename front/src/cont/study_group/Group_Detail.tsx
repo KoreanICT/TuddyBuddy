@@ -8,6 +8,7 @@ import { Detail_Image } from './Detail_Image';
 import { Detail_Member } from './Detail_Member';
 import { Detail_Project } from './Detail_Project';
 import VideoSummary from '../video/VideoSummary';
+import { GiHamburgerMenu } from "react-icons/gi";
 
 interface GroupDetailProps {
     onBackToHome?: () => void;
@@ -15,6 +16,7 @@ interface GroupDetailProps {
 
 export const Group_Detail: React.FC<GroupDetailProps> = ({ onBackToHome }) => {
     const [currentTab, setCurrentTab] = useState<DetailTab>('overview');
+
 
     return (
         <div className="container">
@@ -63,6 +65,7 @@ export const Group_Detail: React.FC<GroupDetailProps> = ({ onBackToHome }) => {
                 <Detail_Sidebar
                     currentTab={currentTab}
                     onTabChange={(tab) => setCurrentTab(tab)}
+                    isOpen={false}
                 />
             </div>
         </div>

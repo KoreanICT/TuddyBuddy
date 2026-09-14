@@ -6,6 +6,7 @@ export type DetailTab = 'overview' | 'video' | 'image' | 'memo' | 'member' | 'pr
 interface DetailSidebarProps {
     currentTab: DetailTab;
     onTabChange: (tab: DetailTab) => void;
+    isOpen: boolean;
 }
 
 interface SidebarDirection {
@@ -14,7 +15,7 @@ interface SidebarDirection {
     detail: string;
 }
 
-export const Detail_Sidebar: React.FC<DetailSidebarProps> = ({ currentTab, onTabChange }) => {
+export const Detail_Sidebar: React.FC<DetailSidebarProps> = ({ currentTab, onTabChange, }) => {
 
     const sidebarContent: SidebarDirection[] = [
         {
@@ -50,24 +51,17 @@ export const Detail_Sidebar: React.FC<DetailSidebarProps> = ({ currentTab, onTab
     ]
 
     const [isOpen, setIsOpen] = useState<boolean>(false);
-    const openhandler = () => {
-        if (isOpen === false) {
-            setIsOpen(true);
-        }
-        else if (isOpen === true) {
-            setIsOpen(false);
-        }
-    }
+
     return (
         <aside className={styles.detail_sidebar_container}>
             <nav className={styles.detail_menu_box}>
                 <button
                     className={`${styles.detail_menu_button}`}
-                    onClick={() => openhandler()}
+                    onClick={() => setIsOpen((prev) => !prev)}
                 >
                     메뉴
                 </button>
-                {isOpen || sidebarContent.map((e) => (
+                {isOpen && sidebarContent.map((e) => (
                     <>
                         <div className={styles.detail_menu_divider} />
                         <button
