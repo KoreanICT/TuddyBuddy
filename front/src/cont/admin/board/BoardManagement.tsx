@@ -8,11 +8,9 @@ const BoardManagement: React.FC = () => {
 
     return (
         <div className={styles.board}>
-
             {/* =========================
                 Header
             ========================= */}
-
             <div className={styles.header}>
                 <div>
                     <h1>게시판 관리</h1>

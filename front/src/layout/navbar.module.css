@@ -23,11 +23,21 @@
 ========================= */
 
 .logo {
+    display: flex;
+    align-items: center;
+
     flex-shrink: 0;
 
-    font-size: 22px;
-    font-weight: 800;
-    color: var(--primary);
+    text-decoration: none;
+}
+
+.logoImage {
+    display: block;
+
+    width: auto;
+    height: 58px;
+
+    object-fit: contain;
 }
 
 

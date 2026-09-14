@@ -8,7 +8,6 @@
 
 .header h1 {
     margin-bottom: 6px;
-
     color: var(--text);
     font-size: 28px;
     font-weight: 700;
@@ -20,23 +19,16 @@
 }
 
 
-/* =========================
-   Student Code Card
-========================= */
+/* Student Code Card */
 
 .card {
     display: flex;
     align-items: center;
-
     max-width: 700px;
-
     padding: 28px;
-
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
-
     background-color: var(--background);
-
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
 }
 
@@ -44,16 +36,11 @@
     display: flex;
     align-items: center;
     justify-content: center;
-
     width: 56px;
     height: 56px;
-
     margin-right: 20px;
-
     border-radius: 50%;
-
     background-color: var(--background-secondary);
-
     font-size: 24px;
 }
 
@@ -63,9 +50,7 @@
 
 .info h2 {
     margin-bottom: 4px;
-
     color: var(--text);
-
     font-size: 18px;
     font-weight: 600;
 }
@@ -76,81 +61,17 @@
 }
 
 
-/* =========================
-   Button
-========================= */
+/* Button */
 
 .viewButton {
     padding: 10px 18px;
-
     border-radius: var(--radius-sm);
-
     background-color: var(--primary);
-
     color: var(--background);
-
     font-size: 14px;
     font-weight: 500;
 }
 
 .viewButton:hover {
-    background-color: var(--primary-hover);
-}
-
-
-/* =========================
-   Modal Content
-========================= */
-
-.modalContent {
-    text-align: center;
-}
-
-.modalDescription {
-    margin-bottom: 20px;
-
-    color: var(--text-secondary);
-
-    font-size: 14px;
-}
-
-
-/* =========================
-   Student Code
-========================= */
-
-.codeBox {
-    margin-bottom: 20px;
-    padding: 16px;
-
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-
-    background-color: var(--background-secondary);
-
-    color: var(--primary);
-
-    font-size: 14px;
-    font-weight: 600;
-
-    word-break: break-all;
-}
-
-.confirmButton {
-    width: 100%;
-
-    padding: 11px;
-
-    border-radius: var(--radius-sm);
-
-    background-color: var(--primary);
-
-    color: var(--background);
-
-    font-size: 14px;
-    font-weight: 600;
-}
-
-.confirmButton:hover {
     background-color: var(--primary-hover);
 }

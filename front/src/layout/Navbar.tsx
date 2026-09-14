@@ -16,9 +16,13 @@ const Navbar: React.FC = () => {
                 <div className={styles.inner}>
 
                     {/* Logo */}
-                    <div className={styles.logo}>
-                        프로젝트 로고
-                    </div>
+                    <NavLink to="/" className={styles.logo}>
+                        <img
+                            src="/images/logo.png"
+                            alt="TuddyBuddy"
+                            className={styles.logoImage}
+                        />
+                    </NavLink>
 
                     {/* Navigation */}
                     <ul className={styles.menu}>
@@ -44,21 +48,11 @@ const Navbar: React.FC = () => {
                             <NavLink to="/SelfStudy" className={linkClass}>
                                 개인 스터디
                             </NavLink>
-                        </li> */}
+                        </li>
 
                         <li>
                             <NavLink to="/statistics" className={linkClass}>
                                 평가분석
-                            </NavLink>
-                        </li>
-                        <li>
-                            <NavLink to="/test2" className={linkClass}>
-                                테스트2
-                            </NavLink>
-                        </li>
-                        <li>
-                            <NavLink to="/test3" className={linkClass}>
-                                테스트3
                             </NavLink>
                         </li>
                         <li>
@@ -68,7 +62,7 @@ const Navbar: React.FC = () => {
                         </li>
                         <li>
                             <NavLink to="/friend/add" className={linkClass}>
-                                친구
+                                친구 추가
                             </NavLink>
                         </li>
                     </ul>

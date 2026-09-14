@@ -39,7 +39,7 @@ const AdminSidebar: React.FC = () => {
                 </NavLink>
 
                 <NavLink
-                    to="/admin/reports"
+                    to="/admin/reportList"
                     className={({ isActive }) =>
                         `${styles.menuItem} ${isActive ? styles.active : ''}`
                     }
@@ -54,6 +54,14 @@ const AdminSidebar: React.FC = () => {
                     }
                 >
                     스터디 관리
+                </NavLink>
+                <NavLink
+                    to="/"
+                    className={({ isActive }) =>
+                        `${styles.menuItem} ${isActive ? styles.active : ''}`
+                    }
+                >
+                    홈으로
                 </NavLink>
             </nav>
         </aside>
