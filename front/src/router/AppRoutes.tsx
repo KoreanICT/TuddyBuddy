@@ -16,7 +16,7 @@ import BoardManagement from "../cont/admin/board/BoardManagement";
 import StudentCode from "../cont/friend/StudentCode";
 import FriendAdd from "../cont/friend/FriendAdd";
 import FriendList from "../cont/friend/FriendList";
-import Community from "../cont/community/Community";
+//import Community from "../cont/community/Community";
 import ReportList from "../cont/admin/report/ReportList";
 import ReportDetail from "../cont/admin/report/ReportDetail";
 import ReportReply from "../cont/admin/report/ReportReply";
@@ -44,7 +44,7 @@ const AppRoutes: React.FC = () => {
         { path: '/mypage', element: <MyPage/>},
 
         { path: '/videoSummary', element: <VideoSummary /> },
-        { path: '/community', element: <Community /> }, 
+        //{ path: '/community', element: <Community /> }, 
 
 
         { path: '/homeGroup', element: <Group_Home /> },

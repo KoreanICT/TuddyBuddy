@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { Detail_Sidebar, DetailTab } from './Detail_Sidebar';
 import { Detail_Overview } from './Detail_Overview';
-import { Detail_Video } from './Detail_Video';
+import { Detail_Video } from '../video/Detail_Video';
 import { Detail_Memo } from './Detail_Memo';
 import styles from './detail.module.css';
 import { Detail_Image } from './Detail_Image';
 import { Detail_Member } from './Detail_Member';
 import { Detail_Project } from './Detail_Project';
+import VideoSummary from '../video/VideoSummary';
 
 interface GroupDetailProps {
     onBackToHome?: () => void;
@@ -52,7 +53,8 @@ export const Group_Detail: React.FC<GroupDetailProps> = ({ onBackToHome }) => {
 
                     {/* 하단 탭 교체 영역 */}
                     {currentTab === 'overview' && <Detail_Overview />}
-                    {currentTab === 'video' && <Detail_Video />}
+                    {/* {currentTab === 'video' && <Detail_Video />} */}
+                    {currentTab === 'video' && <VideoSummary />}
                     {currentTab === 'image' && <Detail_Image />}
                     {currentTab === 'memo' && <Detail_Memo />}
                     {currentTab === 'member' && <Detail_Member />}

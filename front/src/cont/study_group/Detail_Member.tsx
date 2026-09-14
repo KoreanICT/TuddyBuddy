@@ -14,32 +14,54 @@ export const Detail_Member: React.FC = () => {
     const members: Member[] = [
         {
             id: 1,
-            nickname: '자칭물리충',
-            name: '오진석',
+            nickname: '물리충',
+            name: '진석',
             avatarUrl: 'https://picsum.photos/100?random=1',
             isLeader: true,
         },
         {
             id: 2,
             nickname: 'ai화된인간',
-            name: '김진규',
+            name: '진규',
             avatarUrl: 'https://picsum.photos/100?random=2',
             isLeader: false,
         },
         {
             id: 3,
-            nickname: '통계장인승표',
-            name: '허승표',
+            nickname: '통계장인',
+            name: '승표',
             avatarUrl: 'https://picsum.photos/100?random=3',
             isLeader: false,
         },
         {
             id: 4,
             nickname: '죽순먹는판다',
-            name: '주용현',
+            name: '용현',
             avatarUrl: 'https://picsum.photos/100?random=4',
             isLeader: false,
         },
+        {
+            id: 5,
+            nickname: '간호순',
+            name: '솔',
+            avatarUrl: 'https://picsum.photos/100?random=5',
+            isLeader: false,
+        },
+        {
+            id: 6,
+            nickname: '힘드렁',
+            name: '원철',
+            avatarUrl: 'https://picsum.photos/100?random=6',
+            isLeader: false,
+        },
+        {
+            id: 7,
+            nickname: '프론트총괄',
+            name: '주화',
+            avatarUrl: 'https://picsum.photos/100?random=7',
+            isLeader: false,
+        },
+        
     ];
 
     const handleKick = (id: number, nickname: string) => {
