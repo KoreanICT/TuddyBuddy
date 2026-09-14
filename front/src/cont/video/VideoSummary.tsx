@@ -1,12 +1,11 @@
 import React, { useState } from 'react'
-import VideoUpload from './VideoUpload'
 import VideoPlayer from './VideoPlayer'
 import SummaryPanel from './SummaryPanel'
 import OxQuiz from './OxQuiz'
 import MindMap from './MindMap'
 
 import style from './videoSummary.module.css';
-import { Detail_Video } from './Detail_Video'
+import { VideoUpload } from './VideoUpload'
 
 
 const VideoSummary: React.FC = () => {
@@ -20,7 +19,7 @@ const VideoSummary: React.FC = () => {
         <main className={style.vSummary}>
             <div className='vsContainer'>
                 {!hasVideo ? (
-                    <Detail_Video
+                    <VideoUpload
                         videoClick={setVideoFile}
                         youtubeClick={setYoutubeLink} />
                 ) : (

@@ -21,7 +21,7 @@ export const Detail_Member: React.FC = () => {
         },
         {
             id: 2,
-            nickname: 'ai화된인간',
+            nickname: 'ai탑재인간',
             name: '진규',
             avatarUrl: 'https://picsum.photos/100?random=2',
             isLeader: false,
