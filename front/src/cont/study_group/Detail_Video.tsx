@@ -1,7 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
+
 import styles from './detail.module.css';
 
+
 export const Detail_Video: React.FC = () => {
+
+    const [isopen, setIsopen] = useState(false);
+
     return (
         <div className={styles.detail_content_wrapper}>
             <div className={styles.detail_section_card}>

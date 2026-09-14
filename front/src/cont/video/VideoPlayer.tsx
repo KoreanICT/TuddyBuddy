@@ -1,18 +1,18 @@
 import React from 'react'
-
+import style from './videoSummary.module.css'
 
 const VideoPlayer: React.FC = () => {
     return (
-        <section className='vPlayer'>
-            <div className='vpHeader'>
-                <h2 className='vpTitle'>업로드된 영상</h2>
+        <section className={style.vPlayer}>
+            <div className={style.vpHeader}>
+                <h2 className={style.vpTitle}>업로드된 영상</h2>
             </div>
 
-            <div className='vpContent'>
-                <div className='vpPlaceholder'>
-                    <span className='vpIcon'>▶</span>
+            <div className={style.vpContent}>
+                <div className={style.vpPlaceholder}>
+                    <span className={style.vpIcon}>▶</span>
                 </div>
-                <p className='vpText'>영상이 표시되는 영역입니다.</p>
+                <p className={style.vpText}>영상이 표시되는 영역입니다.</p>
             </div>
         </section>
     )

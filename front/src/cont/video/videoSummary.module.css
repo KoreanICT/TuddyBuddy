@@ -1,21 +1,17 @@
 
 /* VideoSummary css */
-
-
 .vSummary {
   min-height: 100vh;
-
   padding: 40px 0 80px;
-
-  background-color: var(--background-secondary);
+  background-color: var(--background);
 }
 
 .vsContent {
   display: grid;
   grid-template-columns: minmax(0, 1.4fr) minmax(320px, 0.8fr);
-  gap: 24px;
-
+  gap: 32px;
   margin-top: 40px;
+  align-items: start;
 }
 
 @media (max-width: 900px) {
@@ -47,6 +43,52 @@
   }
 }
 
+/* 탭 + 아래 컴포넌트 전체 묶음 */
+.vsTabWrap {
+  overflow: hidden;
+  background-color: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+/* 탭 버튼들을 감싸는 영역 */
+.vsTab {
+  display: flex;
+  gap: 8px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* 각각의 탭 버튼 */
+.vsTabButton {
+  padding: 8px 16px;
+  color: var(--text-secondary);
+  background-color: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.vsTabButton:hover {
+  color: #fff;
+  background-color: var(--primary);
+  border-color: var(--primary);
+}
+
+/* 선택된 탭 */
+.vsTab_isactive {
+  color: #fff;
+  background-color: var(--primary);
+  border-color: var(--primary);
+  font-weight: 600;
+}
+
+/* 탭 아래 컴포넌트 영역 */
+.vsTabContent {
+  width: 100%;
+}
 
 
 /* VideoUpload css */
@@ -59,12 +101,17 @@
   max-width: 600px;
   margin: 0 auto;
   padding: 60px 40px;
-
   text-align: center;
 
-  background-color: var(--background);
-  border: 1px dashed var(--border);
+  background-color: var(--background-secondary);
+  border: 2px dashed var(--border);
   border-radius: var(--radius-lg);
+
+  transition: all 0.2s ease;
+}
+
+.vuContent:hover {
+  border-color: var(--primary);
 }
 
 .vuIcon {
@@ -79,21 +126,70 @@
 
   font-size: 28px;
 
-  background-color: var(--background-secondary);
+  background-color: var(--background);
   border-radius: 50%;
+
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
 }
 
 .vuTitle {
   font-size: 28px;
   font-weight: 700;
-
   color: var(--text);
 }
 
 .vuDescription {
   margin-top: 12px;
-
+  font-size: 14px;
   color: var(--text-secondary);
+}
+
+.vuDropdown {
+  position: relative;
+  display: inline-block;
+  margin-top: 32px;
+}
+
+.vuDropdown .vuButton {
+  margin-top: 0;
+}
+
+.vuDropdownMenu {
+  position: absolute;
+
+  top: 56px;
+  left: 0;
+
+  width: 100%;
+
+  padding: 8px;
+
+  background-color: var(--background);
+
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+
+  z-index: 50;
+}
+
+.vuDropdownMenu button {
+  width: 100%;
+
+  padding: 10px 12px;
+
+  color: var(--text);
+  background-color: var(--background);
+
+  border-radius: var(--radius-sm);
+
+  font-size: 13px;
+  text-align: left;
+}
+
+.vuDropdownMenu button:hover {
+  background-color: var(--background-secondary);
 }
 
 .vuButton {
@@ -104,13 +200,15 @@
   min-width: 140px;
   height: 48px;
 
-  margin-top: 32px;
   padding: 0 24px;
 
   color: #fff;
   background-color: var(--primary);
 
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
+
+  font-size: 14px;
+  font-weight: 600;
 
   transition: background-color 0.2s ease;
 }
@@ -125,7 +223,6 @@
 
 .vPlayer {
   overflow: hidden;
-
   background-color: var(--background);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -192,8 +289,6 @@
   height: 100%;
 
   background-color: var(--background);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
 }
 
 .spHeader {
@@ -250,14 +345,16 @@
 }
 
 .sKeyword {
-  padding: 6px 12px;
+  padding: 6px 14px;
 
-  font-size: 14px;
+  font-size: 13px;
+  font-weight: 600;
 
   color: var(--primary);
-  background-color: var(--background-secondary);
+  background-color: var(--background);
 
-  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  border-radius: 20px;
 }
 
 .sList {
@@ -270,10 +367,12 @@
   padding: 16px;
 
   background-color: var(--background-secondary);
+
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
 }
 
-.slItem {
+.slTime {
   display: inline-block;
 
   font-size: 13px;
@@ -296,9 +395,6 @@
   padding: 28px;
 
   background-color: var(--background);
-
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
 }
 
 .oxHeader {
@@ -354,11 +450,11 @@
 
   font-size: 16px;
   font-weight: 600;
-
   line-height: 1.6;
 
   background-color: var(--background-secondary);
 
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
 }
 
@@ -374,7 +470,7 @@
   margin-top: 16px;
 }
 
-.button {
+.oxButton {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -385,30 +481,26 @@
   font-weight: 700;
 
   color: var(--text);
-
   background-color: var(--background);
 
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
 
-  transition:
-    background-color 0.2s ease,
-    border-color 0.2s ease,
-    transform 0.2s ease;
+  transition: all 0.2s ease;
 }
 
-.button:hover {
+
+.oxButton:hover {
+  color: var(--primary);
   border-color: var(--primary);
-
-  background-color: var(--background-secondary);
-
+  background-color: #f0f6ff;
   transform: translateY(-2px);
 }
 
 
 /* 선택된 버튼 */
 
-.button.is-selected {
+.oxButton.is-selected {
   color: var(--primary);
 
   border-color: var(--primary);
@@ -425,9 +517,6 @@
   padding: 28px;
 
   background-color: var(--background);
-
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
 }
 
 .mmHeader {
@@ -462,11 +551,11 @@
 
   background-color: var(--background-secondary);
 
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
 
   overflow: hidden;
 }
-
 
 /* 중앙 노드 */
 

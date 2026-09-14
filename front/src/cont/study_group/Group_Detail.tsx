@@ -13,6 +13,7 @@ interface GroupDetailProps {
     onBackToHome?: () => void;
 }
 
+
 export const Group_Detail: React.FC<GroupDetailProps> = ({ onBackToHome }) => {
     const [currentTab, setCurrentTab] = useState<DetailTab>('overview');
 
