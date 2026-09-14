@@ -183,9 +183,10 @@ const Home: React.FC = () => {
 
               <div className={styles.footerInfo}>
 
-                <strong className={styles.footerLogo}>
-                  프로젝트 로고
-                </strong>
+                <div className={styles.footerLogo}>
+                  <img src="/images/footerlogo.png"
+                    alt="프로젝트 로고"/>
+                </div>
 
                 <p>
                   함께 공부하고 성장하는 교육 커뮤니티
