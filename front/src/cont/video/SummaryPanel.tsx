@@ -1,60 +1,60 @@
 import React from 'react'
-import style from './videoSummary.module.css'
+import styles from './videoSummary.module.css'
 
 const SummaryPanel: React.FC = () => {
     return (
-        <section className={style.sPanel}>
-            <div className={style.spHeader}>
-                <span className={style.spLabel}>
+        <section className={styles.sPanel}>
+            <div className={styles.spHeader}>
+                <span className={styles.spLabel}>
                     AI SUMMARY
                 </span>
 
-                <h2 className={style.spTitle}>
+                <h2 className={styles.spTitle}>
                     영상 요약
                 </h2>
             </div>
 
-            <div className={style.spContent}>
-                <section className={style.sSection}>
-                    <h3 className={style.ssTitle}>
+            <div className={styles.spContent}>
+                <section className={styles.sSection}>
+                    <h3 className={styles.ssTitle}>
                         핵심 내용
                     </h3>
-                    <p className={style.ssText}>
+                    <p className={styles.ssText}>
                         업로드된 영상의 핵심내용
                     </p>
                 </section>
 
-                <section className={style.sSection}>
-                    <h3 className={style.ssTitle}>
+                <section className={styles.sSection}>
+                    <h3 className={styles.ssTitle}>
                         주요 키워드
                     </h3>
-                    <div className={style.skList}>
-                        <span className={style.sKeyword}>내용1</span>
-                        <span className={style.sKeyword}>내용2</span>
-                        <span className={style.sKeyword}>내용3</span>
-                        <span className={style.sKeyword}>내용4</span>
+                    <div className={styles.skList}>
+                        <span className={styles.sKeyword}>내용1</span>
+                        <span className={styles.sKeyword}>내용2</span>
+                        <span className={styles.sKeyword}>내용3</span>
+                        <span className={styles.sKeyword}>내용4</span>
                     </div>
                 </section>
 
-                <section className={style.sSection}>
-                    <h3 className={style.ssTitle}>
+                <section className={styles.sSection}>
+                    <h3 className={styles.ssTitle}>
                         주요 내용
                     </h3>
-                    <ul className={style.sList}>
-                        <li className={style.slItem}>
-                            <span className={style.slTime}>
+                    <ul className={styles.sList}>
+                        <li className={styles.slItem}>
+                            <span className={styles.slTime}>
                                 00:00
                             </span>
                             <p>1. 첫번째</p>
                         </li>
-                        <li className={style.slItem}>
-                            <span className={style.slTime}>
+                        <li className={styles.slItem}>
+                            <span className={styles.slTime}>
                                 00:00
                             </span>
                             <p>2. 두번째</p>
                         </li>
-                        <li className={style.slItem}>
-                            <span className={style.slTime}>
+                        <li className={styles.slItem}>
+                            <span className={styles.slTime}>
                                 00:00
                             </span>
                             <p>3. 세번째</p>
