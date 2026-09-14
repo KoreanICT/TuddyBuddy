@@ -8,6 +8,7 @@ interface videoUploadProps {
 
 export const VideoUpload: React.FC<videoUploadProps> = (props) => {
     const [isopen, setIsopen] = useState(false);
+    const [menuOpen, setMenuOpen] = useState(false);
 
     return (
         <div className={styles.detail_content_wrapper}>
@@ -17,10 +18,10 @@ export const VideoUpload: React.FC<videoUploadProps> = (props) => {
                     스터디 영상을 업로드하고 AI 요약본을 확인하는 공간입니다.
                 </p>
                 <div className={styles.upload_placeholder}>
-                    <button 
-                            type='button'
-                            className={styles.upload_btn} 
-                            onClick={() => setIsopen(!isopen)}
+                    <button
+                        type='button'
+                        className={styles.upload_btn}
+                        onClick={() => setIsopen(!isopen)}
                     >
                         + 동영상 파일 선택
                     </button>
@@ -37,39 +38,116 @@ export const VideoUpload: React.FC<videoUploadProps> = (props) => {
                         </div>
                     )}
                 </div>
-            </div>
+                <div className={styles.vlSection}>
+                    <div className={styles.vList}>
+                        <div className={styles.vCard}>
+                            <div
+                                className={styles.vThumbanil}
+                                onClick={() => props.videoClick(true)}>
+                                썸네일 1
+                            </div>
+                            <div className={styles.vInfo}>
+                                <div>
+                                    <p className={styles.vTitle}>
+                                        프론트엔드 CSS 기초
+                                    </p>
+                                    <span className={styles.vDate}>
+                                        2026-09-14
+                                    </span>
+                                </div>
+                                <button
+                                    type="button"
+                                    className={styles.vMenuButton}
+                                    onClick={() => setMenuOpen(!menuOpen)}>
+                                    ⋮
+                                </button>
+                            </div>
+                            {menuOpen && (
+                                <div className={styles.vMenu}>
+                                    <button type="button">
+                                        이름 변경
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className={styles.vDeleteButton}>
+                                        삭제
+                                    </button>
+                                </div>
+                            )}
+                        </div>
 
-            <div className={styles.vlSection}>
-                <h3 className={styles.vlTitle}>업로드된 영상</h3>
-                <div className={styles.vList}>
-                    <button
-                        type='button'
-                        className={styles.vCard}
-                        onClick={() => props.videoClick(true)}>
-                        <div className={styles.vThumbanil}>
-                            썸네일
+                        <div className={styles.vCard}>
+                            <div
+                                className={styles.vThumbanil}
+                                onClick={() => props.videoClick(true)}>
+                                썸네일 2
+                            </div>
+                            <div className={styles.vInfo}>
+                                <div>
+                                    <p className={styles.vTitle}>
+                                        Python 기초
+                                    </p>
+                                    <span className={styles.vDate}>
+                                        2026-09-15
+                                    </span>
+                                </div>
+                                <button
+                                    type="button"
+                                    className={styles.vMenuButton}
+                                    onClick={() => setMenuOpen(!menuOpen)}>
+                                    ⋮
+                                </button>
+                            </div>
+                            {menuOpen && (
+                                <div className={styles.vMenu}>
+                                    <button type="button">
+                                        이름 변경
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className={styles.vDeleteButton}>
+                                        삭제
+                                    </button>
+                                </div>
+                            )}
                         </div>
-                        <p className={styles.vTitle}>
-                            프론트엔드 CSS 기초
-                        </p>
-                        <span className={styles.vDate}>
-                            2026-09-14
-                        </span>
-                    </button>
-                    <button
-                        type='button'
-                        className={styles.vCard}
-                        onClick={() => props.videoClick(true)}>
-                        <div className={styles.vThumbanil}>
-                            썸네일
+
+                        <div className={styles.vCard}>
+                            <div
+                                className={styles.vThumbanil}
+                                onClick={() => props.videoClick(true)}>
+                                썸네일 3
+                            </div>
+                            <div className={styles.vInfo}>
+                                <div>
+                                    <p className={styles.vTitle}>
+                                        JavaScript 기초
+                                    </p>
+                                    <span className={styles.vDate}>
+                                        2026-09-12
+                                    </span>
+                                </div>
+                                <button
+                                    type="button"
+                                    className={styles.vMenuButton}
+                                    onClick={() => setMenuOpen(!menuOpen)}>
+                                    ⋮
+                                </button>
+                            </div>
+                            {menuOpen && (
+                                <div className={styles.vMenu}>
+                                    <button type="button">
+                                        이름 변경
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className={styles.vDeleteButton}>
+                                        삭제
+                                    </button>
+                                </div>
+                            )}
                         </div>
-                        <p className={styles.vTitle}>
-                            Python 기초 강의
-                        </p>
-                        <span className={styles.vDate}>
-                            2026-09-10
-                        </span>
-                    </button>                    
+                    </div>
                 </div>
             </div>
         </div>

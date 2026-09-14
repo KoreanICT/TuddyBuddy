@@ -1,4 +1,31 @@
 /* VideoSummary css ------------------------------------------------------------------------------------ */
+
+
+.vsDetail {
+    width: 100%;
+}
+
+.vsBackButton {
+    display: inline-flex;
+    align-items: center;
+
+    padding: 8px 12px;
+
+    color: var(--text);
+    background-color: var(--background);
+
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.vsBackButton:hover {
+    color: var(--primary);
+    border-color: var(--primary);
+}
+
 .vSummary {
     min-height: 100vh;
     padding: 40px 0 80px;
@@ -8,8 +35,9 @@
 .vsContent {
     display: grid;
     grid-template-columns: minmax(0, 1.4fr) minmax(320px, 0.8fr);
-    gap: 32px;
-    margin-top: 40px;
+    gap: 24px;
+    margin-top: 16px;
+
     align-items: start;
 }
 
@@ -292,83 +320,169 @@
 /* VideoUpload_list css ------------------------------------------------------------------------------------ */
 
 .vlSection {
-  margin-top: 32px;
-}
-
-.vlTitle {
-  margin-bottom: 16px;
-
-  font-size: 18px;
-  font-weight: 700;
-
-  color: var(--text);
+    margin-top: 32px;
 }
 
 .vList {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
 
-  gap: 20px;
+    gap: 20px;
 }
 
 .vCard {
-  width: 100%;
+    width: 100%;
+    padding: 12px;
 
-  text-align: left;
+    text-align: left;
 
-  background-color: var(--background);
+    background-color: var(--background);
+
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+
+    transition: all 0.2s ease;
 }
 
-.vThumbnail {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.vCard:hover {
+    border-color: var(--primary);
+    transform: translateY(-2px);
+}
 
-  aspect-ratio: 16 / 9;
 
-  background-color: var(--background-secondary);
+.vThumbanil {
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+    width: 100%;
+    aspect-ratio: 16 / 9;
 
-  color: var(--text-secondary);
+    background-color: var(--background-secondary);
 
-  overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+
+    color: var(--text-secondary);
+
+    cursor: pointer;
+    /* overflow: hidden; */
+}
+
+.vThumbanil img {
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
 }
 
 .vTitle {
-  margin-top: 10px;
+    margin-top: 10px;
 
-  font-size: 14px;
-  font-weight: 600;
+    font-size: 14px;
+    font-weight: 600;
 
-  color: var(--text);
+    color: var(--text);
 }
 
 .vDate {
-  display: block;
+    display: block;
 
-  margin-top: 4px;
+    margin-top: 4px;
 
-  font-size: 12px;
+    font-size: 12px;
 
-  color: var(--text-secondary);
+    color: var(--text-secondary);
 }
 
 .vCard:hover .vThumbnail {
-  border-color: var(--primary);
+    border-color: var(--primary);
+    transform: translateY(-2px);
 }
 
 @media (max-width: 900px) {
-  .vList {
-    grid-template-columns: repeat(2, 1fr);
-  }
+    .vList {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
 
 @media (max-width: 600px) {
-  .vList {
-    grid-template-columns: 1fr;
-  }
+    .vList {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+.vInfo {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    margin-top: 20px;
+}
+
+.vMenuButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 32px;
+    height: 32px;
+
+    color: var(--text-secondary);
+    background-color: var(--background);
+
+    border-radius: 50%;
+
+    font-size: 20px;
+}
+
+.vMenuButton:hover {
+    background-color: var(--background-secondary);
+}
+
+
+.vMenu {
+    position: absolute;
+
+    top: calc(100% - 10px);
+    right: 10px;
+
+    width: 130px;
+
+    padding: 8px;
+
+    background-color: var(--background);
+
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+
+    z-index: 10;
+}
+
+.vMenu button {
+    width: 100%;
+
+    padding: 10px 12px;
+
+    color: var(--text);
+    background-color: var(--background);
+
+    border-radius: var(--radius-sm);
+
+    font-size: 13px;
+    text-align: left;
+}
+
+.vMenu button:hover {
+    background-color: var(--background-secondary);
+}
+
+
+.vMenu .vDeleteButton {
+    color: #ef4444;
 }
 
 
@@ -441,7 +555,7 @@
 
 
 .sPanel {
-    height: 100%;
+    height: 600px;
 
     background-color: var(--background);
 }
@@ -471,7 +585,11 @@
 }
 
 .spContent {
+    height: calc(600px - 110px);
+
     padding: 24px;
+
+    overflow-y: auto;
 }
 
 .sSection+.sSection {
@@ -661,91 +779,131 @@
 /* 5지선다 css ------------------------------------------------------------------------------------ */
 
 .multipleChoice {
-  padding: 28px;
-  background-color: var(--background);
+    padding: 28px;
+    background-color: var(--background);
 }
 
 .mcHeader {
-  margin-bottom: 24px;
+    margin-bottom: 24px;
 }
 
 .mcLabel {
-  display: block;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--primary);
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--primary);
 }
 
 .mcTitle {
-  margin-top: 6px;
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--text);
+    margin-top: 6px;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
 }
 
 .mcDescription {
-  margin-top: 8px;
-  font-size: 14px;
-  color: var(--text-secondary);
+    margin-top: 8px;
+    font-size: 14px;
+    color: var(--text-secondary);
 }
 
 .mcProgress {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 16px;
-  font-size: 13px;
-  color: var(--text-secondary);
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    font-size: 13px;
+    color: var(--text-secondary);
 }
 
 .mcQuestion {
-  padding: 20px;
-  font-size: 16px;
-  font-weight: 600;
-  line-height: 1.6;
-  background-color: var(--background-secondary);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+    padding: 20px;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.6;
+    background-color: var(--background-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
 }
 
 .mcOptions {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-top: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 16px;
 }
 
 .mcOption {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
 
-  padding: 12px 16px;
+    padding: 12px 16px;
 
-  color: var(--text);
-  background-color: var(--background-secondary);
+    color: var(--text);
+    background-color: var(--background-secondary);
 
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
 
-  font-size: 14px;
+    font-size: 14px;
 }
 
 .mcOption:hover {
-  border-color: var(--primary);
-  background-color: #f0f6ff;
+    border-color: var(--primary);
+    background-color: #f0f6ff;
 }
 
 .mcNumber {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-  width: 24px;
-  height: 24px;
+    width: 24px;
+    height: 24px;
 
-  border-radius: 50%;
-  background-color: var(--background);
+    border-radius: 50%;
+    background-color: var(--background);
 
-  font-size: 12px;
-  font-weight: 700;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.mcMoveButtons {
+    display: flex;
+    justify-content: space-between;
+
+    margin-top: 24px;
+}
+
+.mcPrevButton,
+.mcNextButton {
+    min-width: 80px;
+    height: 40px;
+    padding: 0 16px;
+
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.mcPrevButton {
+    color: var(--text-secondary);
+    background-color: var(--background);
+}
+
+.mcPrevButton:hover {
+    color: var(--primary);
+    border-color: var(--primary);
+}
+
+.mcNextButton {
+    color: #fff;
+    background-color: var(--primary);
+    border-color: var(--primary);
+}
+
+.mcNextButton:hover {
+    background-color: var(--primary-hover);
 }
