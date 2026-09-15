@@ -1,0 +1,85 @@
+/* Student Code Modal */
+
+.modalContent {
+    width: 100%;
+    text-align: center;
+}
+
+
+/* Description */
+.modalDescription {
+    margin: 0 0 20px;
+    color: var(--text-secondary);
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+
+/* Student Code */
+
+.codeBox {
+    width: 100%;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background-color: var(--background-secondary);
+    color: var(--text);
+    font-size: 15px;
+    font-weight: 600;
+    word-break: break-all;
+    box-sizing: border-box;
+}
+
+
+/* Buttons */
+
+.buttonGroup {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.copyButton,
+.confirmButton {
+    min-width: 100px;
+    padding: 10px 24px;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+        opacity 0.2s,
+        transform 0.1s;
+}
+
+
+/* 코드 복사 */
+.copyButton {
+    border: 1px solid var(--primary);
+    background-color: var(--background);
+    color: var(--primary);
+}
+
+.copyButton:hover {
+    opacity: 0.8;
+}
+
+
+/* 확인 */
+
+.confirmButton {
+    border: 1px solid var(--primary);
+    background-color: var(--primary);
+    color: #ffffff;
+}
+
+.confirmButton:hover {
+    opacity: 0.9;
+}
+
+
+.copyButton:active,
+.confirmButton:active {
+    transform: translateY(1px);
+}

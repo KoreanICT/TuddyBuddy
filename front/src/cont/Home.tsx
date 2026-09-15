@@ -6,6 +6,7 @@ import fullpage from 'fullpage.js';
 import 'fullpage.js/dist/fullpage.css';
 
 import Modal from './modal/Modal';
+import FaceDetector from './detect/FaceDetector';
 
 const Home: React.FC = () => {
 
@@ -18,7 +19,7 @@ const Home: React.FC = () => {
   const [isEmailPolicyOpen, setIsEmailPolicyOpen] = useState(false);
 
   const navigate = useNavigate()
-  
+
   // =========================
   // FullPage
   // =========================
@@ -61,20 +62,19 @@ const Home: React.FC = () => {
             <div className={styles.content}>
 
               <span className={styles.eyebrow}>
-                함께 공부하는 즐거움
+                학습 집중 서비스
               </span>
 
               <h1 className={styles.title}>
-                함께 공부하면<br />
-                더 오래 집중할 수 있어요.
+                졸음 방지<br />
+                공부하세요
               </h1>
 
               <p className={styles.description}>
-                관심사가 비슷한 사람들과 스터디 그룹을 만들고
-                함께 공부해보세요.
+                움직임 감지 + 안면 인식을 활용한 학습 집중 서비스
               </p>
 
-              <button className={styles.primaryButton} onClick={()=>{navigate('/homeGroup')}}>
+              <button className={styles.primaryButton} onClick={() => { navigate('/homeGroup') }}>
                 스터디 그룹 참가하기
               </button>
 
@@ -82,11 +82,7 @@ const Home: React.FC = () => {
 
 
             <div className={styles.visual}>
-              <img
-                src="/images/groupStudy.png"
-                alt="스터디 그룹에서 함께 공부하는 모습"
-                className={styles.sectionImage}
-              />
+              <FaceDetector />
             </div>
 
           </div>
@@ -125,7 +121,7 @@ const Home: React.FC = () => {
                 학습 현황을 기록하며 꾸준히 공부할 수 있어요.
               </p>
 
-              <button className={styles.primaryButton} onClick={()=>{navigate('/homeGroup')}}>
+              <button className={styles.primaryButton} onClick={() => { navigate('/homeGroup') }}>
                 개인 스터디 시작하기
               </button>
 
@@ -187,9 +183,10 @@ const Home: React.FC = () => {
 
               <div className={styles.footerInfo}>
 
-                <strong className={styles.footerLogo}>
-                  프로젝트 로고
-                </strong>
+                <div className={styles.footerLogo}>
+                  <img src="/images/footerlogo.png"
+                    alt="프로젝트 로고"/>
+                </div>
 
                 <p>
                   함께 공부하고 성장하는 교육 커뮤니티

@@ -1,0 +1,308 @@
+/* =========================
+   Signup
+========================= */
+
+.signup-page {
+  min-height: calc(100vh - 80px);
+  padding: 60px 20px;
+  background-color: var(--background-secondary);
+}
+
+.signup-container {
+  width: 100%;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.signup-header {
+  text-align: center;
+  margin-bottom: 35px;
+}
+
+.signup-header h2 {
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.signup-header p {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+
+/* =========================
+   Form
+========================= */
+
+.signup-form {
+  background-color: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 40px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+
+/* =========================
+   Input
+========================= */
+
+.signup-input-group {
+  margin-bottom: 22px;
+}
+
+.signup-input-group > label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.signup-input-group input[type="text"],
+.signup-input-group input[type="email"],
+.signup-input-group input[type="password"] {
+  width: 100%;
+  height: 46px;
+  padding: 0 14px;
+
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+
+  background-color: var(--background);
+  color: var(--text);
+
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.signup-input-group input::placeholder {
+  color: #aaa;
+}
+
+.signup-input-group input:focus {
+  border-color: var(--primary);
+}
+
+
+/* =========================
+   Input + Button
+========================= */
+
+.signup-input-button {
+  display: flex;
+  gap: 8px;
+}
+
+.signup-input-button input {
+  flex: 1;
+}
+
+.signup-input-button button {
+  width: 100px;
+  flex-shrink: 0;
+
+  border: 1px solid var(--primary);
+  border-radius: var(--radius-sm);
+
+  background-color: var(--background);
+  color: var(--primary);
+
+  font-size: 14px;
+  font-weight: 600;
+
+  transition: all 0.2s;
+}
+
+.signup-input-button button:hover {
+  background-color: var(--primary);
+  color: var(--background);
+}
+
+
+/* =========================
+   Radio
+========================= */
+
+.signup-radio-group {
+  display: flex;
+  align-items: center;
+  gap: 25px;
+  height: 46px;
+}
+
+.signup-radio {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+
+  font-size: 14px;
+  color: var(--text);
+
+  cursor: pointer;
+}
+
+.signup-radio input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--primary);
+}
+
+
+/* =========================
+   Agreement
+========================= */
+
+.signup-agreement {
+  margin-top: 30px;
+  padding: 20px;
+
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+
+  background-color: var(--background-secondary);
+}
+
+.signup-agreement input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+.agreement-all {
+  padding-bottom: 15px;
+  margin-bottom: 15px;
+
+  border-bottom: 1px solid var(--border);
+}
+
+.agreement-all label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.agreement-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  margin-bottom: 12px;
+}
+
+.agreement-item:last-child {
+  margin-bottom: 0;
+}
+
+.agreement-item label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.agreement-item em {
+  margin-left: 4px;
+  color: #ef4444;
+  font-style: normal;
+}
+
+.agreement-item button {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.agreement-item button:hover {
+  color: var(--primary);
+}
+
+
+/* =========================
+   Buttons
+========================= */
+
+.signup-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 30px;
+}
+
+.signup-back-button,
+.signup-submit-button {
+  height: 48px;
+  border-radius: var(--radius-sm);
+
+  font-size: 15px;
+  font-weight: 600;
+
+  transition: all 0.2s;
+}
+
+.signup-back-button {
+  flex: 1;
+
+  border: 1px solid var(--border);
+  background-color: var(--background);
+  color: var(--text-secondary);
+}
+
+.signup-back-button:hover {
+  background-color: var(--background-secondary);
+}
+
+.signup-submit-button {
+  flex: 2;
+
+  background-color: var(--primary);
+  color: var(--background);
+}
+
+.signup-submit-button:hover {
+  background-color: var(--primary-hover);
+}
+
+
+/* =========================
+   Mobile
+========================= */
+
+@media (max-width: 600px) {
+
+  .signup-page {
+    padding: 30px 15px;
+  }
+
+  .signup-form {
+    padding: 25px 20px;
+  }
+
+  .signup-header h2 {
+    font-size: 26px;
+  }
+
+  .signup-input-button {
+    gap: 6px;
+  }
+
+  .signup-input-button button {
+    width: 80px;
+  }
+
+  .signup-agreement {
+    padding: 15px;
+  }
+
+  .agreement-item {
+    align-items: flex-start;
+  }
+
+}
