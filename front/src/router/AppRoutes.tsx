@@ -24,9 +24,8 @@ import ReportReply from "../cont/admin/report/ReportReply";
 import Layout from "../layout/Layout";
 import AdminLayout from "../layout/admin/AdminLayout";
 
-import SelfStudy from "../cont/SelfStudy";
-
 import ReportCreate from "../cont/report/ReportCreate";
+import SelfStudy from "../cont/selfStudy/SelfStudy";
 interface RouteItem {
     path: string;
     element: React.ReactElement;
