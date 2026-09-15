@@ -16,7 +16,8 @@
     transition: background-color 0.2s;
     text-align: center;
     line-height: normal;
-    white-space: nowrap; /* 버튼 텍스트 줄바꿈 방지 */
+    white-space: nowrap;
+    /* 버튼 텍스트 줄바꿈 방지 */
 }
 
 .action_btn.primary {
@@ -318,7 +319,8 @@
     color: var(--text);
     font-size: 14px;
     outline: none;
-    resize: none; /* 리사이즈 핸들 제거 및 변경 불가 처리 */
+    resize: none;
+    /* 리사이즈 핸들 제거 및 변경 불가 처리 */
     transition: border-color 0.2s;
 }
 
@@ -338,7 +340,8 @@
 .top_row_group {
     display: flex;
     gap: 16px;
-    align-items: flex-start; /* top 정렬로 스터디룸 이름 항목과 상단 높이 맞춤 */
+    align-items: flex-start;
+    /* top 정렬로 스터디룸 이름 항목과 상단 높이 맞춤 */
 }
 
 .thumbnail_field {
@@ -495,7 +498,7 @@
 .form_label_inline {
     font-size: 13px;
     font-weight: 600;
-    color: var(--text); 
+    color: var(--text);
 }
 
 .compact_select {
@@ -540,6 +543,7 @@
     display: block;
     height: 25px;
 }
+
 .modal_overlay ::-webkit-scrollbar-button:vertical:end:increment,
 .modal_overlay ::-webkit-scrollbar-button:vertical:end:decrement {
     display: block;
@@ -565,12 +569,12 @@
     border-radius: var(--radius-md);
     background-color: var(--background);
     padding: 12px 8px;
-    
+
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    
+
     transition: transform 0.2s, box-shadow 0.2s;
 }
 
@@ -606,11 +610,11 @@
     color: #ef4444;
     font-size: 11px;
     font-weight: 700;
-    
+
     display: flex;
     align-items: center;
     justify-content: center;
-    
+
     line-height: 1;
     transition: background-color 0.2s, color 0.2s;
 }
@@ -664,4 +668,99 @@
     overflow: hidden;
     text-overflow: ellipsis;
     margin-top: 2px;
+}
+
+/* 햄버거 버튼 + 드롭다운 기준점 */
+.header_menu_wrapper {
+    position: relative;
+
+    /* flex 내부에서 가장 오른쪽으로 밀어냄 */
+    margin-left: auto;
+
+    flex-shrink: 0;
+}
+
+
+/* 햄버거 메뉴 버튼 */
+.header_menu_btn {
+    width: 42px;
+    height: 42px;
+
+    display: flex;
+
+    justify-content: center;
+    align-items: center;
+
+    border: 1px solid var(--border);
+
+    border-radius: var(--radius-md);
+
+    background-color: var(--background);
+
+    color: var(--text-secondary);
+
+    font-size: 21px;
+
+    transition:
+        background-color 0.2s,
+        border-color 0.2s,
+        color 0.2s;
+}
+
+
+/* hover */
+.header_menu_btn:hover {
+
+    background-color: var(--background-secondary);
+
+    border-color: var(--primary);
+
+    color: var(--primary);
+}
+
+
+/* 메뉴가 열려 있을 때 */
+.header_menu_btn[aria-expanded="true"] {
+
+    background-color: var(--background-secondary);
+
+    border-color: var(--primary);
+
+    color: var(--primary);
+}
+
+
+/* 헤더 드랍다운 */
+
+.header_dropdown {
+
+    position: absolute;
+
+    top: calc(100% + 8px);
+
+    right: 0;
+
+    width: 260px;
+
+    z-index: 100;
+
+    border-radius: var(--radius-lg);
+
+    background-color: var(--background);
+
+    box-shadow:
+        0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+
+/* 드롭다운으로 사용되는 Detail Sidebar */
+.detail_sidebar_dropdown {
+
+    width: 100%;
+
+    height: fit-content;
+
+    display: flex;
+
+    flex-direction: column;
 }

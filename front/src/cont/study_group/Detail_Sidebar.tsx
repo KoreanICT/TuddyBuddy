@@ -6,7 +6,7 @@ export type DetailTab = 'overview' | 'video' | 'image' | 'memo' | 'member' | 'pr
 interface DetailSidebarProps {
     currentTab: DetailTab;
     onTabChange: (tab: DetailTab) => void;
-    isOpen: boolean;
+    mode?: 'sidebar' | 'dropdown';
 }
 
 interface SidebarDirection {
@@ -15,7 +15,7 @@ interface SidebarDirection {
     detail: string;
 }
 
-export const Detail_Sidebar: React.FC<DetailSidebarProps> = ({ currentTab, onTabChange, }) => {
+export const Detail_Sidebar: React.FC<DetailSidebarProps> = ({ currentTab, onTabChange, mode='sidebar'}) => {
 
     const sidebarContent: SidebarDirection[] = [
         {
@@ -53,24 +53,20 @@ export const Detail_Sidebar: React.FC<DetailSidebarProps> = ({ currentTab, onTab
     const [isOpen, setIsOpen] = useState<boolean>(false);
 
     return (
-        <aside className={styles.detail_sidebar_container}>
+        <aside className={mode === 'dropdown' ? styles.detail_sidebar_dropdown : styles.detail_sidebar_container}>
             <nav className={styles.detail_menu_box}>
-                <button
-                    className={`${styles.detail_menu_button}`}
-                    onClick={() => setIsOpen((prev) => !prev)}
-                >
-                    메뉴
-                </button>
-                {isOpen && sidebarContent.map((e) => (
-                    <>
-                        <div className={styles.detail_menu_divider} />
+                {sidebarContent.map((e, index) => (
+                    <React.Fragment key={e.id}>
+                        {index !== 0 && (
+                            <div className={styles.detail_menu_divider} />
+                        )}
                         <button
                             className={`${styles.detail_menu_button} ${currentTab === e.alias ? styles.active : ''}`}
                             onClick={() => onTabChange(e.alias)}
                         >
                             {e.detail}
                         </button>
-                    </>
+                    </React.Fragment>
                 ))}
             </nav>
         </aside>
