@@ -1,6 +1,4 @@
 /* VideoSummary css ------------------------------------------------------------------------------------ */
-
-
 .vsDetail {
     width: 100%;
 }
@@ -556,6 +554,7 @@
 
 .sPanel {
     height: 600px;
+    height: 100%;
 
     background-color: var(--background);
 }

@@ -19,7 +19,6 @@ const VideoSummary: React.FC = () => {
         setVideoFile(false);
         setYoutubeLink(false);
     }
-
     return (
         <main className={styles.vSummary}>
             <div className='vsContainer'>
