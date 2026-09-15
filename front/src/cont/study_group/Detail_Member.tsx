@@ -37,7 +37,7 @@ export const Detail_Member: React.FC = () => {
             id: 4,
             nickname: '죽순먹는판다',
             name: '용현',
-            avatarUrl: 'https://picsum.photos/100?random=4',
+            avatarUrl: '/images/죽순먹는판다.png',
             isLeader: false,
         },
         {
