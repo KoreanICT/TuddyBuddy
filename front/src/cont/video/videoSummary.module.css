@@ -1,0 +1,751 @@
+/* VideoSummary css ------------------------------------------------------------------------------------ */
+.vSummary {
+    min-height: 100vh;
+    padding: 40px 0 80px;
+    background-color: var(--background);
+}
+
+.vsContent {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(320px, 0.8fr);
+    gap: 32px;
+    margin-top: 40px;
+    align-items: start;
+}
+
+@media (max-width: 900px) {
+    .vsContent {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 600px) {
+    .vSummary {
+        padding: 24px 0 60px;
+    }
+
+    .vUpload {
+        padding-top: 30px;
+    }
+
+    .vuContent {
+        padding: 40px 20px;
+    }
+
+    .vuTitle {
+        font-size: 24px;
+    }
+
+    .spHeader,
+    .spContent {
+        padding: 20px;
+    }
+}
+
+.vsTabWrap {
+    overflow: hidden;
+    background-color: var(--background);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+}
+
+/* 탭 버튼들을 감싸는 영역 */
+.vsTab {
+    display: flex;
+    gap: 8px;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+}
+
+.vsTabButton {
+    padding: 8px 16px;
+    color: var(--text-secondary);
+    background-color: var(--background);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.vsTabButton:hover {
+    color: #fff;
+    background-color: var(--primary);
+    border-color: var(--primary);
+}
+
+.vsTab_isactive {
+    color: #fff;
+    background-color: var(--primary);
+    border-color: var(--primary);
+    font-weight: 600;
+}
+
+.vsTabContent {
+    width: 100%;
+}
+
+
+/* VideoUpload css ------------------------------------------------------------------------------------ */
+
+.vUpload {
+    padding: 80px 0 40px;
+}
+
+.vuContent {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 60px 40px;
+    text-align: center;
+
+    background-color: var(--background-secondary);
+    border: 2px dashed var(--border);
+    border-radius: var(--radius-lg);
+
+    transition: all 0.2s ease;
+}
+
+.vuContent:hover {
+    border-color: var(--primary);
+}
+
+.vuIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 64px;
+    height: 64px;
+
+    margin: 0 auto 20px;
+
+    font-size: 28px;
+
+    background-color: var(--background);
+    border-radius: 50%;
+
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+.vuTitle {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.vuDescription {
+    margin-top: 12px;
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.vuDropdown {
+    position: relative;
+    display: inline-block;
+    margin-top: 32px;
+}
+
+.vuDropdown .vuButton {
+    margin-top: 0;
+}
+
+.vuDropdownMenu {
+    position: absolute;
+
+    top: calc(50% + 30px);
+    left: 50%;
+
+    width: 168px;
+
+    padding: 8px;
+
+    background-color: var(--background);
+
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+
+    transform: translateX(-50%);
+
+    z-index: 50;
+}
+
+.vuDropdownMenu button {
+    display: block;
+
+    width: 100%;
+    height: auto;
+
+    min-width: 0;
+
+    margin: 0;
+    padding: 10px 12px;
+
+    color: var(--text);
+    background-color: var(--background);
+
+    border-radius: var(--radius-sm);
+
+    font-size: 13px;
+    font-weight: 500;
+
+    text-align: left;
+
+    transition: background-color 0.2s ease;
+}
+
+.vuDropdownMenu button:hover {
+    color: var(--text);
+    background-color: var(--background-secondary);
+}
+
+.vuButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-width: 140px;
+    height: 48px;
+
+    padding: 0 24px;
+
+    color: #fff;
+    background-color: var(--primary);
+
+    border-radius: var(--radius-sm);
+
+    font-size: 14px;
+    font-weight: 600;
+
+    transition: background-color 0.2s ease;
+}
+
+.vuButton:hover {
+    background-color: var(--primary-hover);
+}
+
+
+
+.detail_section_card {
+    padding: 24px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background-color: var(--background);
+}
+
+.section_title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 16px;
+}
+
+.section_desc {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+}
+
+.upload_placeholder {
+    position: relative;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 96px;
+
+    margin-top: 18px;
+
+    background-color: var(--background-secondary);
+
+    border: 2px dashed var(--border);
+    border-radius: var(--radius-md);
+}
+
+.upload_btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    min-width: 168px;
+    height: 44px;
+
+    padding: 0 20px;
+
+    color: #fff;
+    background-color: var(--primary);
+
+    border-radius: var(--radius-sm);
+
+    font-size: 14px;
+    font-weight: 600;
+
+    transition: background-color 0.2s ease;
+}
+
+.upload_btn:hover {
+    background-color: var(--primary-hover);
+}
+
+/* VideoUpload_list css ------------------------------------------------------------------------------------ */
+
+.vlSection {
+  margin-top: 32px;
+}
+
+.vlTitle {
+  margin-bottom: 16px;
+
+  font-size: 18px;
+  font-weight: 700;
+
+  color: var(--text);
+}
+
+.vList {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+
+  gap: 20px;
+}
+
+.vCard {
+  width: 100%;
+
+  text-align: left;
+
+  background-color: var(--background);
+}
+
+.vThumbnail {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  aspect-ratio: 16 / 9;
+
+  background-color: var(--background-secondary);
+
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+
+  color: var(--text-secondary);
+
+  overflow: hidden;
+}
+
+.vTitle {
+  margin-top: 10px;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  color: var(--text);
+}
+
+.vDate {
+  display: block;
+
+  margin-top: 4px;
+
+  font-size: 12px;
+
+  color: var(--text-secondary);
+}
+
+.vCard:hover .vThumbnail {
+  border-color: var(--primary);
+}
+
+@media (max-width: 900px) {
+  .vList {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .vList {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+
+
+/* VideoPlayer css ------------------------------------------------------------------------------------ */
+
+.vPlayer {
+    overflow: hidden;
+    background-color: var(--background);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+}
+
+.vpHeader {
+    padding: 20px 24px;
+
+    border-bottom: 1px solid var(--border);
+}
+
+.vpTitle {
+    font-size: 18px;
+    font-weight: 700;
+
+    color: var(--text);
+}
+
+.vpContent {
+    padding: 20px;
+}
+
+.vpPlaceholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    aspect-ratio: 16 / 9;
+
+    background-color: #111;
+    border-radius: var(--radius-md);
+}
+
+.vpIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 64px;
+    height: 64px;
+
+    color: #fff;
+    background-color: rgba(255, 255, 255, 0.15);
+
+    border-radius: 50%;
+
+    font-size: 24px;
+}
+
+.vpText {
+    margin-top: 16px;
+
+    color: #aaa;
+}
+
+
+
+
+/* SummaryPanel css ------------------------------------------------------------------------------------ */
+
+
+.sPanel {
+    height: 100%;
+
+    background-color: var(--background);
+}
+
+.spHeader {
+    padding: 24px;
+
+    border-bottom: 1px solid var(--border);
+}
+
+.spLabel {
+    display: block;
+
+    font-size: 12px;
+    font-weight: 700;
+
+    color: var(--primary);
+}
+
+.spTitle {
+    margin-top: 6px;
+
+    font-size: 24px;
+    font-weight: 700;
+
+    color: var(--text);
+}
+
+.spContent {
+    padding: 24px;
+}
+
+.sSection+.sSection {
+    margin-top: 32px;
+}
+
+.ssTitle {
+    margin-bottom: 12px;
+
+    font-size: 16px;
+    font-weight: 700;
+
+    color: var(--text);
+}
+
+.ssText {
+    color: var(--text-secondary);
+
+    line-height: 1.7;
+}
+
+.skList {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.sKeyword {
+    padding: 6px 14px;
+
+    font-size: 13px;
+    font-weight: 600;
+
+    color: var(--primary);
+    background-color: var(--background);
+
+    border: 1px solid var(--border);
+    border-radius: 20px;
+}
+
+.sList {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.slItem {
+    padding: 16px;
+
+    background-color: var(--background-secondary);
+
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+}
+
+.slTime {
+    display: inline-block;
+
+    font-size: 13px;
+    font-weight: 700;
+
+    color: var(--primary);
+}
+
+.slItem p {
+    margin-top: 6px;
+
+    color: var(--text-secondary);
+}
+
+
+
+/* O/X Quiz css ------------------------------------------------------------------------------------ */
+
+.oxQuiz {
+    padding: 28px;
+
+    background-color: var(--background);
+}
+
+.oxHeader {
+    margin-bottom: 24px;
+}
+
+.oxLabel {
+    display: block;
+
+    font-size: 12px;
+    font-weight: 700;
+
+    color: var(--primary);
+}
+
+.oxTitle {
+    margin-top: 6px;
+
+    font-size: 22px;
+    font-weight: 700;
+
+    color: var(--text);
+}
+
+.oxDescription {
+    margin-top: 8px;
+
+    font-size: 14px;
+
+    color: var(--text-secondary);
+}
+
+
+.oxProgress {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    margin-bottom: 16px;
+
+    font-size: 13px;
+
+    color: var(--text-secondary);
+}
+
+
+.oxQuestion {
+    padding: 20px;
+
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.6;
+
+    background-color: var(--background-secondary);
+
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+}
+
+
+.oxButtons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+
+    gap: 12px;
+
+    margin-top: 16px;
+}
+
+.oxButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    height: 80px;
+
+    font-size: 28px;
+    font-weight: 700;
+
+    color: var(--text);
+    background-color: var(--background);
+
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+
+    transition: all 0.2s ease;
+}
+
+
+.oxButton:hover {
+    color: var(--primary);
+    border-color: var(--primary);
+    background-color: #f0f6ff;
+    transform: translateY(-2px);
+}
+
+
+.oxButton.is-selected {
+    color: var(--primary);
+
+    border-color: var(--primary);
+
+    background-color: #eff6ff;
+}
+
+
+
+
+/* 5지선다 css ------------------------------------------------------------------------------------ */
+
+.multipleChoice {
+  padding: 28px;
+  background-color: var(--background);
+}
+
+.mcHeader {
+  margin-bottom: 24px;
+}
+
+.mcLabel {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.mcTitle {
+  margin-top: 6px;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.mcDescription {
+  margin-top: 8px;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.mcProgress {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.mcQuestion {
+  padding: 20px;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.6;
+  background-color: var(--background-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.mcOptions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.mcOption {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  padding: 12px 16px;
+
+  color: var(--text);
+  background-color: var(--background-secondary);
+
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+
+  font-size: 14px;
+}
+
+.mcOption:hover {
+  border-color: var(--primary);
+  background-color: #f0f6ff;
+}
+
+.mcNumber {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 24px;
+  height: 24px;
+
+  border-radius: 50%;
+  background-color: var(--background);
+
+  font-size: 12px;
+  font-weight: 700;
+}
