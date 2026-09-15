@@ -7,7 +7,7 @@ import { Link } from 'react-router-dom';
 import { Group_Create } from './Group_Create';
 
 export const Group_Home: React.FC = () => {
-    const [currentTab, setCurrentTab] = useState<'public' | 'my'>('public');
+    const [currentTab, setCurrentTab] = useState<'public' | 'my'>('my');
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     
     // 사이드바 공통 검색 상태
@@ -48,11 +48,6 @@ export const Group_Home: React.FC = () => {
                         </div>
                     </div>
                 )}
-
-                {/* <Group_Create
-                    isModalOpen={isModalOpen}
-                    onClose={closeCreateModal}
-                /> */}
             </div>
         </div>
     );
