@@ -44,6 +44,21 @@ const MultipleChoice: React.FC = () => {
                     다섯번째 보기
                 </button>
             </div>
+            <div className={styles.mcMoveButtons}>
+                <button
+                    type="button"
+                    className={styles.mcPrevButton}
+                >
+                    이전
+                </button>
+
+                <button
+                    type="button"
+                    className={styles.mcNextButton}
+                >
+                    다음
+                </button>
+            </div>
         </section>
     )
 }
