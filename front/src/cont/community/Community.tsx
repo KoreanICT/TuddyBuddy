@@ -17,15 +17,18 @@ interface Draft {
   date: string;
 }
 
+interface Comment {
+  id: number;
+  author: string;
+  content: string;
+  date: string;
+}
+
 const Community: React.FC = () => {
-  // =========================
   // 카테고리
-  // =========================
   const categories = ["전체", "자유게시판", "합격후기", "꿀팁"];
 
-  // =========================
   // 게시글
-  // =========================
   const [posts] = useState<Post[]>([
     {
       id: 1,
@@ -77,394 +80,275 @@ const Community: React.FC = () => {
     },
   ]);
 
-  // =========================
   // 임시글
-  // =========================
   const [drafts] = useState<Draft[]>([
-    {
-      id: 1,
-      title: "작성하다 저장한 글입니다.",
-      content: "아직 작성 중인 내용입니다.",
-      date: "2026-09-05",
-    },
-    {
-      id: 2,
-      title: "면접 후기 작성 중",
-      content: "면접에서 받은 질문들을 상세하게 정리하고 있습니다.",
-      date: "2026-09-04",
-    },
-    {
-      id: 3,
-      title: "공부 방법 정리",
-      content: "제가 단기 합격에 사용했던 핵심 노하우를 수집 중입니다.",
-      date: "2026-09-03",
-    },
-    {
-      id: 4,
-      title: "자격증 준비 후기",
-      content: "자격증 실기 시험 공부하면서 느꼈던 점을 작성하고 있습니다.",
-      date: "2026-09-02",
-    },
-    {
-      id: 5,
-      title: "취업 준비 이야기",
-      content: "상반기 취업 준비 과정에서 있었던 일들을 회고하며 정리 중입니다.",
-      date: "2026-09-01",
-    },
+    { id: 1, title: "작성하다 저장한 글입니다.", content: "아직 작성 중인 내용입니다.", date: "2026-09-05" },
+    { id: 2, title: "면접 후기 작성 중", content: "면접에서 받은 질문들을 상세하게 정리하고 있습니다.", date: "2026-09-04" },
+    { id: 3, title: "공부 방법 정리", content: "제가 단기 합격에 사용했던 핵심 노하우를 수집 중입니다.", date: "2026-09-03" },
+    { id: 4, title: "자격증 준비 후기", content: "자격증 실기 시험 공부하면서 느꼈던 점을 작성하고 있습니다.", date: "2026-09-02" },
+    { id: 5, title: "취업 준비 이야기", content: "상반기 취업 준비 과정에서 있었던 일들을 회고하며 정리 중입니다.", date: "2026-09-01" },
   ]);
 
-  // =========================
   // State
-  // =========================
   const [selectedCategory, setSelectedCategory] = useState("전체");
   const [searchKeyword, setSearchKeyword] = useState("");
   const [searchedKeyword, setSearchedKeyword] = useState("");
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
 
-  // =========================
-  // 검색 + 카테고리 필터
-  // =========================
+  // 댓글 State
+  const [comments, setComments] = useState<{ [postId: number]: Comment[] }>({
+    1: [
+      { id: 101, author: "김민수", content: "반갑습니다! 자주 소통해요~", date: "2026-09-05 14:20" },
+      { id: 102, author: "이영희", content: "가입 축하드립니다!", date: "2026-09-05 15:10" },
+    ],
+  });
+  const [newCommentText, setNewCommentText] = useState("");
+
+  // 필터링
   const filteredPosts = useMemo(() => {
     return posts.filter((post) => {
-      const categoryMatch =
-        selectedCategory === "전체" || post.category === selectedCategory;
-
+      const categoryMatch = selectedCategory === "전체" || post.category === selectedCategory;
       const searchMatch =
         searchedKeyword.trim() === "" ||
         post.title.toLowerCase().includes(searchedKeyword.toLowerCase()) ||
         post.content.toLowerCase().includes(searchedKeyword.toLowerCase());
-
       return categoryMatch && searchMatch;
     });
   }, [posts, selectedCategory, searchedKeyword]);
 
-  // =========================
-  // 검색 핸들러
-  // =========================
-  const handleSearch = () => {
-    setSearchedKeyword(searchKeyword);
+  // 핸들러
+  const handleSearch = () => setSearchedKeyword(searchKeyword);
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") handleSearch();
   };
 
-  const handleSearchKeyDown = (
-    e: React.KeyboardEvent<HTMLInputElement>
-  ) => {
-    if (e.key === "Enter") {
-      handleSearch();
-    }
+  const handleAddComment = (postId: number) => {
+    if (!newCommentText.trim()) return;
+    const newComment: Comment = {
+      id: Date.now(),
+      author: "나(사용자)",
+      content: newCommentText.trim(),
+      date: new Date().toISOString().slice(0, 16).replace("T", " "),
+    };
+    setComments((prev) => ({
+      ...prev,
+      [postId]: [...(prev[postId] || []), newComment],
+    }));
+    setNewCommentText("");
   };
 
-  // 카테고리별 Badge 색상 매핑
+  const handleDeleteComment = (postId: number, commentId: number) => {
+    setComments((prev) => ({
+      ...prev,
+      [postId]: (prev[postId] || []).filter((c) => c.id !== commentId),
+    }));
+  };
+
   const getBadgeStyle = (category: string) => {
     switch (category) {
-      case "합격후기":
-        return "bg-success-subtle text-success border border-success-subtle";
-      case "꿀팁":
-        return "bg-warning-subtle text-warning-emphasis border border-warning-subtle";
-      case "자유게시판":
-        return "bg-info-subtle text-info-emphasis border border-info-subtle";
-      default:
-        return "bg-secondary-subtle text-secondary border border-secondary-subtle";
+      case "합격후기": return "bg-success-subtle text-success border border-success-subtle";
+      case "꿀팁": return "bg-warning-subtle text-warning-emphasis border border-warning-subtle";
+      case "자유게시판": return "bg-info-subtle text-info-emphasis border border-info-subtle";
+      default: return "bg-secondary-subtle text-secondary border border-secondary-subtle";
     }
   };
 
   return (
     <div className="bg-light min-vh-100 py-4 py-md-5">
       <div className="container" style={{ maxWidth: "1000px" }}>
-        
-        {/* ==================================
-            상단 헤더
-        ================================== */}
+        {/* Header */}
         <div className="d-flex align-items-center justify-content-between mb-4">
           <div>
             <h2 className="fw-bold text-dark mb-1">커뮤니티</h2>
-            <p className="text-muted small mb-0">
-              다양한 지식과 후기를 사람들과 공유해보세요.
-            </p>
+            <p className="text-muted small mb-0">다양한 지식과 후기를 사람들과 공유해보세요.</p>
           </div>
         </div>
 
-        {/* ==================================
-            상단 카테고리 탭 (Pills 스타일)
-        ================================== */}
+        {/* Category Tabs */}
         <div className="bg-white rounded-4 p-2 shadow-sm mb-4 border">
           <div className="nav nav-pills nav-fill gap-2">
-            {categories.map((category) => {
-              const isActive = selectedCategory === category;
-              return (
-                <button
-                  key={category}
-                  type="button"
-                  className={`nav-link py-2.5 px-3 fw-semibold rounded-3 transition-all ${
-                    isActive
-                      ? "active bg-primary text-white shadow-sm"
-                      : "text-secondary bg-transparent hover-bg-light"
-                  }`}
-                  onClick={() => setSelectedCategory(category)}
-                >
-                  {category}
-                </button>
-              );
-            })}
+            {categories.map((category) => (
+              <button
+                key={category}
+                type="button"
+                className={`nav-link py-2.5 px-3 fw-semibold rounded-3 ${
+                  selectedCategory === category ? "active bg-primary text-white shadow-sm" : "text-secondary bg-transparent"
+                }`}
+                onClick={() => setSelectedCategory(category)}
+              >
+                {category}
+              </button>
+            ))}
           </div>
         </div>
 
-        {/* ==================================
-            검색바
-        ================================== */}
+        {/* Search Bar */}
         <div className="bg-white rounded-4 p-2 shadow-sm mb-4 border">
           <div className="input-group input-group-lg border-0">
-            <span className="input-group-text bg-transparent border-0 pe-1 text-muted">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                fill="currentColor"
-                className="bi bi-search"
-                viewBox="0 0 16 16"
-              >
-                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0" />
-              </svg>
-            </span>
             <input
               type="text"
-              className="form-control border-0 shadow-none fs-6"
+              className="form-control border-0 shadow-none fs-6 px-3"
               placeholder="관심있는 글 내용이나 제목을 검색해보세요"
               value={searchKeyword}
               onChange={(e) => setSearchKeyword(e.target.value)}
               onKeyDown={handleSearchKeyDown}
             />
-            {searchKeyword && (
-              <button
-                className="btn btn-link text-muted pe-2 text-decoration-none"
-                onClick={() => {
-                  setSearchKeyword("");
-                  setSearchedKeyword("");
-                }}
-              >
-                ✕
-              </button>
-            )}
-            <button
-              type="button"
-              className="btn btn-primary rounded-3 px-4 fw-semibold fs-6"
-              onClick={handleSearch}
-            >
+            <button type="button" className="btn btn-primary rounded-3 px-4 fw-semibold" onClick={handleSearch}>
               검색
             </button>
           </div>
         </div>
 
-        {/* ==================================
-            게시글 목록 영역
-        ================================== */}
+        {/* Posts List */}
         <div className="mb-5">
           <div className="d-flex justify-content-between align-items-center mb-3 px-1">
-            <div className="d-flex align-items-center gap-2">
-              <h5 className="fw-bold mb-0 text-dark">{selectedCategory}</h5>
-              <span className="badge bg-primary-subtle text-primary rounded-pill px-2.5 py-1 fs-7">
-                {filteredPosts.length}
-              </span>
-            </div>
-            {searchedKeyword && (
-              <small className="text-muted">
-                '<b>{searchedKeyword}</b>' 검색 결과
-              </small>
-            )}
+            <h5 className="fw-bold mb-0 text-dark">{selectedCategory}</h5>
+            <span className="badge bg-primary-subtle text-primary rounded-pill">{filteredPosts.length}</span>
           </div>
-
           <div className="d-flex flex-column gap-3">
-            {filteredPosts.length > 0 ? (
-              filteredPosts.map((post) => (
-                <div
-                  key={post.id}
-                  className="card border-0 shadow-sm rounded-4 hover-lift transition-all cursor-pointer"
-                  style={{ cursor: "pointer" }}
-                  onClick={() => setSelectedPost(post)}
-                >
-                  <div className="card-body p-4">
-                    <div className="d-flex justify-content-between align-items-start mb-2 gap-2">
-                      <span
-                        className={`badge rounded-pill fw-semibold px-2.5 py-1 fs-7 ${getBadgeStyle(
-                          post.category
-                        )}`}
-                      >
-                        {post.category}
-                      </span>
-                      <small className="text-muted">{post.date}</small>
-                    </div>
-
-                    <h5 className="card-title fw-bold text-dark mb-2">
-                      {post.title}
-                    </h5>
-
-                    <p className="card-text text-secondary mb-3 fs-6 text-truncate-2" style={{
-                      display: "-webkit-box",
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: "vertical",
-                      overflow: "hidden"
-                    }}>
-                      {post.content}
-                    </p>
-
-                    <div className="d-flex align-items-center justify-content-between pt-2 border-top border-light-subtle">
-                      <div className="d-flex align-items-center gap-2">
-                        <div
-                          className="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold"
-                          style={{ width: "28px", height: "28px", fontSize: "12px" }}
-                        >
-                          {post.author.charAt(0)}
-                        </div>
-                        <span className="small fw-semibold text-dark">
-                          {post.author}
-                        </span>
-                      </div>
-                      <span className="small text-primary fw-semibold">
-                        자세히 보기 →
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="bg-white rounded-4 p-5 text-center shadow-sm border">
-                <div className="text-muted mb-2">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="40"
-                    height="40"
-                    fill="currentColor"
-                    className="bi bi-file-earmark-x"
-                    viewBox="0 0 16 16"
-                  >
-                    <path d="M6.854 7.146a.5.5 0 1 0-.708.708L7.293 9l-1.147 1.146a.5.5 0 0 0 .708.708L8 9.707l1.146 1.147a.5.5 0 0 0 .708-.708L8.707 9l1.147-1.146a.5.5 0 0 0-.708-.708L8 8.293z" />
-                    <path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2M9.5 3A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5z" />
-                  </svg>
-                </div>
-                <h6 className="fw-bold text-dark">조건에 맞는 게시글이 없습니다.</h6>
-                <p className="text-muted small mb-0">
-                  다른 검색어나 카테고리를 선택해 보세요.
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* ==================================
-            임시글 (Accordion / Card 리스트)
-        ================================== */}
-        <div className="bg-white rounded-4 p-4 shadow-sm border">
-          <div className="d-flex align-items-center justify-content-between mb-3">
-            <div className="d-flex align-items-center gap-2">
-              <h5 className="fw-bold text-dark mb-0">작성 중인 임시글</h5>
-              <span className="badge bg-secondary-subtle text-secondary rounded-pill px-2.5">
-                {drafts.length}개
-              </span>
-            </div>
-          </div>
-
-          <div
-            className="d-flex flex-column gap-2 pe-1"
-            style={{ maxHeight: "280px", overflowY: "auto" }}
-          >
-            {drafts.map((draft) => (
+            {filteredPosts.map((post) => (
               <div
-                key={draft.id}
-                className="p-3 rounded-3 bg-light-subtle border border-light-subtle hover-bg-light transition-all"
+                key={post.id}
+                className="card border-0 shadow-sm rounded-4 p-4"
+                style={{ cursor: "pointer" }}
+                onClick={() => {
+                  setSelectedPost(post);
+                  setNewCommentText("");
+                }}
               >
-                <div className="d-flex justify-content-between align-items-start mb-1">
-                  <h6 className="fw-semibold text-dark mb-0 text-truncate me-2">
-                    {draft.title}
-                  </h6>
-                  <span className="badge bg-light text-muted border border-light-subtle fw-normal">
-                    {draft.date}
+                <div className="d-flex justify-content-between align-items-start mb-2">
+                  <span className={`badge rounded-pill fw-semibold px-2.5 py-1 ${getBadgeStyle(post.category)}`}>
+                    {post.category}
                   </span>
+                  <small className="text-muted">{post.date}</small>
                 </div>
-                <p className="small text-muted mb-0 text-truncate">
-                  {draft.content}
+                <h5 className="fw-bold text-dark mb-2">{post.title}</h5>
+                <p className="text-secondary mb-3 fs-6" style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                  {post.content}
                 </p>
+                <div className="d-flex justify-content-between align-items-center pt-2 border-top">
+                  <span className="small fw-semibold text-dark">{post.author}</span>
+                  <span className="small text-primary fw-semibold">자세히 보기 →</span>
+                </div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* ==================================
-            게시글 확인 Modal
-        ================================== */}
+          {/* Drafts Section */}
+        <div className="bg-white rounded-4 p-4 shadow-sm border mb-4">
+          <h5 className="fw-bold text-dark mb-3">작성 중인 임시글</h5>
+          <div className="d-flex flex-column gap-2" style={{ maxHeight: "200px", overflowY: "auto" }}>
+            {drafts.map((draft) => (
+              <div key={draft.id} className="p-3 rounded-3 bg-light border border-light-subtle">
+                <div className="d-flex justify-content-between">
+                  <h6 className="fw-semibold text-dark mb-1">{draft.title}</h6>
+                  <span className="small text-muted">{draft.date}</span>
+                </div>
+                <p className="small text-muted mb-0 text-truncate">{draft.content}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Modal with Comments */}
         {selectedPost && (
           <div
             className="modal fade show d-block"
             tabIndex={-1}
-            style={{
-              backgroundColor: "rgba(15, 23, 42, 0.5)",
-              backdropFilter: "blur(4px)",
-            }}
+            style={{ backgroundColor: "rgba(15, 23, 42, 0.5)", backdropFilter: "blur(4px)" }}
             onClick={() => setSelectedPost(null)}
           >
-            <div
-              className="modal-dialog modal-dialog-centered modal-lg"
-              onClick={(e) => e.stopPropagation()}
-            >
+            <div className="modal-dialog modal-dialog-centered modal-lg" onClick={(e) => e.stopPropagation()}>
               <div className="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
-                {/* Modal Header */}
+                {/* Header */}
                 <div className="modal-header border-bottom p-4 bg-light-subtle">
-                  <div className="w-100">
-                    <div className="d-flex align-items-center gap-2 mb-2">
-                      <span
-                        className={`badge rounded-pill fw-semibold px-2.5 py-1 fs-7 ${getBadgeStyle(
-                          selectedPost.category
-                        )}`}
-                      >
-                        {selectedPost.category}
-                      </span>
-                      <small className="text-muted">{selectedPost.date}</small>
-                    </div>
-                    <h4 className="modal-title fw-bold text-dark mb-0">
-                      {selectedPost.title}
-                    </h4>
+                  <div>
+                    <span className={`badge rounded-pill fw-semibold px-2.5 py-1 mb-2 ${getBadgeStyle(selectedPost.category)}`}>
+                      {selectedPost.category}
+                    </span>
+                    <h4 className="modal-title fw-bold text-dark mb-0">{selectedPost.title}</h4>
                   </div>
-                  <button
-                    type="button"
-                    className="btn-close align-self-start"
-                    onClick={() => setSelectedPost(null)}
-                  />
+                  <button type="button" className="btn-close" onClick={() => setSelectedPost(null)} />
                 </div>
 
-                {/* Modal Body */}
-                <div className="modal-body p-4">
+                {/* Body */}
+                <div className="modal-body p-4" style={{ maxHeight: "70vh", overflowY: "auto" }}>
                   <div className="d-flex align-items-center gap-2 mb-4 pb-3 border-bottom">
-                    <div
-                      className="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold"
-                      style={{ width: "36px", height: "36px", fontSize: "14px" }}
-                    >
+                    <div className="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold" style={{ width: "36px", height: "36px" }}>
                       {selectedPost.author.charAt(0)}
                     </div>
                     <div>
-                      <div className="fw-semibold text-dark fs-6">
-                        {selectedPost.author}
-                      </div>
-                      <small className="text-muted">작성자</small>
+                      <div className="fw-semibold text-dark">{selectedPost.author}</div>
+                      <small className="text-muted">{selectedPost.date}</small>
                     </div>
                   </div>
 
-                  <div
-                    className="fs-6 text-dark leading-relaxed"
-                    style={{
-                      minHeight: "180px",
-                      whiteSpace: "pre-wrap",
-                      lineHeight: "1.7",
-                    }}
-                  >
+                  {/* Post Content */}
+                  <div className="fs-6 text-dark leading-relaxed mb-5" style={{ minHeight: "100px", whiteSpace: "pre-wrap" }}>
                     {selectedPost.content}
+                  </div>
+
+                  {/* Comments Section */}
+                  <div className="pt-4 border-top">
+                    <div className="d-flex align-items-center gap-2 mb-3">
+                      <h6 className="fw-bold mb-0 text-dark">댓글</h6>
+                      <span className="badge bg-primary-subtle text-primary rounded-pill">
+                        {(comments[selectedPost.id] || []).length}
+                      </span>
+                    </div>
+
+                    {/* Add Comment Input */}
+                    <div className="input-group mb-4">
+                      <input
+                        type="text"
+                        className="form-control"
+                        placeholder="댓글을 작성해 보세요..."
+                        value={newCommentText}
+                        onChange={(e) => setNewCommentText(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") handleAddComment(selectedPost.id);
+                        }}
+                      />
+                      <button className="btn btn-primary px-4 fw-semibold" type="button" onClick={() => handleAddComment(selectedPost.id)}>
+                        등록
+                      </button>
+                    </div>
+
+                    {/* Comment List */}
+                    <div className="d-flex flex-column gap-2">
+                      {(comments[selectedPost.id] || []).length > 0 ? (
+                        comments[selectedPost.id].map((comment) => (
+                          <div key={comment.id} className="p-3 rounded-3 bg-light border border-light-subtle d-flex justify-content-between align-items-start">
+                            <div>
+                              <div className="d-flex align-items-center gap-2 mb-1">
+                                <span className="fw-semibold text-dark small">{comment.author}</span>
+                                <small className="text-muted" style={{ fontSize: "11px" }}>{comment.date}</small>
+                              </div>
+                              <p className="mb-0 text-secondary fs-6">{comment.content}</p>
+                            </div>
+                            <button
+                              type="button"
+                              className="btn btn-link text-danger p-0 border-0 text-decoration-none small ms-2"
+                              style={{ fontSize: "13px" }}
+                              onClick={() => handleDeleteComment(selectedPost.id, comment.id)}
+                            >
+                              삭제
+                            </button>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-center py-4 text-muted small bg-light rounded-3">
+                          아직 작성된 댓글이 없습니다. 첫 번째 댓글을 남겨보세요!
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
 
-                {/* Modal Footer */}
+                {/* Footer */}
                 <div className="modal-footer border-top bg-light-subtle p-3">
-                  <button
-                    type="button"
-                    className="btn btn-secondary px-4 rounded-3 fw-semibold"
-                    onClick={() => setSelectedPost(null)}
-                  >
+                  <button type="button" className="btn btn-secondary px-4 rounded-3 fw-semibold" onClick={() => setSelectedPost(null)}>
                     닫기
                   </button>
                 </div>
@@ -472,7 +356,6 @@ const Community: React.FC = () => {
             </div>
           </div>
         )}
-
       </div>
     </div>
   );

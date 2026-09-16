@@ -41,6 +41,14 @@ const mockPublicStudies: StudyItem[] = [
         currentMembers: 12,
         maxCapacity: 20,
     },
+    {
+        id: 104,
+        title: '파이썬 pandas 기초부터',
+        description: '빅데이터 및 ai 관련 학습할 사람 모집',
+        tags: ['Python', 'pandas'],
+        currentMembers: 8,
+        maxCapacity: 20,
+    },
 ];
 
 export const Group_Public: React.FC<GroupPublicProps> = ({ searchType, searchTerm }) => {

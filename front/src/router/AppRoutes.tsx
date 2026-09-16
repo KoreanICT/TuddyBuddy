@@ -16,7 +16,7 @@ import BoardManagement from "../cont/admin/board/BoardManagement";
 import StudentCode from "../cont/friend/StudentCode";
 import FriendAdd from "../cont/friend/FriendAdd";
 import FriendList from "../cont/friend/FriendList";
-import Community from "../cont/community/Community";
+//import Community from "../cont/community/Community";
 import ReportList from "../cont/admin/report/ReportList";
 import ReportDetail from "../cont/admin/report/ReportDetail";
 import ReportReply from "../cont/admin/report/ReportReply";
@@ -24,11 +24,10 @@ import ReportReply from "../cont/admin/report/ReportReply";
 import Layout from "../layout/Layout";
 import AdminLayout from "../layout/admin/AdminLayout";
 
-import SelfStudy from "../cont/SelfStudy";
-
 import ReportCreate from "../cont/report/ReportCreate";
 import StudyManagement from "../cont/admin/study_group/StudyManagement";
 import AuthLayout from "../layout/auth/AuthLayout";
+import SelfStudy from "../cont/selfStudy/SelfStudy";
 interface RouteItem {
     path: string;
     element: React.ReactElement;
@@ -43,6 +42,7 @@ const AppRoutes: React.FC = () => {
     const routeList: RouteItem[] = [
         { path: '/videoSummary', element: <VideoSummary /> },
         { path: '/community', element: <Community /> },
+        //{ path: '/community', element: <Community /> }, 
 
 
         { path: '/homeGroup', element: <Group_Home /> },
