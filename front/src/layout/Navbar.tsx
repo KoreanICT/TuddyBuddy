@@ -56,21 +56,6 @@ const Navbar: React.FC = () => {
                             </NavLink>
                         </li>
                         <li>
-                            <NavLink to="/test2" className={linkClass}>
-                                테스트2
-                            </NavLink>
-                        </li>
-                        <li>
-                            <NavLink to="/test3" className={linkClass}>
-                                테스트3
-                            </NavLink>
-                        </li>
-                        <li>
-                            <NavLink to="/test4" className={linkClass}>
-                                테스트4
-                            </NavLink>
-                        </li>
-                        <li>
                             <NavLink to="/friend/add" className={linkClass}>
                                 친구 추가
                             </NavLink>
