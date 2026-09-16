@@ -28,6 +28,7 @@ import ReportCreate from "../cont/report/ReportCreate";
 import StudyManagement from "../cont/admin/study_group/StudyManagement";
 import AuthLayout from "../layout/auth/AuthLayout";
 import SelfStudy from "../cont/selfStudy/SelfStudy";
+import Community from "../cont/community/Community";
 interface RouteItem {
     path: string;
     element: React.ReactElement;
