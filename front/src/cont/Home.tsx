@@ -6,7 +6,6 @@ import fullpage from 'fullpage.js';
 import 'fullpage.js/dist/fullpage.css';
 
 import Modal from './modal/Modal';
-import FaceDetector from './detect/FaceDetector';
 
 const Home: React.FC = () => {
 

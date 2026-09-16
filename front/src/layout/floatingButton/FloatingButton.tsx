@@ -17,7 +17,7 @@ const FloatingButton: React.FC = () => {
     // 마이페이지 이동
     const moveMyPage = () => {
         // TODO: 마이페이지 완성 후 경로 변경
-        navigate('/');
+        navigate('/auth/mypage');
         setOpen(false);
     };
 
