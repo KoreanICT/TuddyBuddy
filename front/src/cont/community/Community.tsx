@@ -1,21 +1,21 @@
-// import React, { useMemo, useState } from "react";
-// import "bootstrap/dist/css/bootstrap.min.css";
+import React, { useMemo, useState } from "react";
+import "bootstrap/dist/css/bootstrap.min.css";
 
-// interface Post {
-//   id: number;
-//   title: string;
-//   content: string;
-//   category: string;
-//   author: string;
-//   date: string;
-// }
+interface Post {
+  id: number;
+  title: string;
+  content: string;
+  category: string;
+  author: string;
+  date: string;
+}
 
-// interface Draft {
-//   id: number;
-//   title: string;
-//   content: string;
-//   date: string;
-// }
+interface Draft {
+  id: number;
+  title: string;
+  content: string;
+  date: string;
+}
 
 interface Comment {
   id: number;

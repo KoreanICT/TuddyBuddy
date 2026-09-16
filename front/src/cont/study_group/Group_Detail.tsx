@@ -6,7 +6,7 @@ import { Detail_Memo } from './Detail_Memo';
 import styles from './detail.module.css';
 import { Detail_Image } from './Detail_Image';
 import { Detail_Member } from './Detail_Member';
-import { Detail_Project } from './Detail_Project';
+import { Project_Home } from '../project/Project_Home';
 import VideoSummary from '../video/VideoSummary';
 import { GiHamburgerMenu } from "react-icons/gi";
 
@@ -96,7 +96,7 @@ export const Group_Detail: React.FC<GroupDetailProps> = ({ onBackToHome }) => {
                     {currentTab === 'image' && <Detail_Image />}
                     {currentTab === 'memo' && <Detail_Memo />}
                     {currentTab === 'member' && <Detail_Member />}
-                    {currentTab === 'project' && <Detail_Project />}
+                    {currentTab === 'project' && <Project_Home />}
                 </main>
 
                 
