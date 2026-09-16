@@ -51,7 +51,6 @@ export const Detail_Sidebar: React.FC<DetailSidebarProps> = ({ currentTab, onTab
     ]
 
     const [isOpen, setIsOpen] = useState<boolean>(false);
-
     return (
         <aside className={mode === 'dropdown' ? styles.detail_sidebar_dropdown : styles.detail_sidebar_container}>
             <nav className={styles.detail_menu_box}>

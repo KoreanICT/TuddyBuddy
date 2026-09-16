@@ -16,11 +16,11 @@ const UserMenu: React.FC = () => {
     if (!isLogin) {
         return (
             <div className={styles.userMenu}>
-                <Link to="/member" className={styles.authButton}>
+                <Link to="/auth/member" className={styles.authButton}>
                     로그인
                 </Link>
 
-                <Link to="/signup" className={styles.authButton}>
+                <Link to="/auth/signup" className={styles.authButton}>
                     회원가입
                 </Link>
             </div>
@@ -30,11 +30,11 @@ const UserMenu: React.FC = () => {
     else return (
         <>
             <div className={styles.userMenu}>
-                <Link to="/member" className={styles.authButton}>
+                <Link to="/auth/member" className={styles.authButton}>
                     로그인
                 </Link>
 
-                <Link to="/signup" className={styles.authButton}>
+                <Link to="/auth/signup" className={styles.authButton}>
                     회원가입
                 </Link>
             </div>
