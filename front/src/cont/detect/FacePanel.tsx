@@ -68,10 +68,6 @@ const FacePanel:
                 <div className={styles.header}>
 
                     <div>
-                        <h2>
-                            학습 집중 감지
-                        </h2>
-
                         <p>
                             얼굴과 움직임 상태를 감지합니다.
                         </p>

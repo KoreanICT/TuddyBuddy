@@ -19,10 +19,7 @@ const Home: React.FC = () => {
 
   const navigate = useNavigate()
 
-  // =========================
   // FullPage
-  // =========================
-
   useEffect(() => {
     const fullpageInstance = new fullpage('#fullpage', {
       licenseKey: 'YOUR_KEY',
@@ -51,8 +48,7 @@ const Home: React.FC = () => {
     <>
       <div id="fullpage">
 
-        {/* Section 1 : 스터디 그룹
-        ========================= */}
+        {/* Section 1 : 스터디 그룹 */}
         <section className="section">
           <div className={styles.sectionInner}>
 
