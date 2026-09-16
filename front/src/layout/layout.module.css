@@ -23,3 +23,62 @@
   background-color: var(--background-secondary);
   border-top: 1px solid var(--border);
 }
+
+/* 학습 집중 버튼 */
+
+.focusButton {
+    position: fixed;
+    top: 90px;
+    right: 24px;
+    z-index: 1200;
+    padding: 10px 16px;
+    border: none;
+    border-radius: var(--radius-sm);
+    color: white;
+    background-color: var(--primary);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.14);
+    transition:
+        background-color 0.2s,
+        transform 0.2s;
+}
+
+.focusButton:hover {
+    background-color: var(--primary-hover);
+    transform: translateY(-1px);
+}
+
+
+/* 학습 집중 모달 */
+
+.focusModal {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    z-index: 1300;
+    width: 360px;
+    max-width: calc(100vw - 40px);
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
+    border-radius: var(--radius-md);
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.18);
+}
+
+
+/* Responsive */
+
+@media (max-width: 768px) {
+    .focusButton {
+        top: 76px;
+        left: 14px;
+    }
+
+    .focusModal {
+        top: 70px;
+        left: 10px;
+        width: calc(100vw - 20px);
+        max-width: 360px;
+    }
+}
