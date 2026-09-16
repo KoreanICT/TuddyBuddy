@@ -25,6 +25,8 @@ import Layout from "../layout/Layout";
 import AdminLayout from "../layout/admin/AdminLayout";
 
 import ReportCreate from "../cont/report/ReportCreate";
+import StudyManagement from "../cont/admin/study_group/StudyManagement";
+import AuthLayout from "../layout/auth/AuthLayout";
 import SelfStudy from "../cont/selfStudy/SelfStudy";
 interface RouteItem {
     path: string;
@@ -35,22 +37,19 @@ const AppRoutes: React.FC = () => {
     const { pathname } = useLocation();
 
     const isManage = pathname.startsWith("/admin");
+    const isAuth = pathname.startsWith("/auth");
 
     const routeList: RouteItem[] = [
-        { path: '/', element: <Home /> },
-        { path: '/member', element: <Login/>},
-        { path: '/signup', element: <Signup/>},
-        { path: '/mypage', element: <MyPage/>},
-
         { path: '/videoSummary', element: <VideoSummary /> },
+        { path: '/community', element: <Community /> },
         //{ path: '/community', element: <Community /> }, 
 
 
         { path: '/homeGroup', element: <Group_Home /> },
         { path: '/group/detail', element: <Group_Detail /> },
-    
 
-        // common
+
+        // contents
         { path: "/", element: <Home /> },
         { path: "/friend/code", element: <StudentCode /> },
         { path: "/friend/add", element: <FriendAdd /> },
@@ -68,8 +67,13 @@ const AppRoutes: React.FC = () => {
         { path: "/admin/reportList", element: <ReportList /> },
         { path: "/admin/reportDetail/:id", element: <ReportDetail /> },
         { path: "/admin/reportReply/:id", element: <ReportReply /> },
+        { path: "/admin/studyManagement", element: <StudyManagement /> },
 
-        // user? auth? account?
+
+        // auth
+        { path: '/auth/member', element: <Login /> },
+        { path: '/auth/signup', element: <Signup /> },
+        { path: '/auth/mypage', element: <MyPage /> },
     ];
 
 
@@ -83,7 +87,19 @@ const AppRoutes: React.FC = () => {
                         ))}
                     </Routes>
                 </AdminLayout>
+
+            ) : isAuth ? (
+
+                <AuthLayout>
+                    <Routes>
+                        {routeList.map((route, idx) => (
+                            <Route key={idx} {...route} />
+                        ))}
+                    </Routes>
+                </AuthLayout>
+
             ) : (
+
                 <Layout>
                     <Routes>
                         {routeList.map((route, idx) => (
