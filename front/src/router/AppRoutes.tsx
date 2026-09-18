@@ -29,6 +29,7 @@ import StudyManagement from "../cont/admin/study_group/StudyManagement";
 import AuthLayout from "../layout/auth/AuthLayout";
 import SelfStudy from "../cont/selfStudy/SelfStudy";
 import Community from "../cont/community/Community";
+
 interface RouteItem {
     path: string;
     element: React.ReactElement;
@@ -43,7 +44,6 @@ const AppRoutes: React.FC = () => {
     const routeList: RouteItem[] = [
         { path: '/videoSummary', element: <VideoSummary /> },
         { path: '/community', element: <Community /> },
-        //{ path: '/community', element: <Community /> }, 
 
 
         { path: '/homeGroup', element: <Group_Home /> },
