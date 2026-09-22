@@ -12,4 +12,4 @@ export const Project_Home: React.FC = () => {
             </div>
         </div>
     )
-}
+}            
