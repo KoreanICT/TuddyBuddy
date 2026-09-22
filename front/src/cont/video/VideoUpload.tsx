@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import styles from './videoSummary.module.css';
 
+{/* 부모 컴포넌트에서 전달 받을 타입 정의 */}
 interface videoUploadProps {
     videoClick: (value: boolean) => void;
     youtubeClick: (value: boolean) => void;
