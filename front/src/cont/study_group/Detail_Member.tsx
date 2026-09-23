@@ -1,17 +1,10 @@
 import React from 'react';
 import styles from './detail.module.css';
-
-interface Member {
-    id: number;
-    nickname: string;
-    name: string;
-    avatarUrl: string;
-    isLeader: boolean;
-}
+import { MemberData } from './GroupAPI';
 
 export const Detail_Member: React.FC = () => {
     // 샘플 멤버 데이터 (실제 연동 시 props 또는 API 데이터로 대체)
-    const members: Member[] = [
+    const members: MemberData[] = [
         {
             id: 1,
             nickname: '물리충',

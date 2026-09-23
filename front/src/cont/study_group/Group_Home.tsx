@@ -3,7 +3,6 @@ import { Group_Sidebar } from './Group_Sidebar';
 import { Group_Private } from './Group_Private';
 import { Group_Public } from './Group_Public';
 import styles from './group.module.css';
-import { Link } from 'react-router-dom';
 import { Group_Create } from './Group_Create';
 
 export const Group_Home: React.FC = () => {
