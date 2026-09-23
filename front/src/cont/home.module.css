@@ -153,9 +153,18 @@
 }
 
 .footerLogo {
-  font-size: 20px;
-  font-weight: 800;
-  color: var(--text);
+  display: flex;
+  align-items: center;
+
+  margin-bottom: 10px;
+}
+
+.footerLogo img {
+  width: 150px;
+  height: auto;
+
+  object-fit: contain;
+  display: block;
 }
 
 .footerInfo p {

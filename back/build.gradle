@@ -1,0 +1,63 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '4.1.0'
+	id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'kr.co.ictedu'
+version = '0.0.1-SNAPSHOT'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(25)
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
+	implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+	// Source: https://mvnrepository.com/artifact/org.mybatis.spring.boot/mybatis-spring-boot-starter
+	implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:4.0.1'
+	// Source: https://mvnrepository.com/artifact/commons-fileupload/commons-fileupload
+    implementation 'commons-fileupload:commons-fileupload:1.6.0'
+    
+    // Add 2026-07-06 ------------------------------------
+	// https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-mail
+	implementation 'org.springframework.boot:spring-boot-starter-mail'
+	// https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-data-redis
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-devtools
+	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+	// Source: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-aop
+	//aop aspect lib
+	implementation 'org.springframework.boot:spring-boot-starter-aspectj'
+	
+	compileOnly 'org.projectlombok:lombok'
+	// Source: https://mvnrepository.com/artifact/com.oracle.database.jdbc/ojdbc8
+	runtimeOnly 'com.oracle.database.jdbc:ojdbc8:21.3.0.0'
+	annotationProcessor 'org.projectlombok:lombok'
+	
+	
+	testImplementation 'org.springframework.boot:spring-boot-starter-data-jdbc-test'
+	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+	// Source: https://mvnrepository.com/artifact/org.mybatis.spring.boot/mybatis-spring-boot-starter
+	testImplementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:4.0.1'
+	testCompileOnly 'org.projectlombok:lombok'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	testAnnotationProcessor 'org.projectlombok:lombok'
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
+
+//스프링을 도커 이미지로 빌드 하기 위한 이미지 
+//Spring Boot 애플리케이션을 도커 이미지로 빌드할 때, 
+// Paketo Buildpacks를 사용하여 빌드 프로세스를 자동화하고 표준화된 도커 이미지를 생성 할 수 있음 
+tasks.named('bootBuildImage') {
+	builder = 'paketobuildpacks/builder-jammy-base:latest'
+}

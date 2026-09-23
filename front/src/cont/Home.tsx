@@ -6,7 +6,6 @@ import fullpage from 'fullpage.js';
 import 'fullpage.js/dist/fullpage.css';
 
 import Modal from './modal/Modal';
-import FaceDetector from './detect/FaceDetector';
 
 const Home: React.FC = () => {
 
@@ -20,10 +19,7 @@ const Home: React.FC = () => {
 
   const navigate = useNavigate()
 
-  // =========================
   // FullPage
-  // =========================
-
   useEffect(() => {
     const fullpageInstance = new fullpage('#fullpage', {
       licenseKey: 'YOUR_KEY',
@@ -52,10 +48,7 @@ const Home: React.FC = () => {
     <>
       <div id="fullpage">
 
-        {/* =========================
-            Section 1
-            스터디 그룹
-        ========================= */}
+        {/* Section 1 : 스터디 그룹 */}
         <section className="section">
           <div className={styles.sectionInner}>
 
@@ -83,17 +76,18 @@ const Home: React.FC = () => {
 
 
             <div className={styles.visual}>
-              <FaceDetector />
+              <img
+                src="/images/groupStudy.png"
+                alt="스터디 그룹에서 함께 공부하는 모습"
+                className={styles.sectionImage}
+              />
             </div>
 
           </div>
         </section>
 
 
-        {/* =========================
-            Section 2
-            개인 스터디
-        ========================= */}
+        {/* Section 2 : 개인 스터디 */}
         <section className="section">
           <div className={styles.sectionInner}>
 
@@ -132,10 +126,7 @@ const Home: React.FC = () => {
         </section>
 
 
-        {/* =========================
-            Section 3
-            교육 이슈
-        ========================= */}
+        {/* Section 3 : 교육 이슈 */}
         <section className="section">
           <div className={styles.sectionInner}>
 
@@ -173,77 +164,36 @@ const Home: React.FC = () => {
           </div>
         </section>
 
-
-        {/* =========================
-            Footer
-        ========================= */}
         <footer className="section fp-auto-height">
-
           <div className={styles.footer}>
             <div className={styles.footerInner}>
-
               <div className={styles.footerInfo}>
-
-                <strong className={styles.footerLogo}>
-                  프로젝트 로고
-                </strong>
-
-                <p>
-                  함께 공부하고 성장하는 교육 커뮤니티
-                </p>
-
+                <div className={styles.footerLogo}>
+                  <img src="/images/footerlogo.png"
+                    alt="프로젝트 로고" />
+                </div>
+                <p>함께 공부하고 성장하는 교육 커뮤니티</p>
               </div>
-
-
-              {/* Footer Navigation */}
               <nav className={styles.footerLinks}>
-
-                <button
-                  type="button"
-                  onClick={() => setIsTermsOpen(true)}
-                >
-                  이용약관
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setIsPrivacyOpen(true)}
-                >
-                  개인정보처리방침
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setIsEmailPolicyOpen(true)}
-                >
-                  이메일무단수집거부
-                </button>
-
-                <Link to="/contact">
-                  문의하기
-                </Link>
-
+                <button type="button" onClick={() => setIsTermsOpen(true)}>이용약관</button>
+                <button type="button" onClick={() => setIsPrivacyOpen(true)}>개인정보처리방침</button>
+                <button type="button" onClick={() => setIsEmailPolicyOpen(true)}>이메일무단수집거부</button>
               </nav>
 
 
               {/* Copyright */}
               <div className={styles.footerCopyright}>
-                <p>
-                  © 2026 프로젝트 로고. All rights reserved.
-                </p>
+                <p>© 2026 프로젝트 로고. All rights reserved.</p>
               </div>
 
             </div>
           </div>
-
         </footer>
 
       </div>
 
 
-      {/* =========================
-          이용약관 Modal
-      ========================= */}
+      {/* 이용약관 Modal */}
       <Modal
         isOpen={isTermsOpen}
         onClose={() => setIsTermsOpen(false)}
@@ -266,9 +216,7 @@ const Home: React.FC = () => {
       </Modal>
 
 
-      {/* =========================
-          개인정보처리방침 Modal
-      ========================= */}
+      {/* 개인정보처리방침 Modal */}
       <Modal
         isOpen={isPrivacyOpen}
         onClose={() => setIsPrivacyOpen(false)}
@@ -291,9 +239,7 @@ const Home: React.FC = () => {
       </Modal>
 
 
-      {/* =========================
-          이메일무단수집거부 Modal
-      ========================= */}
+      {/* 이메일무단수집거부 Modal */}
       <Modal
         isOpen={isEmailPolicyOpen}
         onClose={() => setIsEmailPolicyOpen(false)}

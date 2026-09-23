@@ -1,25 +1,112 @@
 .layout {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+    min-height: 100vh;
+
+    display: flex;
+    flex-direction: column;
 }
+
+
+/* Header */
 
 .header {
-  width: 100%;
-  height: 72px;
-  background-color: var(--background);
-  border-bottom: 1px solid var(--border);
+    width: 100%;
+    height: 72px;
+
+    background-color: var(--background);
+
+    border-bottom: 1px solid var(--border);
 }
+
+
+/* Main */
 
 .main {
-  flex: 1;
-  width: 100%;
-  max-width: var(--max-width);
-  margin: 0 auto;
+    flex: 1;
+    width: 100%;
+    max-width: var(--max-width);
+    margin: 0 auto;
 }
 
+
+/* Footer */
+
 .footer {
-  width: 100%;
-  background-color: var(--background-secondary);
-  border-top: 1px solid var(--border);
+    width: 100%;
+    background-color: var(--background-secondary);
+    border-top: 1px solid var(--border);
+}
+
+.focusButton {
+    position: fixed;
+    top: 92px;
+    left: 24px;
+    z-index: 1200;
+    padding: 10px 16px;
+    border: none;
+    border-radius: var(--radius-sm);
+    color: #fff;
+    background-color: var(--primary);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.14);
+    transition:
+        background-color 0.2s,
+        transform 0.2s;
+}
+
+.focusButton:hover {
+    background-color: var(--primary-hover);
+
+    transform: translateY(-1px);
+}
+
+.focusModal {
+    position: fixed;
+    z-index: 1300;
+    width: 360px;   
+    max-width: calc(100vw - 20px);
+    max-height: calc(100vh - 20px);
+    overflow-y: auto;
+    border-radius: var(--radius-md);
+    background-color: var(--background);
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.18);
+}
+
+.dragHandle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    background-color: var(--background-secondary);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: grab;
+    user-select: none;
+    touch-action: none;
+}
+
+.dragHandle:active {
+    cursor: grabbing;
+}
+
+.dragHandle span {
+    color: var(--text-secondary);
+
+    font-size: 16px;
+}
+
+@media (max-width: 768px) {
+
+    .focusButton {
+        top: 84px;
+        left: 12px;
+    }
+
+    .focusModal {
+        width: 340px;
+        max-width: calc(100vw - 20px);
+    }
 }

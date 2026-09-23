@@ -1,0 +1,160 @@
+.floatingWrapper {
+    position: fixed;
+
+    right: 28px;
+    bottom: 28px;
+
+    z-index: 1000;
+
+    display: flex;
+    align-items: flex-end;
+    flex-direction: column;
+
+    gap: 12px;
+}
+
+
+/* =========================
+   Floating Menu
+========================= */
+
+.floatingMenu {
+    display: flex;
+    flex-direction: column;
+
+    gap: 8px;
+}
+
+.menuButton {
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+    min-width: 140px;
+
+    padding: 11px 14px;
+
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+
+    color: var(--text);
+    background-color: var(--background);
+
+    font-size: 14px;
+    font-weight: 500;
+
+    cursor: pointer;
+
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+
+    transition:
+        background-color 0.2s,
+        transform 0.2s;
+}
+
+.menuButton:hover {
+    background-color: var(--background-secondary);
+
+    transform: translateX(-3px);
+}
+
+.menuIcon {
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    width: 24px;
+    height: 24px;
+
+    font-size: 18px;
+}
+
+
+/* =========================
+   Main Floating Button
+========================= */
+
+.floatingButton {
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    width: 56px;
+    height: 56px;
+
+    padding: 0;
+
+    border: none;
+    border-radius: 50%;
+
+    color: white;
+    background-color: var(--primary);
+
+    font-size: 30px;
+    font-weight: 300;
+
+    cursor: pointer;
+
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+
+    transition:
+        transform 0.2s,
+        background-color 0.2s;
+}
+
+.floatingButton:hover {
+    background-color: var(--primary-hover);
+
+    transform: translateY(-2px);
+}
+
+.floatingButton.open {
+    transform: rotate(90deg);
+}
+
+
+/* =========================
+   Responsive
+========================= */
+
+@media (max-width: 768px) {
+
+    .floatingWrapper {
+        right: 18px;
+        bottom: 18px;
+    }
+
+    .floatingButton {
+        width: 52px;
+        height: 52px;
+
+        font-size: 28px;
+    }
+
+    .menuButton {
+        min-width: 130px;
+
+        padding: 10px 12px;
+    }
+}
+
+.menuIcon {
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    width: 24px;
+    height: 24px;
+
+    font-size: 17px;
+}
+
+.floatingButton svg {
+    width: 20px;
+    height: 20px;
+}

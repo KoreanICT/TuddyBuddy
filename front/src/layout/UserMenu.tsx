@@ -16,11 +16,11 @@ const UserMenu: React.FC = () => {
     if (!isLogin) {
         return (
             <div className={styles.userMenu}>
-                <Link to="/login" className={styles.authButton}>
+                <Link to="/auth/member" className={styles.authButton}>
                     로그인
                 </Link>
 
-                <Link to="/signup" className={styles.authButton}>
+                <Link to="/auth/signup" className={styles.authButton}>
                     회원가입
                 </Link>
             </div>
@@ -30,11 +30,11 @@ const UserMenu: React.FC = () => {
     else return (
         <>
             <div className={styles.userMenu}>
-                <Link to="/login" className={styles.authButton}>
+                <Link to="/auth/member" className={styles.authButton}>
                     로그인
                 </Link>
 
-                <Link to="/signup" className={styles.authButton}>
+                <Link to="/auth/signup" className={styles.authButton}>
                     회원가입
                 </Link>
             </div>
@@ -83,11 +83,11 @@ const UserMenu: React.FC = () => {
                         내정보
                     </NavLink>
 
-                    <NavLink to="/learning" onClick={closeMenu}>
+                    <NavLink to="/homeGroup" onClick={closeMenu}>
                         학습현황
                     </NavLink>
 
-                    <NavLink to="/study/create" onClick={closeMenu}>
+                    <NavLink to="/homeGroup" onClick={closeMenu}>
                         스터디 생성
                     </NavLink>
 

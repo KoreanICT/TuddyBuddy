@@ -1,24 +1,83 @@
-.friendAdd {
+/* =========================
+   Page
+========================= */
+
+.page {
     width: 100%;
+    min-height: calc(100vh - 72px);
+
+    padding: 45px 20px 60px;
+
+    background-color: var(--background);
 }
 
+.container {
+    width: 100%;
+    max-width: 620px;
+
+    margin: 0 auto;
+}
+
+
+/* =========================
+   Header
+========================= */
+
 .header {
-    margin-bottom: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    margin-bottom: 24px;
 }
 
 .header h1 {
-    margin-bottom: 6px;
+    margin: 0 0 5px;
 
     color: var(--text);
 
-    font-size: 28px;
+    font-size: 26px;
     font-weight: 700;
 }
 
 .header p {
+    margin: 0;
+
     color: var(--text-secondary);
 
     font-size: 14px;
+}
+
+
+/* =========================
+   My Code
+========================= */
+
+.codeButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 6px;
+
+    padding: 9px 13px;
+
+    border: 1px solid var(--border);
+    border-radius: 8px;
+
+    color: var(--text);
+    background-color: var(--background);
+
+    font-size: 13px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: background-color 0.2s;
+}
+
+.codeButton:hover {
+    background-color: var(--background-secondary);
 }
 
 
@@ -26,50 +85,173 @@
    Search
 ========================= */
 
-.searchBox {
+.searchArea {
     display: flex;
+
     gap: 8px;
 
-    max-width: 650px;
-
-    margin-bottom: 24px;
+    margin-bottom: 20px;
 }
 
-.searchBox input {
+.searchInput {
+    position: relative;
+
+    display: flex;
+    align-items: center;
+
     flex: 1;
 
-    padding: 13px 14px;
+    height: 46px;
 
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
+    border: 1px solid transparent;
+    border-radius: 8px;
 
+    background-color: var(--background-secondary);
+
+    transition: border-color 0.2s;
+}
+
+.searchInput:focus-within {
+    border-color: var(--border);
+}
+
+.searchIcon {
+    flex-shrink: 0;
+
+    margin-left: 14px;
+
+    color: var(--text-secondary);
+}
+
+.searchInput input {
+    width: 100%;
+    height: 100%;
+
+    padding: 0 38px 0 10px;
+
+    border: none;
     outline: none;
 
     color: var(--text);
-    background-color: var(--background);
+    background-color: transparent;
 
     font-size: 14px;
 }
 
-.searchBox input:focus {
-    border-color: var(--primary);
+.searchInput input::placeholder {
+    color: var(--text-secondary);
 }
 
-.searchBox button {
-    padding: 0 24px;
 
-    border-radius: var(--radius-sm);
+/* =========================
+   Clear Button
+========================= */
 
+.clearButton {
+    position: absolute;
+
+    right: 12px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 20px;
+    height: 20px;
+
+    padding: 0;
+
+    border: none;
+    border-radius: 50%;
+
+    color: #fff;
+    background-color: #b0b5bb;
+
+    font-size: 16px;
+    line-height: 1;
+
+    cursor: pointer;
+}
+
+
+/* =========================
+   Search Button
+========================= */
+
+.searchButton {
+    min-width: 76px;
+
+    padding: 0 18px;
+
+    border: none;
+    border-radius: 8px;
+
+    color: #fff;
     background-color: var(--primary);
 
-    color: var(--background);
-
     font-size: 14px;
-    font-weight: 500;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: background-color 0.2s;
 }
 
-.searchBox button:hover {
+.searchButton:hover {
     background-color: var(--primary-hover);
+}
+
+
+/* =========================
+   Empty
+========================= */
+
+.empty {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+
+    padding: 42px 20px 48px;
+
+    border-top: 1px solid var(--border);
+
+    text-align: center;
+}
+
+.emptyIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 64px;
+    height: 64px;
+
+    margin-bottom: 14px;
+
+    border: 2px solid var(--text);
+    border-radius: 50%;
+
+    color: var(--text);
+}
+
+.empty h2 {
+    margin: 0 0 7px;
+
+    color: var(--text);
+
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.empty p {
+    max-width: 300px;
+
+    margin: 0;
+
+    color: var(--text-secondary);
+
+    font-size: 13px;
+    line-height: 1.6;
 }
 
 
@@ -77,19 +259,45 @@
    Search Result
 ========================= */
 
-.result {
+.resultSection {
+    padding-top: 16px;
+
+    border-top: 1px solid var(--border);
+}
+
+.sectionTitle {
+    margin-bottom: 8px;
+
+    color: var(--text);
+
+    font-size: 14px;
+    font-weight: 600;
+}
+
+
+/* =========================
+   User
+========================= */
+
+.userItem {
     display: flex;
     align-items: center;
     justify-content: space-between;
 
-    max-width: 650px;
+    padding: 14px 8px;
 
-    padding: 20px 24px;
+    transition: background-color 0.2s;
+}
 
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
+.userItem:hover {
+    background-color: var(--background-secondary);
+}
 
-    background-color: var(--background);
+.userInfo {
+    display: flex;
+    align-items: center;
+
+    min-width: 0;
 }
 
 
@@ -97,36 +305,45 @@
    Profile
 ========================= */
 
-.profile {
+.avatar {
     display: flex;
     align-items: center;
-}
-
-.profileImage {
-    display: flex;
     justify-content: center;
-    align-items: center;
 
-    width: 52px;
-    height: 52px;
+    flex-shrink: 0;
 
-    margin-right: 16px;
+    width: 50px;
+    height: 50px;
 
+    margin-right: 14px;
+
+    border: 1px solid var(--border);
     border-radius: 50%;
 
+    color: var(--text-secondary);
     background-color: var(--background-secondary);
-
-    font-size: 22px;
 }
 
-.profileInfo h2 {
-    margin-bottom: 3px;
 
-    font-size: 17px;
+/* =========================
+   User Text
+========================= */
+
+.userText {
+    display: flex;
+    flex-direction: column;
+
+    gap: 3px;
+}
+
+.userText strong {
+    color: var(--text);
+
+    font-size: 14px;
     font-weight: 600;
 }
 
-.profileInfo p {
+.userText span {
     color: var(--text-secondary);
 
     font-size: 13px;
@@ -134,22 +351,81 @@
 
 
 /* =========================
-   Add Friend
+   Add Friend Button
 ========================= */
 
 .addButton {
-    padding: 10px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-    border-radius: var(--radius-sm);
+    gap: 6px;
 
+    padding: 8px 14px;
+
+    border: none;
+    border-radius: 8px;
+
+    color: #fff;
     background-color: var(--primary);
 
-    color: var(--background);
+    font-size: 13px;
+    font-weight: 600;
 
-    font-size: 14px;
-    font-weight: 500;
+    cursor: pointer;
+
+    transition: background-color 0.2s;
 }
 
 .addButton:hover {
     background-color: var(--primary-hover);
+}
+
+
+/* =========================
+   Responsive
+========================= */
+
+@media (max-width: 600px) {
+
+    .page {
+        padding: 30px 16px 45px;
+    }
+
+    .header {
+        align-items: flex-start;
+
+        margin-bottom: 20px;
+    }
+
+    .header h1 {
+        font-size: 23px;
+    }
+
+    .searchArea {
+        flex-direction: column;
+
+        margin-bottom: 16px;
+    }
+
+    .searchButton {
+        height: 44px;
+    }
+
+    .empty {
+        padding: 36px 16px 42px;
+    }
+
+    .emptyIcon {
+        width: 58px;
+        height: 58px;
+    }
+
+    .userItem {
+        padding: 12px 4px;
+    }
+
+    .addButton {
+        padding: 8px 10px;
+    }
 }

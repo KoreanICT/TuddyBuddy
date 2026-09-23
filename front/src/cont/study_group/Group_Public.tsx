@@ -1,22 +1,13 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
 import styles from './group.module.css';
+import { PublicStudyItem } from './GroupAPI';
 
 interface GroupPublicProps {
     searchType: 'name' | 'tag';
     searchTerm: string;
 }
 
-interface StudyItem {
-    id: number;
-    title: string;
-    description: string;
-    tags: string[];
-    currentMembers: number;
-    maxCapacity: number;
-}
-
-const mockPublicStudies: StudyItem[] = [
+const mockPublicStudies: PublicStudyItem[] = [
     {
         id: 101,
         title: '프론트엔드 CSS 지식 면접 대비반',
@@ -39,6 +30,14 @@ const mockPublicStudies: StudyItem[] = [
         description: '기초 문법 익히며 타입스크립트 고수가 되고 싶은 분들 환영',
         tags: ['TypeScript', '기초'],
         currentMembers: 12,
+        maxCapacity: 20,
+    },
+    {
+        id: 104,
+        title: '파이썬 pandas 기초부터',
+        description: '빅데이터 및 ai 관련 학습할 사람 모집',
+        tags: ['Python', 'pandas'],
+        currentMembers: 8,
         maxCapacity: 20,
     },
 ];

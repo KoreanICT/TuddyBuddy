@@ -1,0 +1,1 @@
+export type DetailTab = 'overview' | 'video' | 'image' | 'memo' | 'member' | 'project';
