@@ -1,15 +1,6 @@
 import React from 'react';
 import styles from './group.module.css';
-
-interface GroupSidebarProps {
-    currentTab: 'public' | 'my';
-    onTabChange: (tab: 'public' | 'my') => void;
-    onOpenCreateModal: () => void;
-    searchType: 'name' | 'tag';
-    onSearchTypeChange: (type: 'name' | 'tag') => void;
-    searchTerm: string;
-    onSearchChange: (value: string) => void;
-}
+import { GroupSidebarProps } from './GroupAPI';
 
 export const Group_Sidebar: React.FC<GroupSidebarProps> = ({
     currentTab,

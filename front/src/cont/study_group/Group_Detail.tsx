@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Detail_Sidebar, DetailTab } from './Detail_Sidebar';
+import { Detail_Sidebar } from './Detail_Sidebar';
+import { DetailTab } from './Type';
 import { Detail_Overview } from './Detail_Overview';
-import { VideoUpload } from '../video/VideoUpload';
 import { Detail_Memo } from './Detail_Memo';
 import styles from './detail.module.css';
 import { Detail_Image } from './Detail_Image';
