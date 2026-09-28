@@ -103,9 +103,6 @@ const UserMenu: React.FC = () => {
                     <NavLink to="/friend/list" onClick={closeMenu}>
                         내 친구
                     </NavLink>
-                    <NavLink to="/friend/code" onClick={closeMenu}>
-                        내 스터던트 코드
-                    </NavLink>
                 </nav>
 
                 {/* Logout */}
