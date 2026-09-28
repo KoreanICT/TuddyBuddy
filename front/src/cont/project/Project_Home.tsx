@@ -6,7 +6,8 @@ import { Project_Board } from './Project_Board';
 import { Project_Calendar } from './Project_Calendar';
 import { Project_Course } from './Project_Course';
 import Project_Discussion from './Project_Discussion';
-import { Project_Tabmenu } from './Project_TabMenu';
+import { Project_TabMenu } from './Project_TabMenu';
+
 export const Project_Home: React.FC = () => {
 
     const [currentTab, setCurrentTab] = useState<ProjectTab>('overview');
@@ -20,11 +21,11 @@ export const Project_Home: React.FC = () => {
                 </p>
             </div>
             
-            <Project_Tabmenu
+            <Project_TabMenu
                 currentTab={currentTab}
                 onTabChange={(tab) => setCurrentTab(tab)}
             />
-
+            
             {currentTab === 'overview' && <Project_Overview />}
             {currentTab === 'board' && <Project_Board />}
             {currentTab === 'calendar' && <Project_Calendar />}

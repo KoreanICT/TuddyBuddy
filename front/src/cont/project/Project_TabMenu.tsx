@@ -7,7 +7,7 @@ interface TabMenuProps {
     currentTab: ProjectTab;
     onTabChange: (tab: ProjectTab) => void;
 }
-export const Project_Tabmenu: React.FC<TabMenuProps> = ({ currentTab, onTabChange}) => {
+export const Project_TabMenu: React.FC<TabMenuProps> = ({ currentTab, onTabChange}) => {
 
     const tabbarContent: TabbarDirection[] = [
         {
@@ -40,12 +40,10 @@ export const Project_Tabmenu: React.FC<TabMenuProps> = ({ currentTab, onTabChang
     return (
         <aside>
             <nav>
-                {tabbarContent.map((e, index) => (
-                    <React.Fragment key={e.id}>
-                        {index !== 0 && (
-                            <div className={styles.project_menu_divider} />
-                        )}
+                {tabbarContent.map(e => (
+                    <React.Fragment>
                         <button
+                            className={styles.project_menu_button}
                             onClick={() => onTabChange(e.alias)}
                         >
                             {e.detail}
