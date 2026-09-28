@@ -93,7 +93,6 @@ export const Group_Detail: React.FC<GroupDetailProps> = ({ onBackToHome }) => {
 
                     {/* 하단 탭 교체 영역 */}
                     {currentTab === 'overview' && <Detail_Overview />}
-                    {/* {currentTab === 'video' && <Detail_Video />} */}
                     {currentTab === 'video' && <VideoSummary />}
                     {currentTab === 'image' && <Detail_Image />}
                     {currentTab === 'memo' && <Detail_Memo />}

@@ -30,9 +30,7 @@
     font-size: 14px;
 }
 
-/* 
-   메모 등록 버튼
-*/
+/* 메모 등록 버튼 */
 
 .addButton {
     padding: 10px 16px;
@@ -161,10 +159,7 @@
 
 .memoCardExpanded {
     position: fixed;
-    top: 8vh;
-    bottom: 8vh;
-    left: 8vw;
-    right: 8vw;
+    top: 20vh;
     width: 400px;
     height: 400px;
     z-index: 1001;
