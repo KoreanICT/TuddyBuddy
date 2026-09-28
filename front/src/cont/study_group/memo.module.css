@@ -30,9 +30,7 @@
     font-size: 14px;
 }
 
-/* 
-   메모 등록 버튼
-*/
+/* 메모 등록 버튼 */
 
 .addButton {
     padding: 10px 16px;
@@ -161,12 +159,9 @@
 
 .memoCardExpanded {
     position: fixed;
-    top: 12vh;
-    bottom: 12vh;
-    left: 20vw;
-    right: 20vw;
-    width: auto;
-    height: auto;
+    top: 20vh;
+    width: 400px;
+    height: 400px;
     z-index: 1001;
     padding: 32px;
     clip-path: none;
@@ -289,10 +284,10 @@
 
 .trashArea {
     position: absolute;
-    left: 50%;
+    right: 20px;
     bottom: 20px;
     transform:translateX(-50%);
-    width: 190px;
+    width: 70px;
     height: 70px;
     display: flex;
     justify-content: center;

@@ -39,20 +39,7 @@ export const Detail_Memo: React.FC = () => {
     // ===========================
 
     const handleInsertMemo = (): void => {if (!newContent.trim()) {return;}
-        /*
-         * 실제 Backend 연동 시에는 여기에서
-         *
-         * const member_num = useAuth()에서 가져온 값
-         * const group_num = 현재 그룹에서 가져온 값
-         *
-         * await axios.post(..., {
-         *     group_num,
-         *     member_num,
-         *     memo_content: newContent
-         * });
-         *
-         * 형태로 변경하면 됩니다.
-         */
+        
         const newMemo: MemoData = {
             // 프론트 테스트용 ID
             // 실제로는 DB의 memo_num을 사용
@@ -76,14 +63,6 @@ export const Detail_Memo: React.FC = () => {
         content: string
     ): Promise<void> => {
 
-        /*
-        await axios.patch(
-            `${backendUrl}/api/memo/${memoNum}`,
-            {
-                memo_content: content
-            }
-        );
-        */
         setMemos((prev) =>
             prev.map((memo) =>
                 memo.memo_num === memoNum
@@ -125,8 +104,7 @@ export const Detail_Memo: React.FC = () => {
                             메모
                         </h3>
                         <p className={styles.memoDescription}>
-                            자유롭게 공부를 하다 생긴 질문이나
-                            이해한 점을 작성하는 공간입니다.
+                            자유롭게 공부를 하면서 필요한 메모를 적는 공간입니다.
                         </p>
                     </div>
                     <button
