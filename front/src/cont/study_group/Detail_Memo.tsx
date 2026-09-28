@@ -24,13 +24,6 @@ export const Detail_Memo: React.FC = () => {
                 '클릭했을 때 전체 내용을 확인할 수 있도록 만들 예정입니다.',
             created_at: '2026.09.23 13:15',
             updated_at: '2026.09.23 14:33'
-        },
-        {
-            memo_num: 3,
-            writer: 'NNN',
-            content:
-                'From now on this sector is taken over by Nullifying Nuke Nuts!!!',
-            created_at: '2026.09.23 17:56'
         }
     ]);
 
