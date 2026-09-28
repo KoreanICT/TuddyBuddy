@@ -773,7 +773,25 @@
     background-color: #eff6ff;
 }
 
+.oxAnswer {
+    margin-top: 24px;
+    padding: 20px;
+    background-color: var(--background-secondary);
+    border-radius: var(--radius-md);
+}
 
+.oxAnswerTitle {
+    margin-bottom: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.oxExplanation {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
 
 
 /* 5지선다 css ------------------------------------------------------------------------------------ */
@@ -906,4 +924,24 @@
 
 .mcNextButton:hover {
     background-color: var(--primary-hover);
+}
+
+.mcAnswer {
+    margin-top: 24px;
+    padding: 20px;
+    background-color: var(--background-secondary);
+    border-radius: var(--radius-md);
+}
+
+.mcAnswerTitle {
+    margin-bottom: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.mcExplanation {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.6;
 }

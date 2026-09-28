@@ -44,6 +44,17 @@ const MultipleChoice: React.FC = () => {
                     다섯번째 보기
                 </button>
             </div>
+
+            {/* 정답 및 해설 */}
+            <div className={styles.mcAnswer}>
+                <p className={styles.mcAnswerTitle}>
+                    정답 : 3번
+                </p>
+                <p className={styles.mcExplanation}>
+                    정답에 대한 해설이 표시되는 영역입니다.
+                </p>
+            </div>
+
             <div className={styles.mcMoveButtons}>
                 <button
                     type="button"
