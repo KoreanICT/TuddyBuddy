@@ -52,7 +52,6 @@ const AppRoutes: React.FC = () => {
 
         // contents
         { path: "/", element: <Home /> },
-        { path: "/friend/code", element: <StudentCode /> },
         { path: "/friend/add", element: <FriendAdd /> },
         { path: "/friend/list", element: <FriendList /> },
         { path: '/point', element: <ProductSelector /> },
