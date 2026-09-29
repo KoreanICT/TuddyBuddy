@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 여기서 namespace는 @Mapper를 지정한 Interface인 즉 패키지포함해서 MemoDao를 작성해야 함. -->
+<mapper namespace="kr.co.ictedu.back.notice.dao.NoticeDao">
+	<insert id="add" parameterType="novo">
+		INSERT INTO notice values(notice_seq.NEXTVAL,
+		#{admin_num}, #{title}, #{content}, #{imgn}, 0, SYSDATE, SYSDATE)
+	</insert>
+	<select id="list" parameterType="map" resultType="novo">
+		SELECT num, admin_num, title, CONTENT, imgn, hit, created_date, updated_date, row_num FROM
+		(SELECT num, admin_num, title, CONTENT, imgn, hit, created_date, updated_date, ROW_NUMBER()
+		OVER(ORDER BY num desc) AS row_num FROM notice
+		<if test="searchType != null and searchValue != null">
+			<where>
+				<choose>
+					<when test="searchType == 1">
+						title like '%' || #{searchValue} || '%'
+					</when>
+					<when test="searchType == 2">
+						content like '%' || #{searchValue} || '%'
+					</when>
+				</choose>
+			</where>
+		</if>
+		) numbered_rows WHERE row_num BETWEEN #{begin} AND #{end}
+	</select>
+	<select id="totalCount" resultType="int" parameterType="map">
+		SELECT COUNT(*) cnt FROM notice
+		<if test="searchType != null and searchValue != null">
+			<where>
+				<choose>
+					<when test="searchType == 1">
+						title like '%' || #{searchValue} || '%'
+					</when>
+					<when test="searchType == 2">
+						content like '%' || #{searchValue} || '%'
+					</when>
+				</choose>
+			</where>
+		</if>
+	</select>
+	
+	<update id="hit" parameterType="int">
+		UPDATE notice set hit=hit+1 WHERE num=#{num}
+	</update>
+	
+	<select id="detail" parameterType="int" resultType="novo">
+		SELECT num, admin_num, title, CONTENT, imgn, hit, created_date, updated_date FROM notice WHERE num=#{num}
+	</select>
+	
+	<delete id="del" parameterType="int">
+		DELETE FROM notice WHERE num=#{num}
+	</delete>
+	
+	<update id="update" parameterType="novo">
+	    UPDATE notice
+	    SET title = #{title}, content = #{content}, imgn = #{imgn}, updated_date = SYSDATE
+	    WHERE num = #{num}
+	</update>
+</mapper>

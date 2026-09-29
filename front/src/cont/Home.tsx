@@ -116,7 +116,7 @@ const Home: React.FC = () => {
                 학습 현황을 기록하며 꾸준히 공부할 수 있어요.
               </p>
 
-              <button className={styles.primaryButton} onClick={() => { navigate('/homeGroup') }}>
+              <button className={styles.primaryButton} onClick={() => { navigate('/selfStudy') }}>
                 개인 스터디 시작하기
               </button>
 

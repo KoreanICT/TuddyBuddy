@@ -27,6 +27,17 @@ const OxQuiz: React.FC = () => {
                 <button type='button' className={styles.oxButton}>O</button>
                 <button type='button' className={styles.oxButton}>X</button>
             </div>
+
+            {/* 정답 및 해설 */}
+            <div className={styles.oxAnswer}>
+                <p className={styles.oxAnswerTitle}>
+                    정답 : O
+                </p>
+                <p className={styles.oxExplanation}>
+                    정답에 대한 해설이 표시되는 영역입니다.
+                </p>
+            </div>
+
         </section>
     )
 }

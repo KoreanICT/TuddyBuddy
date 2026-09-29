@@ -2,24 +2,14 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 //import Group_Detail from './Group_Detail';
 import styles from './group.module.css';
+import { PrivateStudyItem } from './GroupAPI';
 
 interface GroupPrivateProps {
     searchType: 'name' | 'tag';
     searchTerm: string;
 }
 
-// 예시 데이터 구조
-interface StudyItem {
-    id: number;
-    title: string;
-    description: string;
-    tags: string[];
-    currentMembers: number;
-    maxCapacity: number;
-    role: string;
-}
-
-const mockPrivateStudies: StudyItem[] = [
+const mockPrivateStudies: PrivateStudyItem[] = [
     {
         id: 1,
         title: '알고리즘 문제 풀이 스터디',

@@ -1,17 +1,6 @@
 import React, { useState, useRef } from 'react';
 import styles from './detail.module.css';
-
-interface GroupCreateModalProps {
-    isOpen: boolean;
-    onClose: () => void;
-    onSubmitSuccess?: (data: any) => void;
-}
-
-interface TagItem {
-    id: string;
-    text: string;
-    color: string;
-}
+import { GroupCreateModalProps, TagItem } from './GroupAPI';
 
 const PRESET_COLORS = ['#e2e8f0', '#fef08a', '#bbf7d0', '#c0f2ff','#bfdbfe', '#fbcfe8', '#fed7aa'];
 

@@ -1,22 +1,13 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
 import styles from './group.module.css';
+import { PublicStudyItem } from './GroupAPI';
 
 interface GroupPublicProps {
     searchType: 'name' | 'tag';
     searchTerm: string;
 }
 
-interface StudyItem {
-    id: number;
-    title: string;
-    description: string;
-    tags: string[];
-    currentMembers: number;
-    maxCapacity: number;
-}
-
-const mockPublicStudies: StudyItem[] = [
+const mockPublicStudies: PublicStudyItem[] = [
     {
         id: 101,
         title: '프론트엔드 CSS 지식 면접 대비반',

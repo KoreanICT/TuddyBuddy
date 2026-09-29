@@ -1,0 +1,13 @@
+
+/* 탭 메뉴 관련 서식 */
+.project_menu_divider {
+    height: 1px;
+    background-color: var(--border);
+    margin: 6px 0;
+}
+
+/* tdl 카드형 UI 서식 */
+.project_tdl_card {
+    border-radius: 50%;
+    border: 1px solid var(--border);
+}
