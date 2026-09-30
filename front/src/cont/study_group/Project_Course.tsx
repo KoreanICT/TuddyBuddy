@@ -7,6 +7,7 @@ import {
     Background,
     Controls,
     MiniMap,
+    Panel,
     Node,
     Edge,
     OnConnect,
@@ -15,38 +16,41 @@ import {
     EdgeMouseHandler,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-
+import styles from './project.module.css'
+import axios from 'axios';
+import { useSearchParams } from 'react-router-dom';
 export interface CustomNodeData extends Record<string, unknown> {
     label: string;
 }
-
+export interface DiagramData {
+    nodes: AppNode[];
+    edges: AppEdge[];
+}
+export interface DiagramSaveRequest {
+    groupnum: number;
+    title: string;
+    diagram_data: string;
+}
+export interface DiagramResponse {
+    diagram_num: number;
+    group_num: number;
+    title: string;
+    diagram_data: string;
+    created_at: string;
+    updated_at?: string;
+}
 export type AppNode = Node<CustomNodeData>;
 export type AppEdge = Edge;
 
-const initialNodes: AppNode[] = [
-    {
-        id: 'node-1',
-        position: { x: 100, y: 100 },
-        data: { label: '시작 노드' },
-    },
-    {
-        id: 'node-2',
-        position: { x: 350, y: 100 },
-        data: { label: '두 번째 노드' },
-    },
-];
+const initialNodes: AppNode[] = [];
 
-const initialEdges: AppEdge[] = [
-    {
-        id: 'edge-1-2',
-        source: 'node-1',
-        target: 'node-2',
-        type: 'default',
-        markerEnd: { type: 'arrowclosed' },
-    },
-];
+const initialEdges: AppEdge[] = [];
 
 export const Project_Course: React.FC = () => {
+
+    const [diagramTitle, setDiagramTitle] = useState<string>('새 다이어그램');
+    const [isSaving, setIsSaving] = useState<boolean>(false);
+
     const [nodes, setNodes, onNodesChange] = useNodesState<AppNode>(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState<AppEdge>(initialEdges);
 
@@ -55,6 +59,14 @@ export const Project_Course: React.FC = () => {
     const [selectedEdge, setSelectedEdge] = useState<AppEdge | null>(null);
     const [nodeNameInput, setNodeNameInput] = useState<string>('');
 
+    const [searchParams, setSearchParams] = useSearchParams();
+    const [groupnum, setGroupnum] = useState<number>(0)
+
+    const gnum = searchParams.get('group_num');
+
+    if (gnum !== null) {
+        setGroupnum(parseInt(gnum))
+    }
     // 1. 화살표(Edge) 연결
     const onConnect: OnConnect = useCallback(
         (connection: Connection) =>
@@ -73,18 +85,21 @@ export const Project_Course: React.FC = () => {
 
     // 2. 새 노드 추가
     const handleAddNode = (): void => {
-        const newNodeId = `node-${nodes.length + 1}`;
-        const newNode: AppNode = {
-            id: newNodeId,
-            position: {
-                x: Math.random() * 300 + 50,
-                y: Math.random() * 300 + 50,
-            },
-            data: { label: `새 노드 ${nodes.length + 1}` },
-        };
+    const newNodeId = `node-${Date.now()}`;
 
-        setNodes((nds: AppNode[]) => nds.concat(newNode));
+    const newNode: AppNode = {
+        id: newNodeId,
+        position: {
+            x: Math.random() * 300 + 50,
+            y: Math.random() * 300 + 50,
+        },
+        data: {
+            label: `새 노드 ${nodes.length + 1}`,
+        },
     };
+
+    setNodes((nds) => nds.concat(newNode));
+};
 
     // 3. 노드 클릭 이벤트
     const onNodeClick: NodeMouseHandler<AppNode> = useCallback((_event, node: AppNode) => {
@@ -160,120 +175,176 @@ export const Project_Course: React.FC = () => {
         nodes.some((n: AppNode) => n.selected) ||
         edges.some((e: AppEdge) => e.selected);
 
+    const backendUrl = process.env.REACT_APP_BACK_END_URL;
+
+    const handleSaveDiagram = async (): Promise<void> => {
+        if (!diagramTitle.trim()) {
+            alert('다이어그램 제목을 입력해주세요.');
+            return;
+        }
+
+        const diagramData: DiagramData = {
+            nodes,
+            edges,
+        };
+
+        const requestData: DiagramSaveRequest = {
+            groupnum: groupnum,
+            title: diagramTitle.trim(),
+            diagram_data: JSON.stringify(diagramData),
+        };
+
+        try {
+            setIsSaving(true);
+
+            const response = await axios.post<DiagramResponse>(
+                `${backendUrl}/api/diagram`,
+                requestData
+            );
+
+            console.log('저장 완료:', response.data);
+
+            alert('다이어그램이 저장되었습니다.');
+        } catch (error) {
+            console.error('다이어그램 저장 실패:', error);
+
+            alert('다이어그램 저장 중 오류가 발생했습니다.');
+        } finally {
+            setIsSaving(false);
+        }
+    };
     return (
-        <div style={{ width: '100vw', height: '100vh', display: 'flex' }}>
-            {/* 사이드바 패널 */}
-            <div
-                style={{
-                    width: '260px',
-                    padding: '20px',
-                    borderRight: '1px solid #e0e0e0',
-                    background: '#f8f9fa',
-                    boxSizing: 'border-box',
-                    zIndex: 10,
-                }}
-            >
-                <h3 style={{ marginTop: 0 }}>다이어그램 편집</h3>
+        <div className={styles.detail_content_wrapper}>
+            <div className={styles.detail_section_card}>
+                <h3 className={styles.section_title}>진행 다이어그램</h3>
+                <p className={styles.section_desc}>
+                    노드를 생성하고 연결하여 목표 계획 진행 구조를 시각적으로 관리할 수 있습니다.
+                </p>
 
-                <button
-                    onClick={handleAddNode}
-                    style={{
-                        width: '100%',
-                        padding: '10px',
-                        backgroundColor: '#007bff',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '4px',
-                        cursor: 'pointer',
-                        fontWeight: 'bold',
-                        marginBottom: '10px',
-                    }}
-                >
-                    + 새 노드 생성
-                </button>
+                {/* React Flow 캔버스 */}
+                <div className={styles.diagram_canvas_wrapper}>
+                    <ReactFlow<AppNode, AppEdge>
+                        nodes={nodes}
+                        edges={edges}
+                        onNodesChange={onNodesChange}
+                        onEdgesChange={onEdgesChange}
+                        onConnect={onConnect}
+                        onNodeClick={onNodeClick}
+                        onEdgeClick={onEdgeClick}
+                        onPaneClick={onPaneClick}
+                        fitView
+                    >
+                        <Background gap={16} size={1} />
 
-                {/* 🗑️ 삭제 버튼 */}
-                <button
-                    onClick={handleDeleteSelected}
-                    disabled={!isAnythingSelected}
-                    style={{
-                        width: '100%',
-                        padding: '10px',
-                        backgroundColor: isAnythingSelected ? '#dc3545' : '#e0e0e0',
-                        color: isAnythingSelected ? 'white' : '#a0a0a0',
-                        border: 'none',
-                        borderRadius: '4px',
-                        cursor: isAnythingSelected ? 'pointer' : 'not-allowed',
-                        fontWeight: 'bold',
-                        marginBottom: '20px',
-                        transition: 'background-color 0.2s',
-                    }}
-                >
-                    🗑️ 선택한 항목 삭제
-                </button>
+                        <Controls />
 
-                {/* 선택 항목 상세 설정 */}
-                {selectedNode ? (
-                    <div>
-                        <h4>선택된 노드 설정</h4>
-                        <p style={{ fontSize: '14px', color: '#555' }}>
-                            <strong>Node ID:</strong> {selectedNode.id}
-                        </p>
-                        <label
-                            htmlFor="node-name-input"
-                            style={{ display: 'block', marginBottom: '6px', fontSize: '14px' }}
+                        <MiniMap />
+
+                        {/* React Flow 우상단 도구 패널 */}
+                        <Panel
+                            position="top-right"
+                            className={styles.diagram_panel}
                         >
-                            노드 이름 변경:
-                        </label>
-                        <input
-                            id="node-name-input"
-                            type="text"
-                            value={nodeNameInput}
-                            onChange={handleUpdateNodeName}
-                            style={{
-                                width: '100%',
-                                padding: '8px',
-                                borderRadius: '4px',
-                                border: '1px solid #ccc',
-                                boxSizing: 'border-box',
-                            }}
-                        />
-                    </div>
-                ) : selectedEdge ? (
-                    <div>
-                        <h4>선택된 화살표 설정</h4>
-                        <p style={{ fontSize: '14px', color: '#555' }}>
-                            <strong>Edge ID:</strong> {selectedEdge.id}
-                        </p>
-                        <p style={{ fontSize: '13px', color: '#666' }}>
-                            `{selectedEdge.source}` ➔ `{selectedEdge.target}`
-                        </p>
-                    </div>
-                ) : (
-                    <p style={{ color: '#888', fontSize: '14px' }}>
-                        노드나 화살표를 클릭하면 선택 및 삭제할 수 있습니다. (키보드 <kbd>Delete</kbd> 키도 지원)
-                    </p>
-                )}
-            </div>
+                            <div className={styles.diagram_panel_header}>
+                                <strong>다이어그램 편집</strong>
+                            </div>
 
-            {/* React Flow 캔버스 */}
-            <div style={{ flex: 1, height: '100%' }}>
-                <ReactFlow<AppNode, AppEdge>
-                    nodes={nodes}
-                    edges={edges}
-                    onNodesChange={onNodesChange}
-                    onEdgesChange={onEdgesChange}
-                    onConnect={onConnect}
-                    onNodeClick={onNodeClick}
-                    onEdgeClick={onEdgeClick}
-                    onPaneClick={onPaneClick}
-                    fitView
-                >
-                    <Background gap={16} size={1} />
-                    <Controls />
-                    <MiniMap />
-                </ReactFlow>
+                            {/* 다이어그램 제목 */}
+                            <div className={styles.diagram_field}>
+                                <label htmlFor="diagram-title">
+                                    제목
+                                </label>
+
+                                <input
+                                    id="diagram-title"
+                                    type="text"
+                                    value={diagramTitle}
+                                    onChange={(e) =>
+                                        setDiagramTitle(e.target.value)
+                                    }
+                                    placeholder="다이어그램 제목"
+                                />
+                            </div>
+
+                            <div className={styles.diagram_button_group}>
+                                <button
+                                    type="button"
+                                    className={styles.primary_button}
+                                    onClick={handleAddNode}
+                                >
+                                    + 새 노드
+                                </button>
+
+                                <button
+                                    type="button"
+                                    className={styles.delete_button}
+                                    onClick={handleDeleteSelected}
+                                    disabled={!isAnythingSelected}
+                                >
+                                    선택 삭제
+                                </button>
+                            </div>
+
+                            {/* 선택된 Node */}
+                            {selectedNode && (
+                                <div className={styles.selected_item}>
+                                    <div className={styles.selected_item_title}>
+                                        선택된 노드
+                                    </div>
+
+                                    <div className={styles.selected_item_id}>
+                                        ID: {selectedNode.id}
+                                    </div>
+
+                                    <label htmlFor="node-name-input">
+                                        노드 이름
+                                    </label>
+
+                                    <input
+                                        id="node-name-input"
+                                        type="text"
+                                        value={nodeNameInput}
+                                        onChange={handleUpdateNodeName}
+                                    />
+                                </div>
+                            )}
+
+                            {/* 선택된 Edge */}
+                            {selectedEdge && (
+                                <div className={styles.selected_item}>
+                                    <div className={styles.selected_item_title}>
+                                        선택된 연결선
+                                    </div>
+
+                                    <div className={styles.selected_item_id}>
+                                        {selectedEdge.source}
+                                        {' → '}
+                                        {selectedEdge.target}
+                                    </div>
+                                </div>
+                            )}
+
+                            {!selectedNode && !selectedEdge && (
+                                <div className={styles.no_selection}>
+                                    노드나 연결선을 선택하면 편집할 수 있습니다.
+                                </div>
+                            )}
+
+                            <button
+                                type="button"
+                                className={styles.save_button}
+                                onClick={handleSaveDiagram}
+                                disabled={isSaving}
+                            >
+                                {isSaving
+                                    ? '저장 중...'
+                                    : '다이어그램 저장'}
+                            </button>
+                        </Panel>
+                    </ReactFlow>
+                </div>
             </div>
         </div>
-    );
+
+    )
 }
