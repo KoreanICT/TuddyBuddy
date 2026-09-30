@@ -1,5 +1,5 @@
 import React from 'react'
-import { TDLData } from './ProjectAPI'
+import { TDLData } from './GroupAPI'
 import styles from './project.module.css'
 
 export const Project_TDL: React.FC = () => {

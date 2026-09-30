@@ -22,8 +22,8 @@ export const Detail_Sidebar: React.FC<DetailSidebarProps> = ({ currentTab, onTab
         },
         {
             id: 4,
-            alias: 'project',
-            detail: '목표 달성 프로젝트'
+            alias: 'calendar',
+            detail: '일정'
         },
         {
             id: 5,
