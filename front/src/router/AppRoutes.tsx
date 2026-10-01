@@ -29,6 +29,8 @@ import StudyManagement from "../cont/admin/study_group/StudyManagement";
 import AuthLayout from "../layout/auth/AuthLayout";
 import SelfStudy from "../cont/selfStudy/SelfStudy";
 import Community from "../cont/community/Community";
+import PointHistory from "../mypage/PointHistory";
+import Member_Edit from "../mypage/Member_edit";
 
 interface RouteItem {
     path: string;
@@ -74,6 +76,8 @@ const AppRoutes: React.FC = () => {
         { path: '/auth/member', element: <Login /> },
         { path: '/auth/signup', element: <Signup /> },
         { path: '/auth/mypage', element: <MyPage /> },
+        { path: '/point_history', element: <PointHistory /> },
+        { path: '/member_edit', element: <Member_Edit /> },
     ];
 
 
