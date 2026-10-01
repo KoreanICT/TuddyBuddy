@@ -380,7 +380,7 @@ export const Project_Calendar: React.FC = () => {
             <div className={styles.detail_section_card}>
                 <h3 className={styles.section_title}>일정 관리</h3>
                 <p className={styles.section_desc}>
-                    멤버들의 개인 일정과 해야할 일(To Do List)을 정리하는 곳입니다.
+                    멤버들의 개인 일정과 해야할 일(To Do List)을 확인하는 곳입니다.
                 </p>
                 <div className={styles.calendarContainer}>
                     {/* ============================= */}

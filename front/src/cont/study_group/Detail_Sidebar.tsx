@@ -32,16 +32,21 @@ export const Detail_Sidebar: React.FC<DetailSidebarProps> = ({ currentTab, onTab
         },
         {
             id: 6,
+            alias: 'document',
+            detail: '참고 자료'
+        },
+        {
+            id: 7,
             alias: 'discussion',
             detail: '질의응답'
         },
         {
-            id: 7,
+            id: 8,
             alias: 'member',
             detail: '멤버 목록'
         },
         {
-            id: 8,
+            id: 9,
             alias: 'memo',
             detail: '메모'
         }

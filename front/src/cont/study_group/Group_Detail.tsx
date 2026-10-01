@@ -13,6 +13,7 @@ import { Project_Calendar } from './Project_Calendar';
 import { Project_Board } from './Project_Board';
 import Project_Discussion from './Project_Discussion';
 import { Project_Course } from './Project_Course';
+import { Detail_Document } from './Detail_Document';
 
 
 interface GroupDetailProps {
@@ -104,6 +105,7 @@ export const Group_Detail: React.FC<GroupDetailProps> = ({ onBackToHome }) => {
                     {currentTab === 'board' && <Project_Board />}
                     {currentTab === 'discussion' && <Project_Discussion />}
                     {currentTab === 'course' && <Project_Course />}
+                    {currentTab === 'document' && <Detail_Document />}
                 </main>
             </div>
         </div>
