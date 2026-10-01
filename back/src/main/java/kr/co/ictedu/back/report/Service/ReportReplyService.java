@@ -1,0 +1,34 @@
+package kr.co.ictedu.back.report.Service;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import kr.co.ictedu.back.report.dao.ReportReplyDao;
+import kr.co.ictedu.back.report.vo.ReportReplyVO;
+
+@Service
+public class ReportReplyService {
+	
+	@Autowired
+	private ReportReplyDao reportReplyDao;
+
+	public void add(ReportReplyVO vo) {
+		reportReplyDao.add(vo);
+	}
+
+	public ReportReplyVO detail(Long report_num) {
+		
+		return reportReplyDao.detail(report_num);
+	}
+
+	public int update(ReportReplyVO vo) {
+		
+		return reportReplyDao.update(vo);
+	}
+
+	public int del(Long num) {
+		
+		return reportReplyDao.del(num);
+	}
+
+}

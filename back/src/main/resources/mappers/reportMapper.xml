@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.ictedu.back.report.dao.ReportDao">
+	<insert id="add" parameterType="revo">
+		INSERT INTO report (num, member_num, target_num, type, category, content, status,
+		created_date)
+		VALUES (report_seq.NEXTVAL, #{member_num}, #{target_num}, #{type}, #{category},
+		#{content}, 'PENDING', SYSDATE)
+	</insert>
+
+	<select id="list" parameterType="map" resultType="revo"> SELECT num,
+		member_num, target_num, type, category, content, status, created_date, row_num FROM
+		(SELECT num, member_num, target_num, type, category, content, status, created_date,
+		ROW_NUMBER() OVER(ORDER BY num desc) AS row_num FROM report <if
+			test="searchType != null and searchValue != null">
+			<where>
+				<choose>
+					<!-- 신고 유형 -->
+					<when test="searchType == 1">
+						type LIKE '%' || #{searchValue} || '%'
+					</when>
+					<!-- 신고 카테고리 -->
+					<when test="searchType == 2">
+						category LIKE '%' || #{searchValue} || '%'
+					</when>
+					<!-- 신고 상태 -->
+					<when test="searchType == 3">
+						status = #{searchValue}
+					</when>
+				</choose>
+			</where>
+		</if>
+		) numbered_rows WHERE row_num BETWEEN #{begin} AND #{end} </select>
+
+	<!-- 전체 신고 개수 -->
+	<select id="totalCount" resultType="int" parameterType="map"> SELECT
+		COUNT(*) cnt FROM report 
+		<if test="searchType != null and searchValue != null">
+			<where>
+				<choose>
+					<!-- 신고 유형 -->
+					<when test="searchType == 1">
+						type LIKE '%' || #{searchValue} || '%'
+					</when>
+					<!-- 신고 카테고리 -->
+					<when test="searchType == 2">
+						category LIKE '%' || #{searchValue} || '%'
+					</when>
+					<!-- 신고 상태 -->
+					<when test="searchType == 3">
+						status = #{searchValue}
+					</when>
+				</choose>
+			</where>
+		</if>
+	</select>
+
+
+	<select id="detail" parameterType="long" resultType="revo">
+		SELECT num, member_num, target_num, type, category, content, status, created_date FROM report WHERE num = #{num}
+	</select>
+
+	<update id="update" parameterType="revo">
+		UPDATE report SET target_num = #{target_num}, type = #{type}, category = #{category}, content = #{content} WHERE num = #{num}
+	</update>
+
+	<delete id="del" parameterType="long">
+		DELETE FROM report WHERE num = #{num}
+	</delete>
+	<!-- 신고 상태 변경 -->
+	<update id="updateStatus" parameterType="revo">
+		UPDATE report SET status = #{status} WHERE num = #{num}
+	</update>
+
+</mapper>
