@@ -7,7 +7,6 @@ import { ProductSelector } from "../cont/point/ProductSelector";
 import PerformanceAnalytics from "../cont/statistics/PerformanceAnalytics";
 import React from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
-import VideoSummary from "../cont/video/VideoSummary";
 import { Group_Home } from "../cont/study_group/Group_Home";
 import { Group_Detail } from "../cont/study_group/Group_Detail";
 import AdminHome from "../cont/admin/AdminHome";
@@ -42,7 +41,6 @@ const AppRoutes: React.FC = () => {
     const isAuth = pathname.startsWith("/auth");
 
     const routeList: RouteItem[] = [
-        { path: '/videoSummary', element: <VideoSummary /> },
         { path: '/community', element: <Community /> },
 
 
