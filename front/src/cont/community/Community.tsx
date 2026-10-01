@@ -28,8 +28,8 @@ const Community: React.FC = () => {
   // 카테고리
   const categories = ["전체", "자유게시판", "합격후기", "꿀팁"];
 
-  // 게시글
-  const [posts] = useState<Post[]>([
+  // 게시글 (setPosts 추가)
+  const [posts, setPosts] = useState<Post[]>([
     {
       id: 1,
       title: "안녕하세요! 처음 가입했습니다.",
@@ -120,6 +120,14 @@ const Community: React.FC = () => {
   const handleSearch = () => setSearchedKeyword(searchKeyword);
   const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") handleSearch();
+  };
+
+  // 게시글 삭제 핸들러
+  const handleDeletePost = (postId: number) => {
+    if (window.confirm("정말 이 게시글을 삭제하시겠습니까?")) {
+      setPosts((prevPosts) => prevPosts.filter((post) => post.id !== postId));
+      setSelectedPost(null); // 모달 닫기
+    }
   };
 
   const handleAddComment = (postId: number) => {
@@ -346,8 +354,15 @@ const Community: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Footer */}
-                <div className="modal-footer border-top bg-light-subtle p-3">
+                {/* Footer (<글 삭제> 버튼 추가) */}
+                <div className="modal-footer border-top bg-light-subtle p-3 justify-content-between">
+                  <button
+                    type="button"
+                    className="btn btn-outline-danger px-4 rounded-3 fw-semibold"
+                    onClick={() => handleDeletePost(selectedPost.id)}
+                  >
+                    글 삭제
+                  </button>
                   <button type="button" className="btn btn-secondary px-4 rounded-3 fw-semibold" onClick={() => setSelectedPost(null)}>
                     닫기
                   </button>
