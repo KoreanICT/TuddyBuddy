@@ -1,0 +1,216 @@
+/* =========================
+   MyPage Styles
+========================= */
+
+.mypage-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 40px 20px;
+  background-color: var(--background-secondary);
+}
+
+.mypage-container {
+  width: 100%;
+  max-width: 520px;
+  background-color: var(--background);
+  border-radius: var(--radius-lg);
+  padding: 40px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--border);
+}
+
+.mypage-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.mypage-header h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.mypage-header p {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+/* 프로필 요약 카드 */
+.mypage-profile-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background-color: var(--background-secondary);
+  border-radius: var(--radius-md);
+  margin-bottom: 24px;
+}
+
+.profile-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background-color: var(--primary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.profile-info h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.profile-info p {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.profile-info .badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--primary);
+  background-color: rgba(37, 99, 235, 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* 폼 요소 공통 */
+.mypage-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.mypage-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mypage-input-group label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.mypage-input-group input {
+  width: 100%;
+  height: 48px;
+  padding: 0 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.mypage-input-group input:focus {
+  border-color: var(--primary);
+}
+
+/* 비활성화 Input */
+.mypage-input-group input.input-disabled {
+  background-color: var(--background-secondary);
+  color: var(--text-secondary);
+  cursor: not-allowed;
+}
+
+/* 비밀번호 영역 그룹화 */
+.mypage-password-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Input + Button 조합 */
+.mypage-input-button {
+  display: flex;
+  gap: 8px;
+}
+
+.mypage-input-button input {
+  flex: 1;
+}
+
+.mypage-input-button button {
+  width: 90px;
+  height: 48px;
+  background-color: var(--background-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.mypage-input-button button:hover {
+  background-color: #e2e8f0;
+}
+
+/* 버튼 영역 */
+.mypage-buttons {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.mypage-buttons button {
+  flex: 1;
+  height: 50px;
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.mypage-cancel-button {
+  background-color: var(--background-secondary);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.mypage-cancel-button:hover {
+  background-color: #e2e8f0;
+}
+
+.mypage-submit-button {
+  background-color: var(--primary);
+  color: #fff;
+}
+
+.mypage-submit-button:hover {
+  background-color: var(--primary-hover);
+}
+
+/* 하단 링킹 버튼 (로그아웃, 회원탈퇴) */
+.mypage-footer-links {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.link-button {
+  font-size: 13px;
+  color: var(--text-secondary);
+  text-decoration: underline;
+}
+
+.link-button.dangerous {
+  color: #ef4444;
+}
+
+.divider {
+  font-size: 12px;
+  color: var(--border);
+}

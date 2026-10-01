@@ -1,0 +1,26 @@
+# Spring Boot
+back/build/
+back/.gradle/
+back/src/main/resources/application.properties
+
+# IDE
+back/.idea/
+back/*.iml
+.vscode/
+
+# React
+front/node_modules/
+front/build/
+front/dist/
+
+# React 환경변수
+front/.env
+front/.env.local
+front/.env.development.local
+front/.env.test.local
+front/.env.production.local
+
+# OS
+.DS_Store
+Thumbs.db
+/.metadata/

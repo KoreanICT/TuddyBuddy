@@ -1,0 +1,60 @@
+.adminLayout {
+    min-height: 100vh;
+    background-color: var(--admin-background);
+}
+
+.header {
+    height: 70px;
+
+    background-color: var(--admin-primary);
+    border-bottom: 1px solid var(--border);
+}
+
+.headerInner {
+    height: 100%;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 0 30px;
+}
+
+.logo {
+    color: var(--admin-text);
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.userMenu {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    color: var(--admin-text-secondary);
+    font-size: 14px;
+}
+
+.homeLink {
+    color: var(--admin-text-secondary);
+    transition: color 0.2s;
+}
+
+.homeLink:hover {
+    color: var(--admin-text);
+}
+
+.divider {
+    color: var(--border);
+}
+
+.body {
+    display: flex;
+    min-height: calc(100vh - 70px);
+}
+
+.main {
+    flex: 1;
+    min-width: 0;
+    padding: 30px;
+}

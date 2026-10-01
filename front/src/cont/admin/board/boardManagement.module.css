@@ -1,0 +1,76 @@
+.board {
+    width: 100%;
+}
+
+.header {
+    margin-bottom: 40px;
+}
+
+.header h1 {
+    margin-bottom: 6px;
+
+    color: var(--admin-text);
+    font-size: 28px;
+    font-weight: 700;
+}
+
+.header p {
+    color: var(--admin-text-secondary);
+    font-size: 14px;
+}
+
+
+/* =========================
+   Board Menu
+========================= */
+
+.menu {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    min-height: 400px;
+}
+
+.menuItem {
+    width: 420px;
+    min-height: 220px;
+
+    padding: 40px;
+
+    background-color: var(--admin--boardbox);
+
+    border: 1px solid var(--admin-border);
+    border-radius: var(--radius-lg);
+
+    text-align: center;
+
+    transition:
+        transform 0.2s,
+        box-shadow 0.2s,
+        border-color 0.2s;
+}
+
+.menuItem:hover {
+    transform: translateY(-4px);
+
+    border-color: var(--admin-primary);
+
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.menuTitle {
+    margin-bottom: 12px;
+
+    color: var(--admin-text);
+
+    font-size: 22px;
+    font-weight: 700;
+}
+
+.menuDescription {
+    color: var(--admin-text-secondary);
+
+    font-size: 14px;
+    line-height: 1.6;
+}
