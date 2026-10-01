@@ -1,4 +1,4 @@
-package kr.co.ictedu.back.notice.vo;
+package kr.co.ictedu.back.report.vo;
 
 import org.apache.ibatis.type.Alias;
 import org.springframework.web.multipart.MultipartFile;
@@ -6,12 +6,12 @@ import org.springframework.web.multipart.MultipartFile;
 import lombok.Getter;
 import lombok.Setter;
 
-@Alias("novo")
+@Alias("revo")
 @Getter
 @Setter
-public class NoticeVO {
+public class ReportVO {
 	private Long num;
-	private Long admin_num;
+	private Long member_num;
 	private String title;
 	private String content;
 	private String imgn;
