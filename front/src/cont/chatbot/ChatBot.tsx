@@ -111,13 +111,13 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
                     <div className={styles.botMessage}>
                         안녕하세요! 버디봇입니다.
                         <br />
-                        무엇을 도와드릴까요?
+                        사이트 이용 중 궁금한 점이나 문제점을 물어보세요.
                     </div>
                 ) : (
                     <div className={styles.botMessage}>
                         안녕하세요! 버디봇입니다.
                         <br />
-                        터디버디 이용에 대해 궁금한 점을 물어보세요.
+                        터디버디 기본 이용 방법에 대해 물어보세요.
                     </div>
                 )}
 
