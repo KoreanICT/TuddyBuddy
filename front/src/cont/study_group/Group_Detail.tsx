@@ -7,7 +7,6 @@ import { Detail_Memo } from './Detail_Memo';
 import styles from './detail.module.css';
 import { Detail_Image } from './Detail_Image';
 import { Detail_Member } from './Detail_Member';
-import VideoSummary from '../video/VideoSummary';
 import { GiHamburgerMenu } from "react-icons/gi";
 import { Project_Calendar } from './Project_Calendar';
 import { Project_Board } from './Project_Board';
