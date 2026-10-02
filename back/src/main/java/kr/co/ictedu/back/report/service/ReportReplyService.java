@@ -1,4 +1,6 @@
-package kr.co.ictedu.back.report.Service;
+package kr.co.ictedu.back.report.service;
+
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -16,6 +18,10 @@ public class ReportReplyService {
 		reportReplyDao.add(vo);
 	}
 
+	public List<ReportReplyVO> list(Long member_num) {
+	    return reportReplyDao.list(member_num);
+	}
+	
 	public ReportReplyVO detail(Long report_num) {
 		
 		return reportReplyDao.detail(report_num);

@@ -1,109 +1,78 @@
 .reportCreate {
     width: 100%;
     max-width: 900px;
-
     margin: 0 auto;
     padding: 40px 20px 80px;
 }
 
-
-/* =========================
-   Header
-========================= */
-
+/* Header */
 .header {
     margin-bottom: 24px;
 }
 
 .header h1 {
     margin-bottom: 8px;
-
     color: var(--text);
-
     font-size: 28px;
     font-weight: 700;
 }
 
 .header p {
     color: var(--text-secondary);
-
     font-size: 14px;
     line-height: 1.6;
 }
 
 
-/* =========================
-   Form
-========================= */
+/* Form */
 
 .reportForm {
     overflow: hidden;
-
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
-
     background-color: var(--background);
 }
 
 
-/* =========================
-   Form Row
-========================= */
+/* Form Row */
 
 .formRow {
     display: grid;
     grid-template-columns: 150px 1fr;
-
     min-height: 64px;
-
     border-bottom: 1px solid var(--border);
 }
 
 .label {
     display: flex;
-
     align-items: center;
-
     padding: 18px 20px;
-
     color: var(--text);
-
     background-color: var(--background-secondary);
-
     font-size: 14px;
     font-weight: 600;
 }
 
 .formContent {
     position: relative;
-
     padding: 14px 18px;
 }
 
 
-/* =========================
-   Input
-========================= */
+/* Input */
 
 .input,
 .select,
 .textarea {
     width: 100%;
-
     padding: 10px 12px;
-
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
-
     color: var(--text);
     background-color: var(--background);
-
     font-size: 14px;
-
     box-sizing: border-box;
-
     outline: none;
-
     transition: border-color 0.2s;
 }
 
@@ -114,26 +83,19 @@
 }
 
 
-/* =========================
-   Select
-========================= */
+/* Select */
 
 .select {
     max-width: 220px;
-
     cursor: pointer;
 }
 
 
-/* =========================
-   Textarea
-========================= */
+/* Textarea */
 
 .textarea {
     min-height: 180px;
-
     line-height: 1.6;
-
     resize: vertical;
 }
 
@@ -148,63 +110,45 @@
 }
 
 
-/* =========================
-   Notice
-========================= */
+/* Notice */
 
 .notice {
     margin: 20px;
-
     padding: 16px;
-
     border-radius: var(--radius-sm);
-
     background-color: var(--background-secondary);
 }
 
 .notice strong {
     display: block;
-
     margin-bottom: 6px;
-
     color: var(--text);
-
     font-size: 14px;
 }
 
 .notice p {
     margin: 0;
-
     color: var(--text-secondary);
-
     font-size: 13px;
     line-height: 1.6;
 }
 
 
-/* =========================
-   Actions
-========================= */
+/* Actions */
 
 .actions {
     display: flex;
-
     justify-content: flex-end;
-
     gap: 8px;
-
     padding: 0 20px 20px;
 }
 
 .cancelButton,
 .submitButton {
     padding: 10px 20px;
-
     border-radius: var(--radius-sm);
-
     font-size: 14px;
     font-weight: 500;
-
     cursor: pointer;
 }
 
@@ -213,7 +157,6 @@
 
 .cancelButton {
     border: 1px solid var(--border);
-
     color: var(--text-secondary);
     background-color: var(--background);
 }
@@ -224,10 +167,8 @@
 
 
 /* 신고 접수 */
-
 .submitButton {
     border: 1px solid var(--primary);
-
     color: white;
     background-color: var(--primary);
 }
@@ -237,16 +178,12 @@
 }
 
 
-/* =========================
-   Responsive
-========================= */
+/* Responsive */
 
 @media (max-width: 700px) {
-
     .reportCreate {
         padding: 24px 16px 60px;
     }
-
     .formRow {
         display: block;
     }
@@ -274,3 +211,221 @@
         flex: 1;
     }
 }
+
+/* 사용자 신고 답변 목록 start */
+
+.reportReplyList {
+    width: 100%;
+    padding: 32px;
+    box-sizing: border-box;
+}
+
+.replyCount {
+    margin: 20px 0 12px;
+    font-size: 14px;
+    color: #666;
+}
+
+.replyTableWrapper {
+    width: 100%;
+    overflow-x: auto;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+}
+
+.replyTable {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.replyTable th {
+    padding: 14px 16px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e5e7eb;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+    color: #333;
+}
+
+.replyTable td {
+    padding: 15px 16px;
+    border-bottom: 1px solid #eee;
+    font-size: 14px;
+    text-align: center;
+    color: #444;
+}
+
+.replyTable tbody tr {
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.replyTable tbody tr:hover {
+    background: #f8f9fa;
+}
+
+.replyTable tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* 번호 */
+.replyTable th:nth-child(1),
+.replyTable td:nth-child(1) {
+    width: 80px;
+}
+
+/* 신고 번호 */
+.replyTable th:nth-child(2),
+.replyTable td:nth-child(2) {
+    width: 100px;
+}
+
+/* 답변 내용 */
+.replyTable th:nth-child(3),
+.replyTable td:nth-child(3) {
+    text-align: left;
+}
+
+.replyContent {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+/* 답변일 */
+.replyTable th:nth-child(4),
+.replyTable td:nth-child(4) {
+    width: 160px;
+}
+
+.replyEmpty {
+    padding: 50px 20px !important;
+    text-align: center !important;
+    color: #888 !important;
+    cursor: default;
+}
+
+.reportCount {
+    margin: 20px 0 12px;
+    font-size: 14px;
+    color: #666;
+}
+
+.replyContent {
+    max-width: 500px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+/* 사용자 신고 답변 목록 end */
+
+
+/* 사용자 신고 답변 상세 start */
+
+.replyDetail {
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 40px 30px;
+    box-sizing: border-box;
+}
+
+.replyDetailHeader {
+    margin-bottom: 24px;
+}
+
+.replyDetailHeader h1 {
+    margin: 0 0 8px;
+    font-size: 26px;
+    color: #222;
+}
+
+.replyDetailHeader p {
+    margin: 0;
+    font-size: 14px;
+    color: #777;
+}
+
+.replyDetailCard {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.replyDetailRow {
+    display: flex;
+    min-height: 58px;
+    border-bottom: 1px solid #eee;
+}
+
+.replyDetailLabel {
+    display: flex;
+    align-items: center;
+    width: 160px;
+    flex-shrink: 0;
+    padding: 16px 20px;
+    box-sizing: border-box;
+    background: #f8f9fa;
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+}
+
+.replyDetailValue {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    padding: 16px 20px;
+    font-size: 14px;
+    color: #444;
+}
+
+.replyDetailContent {
+    display: flex;
+    min-height: 180px;
+}
+
+.replyContentBox {
+    flex: 1;
+    padding: 20px;
+    box-sizing: border-box;
+    font-size: 15px;
+    line-height: 1.7;
+    color: #333;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.replyDetailActions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+.replyDetailActions .listButton {
+    padding: 10px 24px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background: #fff;
+    cursor: pointer;
+}
+
+.replyDetailActions .listButton:hover {
+    background: #f5f5f5;
+}
+.replyDivider {
+    padding: 16px 20px;
+    border-top: 2px solid #dfe3e8;
+    border-bottom: 1px solid #e5e7eb;
+    background: #f8f9fa;
+    font-size: 15px;
+    font-weight: 700;
+    color: #333;
+}
+
+/* 사용자 신고 답변 상세 end */
