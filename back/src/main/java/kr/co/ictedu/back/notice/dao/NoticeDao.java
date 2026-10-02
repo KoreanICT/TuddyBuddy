@@ -13,7 +13,7 @@ public interface NoticeDao {
 	List<NoticeVO> list(Map<String, String> map);
 	int totalCount(Map<String, String> map);
 	void hit(int num);
-	NoticeVO detail(int num);
-	void del(int num);
+	NoticeVO detail(Long num);
+	void del(Long num);
 	int update(NoticeVO vo);
 }

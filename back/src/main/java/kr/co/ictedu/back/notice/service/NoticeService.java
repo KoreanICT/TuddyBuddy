@@ -34,18 +34,18 @@ public class NoticeService {
 	}
 
 	// 상세보기 하기 전에 한번 조회수를 증가 시키기
-	public NoticeVO detail(int num) {
-		hit(num);
+	public NoticeVO detail(Long num) {
+		hit(num.intValue());
 		return noticeDao.detail(num);
 	}
 
 
-	public void del(int num) {
+	public void del(Long num) {
 		noticeDao.del(num);
 	}
 	
 	// 수정 대상 조회 (조회수 증가 없음)
-	public NoticeVO getNotice(int num) {
+	public NoticeVO getNotice(Long num) {
 	    return noticeDao.detail(num);
 	}
 
