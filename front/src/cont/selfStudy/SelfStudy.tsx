@@ -19,7 +19,7 @@ import styles from './selfstudy.module.css';
 // server.port=80
 // server.servlet.context-path=/back
 const BACKEND_URL = 'http://localhost/back';
-
+const AI_URL = 'http://192.168.0.81:8000';
 
 const SelfStudy: React.FC = () => {
 
@@ -118,7 +118,15 @@ const SelfStudy: React.FC = () => {
           '카테고리 조회 결과:',
           response.data
         );
-        setCategories(response.data);
+
+        setCategories(
+          response.data.map((cat: any) => ({
+            categoryId: cat.category_id,
+            categoryName: cat.category_name,
+          }))
+        );
+
+
       } catch (error) {
         console.error(
           '카테고리 조회 실패:',
@@ -160,7 +168,15 @@ const SelfStudy: React.FC = () => {
           '과목 조회 결과:',
           response.data
         );
-        setSubjects(response.data);
+        setSubjects(
+          response.data.map((sub: any) => ({
+            subjectId: sub.subject_id,
+            categoryId: sub.category_id,
+            subjectName: sub.subject_name,
+            usageCount: sub.usage_count,
+            createdAt: sub.created_at,
+          }))
+        );
       } catch (error) {
 
         console.error(
@@ -239,6 +255,11 @@ const SelfStudy: React.FC = () => {
     }
 
     setLoading(true);
+
+    console.log('전송 quizType:', quizType);
+    console.log('전송 quizDifficulty:', quizDifficulty);
+    console.log('전송 subjectId:', selectedSubjectId);
+    console.log('전송 quizCount:', quizCount);
     const formData = new FormData();
 
     // =====================================================
@@ -273,7 +294,8 @@ const SelfStudy: React.FC = () => {
 
     try {
       const response = await fetch(
-        'http://192.198.0.19:3000/generate-quiz',
+        // 'http://192.198.0.19:3000/generate-quiz',
+        `${AI_URL}/api/ai/generate-quiz`,
         {
           method: 'POST',
           body: formData,
@@ -281,13 +303,14 @@ const SelfStudy: React.FC = () => {
       );
 
       if (!response.ok) {
-        throw new Error(
-          `AI 서버 응답 오류: ${response.status}`
-        );
+        const error = await response.json();
+        throw new Error(error.detail || '문제 생성 실패');
       }
 
       const data = await response.json();
-
+      setQuizList(data.quizzes);
+      setActiveTab('quiz');
+      setIsModalOpen(false);
       console.log(
         'AI 문제 생성 결과:',
         data
@@ -297,28 +320,17 @@ const SelfStudy: React.FC = () => {
       // AI sever result processing
       // ===================================================
 
-      const parsedData =
-        typeof data.result === 'string'
-          ? JSON.parse(data.result)
-          : data.result;
+      const parsedData = await response.json();
 
-      if (
-        parsedData &&
-        Array.isArray(parsedData.quizzes)
-      ) {
-        setQuizList(
-          parsedData.quizzes
-        );
+      console.log('AI 문제 생성 결과:', data);
 
+      if (Array.isArray(data.quizzes)) {
+        setQuizList(data.quizzes);
       } else {
-        console.warn(
-          'quizzes 데이터가 없습니다.',
-          parsedData
-        );
+        console.warn('quizzes 데이터가 없습니다.', data);
         setQuizList([]);
-
       }
-      // 문제 생성 완료
+
       setActiveTab('quiz');
       setIsModalOpen(false);
     } catch (error) {
