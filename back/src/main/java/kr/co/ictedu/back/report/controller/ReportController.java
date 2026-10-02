@@ -18,8 +18,8 @@ import org.springframework.web.bind.annotation.RestController;
 import jakarta.servlet.http.HttpServletRequest;
 import kr.co.ictedu.back.common.service.PagingService;
 import kr.co.ictedu.back.common.vo.PageVO;
-import kr.co.ictedu.back.report.Service.ReportReplyService;
-import kr.co.ictedu.back.report.Service.ReportService;
+import kr.co.ictedu.back.report.service.ReportReplyService;
+import kr.co.ictedu.back.report.service.ReportService;
 import kr.co.ictedu.back.report.vo.ReportReplyVO;
 import kr.co.ictedu.back.report.vo.ReportVO;
 
