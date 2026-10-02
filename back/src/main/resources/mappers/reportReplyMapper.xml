@@ -5,14 +5,25 @@
 
 	<!-- 신고 답변 등록 -->
 	<insert id="add" parameterType="rerevo">
-		INSERT INTO report_reply (num, content, created_date, report_num, admin_num)
+		INSERT INTO report_reply (num, content, created_date, report_num,
+		admin_num)
 		VALUES (report_reply_seq.NEXTVAL, #{content}, SYSDATE, #{report_num},
 		#{admin_num})
 	</insert>
 
+	<!--회원 번호로 답변 조회-->
+	<select id="list" parameterType="long" resultType="rerevo">
+		SELECT rr.num, rr.content, rr.created_date, rr.report_num, rr.admin_num
+		FROM report_reply rr
+		JOIN report r ON rr.report_num = r.num
+		WHERE r.member_num = #{member_num}
+		ORDER BY rr.num DESC
+	</select>
+
 	<!-- 신고 번호로 답변 조회 -->
 	<select id="detail" parameterType="long" resultType="rerevo">
-		SELECT num, content, created_date, report_num, admin_num FROM report_reply
+		SELECT num, content, created_date, report_num, admin_num FROM
+		report_reply
 		WHERE report_num = #{report_num}
 	</select>
 

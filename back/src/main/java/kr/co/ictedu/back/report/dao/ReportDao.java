@@ -9,7 +9,11 @@ import kr.co.ictedu.back.report.vo.ReportVO;
 
 @Mapper
 public interface ReportDao {
+	/* 신고 */
     void add(ReportVO vo);
+    
+    
+    /* 신고 관리 */
     List<ReportVO> list(Map<String, String> map);
     // 전체 신고 개수
     int totalCount(Map<String, String> map);
@@ -18,7 +22,6 @@ public interface ReportDao {
     int update(ReportVO vo);
     int del(Long num);
     
-	/* 신고 관리 */
     // 신고 상태 변경
     int updateStatus(ReportVO vo);
 }

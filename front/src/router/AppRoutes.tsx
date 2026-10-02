@@ -13,7 +13,6 @@ import { Group_Detail } from "../cont/study_group/Group_Detail";
 import AdminHome from "../cont/admin/AdminHome";
 import MemberManagement from "../cont/admin/member/MemberManagement";
 import BoardManagement from "../cont/admin/board/BoardManagement";
-import StudentCode from "../cont/friend/StudentCode";
 import FriendAdd from "../cont/friend/FriendAdd";
 import FriendList from "../cont/friend/FriendList";
 //import Community from "../cont/community/Community";
@@ -29,6 +28,10 @@ import StudyManagement from "../cont/admin/study_group/StudyManagement";
 import AuthLayout from "../layout/auth/AuthLayout";
 import SelfStudy from "../cont/selfStudy/SelfStudy";
 import Community from "../cont/community/Community";
+import ReportReplyList from "../cont/report/ReportReplyList";
+import ReportReplyDetail from "../cont/report/ReportReplyDetail";
+import FriendRequestList from "../cont/friend/FriendRequestList";
+import FriendSentList from "../cont/friend/FriendSentList";
 
 interface RouteItem {
     path: string;
@@ -54,10 +57,18 @@ const AppRoutes: React.FC = () => {
         { path: "/", element: <Home /> },
         { path: "/friend/add", element: <FriendAdd /> },
         { path: "/friend/list", element: <FriendList /> },
+
+        { path: "/friend/request", element: <FriendRequestList /> },
+        { path: "/friend/sent", element: <FriendSentList /> },
+
         { path: '/point', element: <ProductSelector /> },
         { path: '/statistics', element: <PerformanceAnalytics /> },
         { path: '/selfStudy', element: <SelfStudy /> },
         { path: '/reportCreate', element: <ReportCreate /> },
+
+
+        { path: '/reportReplyList', element: <ReportReplyList /> },
+        { path: "/report/replyDetail/:id", element: <ReportReplyDetail /> },
 
 
         // admin

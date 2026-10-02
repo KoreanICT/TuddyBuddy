@@ -1,0 +1,162 @@
+.page {
+    width: 100%;
+    min-height: 100vh;
+    padding: 40px 20px;
+    box-sizing: border-box;
+}
+
+.container {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.header h1 {
+    margin: 0 0 8px;
+    font-size: 26px;
+    color: #222;
+}
+
+.header p {
+    margin: 0;
+    font-size: 14px;
+    color: #777;
+}
+
+.summary {
+    margin-bottom: 24px;
+}
+
+.summaryItem {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #fff;
+    font-size: 14px;
+}
+
+.summaryItem strong {
+    margin-left: 4px;
+}
+
+.listHeader {
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e5e7eb;
+    font-size: 14px;
+    font-weight: 600;
+    color: #444;
+}
+
+.list {
+    width: 100%;
+}
+
+.request {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.profile {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.profileImage {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: #f1f3f5;
+    color: #555;
+}
+
+.info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.info strong {
+    font-size: 15px;
+    color: #222;
+}
+
+.info span {
+    font-size: 13px;
+    color: #888;
+}
+
+.actions {
+    display: flex;
+    gap: 8px;
+}
+
+.acceptButton,
+.rejectButton {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.acceptButton {
+    border: 1px solid #222;
+    background: #222;
+    color: #fff;
+}
+
+.acceptButton:hover {
+    background: #444;
+}
+
+.rejectButton {
+    border: 1px solid #ddd;
+    background: #fff;
+    color: #555;
+}
+
+.rejectButton:hover {
+    background: #f5f5f5;
+}
+
+.empty {
+    padding: 70px 20px;
+    text-align: center;
+    color: #777;
+}
+
+.emptyIcon {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 14px;
+}
+
+.empty h2 {
+    margin: 0 0 8px;
+    font-size: 18px;
+    color: #444;
+}
+
+.empty p {
+    margin: 0;
+    font-size: 14px;
+}

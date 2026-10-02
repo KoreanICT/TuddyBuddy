@@ -117,9 +117,15 @@ public class ReportController {
         reportReplyService.add(vo);
         return ResponseEntity.ok().body("신고 답변 등록 성공!");
     }
+    
+    // 멤버 번호로 신고 답변 목록 조회
+    @GetMapping("/reportReplyList")
+    public List<ReportReplyVO> reportReplyList(@RequestParam("member_num") Long member_num) {
+        return reportReplyService.list(member_num);
+    }
 
 
-    // 신고 답변 조회
+    // 신고 번호로 신고 답변 조회
     @GetMapping("/reportReplyDetail")
     public ReportReplyVO reportReplyDetail(@RequestParam("report_num") Long report_num) {
         return reportReplyService.detail(report_num);
