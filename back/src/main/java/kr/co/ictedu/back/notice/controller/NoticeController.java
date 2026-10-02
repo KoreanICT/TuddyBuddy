@@ -51,9 +51,7 @@ public class NoticeController {
 	}
 	
 	@PostMapping("/noticeAdd")
-	public ResponseEntity<?> upboardAdd(
-	        NoticeVO vo,
-	        HttpServletRequest request) {
+	public ResponseEntity<?> upboardAdd(NoticeVO vo, HttpServletRequest request) {
 		
 	    // 업로드 파일
 	    MultipartFile mf = vo.getMfile();
@@ -80,14 +78,10 @@ public class NoticeController {
 	    } catch (Exception e) {
 	        e.printStackTrace();
 
-	        return ResponseEntity
-	                .internalServerError()
-	                .body("업로드 실패");
+	        return ResponseEntity.internalServerError().body("업로드 실패");
 	    }
 
-	    return ResponseEntity
-	            .ok()
-	            .body("공지 등록 성공!");
+	    return ResponseEntity.ok().body("공지 등록 성공!");
 	}
 	
 

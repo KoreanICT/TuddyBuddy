@@ -1,4 +1,4 @@
-package kr.co.ictedu.back.report.Service;
+package kr.co.ictedu.back.report.service;
 
 import java.util.List;
 import java.util.Map;
