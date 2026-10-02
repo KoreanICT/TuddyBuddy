@@ -12,26 +12,41 @@ export const Detail_Sidebar: React.FC<DetailSidebarProps> = ({ currentTab, onTab
         },
         {
             id: 2,
-            alias: 'video',
-            detail: '동영상 업로드 및 요약'
-        },
-        {
-            id: 3,
             alias: 'image',
             detail: '이미지 업로드 및 문제 풀이'
         },
         {
+            id: 3,
+            alias: 'board',
+            detail: '해야할 일'
+        },
+        {
             id: 4,
-            alias: 'project',
-            detail: '목표 달성 프로젝트'
+            alias: 'course',
+            detail: '진행 다이어그램'
         },
         {
             id: 5,
+            alias: 'calendar',
+            detail: '일정'
+        },
+        {
+            id: 6,
+            alias: 'document',
+            detail: '참고 자료'
+        },
+        {
+            id: 7,
+            alias: 'discussion',
+            detail: '질의응답'
+        },
+        {
+            id: 8,
             alias: 'member',
             detail: '멤버 목록'
         },
         {
-            id: 6,
+            id: 9,
             alias: 'memo',
             detail: '메모'
         }

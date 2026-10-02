@@ -764,3 +764,255 @@
 
     flex-direction: column;
 }
+
+/* ================================
+   Document
+================================ */
+
+.document_upload_btn {
+    padding: 10px 18px;
+
+    color: var(--background);
+    background: var(--primary);
+
+    border-radius: var(--radius-md);
+    font-weight: 600;
+
+    transition: background 0.2s ease;
+}
+
+.document_upload_btn:hover {
+    background: var(--primary-hover);
+}
+
+
+/* ================================
+   Document List
+================================ */
+
+.document_list {
+    margin: 10px;
+    display: flex;
+    flex-direction: column;
+
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+
+    overflow: hidden;
+}
+
+.document_item {
+    display: flex;
+    align-items: center;
+
+    gap: 20px;
+
+    padding: 16px 20px;
+
+    border-bottom: 1px solid var(--border);
+}
+
+.document_item:last-child {
+    border-bottom: none;
+}
+
+.document_main {
+    display: flex;
+    flex-direction: column;
+
+    flex: 1;
+
+    min-width: 0;
+}
+
+.document_title {
+    color: var(--text);
+
+    font-size: 15px;
+}
+
+.document_name {
+    color: var(--text-secondary);
+
+    font-size: 13px;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.document_info {
+    display: flex;
+    align-items: center;
+
+    gap: 14px;
+
+    color: var(--text-secondary);
+
+    font-size: 13px;
+}
+
+.document_download_btn {
+    padding: 7px 12px;
+
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+
+    color: var(--text);
+    background: var(--background);
+
+    font-size: 13px;
+}
+
+.document_download_btn:hover {
+    background: var(--background-secondary);
+}
+
+.document_empty {
+    padding: 50px 20px;
+
+    text-align: center;
+
+    color: var(--text-secondary);
+}
+
+
+/* ================================
+   Document Modal
+================================ */
+
+.document_modal_overlay {
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 1000;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 20px;
+
+    background: rgba(0, 0, 0, 0.4);
+}
+
+.document_modal {
+    width: 100%;
+    max-width: 520px;
+
+    padding: 24px;
+
+    background: var(--background);
+
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+}
+
+.document_modal_header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    margin-bottom: 24px;
+}
+
+.document_modal_header h2 {
+    color: var(--text);
+
+    font-size: 20px;
+}
+
+.document_modal_close {
+    font-size: 28px;
+    line-height: 1;
+
+    color: var(--text-secondary);
+}
+
+.document_upload_form {
+    display: flex;
+    flex-direction: column;
+
+    gap: 20px;
+}
+
+.document_form_field {
+    display: flex;
+    flex-direction: column;
+
+    gap: 8px;
+}
+
+.document_form_field label {
+    color: var(--text);
+
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.document_form_field input[type="text"] {
+    width: 100%;
+
+    padding: 10px 12px;
+
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+
+    outline: none;
+}
+
+.document_form_field input[type="text"]:focus {
+    border-color: var(--primary);
+}
+
+.selected_file {
+    display: flex;
+    justify-content: space-between;
+
+    padding: 12px;
+
+    background: var(--background-secondary);
+
+    border-radius: var(--radius-sm);
+
+    color: var(--text-secondary);
+
+    font-size: 13px;
+}
+
+.document_modal_actions {
+    display: flex;
+    justify-content: flex-end;
+
+    gap: 10px;
+
+    margin-top: 10px;
+}
+
+.document_cancel_btn,
+.document_submit_btn {
+    padding: 9px 18px;
+
+    border-radius: var(--radius-md);
+
+    font-weight: 600;
+}
+
+.document_cancel_btn {
+    color: var(--text);
+
+    border: 1px solid var(--border);
+
+    background: var(--background);
+}
+
+.document_submit_btn {
+    color: var(--background);
+
+    background: var(--primary);
+}
+
+.document_submit_btn:hover {
+    background: var(--primary-hover);
+}

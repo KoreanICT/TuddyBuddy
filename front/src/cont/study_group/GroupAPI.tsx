@@ -1,5 +1,4 @@
-import { DetailTab } from "./Type";
-
+import { DetailTab, TDLStatus } from "./Type";
 /* 공개 스터디룸 컴포넌트 관련 API */
 
 /**
@@ -124,4 +123,23 @@ export interface MemoInsertRequest {
 export interface MemoUpdateRequest {
     memo_num: number;
     memo_content: string;
+}
+
+/**
+ * 해야할 일(TDL) 관련 API
+ */
+export interface TDLData {
+    tdlid: number,
+    groupid: number,
+    stepid: number,
+    creator: string,
+    appointee: string,
+    title: string,
+    detail: string,
+    status: TDLStatus,
+    created_at: string,
+    completed_at?: string,
+    started_at: string,
+    expired_at: string,
+    updated_at?: string
 }

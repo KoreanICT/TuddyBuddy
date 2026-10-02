@@ -1,5 +1,3 @@
-export type DetailTab = 'overview' | 'video' | 'image' | 'memo' | 'member' | 'project';
-
-export type ProjectTab = 'overview' | 'board' | 'calendar' | 'course' | 'discussion';
+export type DetailTab = 'overview' | 'image' | 'memo' | 'member' | 'calendar' | 'course' | 'discussion' | 'board' | 'document';
 
 export type TDLStatus = 'new' | 'In Progressing' | 'Done'
