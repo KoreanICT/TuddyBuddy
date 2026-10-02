@@ -745,3 +745,304 @@
 
     border-radius: var(--radius-sm);
 }
+
+/* ==============================
+   TDL
+================================ */
+
+.tdl_header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+
+/* 보드 / 리스트 */
+
+.tdl_view_switch {
+    display: flex;
+    padding: 3px;
+
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+
+    background-color: var(--background-secondary);
+}
+
+
+.tdl_view_button,
+.tdl_view_button_active {
+    padding: 7px 14px;
+
+    border-radius: var(--radius-sm);
+
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+
+.tdl_view_button_active {
+    background-color: var(--background);
+    color: var(--text);
+
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+
+/* ==============================
+   Board
+================================ */
+
+.tdl_board {
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+
+    gap: 16px;
+
+    align-items: start;
+}
+
+
+.tdl_column {
+    min-width: 0;
+    min-height: 180px;
+
+    padding: 10px;
+
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+
+    background-color:
+        var(--background-secondary);
+
+    transition:
+        border-color 0.15s ease,
+        background-color 0.15s ease;
+}
+
+
+.tdl_column_over {
+    border-color: var(--primary);
+}
+
+
+.tdl_column_header {
+    display: flex;
+    align-items: center;
+
+    gap: 6px;
+
+    padding: 4px 6px 10px;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    color: var(--text);
+}
+
+
+.tdl_column_count {
+    font-size: 12px;
+    font-weight: 400;
+
+    color: var(--text-secondary);
+}
+
+
+.tdl_column_body {
+    display: flex;
+    flex-direction: column;
+
+    gap: 8px;
+
+    min-height: 40px;
+}
+
+
+/* ==============================
+   TDL Card
+================================ */
+
+.tdl_card {
+    padding: 14px;
+
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+
+    background-color: var(--background);
+
+    cursor: grab;
+
+    transition:
+        box-shadow 0.15s ease,
+        border-color 0.15s ease,
+        transform 0.15s ease;
+}
+
+
+.tdl_card:hover {
+    box-shadow:
+        0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+
+.tdl_card:active {
+    cursor: grabbing;
+}
+
+
+.tdl_card_title {
+    margin-bottom: 6px;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    color: var(--text);
+}
+
+
+.tdl_card_detail {
+    display: -webkit-box;
+
+    overflow: hidden;
+
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+
+    margin-bottom: 10px;
+
+    font-size: 13px;
+
+    color: var(--text-secondary);
+}
+
+
+.tdl_card_footer {
+    display: flex;
+    flex-wrap: wrap;
+
+    gap: 6px;
+
+    align-items: center;
+}
+
+
+/* 마감 */
+
+.tdl_deadline {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+
+.tdl_card_deadline {
+    border-color: #dc2626;
+}
+
+
+.tdl_deadline_warning {
+    padding: 2px 6px;
+
+    border-radius: var(--radius-sm);
+
+    background-color: #fee2e2;
+
+    font-size: 12px;
+    font-weight: 600;
+
+    color: #b91c1c;
+}
+
+
+/* 반복 */
+
+.tdl_card_repeat {
+    border-style: dashed;
+}
+
+
+.tdl_repeat {
+    padding: 2px 6px;
+
+    border-radius: var(--radius-sm);
+
+    background-color: var(--background-secondary);
+
+    font-size: 12px;
+
+    color: var(--text-secondary);
+}
+
+
+/* ==============================
+   Add Button
+================================ */
+
+.tdl_add_button {
+    width: 100%;
+    height: 30px;
+
+    margin-top: 8px;
+
+    border: 1px dashed var(--border);
+    border-radius: var(--radius-sm);
+
+    color: var(--text-secondary);
+}
+
+
+.tdl_add_button:hover {
+    background-color: var(--background);
+    color: var(--primary);
+}
+
+
+/* ==============================
+   List
+================================ */
+
+.tdl_list {
+    display: flex;
+    flex-direction: column;
+
+    border-top: 1px solid var(--border);
+}
+
+
+.tdl_list_item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    gap: 20px;
+
+    padding: 14px 8px;
+
+    border-bottom: 1px solid var(--border);
+}
+
+
+.tdl_list_item p {
+    margin-top: 3px;
+
+    font-size: 13px;
+
+    color: var(--text-secondary);
+}
+
+
+/* ==============================
+   Responsive
+================================ */
+
+@media (max-width: 900px) {
+
+    .tdl_board {
+        grid-template-columns: 1fr;
+    }
+
+}
