@@ -1,6 +1,7 @@
 # Spring Boot
 back/build/
 back/.gradle/
+.metadata/
 back/src/main/resources/application.properties
 
 # IDE
