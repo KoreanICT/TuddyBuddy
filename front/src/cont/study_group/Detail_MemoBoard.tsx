@@ -15,8 +15,7 @@ export const Detail_MemoBoard: React.FC<MemoBoardProps> = ({ memos, onUpdate, on
 
     const corkboardImage = `${process.env.PUBLIC_URL}/images/corkboard.jpg`;
     // 현재 Drag 중인 메모
-    const [draggingId, setDraggingId] =
-        useState<number | null>(null);
+    const [draggingId, setDraggingId] = useState<number | null>(null);
 
     // Drag가 방금 끝난 메모
     // Drag 후 click 이벤트가 발생하는 것을 방지
@@ -24,8 +23,7 @@ export const Detail_MemoBoard: React.FC<MemoBoardProps> = ({ memos, onUpdate, on
 
     // 휴지통에 들어가서
     // 구겨지는 중인 메모
-    const [deletingId, setDeletingId] =
-        useState<number | null>(null);
+    const [deletingId, setDeletingId] = useState<number | null>(null);
 
     // ==========================
     // Long Press Drag 설정

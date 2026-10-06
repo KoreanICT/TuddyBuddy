@@ -293,8 +293,8 @@ const SelfStudy: React.FC = () => {
     );
 
     try {
+      // 1. Python AI 서버
       const response = await fetch(
-        // 'http://192.198.0.19:3000/generate-quiz',
         `${AI_URL}/api/ai/generate-quiz`,
         {
           method: 'POST',
@@ -307,23 +307,44 @@ const SelfStudy: React.FC = () => {
         throw new Error(error.detail || '문제 생성 실패');
       }
 
+      // AI 응답은 딱 한 번만 읽기
       const data = await response.json();
-      setQuizList(data.quizzes);
-      setActiveTab('quiz');
-      setIsModalOpen(false);
-      console.log(
-        'AI 문제 생성 결과:',
-        data
-      );
-
-      // ===================================================
-      // AI sever result processing
-      // ===================================================
-
-      const parsedData = await response.json();
 
       console.log('AI 문제 생성 결과:', data);
 
+      // 2. Spring Boot에 저장
+      const saveResponse = await fetch(
+        `${BACKEND_URL}/api/selfstudy/sessions`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          // credentials: 'include',
+
+          body: JSON.stringify({
+            subject_id: Number(selectedSubjectId),
+            // member_num: 1,
+            quiz_type: quizType,
+            quiz_difficulty: quizDifficulty,
+            quiz_count: quizCount,
+            quiz_prompt: quizPrompt,
+            quizzes: data.quizzes
+          }),
+        }
+      );
+
+      if (!saveResponse.ok) {
+        const errorText = await saveResponse.text();
+        console.error('Spring Boot 저장 실패:', errorText);
+        throw new Error('Spring Boot 저장 실패');
+      }
+
+      const saveData = await saveResponse.json();
+
+      console.log('Spring Boot 저장 결과:', saveData);
+
+      // 3. 화면에 AI 문제 표시
       if (Array.isArray(data.quizzes)) {
         setQuizList(data.quizzes);
       } else {
@@ -333,17 +354,14 @@ const SelfStudy: React.FC = () => {
 
       setActiveTab('quiz');
       setIsModalOpen(false);
+
     } catch (error) {
-      console.error(
-        '문제 생성 중 오류:',
-        error
-      );
-      alert(
-        '문제를 생성하지 못했습니다.'
-      );
+      console.error('문제 생성 중 오류:', error);
+
+      alert('문제를 생성하지 못했습니다.');
+
     } finally {
       setLoading(false);
-
     }
 
   };
