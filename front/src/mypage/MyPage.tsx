@@ -1,211 +1,239 @@
 import React, { useState } from 'react';
-
-// 페이지 이동을 위해 useNavigate를 가져옵니다.
-import { useNavigate } from 'react-router-dom';
-
-// 마이페이지 CSS를 불러옵니다.
 import './MyPage.css';
 
 const MyPage: React.FC = () => {
-
-  // 페이지 이동에 사용할 navigate입니다.
-  const navigate = useNavigate();
-
-  // 회원 정보 예시 데이터입니다.
-  const [formData, setFormData] = useState({
-    email: 'user@example.com',
-    name: '홍길동',
-    nickname: '길동이',
-    phone: '010-1234-5678',
-    authority: '학생',
-    path: '온라인(SNS 및 검색)',
-  });
-
-  // 현재 회원이 가지고 있는 잔여 포인트입니다.
-  const [point] = useState(12500);
+  const [activeMenu, setActiveMenu] = useState('info');
 
   return (
     <div className="mypage-page">
-      <div className="mypage-container">
+      <div className="mypage-layout">
 
-        {/* =========================
-            마이페이지 헤더
-        ========================= */}
-        <div className="mypage-header">
-          <h2>마이페이지</h2>
-          <p>
-            회원님의 정보를 확인하고 수정할 수 있습니다.
-          </p>
-        </div>
+        {/* 왼쪽 사이드 메뉴 */}
+        <aside className="mypage-sidebar">
+          <h3 className="sidebar-title">마이페이지</h3>
 
-        <form className="mypage-form">
+          <button
+            className={
+              activeMenu === 'info'
+                ? 'sidebar-menu active'
+                : 'sidebar-menu'
+            }
+            onClick={() => setActiveMenu('info')}
+          >
+            회원정보
+          </button>
 
-          {/* =========================
-              프로필 요약 카드
-          ========================= */}
-          <div className="mypage-profile-card">
-            <div className="profile-avatar">
-              <span>
-                {formData.name.charAt(0)}
-              </span>
-            </div>
+          <button
+            className={
+              activeMenu === 'point'
+                ? 'sidebar-menu active'
+                : 'sidebar-menu'
+            }
+            onClick={() => setActiveMenu('point')}
+          >
+            포인트 내역
+          </button>
 
-            <div className="profile-info">
-              <h3>
-                {formData.nickname} 님
-              </h3>
-              <p>
-                {formData.email} ·{' '}
-                <span className="badge">
-                  {formData.authority}
-                </span>
+          <button
+            className={
+              activeMenu === 'example1'
+                ? 'sidebar-menu active'
+                : 'sidebar-menu'
+            }
+            onClick={() => setActiveMenu('example1')}
+          >
+            나의 게시글
+          </button>
+
+          <button
+            className={
+              activeMenu === 'example2'
+                ? 'sidebar-menu active'
+                : 'sidebar-menu'
+            }
+            onClick={() => setActiveMenu('example2')}
+          >
+            친구 목록
+          </button>
+
+          <button
+            className={
+              activeMenu === 'example3'
+                ? 'sidebar-menu active'
+                : 'sidebar-menu'
+            }
+            onClick={() => setActiveMenu('example3')}
+          >
+            나의 스터디 그룹
+          </button>
+
+          <button
+            className={
+              activeMenu === 'example4'
+                ? 'sidebar-menu active'
+                : 'sidebar-menu'
+            }
+            onClick={() => setActiveMenu('example4')}
+          >
+            학습 분석
+          </button>
+        </aside>
+
+        {/* 오른쪽 본문 */}
+        <main className="mypage-content">
+
+          {/* 회원정보 */}
+          {activeMenu === 'info' && (
+            <div className="mypage-container">
+              <h2 className="mypage-title">마이페이지</h2>
+
+              <p className="mypage-subtitle">
+                회원님의 정보를 확인하고 수정할 수 있습니다.
               </p>
-            </div>
-          </div>
 
+              <div className="profile-card">
+                <div className="profile-avatar">
+                  홍
+                </div>
 
-          {/* =========================
-              [수정됨] 포인트 영역 (가로 정렬 & 디자인 개선)
-          ========================= */}
-          <div className="mypage-point-box">
-            <div className="point_info_group">
-              <span className="point_label">잔여 포인트</span>
-              <div className="point_amount">
-                <strong>{point.toLocaleString()}</strong>
-                <span className="point_unit">P</span>
+                <div className="profile-info">
+                  <h3>길동이 님</h3>
+
+                  <p>
+                    user@example.com
+                    <span className="badge">
+                      학생
+                    </span>
+                  </p>
+                </div>
+              </div>
+
+              <div className="point-box">
+                <p>잔여 포인트</p>
+                <strong>12,500P</strong>
+
+                <button
+                  className="point-link"
+                  onClick={() => setActiveMenu('point')}
+                >
+                  포인트 내역 &gt;
+                </button>
+              </div>
+
+              <div className="form-group">
+                <label>이메일</label>
+
+                <input
+                  type="text"
+                  value="user@example.com"
+                  readOnly
+                />
+              </div>
+
+              <div className="form-group">
+                <label>이름</label>
+
+                <input
+                  type="text"
+                  value="홍길동"
+                  readOnly
+                />
+              </div>
+
+              <div className="form-group">
+                <label>닉네임</label>
+
+                <div className="nickname-row">
+                  <input
+                    type="text"
+                    value="길동이"
+                    readOnly
+                  />
+
+                  <button>
+                    중복확인
+                  </button>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>전화번호</label>
+
+                <input
+                  type="text"
+                  value="010-1234-5678"
+                  readOnly
+                />
+              </div>
+
+              <div className="form-group">
+                <label>가입 유형</label>
+
+                <input
+                  type="text"
+                  value="학생"
+                  readOnly
+                />
               </div>
             </div>
+          )}
 
-            <button
-              type="button"
-              className="point_history_button"
-              onClick={() => navigate('/point_history')}
-            >
-              포인트 내역 &gt;
-            </button>
-          </div>
+          {/* 포인트 내역 */}
+          {activeMenu === 'point' && (
+            <div className="menu-panel">
+              <h2>포인트 내역</h2>
 
-
-          {/* =========================
-              이메일
-          ========================= */}
-          <div className="mypage-input-group">
-            <label>이메일</label>
-            <input
-              type="email"
-              value={formData.email}
-              disabled
-              className="input-disabled"
-            />
-          </div>
-
-          {/* =========================
-              이름
-          ========================= */}
-          <div className="mypage-input-group">
-            <label>이름</label>
-            <input
-              type="text"
-              value={formData.name}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  name: e.target.value,
-                })
-              }
-              placeholder="이름을 입력해주세요"
-            />
-          </div>
-
-          {/* =========================
-              닉네임
-          ========================= */}
-          <div className="mypage-input-group">
-            <label>닉네임</label>
-            <div className="mypage-input-button">
-              <input
-                type="text"
-                value={formData.nickname}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    nickname: e.target.value,
-                  })
-                }
-                placeholder="닉네임을 입력해주세요"
-              />
-              <button type="button">
-                중복확인
-              </button>
+              <p>
+                여기에 포인트 내역 내용을 넣으면 됩니다.
+              </p>
             </div>
-          </div>
+          )}
 
-          {/* =========================
-              전화번호
-          ========================= */}
-          <div className="mypage-input-group">
-            <label>전화번호</label>
-            <input
-              type="text"
-              value={formData.phone}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  phone: e.target.value,
-                })
-              }
-              placeholder="010-0000-0000"
-            />
-          </div>
+          {/* 나의 게시글 */}
+          {activeMenu === 'example1' && (
+            <div className="menu-panel">
+              <h2>나의 게시글</h2>
 
-          {/* =========================
-              가입 유형
-          ========================= */}
-          <div className="mypage-input-group">
-            <label>가입 유형</label>
-            <input
-              type="text"
-              value={formData.authority}
-              disabled
-              className="input-disabled"
-            />
-          </div>
+              <p>
+                나의 게시글을 눌렀을 때 보여줄 내용입니다.
+              </p>
+            </div>
+          )}
 
-          {/* =========================
-              하단 버튼
-          ========================= */}
-          <div className="mypage-buttons">
-            <button
-              type="button"
-              className="mypage-cancel-button"
-              onClick={() => navigate('/')}
-            >
-              취소
-            </button>
+          {/* 친구 목록 */}
+          {activeMenu === 'example2' && (
+            <div className="menu-panel">
+              <h2>친구 목록</h2>
 
-            <button
-              type="button"
-              className="mypage-submit-button"
-              onClick={() => navigate('/member_edit')}
-            >
-              정보 수정하기
-            </button>
-          </div>
+              <p>
+                친구 목록 메뉴를 눌렀을 때 보여줄 내용입니다.
+              </p>
+            </div>
+          )}
 
-          {/* =========================
-              계정 관리
-          ========================= */}
-          <div className="mypage-footer-links">
-            <button type="button" className="link-button">
-              로그아웃
-            </button>
-            <span className="divider">|</span>
-            <button type="button" className="link-button dangerous">
-              회원 탈퇴
-            </button>
-          </div>
+          {/* 나의 스터디 그룹 */}
+          {activeMenu === 'example3' && (
+            <div className="menu-panel">
+              <h2>나의 스터디 그룹</h2>
 
-        </form>
+              <p>
+                내가 참여한 스터디 그룹을 보여주는 영역입니다.
+              </p>
+            </div>
+          )}
+
+          {/* 학습 분석 */}
+          {activeMenu === 'example4' && (
+            <div className="menu-panel">
+              <h2>학습 분석</h2>
+
+              <p>
+                학습 분석 메뉴를 눌렀을 때 보여줄 내용입니다.
+              </p>
+            </div>
+          )}
+
+        </main>
       </div>
     </div>
   );
