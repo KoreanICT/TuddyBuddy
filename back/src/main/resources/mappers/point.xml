@@ -10,8 +10,6 @@
 	    WHERE MEMBER_NUM = #{num}
 	</select>
 	
-
-	
 	<select id="select_point_log" parameterType="Long" resultType="povo">
 		SELECT 
 		    p.POINT_NUM,
