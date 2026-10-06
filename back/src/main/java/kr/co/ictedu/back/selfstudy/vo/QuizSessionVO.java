@@ -11,7 +11,7 @@ public class QuizSessionVO {
 
     private Long quiz_session_id;
     private Long subject_id;
-    private Long member_num;
+//    private Long member_num;
     private String quiz_image_url;
     private String quiz_type;
     private String quiz_difficulty;

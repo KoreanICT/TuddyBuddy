@@ -16,4 +16,5 @@ public class QuizVO {
     private String quiz_correct_answer;
     private String quiz_explanation;
     private LocalDateTime created_at;
+    
 }

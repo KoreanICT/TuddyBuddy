@@ -105,7 +105,14 @@ public class SelfStudyController {
 
      return vo;
  }
-    
+    @PostMapping("/sessions")
+    public QuizSessionVO insertSession(
+            @RequestBody QuizSessionVO vo) {
+
+        selfStudyService.insertQuizSession(vo);
+
+        return vo;
+    }
     
     
     

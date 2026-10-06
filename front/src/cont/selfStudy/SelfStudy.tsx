@@ -19,7 +19,7 @@ import styles from './selfstudy.module.css';
 // server.port=80
 // server.servlet.context-path=/back
 const BACKEND_URL = 'http://localhost/back';
-
+const AI_URL = 'http://192.168.0.81:8000';
 
 const SelfStudy: React.FC = () => {
 
@@ -109,28 +109,33 @@ const SelfStudy: React.FC = () => {
   // =========================================================
 
   useEffect(() => {
-    const getCategories = async () => {
-      try {
-        const response = await axios.get(
-          `${BACKEND_URL}/api/selfstudy/categories`
-        );
-        console.log(
-          '카테고리 조회 결과:',
-          response.data
-        );
-        setCategories(response.data);
-      } catch (error) {
-        console.error(
-          '카테고리 조회 실패:',
-          error
-        );
-        alert('카테고리를 불러오지 못했습니다.');
-      }
-    };
+  const getCategories = async () => {
+    try {
+      const response = await axios.get(
+        `${BACKEND_URL}/api/selfstudy/categories`
+      );
 
-    getCategories();
+      console.log('카테고리 원본 데이터:', response.data);
 
-  }, []);
+      const mappedCategories: Category[] = response.data.map(
+        (cat: any) => ({
+          categoryId: cat.category_id,
+          categoryName: cat.category_name,
+        })
+      );
+
+      console.log('변환된 카테고리:', mappedCategories);
+
+      setCategories(mappedCategories);
+
+    } catch (error) {
+      console.error('카테고리 조회 실패:', error);
+    }
+  };
+
+  getCategories();
+}, []);
+
 
 
   // =========================================================
@@ -160,7 +165,15 @@ const SelfStudy: React.FC = () => {
           '과목 조회 결과:',
           response.data
         );
-        setSubjects(response.data);
+        setSubjects(
+          response.data.map((sub: any) => ({
+            subjectId: sub.subject_id,
+            categoryId: sub.category_id,
+            subjectName: sub.subject_name,
+            usageCount: sub.usage_count,
+            createdAt: sub.created_at,
+          }))
+        );
       } catch (error) {
 
         console.error(
@@ -239,6 +252,11 @@ const SelfStudy: React.FC = () => {
     }
 
     setLoading(true);
+
+    console.log('전송 quizType:', quizType);
+    console.log('전송 quizDifficulty:', quizDifficulty);
+    console.log('전송 subjectId:', selectedSubjectId);
+    console.log('전송 quizCount:', quizCount);
     const formData = new FormData();
 
     // =====================================================
@@ -272,8 +290,9 @@ const SelfStudy: React.FC = () => {
     );
 
     try {
+      // 1. Python AI 서버
       const response = await fetch(
-        'http://192.198.0.19:3000/generate-quiz',
+        `${AI_URL}/api/ai/generate-quiz`,
         {
           method: 'POST',
           body: formData,
@@ -281,57 +300,65 @@ const SelfStudy: React.FC = () => {
       );
 
       if (!response.ok) {
-        throw new Error(
-          `AI 서버 응답 오류: ${response.status}`
-        );
+        const error = await response.json();
+        throw new Error(error.detail || '문제 생성 실패');
       }
 
+      // AI 응답은 딱 한 번만 읽기
       const data = await response.json();
 
-      console.log(
-        'AI 문제 생성 결과:',
-        data
+      console.log('AI 문제 생성 결과:', data);
+
+      // 2. Spring Boot에 저장
+      const saveResponse = await fetch(
+        `${BACKEND_URL}/api/selfstudy/sessions`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          // credentials: 'include',
+
+          body: JSON.stringify({
+            subject_id: Number(selectedSubjectId),
+            // member_num: 1,
+            quiz_type: quizType,
+            quiz_difficulty: quizDifficulty,
+            quiz_count: quizCount,
+            quiz_prompt: quizPrompt,
+            quizzes: data.quizzes
+          }),
+        }
       );
 
-      // ===================================================
-      // AI sever result processing
-      // ===================================================
-
-      const parsedData =
-        typeof data.result === 'string'
-          ? JSON.parse(data.result)
-          : data.result;
-
-      if (
-        parsedData &&
-        Array.isArray(parsedData.quizzes)
-      ) {
-        setQuizList(
-          parsedData.quizzes
-        );
-
-      } else {
-        console.warn(
-          'quizzes 데이터가 없습니다.',
-          parsedData
-        );
-        setQuizList([]);
-
+      if (!saveResponse.ok) {
+        const errorText = await saveResponse.text();
+        console.error('Spring Boot 저장 실패:', errorText);
+        throw new Error('Spring Boot 저장 실패');
       }
-      // 문제 생성 완료
+
+      const saveData = await saveResponse.json();
+
+      console.log('Spring Boot 저장 결과:', saveData);
+
+      // 3. 화면에 AI 문제 표시
+      if (Array.isArray(data.quizzes)) {
+        setQuizList(data.quizzes);
+      } else {
+        console.warn('quizzes 데이터가 없습니다.', data);
+        setQuizList([]);
+      }
+
       setActiveTab('quiz');
       setIsModalOpen(false);
+
     } catch (error) {
-      console.error(
-        '문제 생성 중 오류:',
-        error
-      );
-      alert(
-        '문제를 생성하지 못했습니다.'
-      );
+      console.error('문제 생성 중 오류:', error);
+
+      alert('문제를 생성하지 못했습니다.');
+
     } finally {
       setLoading(false);
-
     }
 
   };
@@ -471,40 +498,24 @@ const SelfStudy: React.FC = () => {
         previewUrl={previewUrl}
         quizType={quizType}
         setQuizType={setQuizType}
-        quizDifficulty={
-          quizDifficulty
-        }
-        setQuizDifficulty={
-          setQuizDifficulty
-        }
+        quizDifficulty={quizDifficulty}
+        setQuizDifficulty={setQuizDifficulty}
         quizCount={quizCount}
         setQuizCount={setQuizCount}
         quizPrompt={quizPrompt}
         setQuizPrompt={setQuizPrompt}
-        handleFileChange={
-          handleFileChange
-        }
-        handleUploadSubmit={
-          handleUploadSubmit
-        }
+        handleFileChange={handleFileChange}
+        handleUploadSubmit={handleUploadSubmit}
         categories={categories}
         subjects={subjects}
-        selectedCategoryId={
-          selectedCategoryId
-        }
-        setSelectedCategoryId={
-          setSelectedCategoryId
-        }
-        selectedSubjectId={
-          selectedSubjectId
-        }
-        setSelectedSubjectId={
-          setSelectedSubjectId
-        }
+        selectedCategoryId={selectedCategoryId}
+        setSelectedCategoryId={setSelectedCategoryId}
+        selectedSubjectId={selectedSubjectId}
+        setSelectedSubjectId={setSelectedSubjectId}
       />
-
     </div>
   );
 };
+
 
 export default SelfStudy;
