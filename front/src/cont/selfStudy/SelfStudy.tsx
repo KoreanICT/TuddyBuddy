@@ -109,36 +109,33 @@ const SelfStudy: React.FC = () => {
   // =========================================================
 
   useEffect(() => {
-    const getCategories = async () => {
-      try {
-        const response = await axios.get(
-          `${BACKEND_URL}/api/selfstudy/categories`
-        );
-        console.log(
-          '카테고리 조회 결과:',
-          response.data
-        );
+  const getCategories = async () => {
+    try {
+      const response = await axios.get(
+        `${BACKEND_URL}/api/selfstudy/categories`
+      );
 
-        setCategories(
-          response.data.map((cat: any) => ({
-            categoryId: cat.category_id,
-            categoryName: cat.category_name,
-          }))
-        );
+      console.log('카테고리 원본 데이터:', response.data);
 
+      const mappedCategories: Category[] = response.data.map(
+        (cat: any) => ({
+          categoryId: cat.category_id,
+          categoryName: cat.category_name,
+        })
+      );
 
-      } catch (error) {
-        console.error(
-          '카테고리 조회 실패:',
-          error
-        );
-        alert('카테고리를 불러오지 못했습니다.');
-      }
-    };
+      console.log('변환된 카테고리:', mappedCategories);
 
-    getCategories();
+      setCategories(mappedCategories);
 
-  }, []);
+    } catch (error) {
+      console.error('카테고리 조회 실패:', error);
+    }
+  };
+
+  getCategories();
+}, []);
+
 
 
   // =========================================================
@@ -501,40 +498,24 @@ const SelfStudy: React.FC = () => {
         previewUrl={previewUrl}
         quizType={quizType}
         setQuizType={setQuizType}
-        quizDifficulty={
-          quizDifficulty
-        }
-        setQuizDifficulty={
-          setQuizDifficulty
-        }
+        quizDifficulty={quizDifficulty}
+        setQuizDifficulty={setQuizDifficulty}
         quizCount={quizCount}
         setQuizCount={setQuizCount}
         quizPrompt={quizPrompt}
         setQuizPrompt={setQuizPrompt}
-        handleFileChange={
-          handleFileChange
-        }
-        handleUploadSubmit={
-          handleUploadSubmit
-        }
+        handleFileChange={handleFileChange}
+        handleUploadSubmit={handleUploadSubmit}
         categories={categories}
         subjects={subjects}
-        selectedCategoryId={
-          selectedCategoryId
-        }
-        setSelectedCategoryId={
-          setSelectedCategoryId
-        }
-        selectedSubjectId={
-          selectedSubjectId
-        }
-        setSelectedSubjectId={
-          setSelectedSubjectId
-        }
+        selectedCategoryId={selectedCategoryId}
+        setSelectedCategoryId={setSelectedCategoryId}
+        selectedSubjectId={selectedSubjectId}
+        setSelectedSubjectId={setSelectedSubjectId}
       />
-
     </div>
   );
 };
+
 
 export default SelfStudy;
