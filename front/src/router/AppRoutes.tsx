@@ -7,13 +7,11 @@ import { ProductSelector } from "../cont/point/ProductSelector";
 import PerformanceAnalytics from "../cont/statistics/PerformanceAnalytics";
 import React from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
-import VideoSummary from "../cont/video/VideoSummary";
 import { Group_Home } from "../cont/study_group/Group_Home";
 import { Group_Detail } from "../cont/study_group/Group_Detail";
 import AdminHome from "../cont/admin/AdminHome";
 import MemberManagement from "../cont/admin/member/MemberManagement";
 import BoardManagement from "../cont/admin/board/BoardManagement";
-import StudentCode from "../cont/friend/StudentCode";
 import FriendAdd from "../cont/friend/FriendAdd";
 import FriendList from "../cont/friend/FriendList";
 //import Community from "../cont/community/Community";
@@ -31,6 +29,10 @@ import SelfStudy from "../cont/selfStudy/SelfStudy";
 import Community from "../cont/community/Community";
 import PointHistory from "../mypage/PointHistory";
 import Member_Edit from "../mypage/Member_edit";
+import ReportReplyList from "../cont/report/ReportReplyList";
+import ReportReplyDetail from "../cont/report/ReportReplyDetail";
+import FriendRequestList from "../cont/friend/FriendRequestList";
+import FriendSentList from "../cont/friend/FriendSentList";
 
 interface RouteItem {
     path: string;
@@ -44,7 +46,6 @@ const AppRoutes: React.FC = () => {
     const isAuth = pathname.startsWith("/auth");
 
     const routeList: RouteItem[] = [
-        { path: '/videoSummary', element: <VideoSummary /> },
         { path: '/community', element: <Community /> },
 
 
@@ -56,10 +57,18 @@ const AppRoutes: React.FC = () => {
         { path: "/", element: <Home /> },
         { path: "/friend/add", element: <FriendAdd /> },
         { path: "/friend/list", element: <FriendList /> },
+
+        { path: "/friend/request", element: <FriendRequestList /> },
+        { path: "/friend/sent", element: <FriendSentList /> },
+
         { path: '/point', element: <ProductSelector /> },
         { path: '/statistics', element: <PerformanceAnalytics /> },
         { path: '/selfStudy', element: <SelfStudy /> },
         { path: '/reportCreate', element: <ReportCreate /> },
+
+
+        { path: '/reportReplyList', element: <ReportReplyList /> },
+        { path: "/report/replyDetail/:id", element: <ReportReplyDetail /> },
 
 
         // admin

@@ -25,11 +25,12 @@ interface Comment {
 }
 
 const Community: React.FC = () => {
-  // 카테고리
+  // 카테고리 (글쓰기용 카테고리는 "전체" 제외)
   const categories = ["전체", "자유게시판", "합격후기", "꿀팁"];
+  const writeCategories = ["자유게시판", "합격후기", "꿀팁"];
 
   // 게시글
-  const [posts] = useState<Post[]>([
+  const [posts, setPosts] = useState<Post[]>([
     {
       id: 1,
       title: "안녕하세요! 처음 가입했습니다.",
@@ -95,6 +96,13 @@ const Community: React.FC = () => {
   const [searchedKeyword, setSearchedKeyword] = useState("");
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
 
+  // 글쓰기 모달 State
+  const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
+  const [newTitle, setNewTitle] = useState("");
+  const [newContent, setNewContent] = useState("");
+  const [newWriteCategory, setNewWriteCategory] = useState("자유게시판");
+  const [newAuthor, setNewAuthor] = useState("나(사용자)");
+
   // 댓글 State
   const [comments, setComments] = useState<{ [postId: number]: Comment[] }>({
     1: [
@@ -120,6 +128,39 @@ const Community: React.FC = () => {
   const handleSearch = () => setSearchedKeyword(searchKeyword);
   const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") handleSearch();
+  };
+
+  // 게시글 삭제 핸들러
+  const handleDeletePost = (postId: number) => {
+    if (window.confirm("정말 이 게시글을 삭제하시겠습니까?")) {
+      setPosts((prevPosts) => prevPosts.filter((post) => post.id !== postId));
+      setSelectedPost(null); // 모달 닫기
+    }
+  };
+
+  // 게시글 등록 핸들러
+  const handleCreatePost = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTitle.trim() || !newContent.trim()) {
+      alert("제목과 내용을 모두 입력해주세요.");
+      return;
+    }
+
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const newPost: Post = {
+      id: Date.now(),
+      title: newTitle.trim(),
+      content: newContent.trim(),
+      category: newWriteCategory,
+      author: newAuthor.trim() || "익명",
+      date: todayStr,
+    };
+
+    setPosts([newPost, ...posts]); // 최신 글이 맨 위에 오도록 추가
+    setNewTitle("");
+    setNewContent("");
+    setNewWriteCategory("자유게시판");
+    setIsWriteModalOpen(false); // 모달 닫기
   };
 
   const handleAddComment = (postId: number) => {
@@ -156,12 +197,19 @@ const Community: React.FC = () => {
   return (
     <div className="bg-light min-vh-100 py-4 py-md-5">
       <div className="container" style={{ maxWidth: "1000px" }}>
-        {/* Header */}
+        {/* Header with Write Button */}
         <div className="d-flex align-items-center justify-content-between mb-4">
           <div>
             <h2 className="fw-bold text-dark mb-1">커뮤니티</h2>
             <p className="text-muted small mb-0">다양한 지식과 후기를 사람들과 공유해보세요.</p>
           </div>
+          <button
+            type="button"
+            className="btn btn-primary px-4 py-2 rounded-3 fw-semibold shadow-sm"
+            onClick={() => setIsWriteModalOpen(true)}
+          >
+            + 글쓰기
+          </button>
         </div>
 
         {/* Category Tabs */}
@@ -235,7 +283,7 @@ const Community: React.FC = () => {
           </div>
         </div>
 
-          {/* Drafts Section */}
+        {/* Drafts Section */}
         <div className="bg-white rounded-4 p-4 shadow-sm border mb-4">
           <h5 className="fw-bold text-dark mb-3">작성 중인 임시글</h5>
           <div className="d-flex flex-column gap-2" style={{ maxHeight: "200px", overflowY: "auto" }}>
@@ -251,7 +299,91 @@ const Community: React.FC = () => {
           </div>
         </div>
 
-        {/* Modal with Comments */}
+        {/* Write Post Modal */}
+        {isWriteModalOpen && (
+          <div
+            className="modal fade show d-block"
+            tabIndex={-1}
+            style={{ backgroundColor: "rgba(15, 23, 42, 0.5)", backdropFilter: "blur(4px)" }}
+            onClick={() => setIsWriteModalOpen(false)}
+          >
+            <div className="modal-dialog modal-dialog-centered modal-lg" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                <div className="modal-header border-bottom p-4 bg-light-subtle">
+                  <h4 className="modal-title fw-bold text-dark mb-0">새 글 작성</h4>
+                  <button type="button" className="btn-close" onClick={() => setIsWriteModalOpen(false)} />
+                </div>
+                <form onSubmit={handleCreatePost}>
+                  <div className="modal-body p-4" style={{ maxHeight: "70vh", overflowY: "auto" }}>
+                    <div className="mb-3">
+                      <label className="form-label fw-semibold text-dark">카테고리</label>
+                      <select
+                        className="form-select"
+                        value={newWriteCategory}
+                        onChange={(e) => setNewWriteCategory(e.target.value)}
+                      >
+                        {writeCategories.map((cat) => (
+                          <option key={cat} value={cat}>
+                            {cat}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="mb-3">
+                      <label className="form-label fw-semibold text-dark">작성자</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        value={newAuthor}
+                        onChange={(e) => setNewAuthor(e.target.value)}
+                        placeholder="작성자 이름을 입력하세요"
+                      />
+                    </div>
+
+                    <div className="mb-3">
+                      <label className="form-label fw-semibold text-dark">제목</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        value={newTitle}
+                        onChange={(e) => setNewTitle(e.target.value)}
+                        placeholder="제목을 입력하세요"
+                        required
+                      />
+                    </div>
+
+                    <div className="mb-3">
+                      <label className="form-label fw-semibold text-dark">내용</label>
+                      <textarea
+                        className="form-control"
+                        rows={6}
+                        value={newContent}
+                        onChange={(e) => setNewContent(e.target.value)}
+                        placeholder="내용을 입력하세요"
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div className="modal-footer border-top bg-light-subtle p-3">
+                    <button
+                      type="button"
+                      className="btn btn-secondary px-4 rounded-3 fw-semibold"
+                      onClick={() => setIsWriteModalOpen(false)}
+                    >
+                      취소
+                    </button>
+                    <button type="submit" className="btn btn-primary px-4 rounded-3 fw-semibold">
+                      등록하기
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal with Comments & Delete Button */}
         {selectedPost && (
           <div
             className="modal fade show d-block"
@@ -347,7 +479,14 @@ const Community: React.FC = () => {
                 </div>
 
                 {/* Footer */}
-                <div className="modal-footer border-top bg-light-subtle p-3">
+                <div className="modal-footer border-top bg-light-subtle p-3 justify-content-between">
+                  <button
+                    type="button"
+                    className="btn btn-outline-danger px-4 rounded-3 fw-semibold"
+                    onClick={() => handleDeletePost(selectedPost.id)}
+                  >
+                    글 삭제
+                  </button>
                   <button type="button" className="btn btn-secondary px-4 rounded-3 fw-semibold" onClick={() => setSelectedPost(null)}>
                     닫기
                   </button>

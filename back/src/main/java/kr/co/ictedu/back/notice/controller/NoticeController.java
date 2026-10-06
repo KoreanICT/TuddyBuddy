@@ -51,9 +51,7 @@ public class NoticeController {
 	}
 	
 	@PostMapping("/noticeAdd")
-	public ResponseEntity<?> upboardAdd(
-	        NoticeVO vo,
-	        HttpServletRequest request) {
+	public ResponseEntity<?> upboardAdd(NoticeVO vo, HttpServletRequest request) {
 		
 	    // 업로드 파일
 	    MultipartFile mf = vo.getMfile();
@@ -80,14 +78,10 @@ public class NoticeController {
 	    } catch (Exception e) {
 	        e.printStackTrace();
 
-	        return ResponseEntity
-	                .internalServerError()
-	                .body("업로드 실패");
+	        return ResponseEntity.internalServerError().body("업로드 실패");
 	    }
 
-	    return ResponseEntity
-	            .ok()
-	            .body("공지 등록 성공!");
+	    return ResponseEntity.ok().body("공지 등록 성공!");
 	}
 	
 
@@ -127,14 +121,14 @@ public class NoticeController {
 	
 	
 	@GetMapping("/noticeDetail")
-	public NoticeVO boardDetail(@RequestParam("num") int num) {
+	public NoticeVO boardDetail(@RequestParam("num") Long num) {
 		return noticeService.detail(num);
 	}
 	
 	
 	
 	@DeleteMapping("/noticeDelete")
-	public String boardDelete(@RequestParam("num") int num) {
+	public String boardDelete(@RequestParam("num") Long num) {
 		noticeService.del(num);
 		return "삭제 완료";
 	}
@@ -158,66 +152,50 @@ public class NoticeController {
 	    Path newFilePath = null;
 
 	    try {
-
 	        // 2. 새 이미지가 있는 경우
 	        if (mf != null && !mf.isEmpty()) {
 	            Files.createDirectories(uploadDir);
 	            String oriFn = mf.getOriginalFilename();
 	            if (oriFn == null || oriFn.isBlank()) {
-	                return ResponseEntity.badRequest()
-	                        .body("파일명이 올바르지 않습니다.");
+	                return ResponseEntity.badRequest().body("파일명이 올바르지 않습니다.");
 	            }
 	            // 파일명
 	            String saveName = oriFn;
-
 	            // 새 이미지 저장
 	            newFilePath = uploadDir.resolve(saveName);
-
 	            mf.transferTo(newFilePath);
-
 	            // DB에 저장할 이미지명 변경
 	            vo.setImgn(saveName);
 
 	        } else if (deleteImage) {
-
 	            // 3. 이미지 삭제만 요청한 경우
 	            vo.setImgn(null);
 	        }
-
 	        // 4. DB 수정
 	        int result = noticeService.update(vo);
-
 	        if (result == 0) {
-
 	            // 수정 실패 시 새로 업로드한 파일 정리
 	            if (newFilePath != null) {
 	                Files.deleteIfExists(newFilePath);
 	            }
-
 	            return ResponseEntity.notFound().build();
 	        }
-
 	        // 5. 이미지가 변경되었거나 삭제된 경우
 	        boolean imageChanged =
 	                newFilePath != null || deleteImage;
-
 	        // 기존 이미지가 있는 경우에만 삭제
 	        if (imageChanged &&
 	                oldImgn != null &&
 	                !oldImgn.isBlank() &&
 	                !oldImgn.equals(vo.getImgn())) {
-
 	            Path oldFilePath = uploadDir.resolve(oldImgn);
-
 	            try {
 	                Files.deleteIfExists(oldFilePath);
 	            } catch (IOException e) {
 	                e.printStackTrace();
 	            }
 	        }
-
 	        return ResponseEntity.ok(result);
-
 	    } catch (Exception e) {
 
 	        e.printStackTrace();
@@ -228,7 +206,6 @@ public class NoticeController {
 	                ex.printStackTrace();
 	            }
 	        }
-
 	        return ResponseEntity.internalServerError()
 	                .body("공지사항 수정 실패");
 	    }
