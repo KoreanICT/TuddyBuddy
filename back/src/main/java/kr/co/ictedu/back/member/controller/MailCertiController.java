@@ -4,6 +4,7 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,6 +16,10 @@ import kr.co.ictedu.back.member.service.MemberService;
 import kr.co.ictedu.back.member.vo.EmailCheckVO;
 import kr.co.ictedu.back.member.vo.EmailCountCheckVO;
 
+@CrossOrigin(
+    origins = "http://localhost:3000",
+    allowCredentials = "true"
+)
 @RestController
 @RequestMapping("/api/auth")
 public class MailCertiController {
@@ -61,13 +66,11 @@ public class MailCertiController {
                 + email.getEmail()
         );
 
-        // 이메일 중복 확인
         int checkEmail =
                 emailSender.duplicateEmail(
                         email.getEmail()
                 );
 
-        // 사용 가능한 이메일
         if (checkEmail == 0) {
 
             emailSender.sendEmail(
@@ -77,7 +80,6 @@ public class MailCertiController {
             return 0;
         }
 
-        // 이미 가입된 이메일
         return 1;
     }
 
@@ -93,11 +95,9 @@ public class MailCertiController {
         String email = dto.getEmail();
         String code = dto.getCode();
 
-        // 인증번호 존재 여부
         boolean hasKey =
                 certiNumRedisDao.hasKey(email);
 
-        // 인증 시도 횟수
         int attempts =
                 certiNumRedisDao.getAttempt(email);
 
@@ -114,7 +114,7 @@ public class MailCertiController {
         }
 
 
-        // 인증 3회 실패
+        // 3회 이상 실패
         if (attempts >= 3) {
 
             return ResponseEntity.ok(
@@ -126,7 +126,6 @@ public class MailCertiController {
         }
 
 
-        // Redis에 저장된 인증번호
         String savedCode =
                 certiNumRedisDao
                         .getCertiRedisNum(email);
@@ -148,7 +147,7 @@ public class MailCertiController {
         }
 
 
-        // 인증 실패
+        // 인증 실패 횟수 증가
         certiNumRedisDao.incrAttempt(email);
 
         return ResponseEntity.ok(

@@ -3,10 +3,10 @@ package kr.co.ictedu.back.member.controller;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,13 +15,17 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import kr.co.ictedu.back.common.service.PagingService;
 import kr.co.ictedu.back.common.vo.PageVO;
 import kr.co.ictedu.back.member.service.MemberService;
 import kr.co.ictedu.back.member.vo.MemberVO;
-import jakarta.servlet.http.HttpServletRequest;
 
+@CrossOrigin(
+    origins = "http://localhost:3000",
+    allowCredentials = "true"
+)
 @RestController
 @RequestMapping("/api/member")
 public class MemberController {
@@ -34,14 +38,16 @@ public class MemberController {
     // 관리자 회원가입
     // =========================================================
     @PostMapping("/admin/signup")
-    public ResponseEntity<?> adminSignup(@RequestBody MemberVO vo) {
+    public ResponseEntity<?> adminSignup(
+            @RequestBody MemberVO vo) {
 
-        // 관리자 권한으로 설정
         vo.setAuthority("ADMIN");
 
         memberService.create(vo);
 
-        return ResponseEntity.ok("관리자 생성 완료");
+        return ResponseEntity.ok(
+                "관리자 생성 완료"
+        );
     }
 
 
@@ -49,19 +55,31 @@ public class MemberController {
     // 일반 회원가입
     // =========================================================
     @PostMapping("/signup")
-    public ResponseEntity<?> memberjoin(@RequestBody MemberVO memberDTO) {
+    public ResponseEntity<?> memberjoin(
+            @RequestBody MemberVO memberDTO) {
 
-        System.out.println("회원가입 요청 들어옴");
+        System.out.println(
+                "회원가입 요청 들어옴"
+        );
+
+        System.out.println(
+                "email = "
+                + memberDTO.getMember_email()
+        );
+
+        System.out.println(
+                "nick = "
+                + memberDTO.getMember_nick()
+        );
 
         // 일반 회원 권한
         memberDTO.setAuthority("MEMBER");
 
-        // 회원 고유 코드 생성
-        memberDTO.setMember_code(UUID.randomUUID().toString());
-
         memberService.create(memberDTO);
 
-        return ResponseEntity.ok("회원가입이 완료되었습니다.");
+        return ResponseEntity.ok(
+                "회원가입이 완료되었습니다."
+        );
     }
 
 
@@ -72,7 +90,9 @@ public class MemberController {
     public int emailCheck(
             @RequestParam("email") String email) {
 
-        System.out.println("이메일 중복 확인 : " + email);
+        System.out.println(
+                "이메일 중복 확인 : " + email
+        );
 
         return memberService.checkemail(email);
     }
@@ -82,24 +102,26 @@ public class MemberController {
     // 마이페이지
     // =========================================================
     @GetMapping("/mypage")
-    public MemberVO getMyInfo(HttpSession session) {
+    public MemberVO getMyInfo(
+            HttpSession session) {
 
-        // 세션에서 로그인한 회원 정보 가져오기
         MemberVO loginMember =
-                (MemberVO) session.getAttribute("loginMember");
+                (MemberVO) session
+                        .getAttribute(
+                                "loginMember"
+                        );
 
-        // 로그인하지 않은 경우
         if (loginMember == null) {
             return null;
         }
 
-        // 로그인한 회원의 이메일로 회원 정보 조회
         MemberVO vo =
-                memberService.getMemberByEmail(
-                        loginMember.getMember_email()
-                );
+                memberService
+                        .getMemberByEmail(
+                                loginMember
+                                        .getMember_email()
+                        );
 
-        // 비밀번호는 프론트로 보내지 않음
         if (vo != null) {
             vo.setMember_pwd(null);
         }
@@ -116,14 +138,17 @@ public class MemberController {
             @RequestBody MemberVO vo) {
 
         System.out.println(
-                "받은 nick = " + vo.getMember_nick()
+                "받은 nick = "
+                + vo.getMember_nick()
         );
 
         System.out.println(
-                "받은 email = " + vo.getMember_email()
+                "받은 email = "
+                + vo.getMember_email()
         );
 
-        return memberService.updateMember(vo);
+        return memberService
+                .updateMember(vo);
     }
 
 
@@ -139,18 +164,15 @@ public class MemberController {
                 "탈퇴 요청 num = " + num
         );
 
-       memberService.withdrawMember(num);
+        memberService
+                .withdrawMember(num);
 
-        // 로그인 세션 삭제
         session.invalidate();
 
         return "탈퇴 완료";
     }
 
 
-    // =========================================================
-    // 페이징 서비스
-    // =========================================================
     @Autowired
     private PagingService pagingService;
 
@@ -160,56 +182,52 @@ public class MemberController {
     // =========================================================
     @RequestMapping("/memberList")
     public Map<String, Object> memberList(
-            @RequestParam Map<String, String> paramMap,
+            @RequestParam
+            Map<String, String> paramMap,
             HttpServletRequest request) {
 
-        // 현재 페이지
-        String cPage = paramMap.get("cPage");
+        String cPage =
+                paramMap.get("cPage");
 
-        // 전체 회원 수
         int totalCnt =
-                memberService.totalCount(paramMap);
+                memberService
+                        .totalCount(paramMap);
 
-        // 페이징 정보 생성
         PageVO pageVO =
                 pagingService.makePage(
                         totalCnt,
                         cPage
                 );
 
-
-        // 검색 조건 + 페이징 조건
         Map<String, String> map =
                 new HashMap<>(paramMap);
 
         map.put(
                 "begin",
                 String.valueOf(
-                        pageVO.getBeginPerPage()
+                        pageVO
+                                .getBeginPerPage()
                 )
         );
 
         map.put(
                 "end",
                 String.valueOf(
-                        pageVO.getEndPerPage()
+                        pageVO
+                                .getEndPerPage()
                 )
         );
 
-
-        // 회원 목록 조회
         List<MemberVO> list =
                 memberService.list(map);
-
-
-        // =====================================================
-        // 응답 데이터
-        // =====================================================
 
         Map<String, Object> response =
                 new HashMap<>();
 
-        response.put("data", list);
+        response.put(
+                "data",
+                list
+        );
 
         response.put(
                 "totalItems",
