@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.ictedu.back.group.dao.DiagramDao">
+	<insert id="add" parameterType="diagramvo">
+		INSERT INTO DIAGRAM (
+			diagram_num, 
+			group_num, 
+			title, 
+			diagram_data, 
+			created_at
+		) VALUES (
+			diagram_seq.nextVAL, 
+			#{group_num, jdbcType=NUMERIC}, 
+			#{title, jdbcType=VARCHAR}, 
+			#{diagram_data, jdbcType=CLOB}, 
+			sysdate
+		)  
+	</insert>
+	
+	<update id="merge" parameterType="diagramvo">
+		MERGE INTO DIAGRAM d 
+		USING (SELECT #{group_num} AS group_num, #{title} AS title, #{diagram_data} AS diagram_data FROM DUAL) s
+		ON (d.group_num = s.group_num)
+		WHEN MATCHED THEN
+			UPDATE SET d.title = s.title, d.diagram_data = s.diagram_data, d.updated_at = sysdate
+		WHEN NOT MATCHED THEN
+			INSERT (diagram_num, group_num, title, diagram_data, created_at) 
+			VALUES (diagram_seq.nextVAL, s.group_num, s.title, s.diagram_data, sysdate)
+	</update>
+	
+	<select id="get" parameterType="int" resultType="diagramvo">
+		SELECT DIAGRAM_NUM, GROUP_NUM, TITLE, DIAGRAM_DATA, CREATED_AT, UPDATED_AT FROM diagram
+		WHERE GROUP_NUM = #{group_num}
+	</select>
+	
+	<update id="put" parameterType="diagramvo">
+		UPDATE DIAGRAM
+		SET TITLE = #{title, jdbcType=VARCHAR},
+		    DIAGRAM_DATA = #{diagram_data, jdbcType=CLOB},
+		    UPDATED_AT = sysdate
+		WHERE GROUP_NUM = #{group_num, jdbcType=NUMERIC}
+	</update>
+	
+	<delete id="del">
+		DELETE FROM DIAGRAM WHERE GROUP_NUM = #{group_num}  
+	</delete>
+	
+	
+</mapper>
