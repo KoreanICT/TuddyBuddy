@@ -71,7 +71,7 @@ export const Group_Public: React.FC<GroupPublicProps> = ({ searchType, searchTer
                                 <div className={styles.study_card_footer}>
                                     <div className={styles.study_tags}>
                                         {study.tags.map((tag, idx) => (
-                                            <span key={idx} className={styles.study_tag}>#{tag}</span>
+                                            <span key={idx} className={styles.study_tag}>{tag}</span>
                                         ))}
                                     </div>
                                     <div className={styles.study_card_info}>

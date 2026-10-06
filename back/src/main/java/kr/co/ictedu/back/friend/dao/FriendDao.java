@@ -1,0 +1,34 @@
+package kr.co.ictedu.back.friend.dao;
+
+import java.util.List;
+
+import org.apache.ibatis.annotations.Mapper;
+
+import kr.co.ictedu.back.friend.vo.FriendVO;
+
+@Mapper
+public interface FriendDao {
+	// 친구 요청
+    void add(FriendVO vo);
+
+    // 받은 친구 요청 목록
+    List<FriendVO> requestList(Long response_num);
+
+    // 보낸 친구 요청 목록
+    List<FriendVO> responseList(Long request_num);
+
+    // 친구 요청 상세 조회
+    FriendVO detail(Long num);
+
+    // 친구 요청 수락
+    int accept(Long num);
+
+    // 친구 요청 거절
+    int reject(Long num);
+
+    // 친구 목록
+    List<FriendVO> friendList(Long member_num);
+
+    // 친구 삭제
+    int del(Long num);
+}
