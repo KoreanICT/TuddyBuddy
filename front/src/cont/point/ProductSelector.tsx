@@ -1,22 +1,22 @@
 import React, { useState } from 'react';
 import styles from './productSelector.module.css';
 
-const apiUrl = process.env.BACKEND_URL;
+//const apiUrl = process.env.BACKEND_URL;
 
 // 1. 타입 인터페이스 정의
 export interface Product {
   id: number;
-  porint: string;
+  porint: number;
   price: number;
 }
 
 export const MOCK_PRODUCTS: Product[] = [
-  { id: 1, porint: '1000 point', price: 1000 },
-  { id: 2, porint: '2000 point', price: 2000 },
-  { id: 3, porint: '3000 point', price: 3000 },
-  { id: 4, porint: '4000 point', price: 4000 },
-  { id: 5, porint: '5000 point', price: 5000 },
-  { id: 6, porint: '10000 point', price: 10000 },
+  { id: 1, porint: 1000, price: 1000 },
+  { id: 2, porint: 2000, price: 2000 },
+  { id: 3, porint: 3000, price: 3000 },
+  { id: 4, porint: 4000, price: 4000 },
+  { id: 5, porint: 5000, price: 5000 },
+  { id: 6, porint: 10000, price: 10000 },
   // { id: 7, name: '상품 7', price: 7000 },
   // { id: 8, name: '상품 8', price: 8000 },
 ];
@@ -39,26 +39,16 @@ export const ProductSelector: React.FC<ProductSelectorProps> = ({ onSelectOrder 
     try {
       setIsLoading(true);
 
-      // 1. 백엔드에 사전 주문 생성 요청
-      const orderResponse = await fetch(`${apiUrl}/api/orders`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          amount: selectedProduct.price,
-        }),
-      });
-      
-      if (!orderResponse.ok) throw new Error('주문 생성 실패');
-      const { paymentId } = await orderResponse.json();
+      const paymentId = `pay_${crypto.randomUUID()}`;
 
       // 2. 포트원 결제창 호출 (현재 화면 위에 팝업/모달로 뜸)
       const PortOne = await import('@portone/browser-sdk/v2');
 
       const response = await PortOne.requestPayment({
-        storeId: 'store-82a1768d-e009-4623-a55e-089c1f6d90a1', // 포트원 가맹점 Store ID
-        channelKey: 'channel-key-16629f6d-31eb-47eb-ba6a-54cf176211ff', // 채널 키
+        storeId: 'store-7546d629-17dd-4a8f-b414-9ccfb6deda0e', // 포트원 가맹점 Store ID
+        channelKey: 'channel-key-7a9d14d3-eb51-47bf-9558-a0bdfed2fee4', // 채널 키
         paymentId: paymentId,
-        orderName: selectedProduct.porint,
+        orderName: `${selectedProduct.porint}`,
         totalAmount: selectedProduct.price,
         currency: 'CURRENCY_KRW',
         payMethod: 'CARD',
@@ -71,11 +61,18 @@ export const ProductSelector: React.FC<ProductSelectorProps> = ({ onSelectOrder 
       }
 
       // 3. 백엔드 사후 검증 호출
-      const verifyResponse = await fetch(`${apiUrl}/api/payments`, {
+      const verifyResponse = await fetch(`http://192.168.0.44/back/api/point/pointAdd`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ paymentId: response.paymentId }),
+        body: JSON.stringify({ 
+            paymentId: response.paymentId,
+            payment:selectedProduct,
+            description:"포인트 결제",
+            point_type:"PAYMENT"
+        }),
       });
+
+      console.log(verifyResponse);
 
       if (verifyResponse.ok) {
         alert('결제가 완료되었습니다!');
@@ -107,7 +104,7 @@ export const ProductSelector: React.FC<ProductSelectorProps> = ({ onSelectOrder 
                 className={`${styles.productItem} ${isSelected ? styles.selected : ''}`}
                 onClick={() => handleSelectProduct(product)}
               >
-                <span className={styles.productName}>{product.porint}</span>
+                <span className={styles.productName}>{product.porint} point</span>
                 <span className={styles.productPrice}>
                   {product.price.toLocaleString()}원
                 </span>
