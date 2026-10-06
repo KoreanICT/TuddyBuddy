@@ -19,6 +19,19 @@ public class WebConfig implements WebMvcConfigurer {
 		registry.addResourceHandler("/imgfile/**")
 		.addResourceLocations("file:"+uploadPath+"/");
 	}
-	@Override public void addCorsMappings(CorsRegistry registry) { registry.addMapping("/**") .allowedOrigins( "http://localhost:3000", "http://127.0.0.1:3000" ) .allowedMethods( "GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS" ) .allowedHeaders("*"); }
+	 @Override
+	    public void addCorsMappings(CorsRegistry registry) {
+	        registry.addMapping("/**")
+	                .allowedOrigins(
+	                        "http://localhost:3000",
+	                        "http://127.0.0.1:3000",
+	                        "http://192.168.0.19:3000"
+	                )
+	                .allowedMethods(
+	                        "GET", "POST", "PUT", "PATCH",
+	                        "DELETE", "OPTIONS"
+	                )
+	                .allowedHeaders("*");
+	    }
 
 }

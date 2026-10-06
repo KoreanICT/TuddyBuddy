@@ -56,7 +56,13 @@ public class SelfStudyService {
 	public void insertQuizResponse(QuizResponseVO vo) {
 	    selfStudyDao.insertQuizResponse(vo);
 	}
-	
+	public void insertQuizSession(QuizSessionVO vo) {
+	    selfStudyDao.insertQuizSession(vo);
+	}
+
+	public void insertQuiz(QuizVO vo) {
+	    selfStudyDao.insertQuiz(vo);
+	}
 	
 }
 
