@@ -78,10 +78,21 @@ public class NoticeController {
 	    } catch (Exception e) {
 	        e.printStackTrace();
 
+<<<<<<< HEAD
 	        return ResponseEntity.internalServerError().body("업로드 실패");
 	    }
 
 	    return ResponseEntity.ok().body("공지 등록 성공!");
+=======
+	        return ResponseEntity
+	                .internalServerError()
+	                .body("업로드 실패");
+	    }
+
+	    return ResponseEntity
+	            .ok()
+	            .body("공지 등록 성공!");
+>>>>>>> dtd
 	}
 	
 
@@ -121,14 +132,22 @@ public class NoticeController {
 	
 	
 	@GetMapping("/noticeDetail")
+<<<<<<< HEAD
 	public NoticeVO boardDetail(@RequestParam("num") Long num) {
+=======
+	public NoticeVO boardDetail(@RequestParam("num") int num) {
+>>>>>>> dtd
 		return noticeService.detail(num);
 	}
 	
 	
 	
 	@DeleteMapping("/noticeDelete")
+<<<<<<< HEAD
 	public String boardDelete(@RequestParam("num") Long num) {
+=======
+	public String boardDelete(@RequestParam("num") int num) {
+>>>>>>> dtd
 		noticeService.del(num);
 		return "삭제 완료";
 	}
@@ -152,11 +171,16 @@ public class NoticeController {
 	    Path newFilePath = null;
 
 	    try {
+<<<<<<< HEAD
+=======
+
+>>>>>>> dtd
 	        // 2. 새 이미지가 있는 경우
 	        if (mf != null && !mf.isEmpty()) {
 	            Files.createDirectories(uploadDir);
 	            String oriFn = mf.getOriginalFilename();
 	            if (oriFn == null || oriFn.isBlank()) {
+<<<<<<< HEAD
 	                return ResponseEntity.badRequest().body("파일명이 올바르지 않습니다.");
 	            }
 	            // 파일명
@@ -164,38 +188,87 @@ public class NoticeController {
 	            // 새 이미지 저장
 	            newFilePath = uploadDir.resolve(saveName);
 	            mf.transferTo(newFilePath);
+=======
+	                return ResponseEntity.badRequest()
+	                        .body("파일명이 올바르지 않습니다.");
+	            }
+	            // 파일명
+	            String saveName = oriFn;
+
+	            // 새 이미지 저장
+	            newFilePath = uploadDir.resolve(saveName);
+
+	            mf.transferTo(newFilePath);
+
+>>>>>>> dtd
 	            // DB에 저장할 이미지명 변경
 	            vo.setImgn(saveName);
 
 	        } else if (deleteImage) {
+<<<<<<< HEAD
 	            // 3. 이미지 삭제만 요청한 경우
 	            vo.setImgn(null);
 	        }
 	        // 4. DB 수정
 	        int result = noticeService.update(vo);
 	        if (result == 0) {
+=======
+
+	            // 3. 이미지 삭제만 요청한 경우
+	            vo.setImgn(null);
+	        }
+
+	        // 4. DB 수정
+	        int result = noticeService.update(vo);
+
+	        if (result == 0) {
+
+>>>>>>> dtd
 	            // 수정 실패 시 새로 업로드한 파일 정리
 	            if (newFilePath != null) {
 	                Files.deleteIfExists(newFilePath);
 	            }
+<<<<<<< HEAD
 	            return ResponseEntity.notFound().build();
 	        }
 	        // 5. 이미지가 변경되었거나 삭제된 경우
 	        boolean imageChanged =
 	                newFilePath != null || deleteImage;
+=======
+
+	            return ResponseEntity.notFound().build();
+	        }
+
+	        // 5. 이미지가 변경되었거나 삭제된 경우
+	        boolean imageChanged =
+	                newFilePath != null || deleteImage;
+
+>>>>>>> dtd
 	        // 기존 이미지가 있는 경우에만 삭제
 	        if (imageChanged &&
 	                oldImgn != null &&
 	                !oldImgn.isBlank() &&
 	                !oldImgn.equals(vo.getImgn())) {
+<<<<<<< HEAD
 	            Path oldFilePath = uploadDir.resolve(oldImgn);
+=======
+
+	            Path oldFilePath = uploadDir.resolve(oldImgn);
+
+>>>>>>> dtd
 	            try {
 	                Files.deleteIfExists(oldFilePath);
 	            } catch (IOException e) {
 	                e.printStackTrace();
 	            }
 	        }
+<<<<<<< HEAD
 	        return ResponseEntity.ok(result);
+=======
+
+	        return ResponseEntity.ok(result);
+
+>>>>>>> dtd
 	    } catch (Exception e) {
 
 	        e.printStackTrace();
@@ -206,6 +279,10 @@ public class NoticeController {
 	                ex.printStackTrace();
 	            }
 	        }
+<<<<<<< HEAD
+=======
+
+>>>>>>> dtd
 	        return ResponseEntity.internalServerError()
 	                .body("공지사항 수정 실패");
 	    }
