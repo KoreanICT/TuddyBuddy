@@ -4,70 +4,97 @@ import {
     LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell, Legend
 } from 'recharts';
 import { AlertTriangle, Award, BookOpen, Brain, Clock, MessageSquareQuote, TrendingUp } from 'lucide-react';
-import { ChartDataState, LLMFeedbackState } from './types';
+import { ChartDataState, LLMFeedbackState, Subject } from './types';
 import './PerformanceAnalytics.css';
 
-// 카테고리 목록
-const CATEGORIES = [
-    { id: 'CS_CERT', name: '정보처리기사 (자격증)' },
-    { id: 'GOV_9TH', name: '9급 공무원 행정학 (공시)' },
-    { id: 'HIGH_MATH', name: '고등 수학 (상) (고등교과)' },
-];
-
 export default function PerformanceAnalytics() {
-    // 0. Selected category state
-    const [selectedCategory, setSelectedCategory] = useState<string>(CATEGORIES[0].id);
+    // 0. 과목 목록 및 선택된 과목 ID (NUMBER 타입 PK 매핑)
+    const [subjects, setSubjects] = useState<Subject[]>([]);
+    const [selectedSubjectId, setSelectedSubjectId] = useState<number>(1);
 
-    // 1. 차트용 데이터 유즈스테이트 (히스토리 + 예측결과)
+    // 1. 차트용 데이터 State
     const [chartData, setChartData] = useState<ChartDataState | null>(null);
 
-    // 2. LLM 평가 컨설팅용 유즈스테이트
+    // 2. LLM 평가 컨설팅 State
     const [llmFeedback, setLlmFeedback] = useState<LLMFeedbackState | null>(null);
 
-    // 로딩 상태 및 에러 상태 관리
+    // 로딩 및 에러 상태
     const [loading, setLoading] = useState<boolean>(true);
 
     // --------------------------------------------------------------------------
-    // 카테고리 변경 시 useEffect로 axios 데이터 비동기 수신 및 분할 처리
+    // 1. 초기 마운트 시 과목 목록(subjects) 조회
     // --------------------------------------------------------------------------
     useEffect(() => {
+        const fetchSubjects = async () => {
+            try {
+                const response = await axios.get('/api/v1/subjects');
+                setSubjects(response.data);
+                if (response.data.length > 0) {
+                    setSelectedSubjectId(response.data[0].subjectId);
+                }
+            } catch (error) {
+                console.warn("과목 목록 조회 실패 -> 테스트용 기본 과목 세팅");
+                const dummySubjects: Subject[] = [
+                    { subjectId: 1, categoryId: 1, subjectName: '정보처리기사 (소프트웨어 설계)', usageCount: 12 },
+                    { subjectId: 2, categoryId: 1, subjectName: '정보처리기사 (데이터베이스 구축)', usageCount: 8 },
+                    { subjectId: 3, categoryId: 2, subjectName: '9급 공무원 (행정학 총론)', usageCount: 5 },
+                ];
+                setSubjects(dummySubjects);
+                setSelectedSubjectId(dummySubjects[0].subjectId);
+            }
+        };
+
+        fetchSubjects();
+    }, []);
+
+    // --------------------------------------------------------------------------
+    // 2. 과목 변경 시 데이터 조회 (selfstudy_results 및 quiz_responses 기반 분석)
+    // --------------------------------------------------------------------------
+    useEffect(() => {
+        if (!selectedSubjectId) return;
+
         const fetchAnalyticsData = async () => {
             setLoading(true);
             try {
-                // 스프링부트 API 호출 (예시 엔드포인트)
-                // 백엔드에서 { chartData: {...}, llmFeedback: {...} } 형태로 보낸다고 가정
-                const response = await axios.get(`/api/v1/analytics/${selectedCategory}`);
+                // 스프링부트 API 호출: /api/v1/analytics/subjects/{subjectId}
+                const response = await axios.get(`/api/v1/analytics/subjects/${selectedSubjectId}`);
 
-                // 받아온 JSON 데이터를 두 개의 State로 분할 주입!
                 setChartData(response.data.chartData);
                 setLlmFeedback(response.data.llmFeedback);
 
             } catch (error) {
-                console.error("데이터 로딩 실패:", error);
+                console.error("분석 데이터 로딩 실패 -> ERD 호환 더미 데이터 세팅:", error);
 
-                // 개발용 더미 데이터 세팅 (백엔드 미연동 시 테스트용)
+                // DB 스키마(selfstudy_results, quiz_responses) 구조에 부합하는 더미 데이터
                 setChartData({
                     history: [
-                        { round: '1회차', score: 55, date: '08-01' },
-                        { round: '2회차', score: 65, date: '08-10' },
-                        { round: '3회차', score: 60, date: '08-20' },
-                        { round: '4회차', score: 75, date: '08-30' },
+                        { resultId: 101, round: '1회차', score: 55, date: '08-01' },
+                        { resultId: 102, round: '2회차', score: 65, date: '08-10' },
+                        { resultId: 103, round: '3회차', score: 60, date: '08-20' },
+                        { resultId: 104, round: '4회차', score: 75, date: '08-30' },
                     ],
                     prediction: [
                         { name: '최근 평균', score: 63.7, type: 'actual' },
                         { name: '다음 시험 예측', score: 82.0, type: 'predict' },
                     ],
                     subjectShare: [
-                        { name: '소프트웨어 설계', value: 35, color: '#2563eb' },
-                        { name: '소프트웨어 개발', value: 25, color: '#0284c7' },
-                        { name: '데이터베이스 구축', value: 20, color: '#059669' },
+                        { subjectId: 1, name: '소프트웨어 설계', value: 35, color: '#2563eb' },
+                        { subjectId: 2, name: '소프트웨어 개발', value: 25, color: '#0284c7' },
+                        { subjectId: 3, name: '데이터베이스 구축', value: 20, color: '#059669' },
                     ]
                 });
 
                 setLlmFeedback({
-                    mentorComment: "데이터를 불러오는 중 문제가 발생했거나 아직 백엔드가 준비되지 않았습니다.",
-                    weaknesses: [{ category: '시스템', riskLevel: '주의', reason: '서버 연결 확인 필요' }],
-                    consultingPath: ['스프링부트 서버 상태를 확인하세요.']
+                    mentorComment: "4회차 점수는 상승했으나 quiz_responses 오답 분석 결과 데이터베이스 구축 단원 정답률이 30%에 불과합니다.",
+                    weaknesses: [
+                        { subjectName: '데이터베이스 구축', reason: 'B-Tree 인덱스 및 정규화 문제 연속 오답' },
+                        { subjectName: '소프트웨어 설계', reason: '디자인 패턴 적용 문제 개념 혼동' }
+                    ],
+                    consultingPath: [
+                        '1. quiz_responses 기반 오답노트에서 DB 정규화 문제 집중 재풀이',
+                        '2. B-Tree 인덱스 개념 해설(quiz_explanation) 복습',
+                        '3. 동일 과목 신규 quiz_session 생성 후 20문항 응시'
+                    ]
                 });
             } finally {
                 setLoading(false);
@@ -75,44 +102,46 @@ export default function PerformanceAnalytics() {
         };
 
         fetchAnalyticsData();
-    }, [selectedCategory]);
+    }, [selectedSubjectId]);
 
     if (loading) {
-        return <div className="analytics-page container">데이터를 불러오는 중입니다...</div>;
+        return <div className="analytics-page container">성적 분석 데이터를 산출하는 중입니다...</div>;
     }
 
     return (
         <div className="analytics-page">
             <div className="container">
 
-                {/* 상단 헤더 & 카테고리 셀렉터 */}
+                {/* 상단 헤더 & 과목 셀렉터 */}
                 <header className="analytics-header">
                     <div className="header-title">
                         <h1>📊 AI 학습 성적 분석 & 멘토링</h1>
-                        <p>모의고사 데이터를 바탕으로 ML 예측 및 LLM 팩트폭격 컨설팅을 제공합니다.</p>
+                        <p>selfstudy_results 및 오답 로그를 기반으로 ML 예측과 LLM 팩트폭격 컨설팅을 제공합니다.</p>
                     </div>
 
                     <div className="category-selector">
                         <BookOpen className="icon" size={18} />
-                        <label htmlFor="category-select" className="label">학습 과목:</label>
+                        <label htmlFor="subject-select" className="label">학습 과목:</label>
                         <select
-                            id="category-select"
-                            value={selectedCategory}
-                            onChange={(e) => setSelectedCategory(e.target.value)}
+                            id="subject-select"
+                            value={selectedSubjectId}
+                            onChange={(e) => setSelectedSubjectId(Number(e.target.value))}
                             className="select-box"
                         >
-                            {CATEGORIES.map((cat) => (
-                                <option key={cat.id} value={cat.id}>{cat.name}</option>
+                            {subjects.map((sub) => (
+                                <option key={sub.subjectId} value={sub.subjectId}>
+                                    {sub.subjectName}
+                                </option>
                             ))}
                         </select>
                     </div>
                 </header>
 
-                {/* 1. 차트 영역 (chartData가 존재할 때만 렌더링) */}
+                {/* 1. 차트 영역 */}
                 {chartData && (
                     <section className="charts-grid">
 
-                        {/* 지난 성적 추이 */}
+                        {/* 지난 성적 추이 (selfstudy_results) */}
                         <div className="card chart-card">
                             <div className="card-header">
                                 <TrendingUp className="icon primary" size={20} />
@@ -131,7 +160,7 @@ export default function PerformanceAnalytics() {
                             </div>
                         </div>
 
-                        {/* 예측 성적 */}
+                        {/* ML 예측 성적 */}
                         <div className="card chart-card">
                             <div className="card-header">
                                 <Award className="icon success" size={20} />
@@ -154,11 +183,11 @@ export default function PerformanceAnalytics() {
                             </div>
                         </div>
 
-                        {/* 공부 지분 */}
+                        {/* 학습/문제 출제 지분 */}
                         <div className="card chart-card">
                             <div className="card-header">
                                 <Clock className="icon warning" size={20} />
-                                <h2>자주 공부하는 과목 지분</h2>
+                                <h2>자주 공부하는 과목/단원 지분</h2>
                             </div>
                             <div className="chart-wrapper">
                                 <ResponsiveContainer width="100%" height="100%">
@@ -185,7 +214,7 @@ export default function PerformanceAnalytics() {
                     </section>
                 )}
 
-                {/* 2. LLM 평가 컨설팅 영역 (llmFeedback이 존재할 때만 렌더링) */}
+                {/* 2. LLM 평가 컨설팅 영역 */}
                 {llmFeedback && (
                     <section className="card feedback-card">
 
@@ -204,16 +233,13 @@ export default function PerformanceAnalytics() {
                             {/* 집중 보완 영역 */}
                             <div className="consulting-col">
                                 <h3 className="section-title">
-                                    <AlertTriangle className="icon warning" size={16} /> 집중 보완이 필요한 취약 영역
+                                    <AlertTriangle className="icon warning" size={16} /> 집중 보완 단원 및 원인 분석
                                 </h3>
                                 <div className="weakness-list">
                                     {llmFeedback.weaknesses.map((item, idx) => (
                                         <div key={idx} className="weakness-item">
                                             <div className="weakness-head">
-                                                <span className="subject">{item.category}</span>
-                                                <span className={`badge ${item.riskLevel === '고위험' ? 'danger' : 'warning'}`}>
-                                                    {item.riskLevel}
-                                                </span>
+                                                <span className="subject">{item.subjectName}</span>
                                             </div>
                                             <p className="reason">{item.reason}</p>
                                         </div>

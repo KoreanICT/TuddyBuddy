@@ -42,17 +42,17 @@ public class PointContoller {
 		
 		if (!res.isEmpty()) {
 			String paymentId = (String) res.get("paymentId");
-			System.out.println("걸제 완료했1");
+
 			if (!paymentId.isEmpty()) {
-				System.out.println("걸제 완료했2");
+
 				service.payment(res);
 				return "결제번호 : " +  paymentId + " 처리완료";
 			} else {
-				System.out.println("걸제 완료했3");
+
 				return "결제번호 : " +  paymentId + " 처리실패";
 			}
 		} else {
-			System.out.println("걸제 완료했4");
+
 			return "JOSN비어있음";
 		}
 	}

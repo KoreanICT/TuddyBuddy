@@ -27,15 +27,15 @@ import StudyManagement from "../cont/admin/study_group/StudyManagement";
 import AuthLayout from "../layout/auth/AuthLayout";
 import SelfStudy from "../cont/selfStudy/SelfStudy";
 import Community from "../cont/community/Community";
-<<<<<<< HEAD
+
 import PointHistory from "../mypage/PointHistory";
 import Member_Edit from "../mypage/Member_edit";
-=======
+
 import ReportReplyList from "../cont/report/ReportReplyList";
 import ReportReplyDetail from "../cont/report/ReportReplyDetail";
 import FriendRequestList from "../cont/friend/FriendRequestList";
 import FriendSentList from "../cont/friend/FriendSentList";
->>>>>>> 04521f4761b39cbf6170dcd01edc3f6805afd963
+
 
 interface RouteItem {
     path: string;
