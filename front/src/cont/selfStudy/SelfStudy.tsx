@@ -18,10 +18,30 @@ import styles from './selfstudy.module.css';
 // Spring Boot 백엔드
 // server.port=80
 // server.servlet.context-path=/back
-const BACKEND_URL = 'http://localhost/back';
-const AI_URL = 'http://192.168.0.81:8000';
+const BACKEND_URL = (process.env.REACT_APP_BACK_END_URL || 'http://localhost/back').replace(/\/$/, '');
 
 const SelfStudy: React.FC = () => {
+
+  const [quizSessionId, setQuizSessionId] = useState<number | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [score, setScore] = useState<number | null>(null);
+  const handleSubmitQuiz = async () => {
+    if (submitting || submitted || quizSessionId === null) return;
+    if (quizList.some(q => !q.quizUserResponse?.trim())) { alert('모든 문제에 답해주세요.'); return; }
+    setSubmitting(true);
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/selfstudy/submit`, {
+        method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ quiz_sessionid: quizSessionId,
+          responses: quizList.map(q => ({ quiz_id: q.quizId, quiz_user_response: q.quizUserResponse })) }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.message || '답안 저장 실패');
+      setScore(result.selfstudy_total_score); setSubmitted(true);
+    } catch (error) { alert(error instanceof Error ? error.message : '답안 저장 실패'); }
+    finally { setSubmitting(false); }
+  };
 
   // =========================================================
   // Tab
@@ -240,127 +260,37 @@ const SelfStudy: React.FC = () => {
   // =========================================================
 
   const handleUploadSubmit = async () => {
-    // 이미지 검사
-    if (!selectedFile) {
-      alert('이미지를 선택해주세요.');
-      return;
+    if (loading) return;
+    if (!selectedFile || selectedSubjectId === null) {
+      alert('이미지와 과목을 선택해주세요.'); return;
     }
-    // 과목 검사
-    if (selectedSubjectId === null) {
-      alert('과목을 선택해주세요.');
-      return;
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(selectedFile.type) || selectedFile.size > 10 * 1024 * 1024) {
+      alert('10MB 이하의 JPG, PNG, WebP 이미지를 선택해주세요.'); return;
     }
-
     setLoading(true);
-
-    console.log('전송 quizType:', quizType);
-    console.log('전송 quizDifficulty:', quizDifficulty);
-    console.log('전송 subjectId:', selectedSubjectId);
-    console.log('전송 quizCount:', quizCount);
     const formData = new FormData();
-
-    // =====================================================
-    // AI server data
-    // =====================================================
-
-    formData.append(
-      'file',
-      selectedFile
-    );
-    formData.append(
-      'subjectId',
-      String(selectedSubjectId)
-    );
-    formData.append(
-      'quizType',
-      quizType
-    );
-    formData.append(
-      'quizDifficulty',
-      quizDifficulty
-    );
-
-    formData.append(
-      'quizCount',
-      String(quizCount)
-    );
-    formData.append(
-      'quizPrompt',
-      quizPrompt
-    );
-
+    formData.append('file', selectedFile);
+    formData.append('subject_id', String(selectedSubjectId));
+    formData.append('quiz_type', quizType);
+    formData.append('quiz_difficulty', quizDifficulty);
+    formData.append('quiz_count', String(quizCount));
+    formData.append('quiz_prompt', quizPrompt);
     try {
-      // 1. Python AI 서버
-      const response = await fetch(
-        `${AI_URL}/api/ai/generate-quiz`,
-        {
-          method: 'POST',
-          body: formData,
-        }
-      );
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.detail || '문제 생성 실패');
-      }
-
-      // AI 응답은 딱 한 번만 읽기
+      const response = await fetch(`${BACKEND_URL}/api/selfstudy/generate`, {
+        method: 'POST', credentials: 'include', body: formData,
+      });
       const data = await response.json();
-
-      console.log('AI 문제 생성 결과:', data);
-
-      // 2. Spring Boot에 저장
-      const saveResponse = await fetch(
-        `${BACKEND_URL}/api/selfstudy/sessions`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          // credentials: 'include',
-
-          body: JSON.stringify({
-            subject_id: Number(selectedSubjectId),
-            // member_num: 1,
-            quiz_type: quizType,
-            quiz_difficulty: quizDifficulty,
-            quiz_count: quizCount,
-            quiz_prompt: quizPrompt,
-            quizzes: data.quizzes
-          }),
-        }
-      );
-
-      if (!saveResponse.ok) {
-        const errorText = await saveResponse.text();
-        console.error('Spring Boot 저장 실패:', errorText);
-        throw new Error('Spring Boot 저장 실패');
-      }
-
-      const saveData = await saveResponse.json();
-
-      console.log('Spring Boot 저장 결과:', saveData);
-
-      // 3. 화면에 AI 문제 표시
-      if (Array.isArray(data.quizzes)) {
-        setQuizList(data.quizzes);
-      } else {
-        console.warn('quizzes 데이터가 없습니다.', data);
-        setQuizList([]);
-      }
-
+      if (!response.ok) throw new Error(data.message || data.detail || '문제 생성에 실패했습니다.');
+      if (!Array.isArray(data.quizzes) || !data.quizSessionId) throw new Error('응답 형식이 올바르지 않습니다.');
+      setQuizList(data.quizzes);
+      setQuizSessionId(data.quizSessionId);
+      setSubmitted(false); setScore(null);
+      setWrongNotes([]);
       setActiveTab('quiz');
-      setIsModalOpen(false);
-
+      handleCloseModal();
     } catch (error) {
-      console.error('문제 생성 중 오류:', error);
-
-      alert('문제를 생성하지 못했습니다.');
-
-    } finally {
-      setLoading(false);
-    }
-
+      alert(error instanceof Error ? error.message : '문제를 생성하지 못했습니다.');
+    } finally { setLoading(false); }
   };
 
   // =========================================================
@@ -371,71 +301,14 @@ const SelfStudy: React.FC = () => {
     quizId: number,
     selectedOpt: string
   ) => {
-    setQuizList((prevList) => {
-      return prevList.map((q) => {
-        if (q.quizId !== quizId) {
-          return q;
-        }
-
-        const isCorrect =
-          q.quizCorrectAnswer === selectedOpt;
-
-        const updatedQuiz: Quiz = {
-          ...q,
-          quizUserResponse:
-            selectedOpt,
-          quizCorrect:
-            isCorrect
-              ? 'Y'
-              : 'N',
-
-        };
-
-        // =================================================
-        // WrongNotes
-        // =================================================
-        if (!isCorrect) {
-          setWrongNotes((prevWrong) => {
-
-            // 이미 등록된 문제인지 확인
-            const alreadyExists =
-              prevWrong.some(
-                (item) =>
-                  item.quizId === q.quizId
-              );
-
-            if (alreadyExists) {
-
-              // 기존 오답 업데이트
-              return prevWrong.map(
-                (item) =>
-                  item.quizId === q.quizId
-                    ? updatedQuiz
-                    : item
-              );
-            }
-
-            // 새로운 오답 추가
-            return [
-              ...prevWrong,
-              updatedQuiz,
-            ];
-
-          });
-
-        } else {
-
-          // 다시 풀어서 정답이 된 경우 오답노트에서 제거
-          setWrongNotes((prevWrong) =>
-            prevWrong.filter(
-              (item) =>
-                item.quizId !== q.quizId
-            )
-          );
-        }
-        return updatedQuiz;
-      });
-    });
+    if (submitting || submitted) return;
+    const current = quizList.find(q => q.quizId === quizId);
+    if (!current) return;
+    const correct = current.quizCorrectAnswer.trim().toLocaleLowerCase() === selectedOpt.trim().toLocaleLowerCase();
+    const updated: Quiz = { ...current, quizUserResponse: selectedOpt, quizCorrect: correct ? 'Y' : 'N' };
+    setQuizList(prev => prev.map(q => q.quizId === quizId ? updated : q));
+    setWrongNotes(prev => correct ? prev.filter(q => q.quizId !== quizId)
+      : [...prev.filter(q => q.quizId !== quizId), updated]);
   };
 
 
@@ -463,6 +336,10 @@ const SelfStudy: React.FC = () => {
             main
         ================================================ */}
         <MainTabContent
+          onSubmit={handleSubmitQuiz}
+          submitting={submitting}
+          submitted={submitted}
+          score={score}
           activeTab={activeTab}
           setActiveTab={setActiveTab}
           setIsModalOpen={setIsModalOpen}
