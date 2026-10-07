@@ -1,216 +1,206 @@
-/* =========================
-   MyPage Styles
-========================= */
-
 .mypage-page {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  background-color: #f5f6f8;
   min-height: 100vh;
-  padding: 40px 20px;
-  background-color: var(--background-secondary);
+
+  padding: 100px 20px 40px;
+  box-sizing: border-box;
 }
 
-.mypage-container {
-  width: 100%;
-  max-width: 520px;
-  background-color: var(--background);
-  border-radius: var(--radius-lg);
-  padding: 40px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-  border: 1px solid var(--border);
+.mypage-layout {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
 }
 
-.mypage-header {
-  text-align: center;
-  margin-bottom: 24px;
+/* 왼쪽 메뉴 */
+.mypage-sidebar {
+  width: 240px;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 24px 18px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+  box-sizing: border-box;
+  position: sticky;
+  top: 20px;
 }
 
-.mypage-header h2 {
-  font-size: 24px;
+.sidebar-title {
+  font-size: 22px;
   font-weight: 700;
-  color: var(--text);
-  margin-bottom: 8px;
+  margin-bottom: 20px;
+  color: #111827;
 }
 
-.mypage-header p {
-  font-size: 14px;
-  color: var(--text-secondary);
+.sidebar-menu {
+  width: 100%;
+  border: none;
+  background: #f3f4f6;
+  color: #374151;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  border-radius: 12px;
+  text-align: left;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-/* 프로필 요약 카드 */
-.mypage-profile-card {
+.sidebar-menu:hover {
+  background: #e5e7eb;
+}
+
+.sidebar-menu.active {
+  background: #2563eb;
+  color: white;
+  font-weight: 700;
+}
+
+/* 오른쪽 본문 */
+.mypage-content {
+  flex: 1;
+}
+
+.mypage-container,
+.menu-panel {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 40px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.06);
+}
+
+.mypage-title {
+  text-align: center;
+  font-size: 34px;
+  margin-bottom: 10px;
+  color: #111827;
+}
+
+.mypage-subtitle {
+  text-align: center;
+  color: #6b7280;
+  margin-bottom: 30px;
+  font-size: 16px;
+}
+
+.profile-card {
+  background: #f3f4f6;
+  border-radius: 16px;
+  padding: 20px;
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 16px;
-  background-color: var(--background-secondary);
-  border-radius: var(--radius-md);
-  margin-bottom: 24px;
+  gap: 18px;
+  margin-bottom: 30px;
 }
 
 .profile-avatar {
-  width: 52px;
-  height: 52px;
+  width: 64px;
+  height: 64px;
+  background: #2563eb;
+  color: white;
   border-radius: 50%;
-  background-color: var(--primary);
-  color: #fff;
   display: flex;
-  align-items: center;
   justify-content: center;
-  font-size: 20px;
+  align-items: center;
+  font-size: 24px;
   font-weight: 700;
 }
 
 .profile-info h3 {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--text);
+  margin: 0 0 6px;
+  font-size: 22px;
 }
 
 .profile-info p {
-  font-size: 13px;
-  color: var(--text-secondary);
-  margin-top: 2px;
+  margin: 0;
+  color: #6b7280;
 }
 
-.profile-info .badge {
+.badge {
   display: inline-block;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--primary);
-  background-color: rgba(37, 99, 235, 0.1);
-  padding: 2px 6px;
-  border-radius: 4px;
-}
-
-/* 폼 요소 공통 */
-.mypage-form {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.mypage-input-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.mypage-input-group label {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text);
-}
-
-.mypage-input-group input {
-  width: 100%;
-  height: 48px;
-  padding: 0 16px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  outline: none;
-  transition: border-color 0.2s;
-}
-
-.mypage-input-group input:focus {
-  border-color: var(--primary);
-}
-
-/* 비활성화 Input */
-.mypage-input-group input.input-disabled {
-  background-color: var(--background-secondary);
-  color: var(--text-secondary);
-  cursor: not-allowed;
-}
-
-/* 비밀번호 영역 그룹화 */
-.mypage-password-box {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-/* Input + Button 조합 */
-.mypage-input-button {
-  display: flex;
-  gap: 8px;
-}
-
-.mypage-input-button input {
-  flex: 1;
-}
-
-.mypage-input-button button {
-  width: 90px;
-  height: 48px;
-  background-color: var(--background-secondary);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  color: var(--text);
-  font-size: 14px;
-  font-weight: 500;
-  transition: background-color 0.2s;
-}
-
-.mypage-input-button button:hover {
-  background-color: #e2e8f0;
-}
-
-/* 버튼 영역 */
-.mypage-buttons {
-  display: flex;
-  gap: 12px;
-  margin-top: 12px;
-}
-
-.mypage-buttons button {
-  flex: 1;
-  height: 50px;
-  border-radius: var(--radius-sm);
-  font-size: 15px;
-  font-weight: 600;
-}
-
-.mypage-cancel-button {
-  background-color: var(--background-secondary);
-  border: 1px solid var(--border);
-  color: var(--text);
-}
-
-.mypage-cancel-button:hover {
-  background-color: #e2e8f0;
-}
-
-.mypage-submit-button {
-  background-color: var(--primary);
-  color: #fff;
-}
-
-.mypage-submit-button:hover {
-  background-color: var(--primary-hover);
-}
-
-/* 하단 링킹 버튼 (로그아웃, 회원탈퇴) */
-.mypage-footer-links {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 12px;
-  margin-top: 8px;
-}
-
-.link-button {
-  font-size: 13px;
-  color: var(--text-secondary);
-  text-decoration: underline;
-}
-
-.link-button.dangerous {
-  color: #ef4444;
-}
-
-.divider {
+  margin-left: 8px;
+  background: #dbeafe;
+  color: #2563eb;
+  padding: 3px 8px;
+  border-radius: 8px;
   font-size: 12px;
-  color: var(--border);
+  font-weight: 600;
+}
+
+.point-box {
+  margin-bottom: 28px;
+}
+
+.point-box p {
+  margin: 0 0 8px;
+  color: #374151;
+}
+
+.point-box strong {
+  display: block;
+  font-size: 28px;
+  margin-bottom: 10px;
+}
+
+.point-link {
+  border: none;
+  background: none;
+  color: #111827;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+
+.form-group {
+  margin-bottom: 22px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 10px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.form-group input {
+  width: 100%;
+  height: 52px;
+  padding: 0 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  font-size: 15px;
+  box-sizing: border-box;
+  background: #f9fafb;
+}
+
+.nickname-row {
+  display: flex;
+  gap: 10px;
+}
+
+.nickname-row input {
+  flex: 1;
+}
+
+.nickname-row button {
+  min-width: 100px;
+  border: 1px solid #d1d5db;
+  background: white;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.menu-panel h2 {
+  margin-top: 0;
+  margin-bottom: 12px;
+  font-size: 30px;
+  color: #111827;
+}
+
+.menu-panel p {
+  color: #6b7280;
+  font-size: 16px;
 }
