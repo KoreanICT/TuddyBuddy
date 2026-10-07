@@ -6,10 +6,12 @@ import org.apache.ibatis.type.Alias;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 @Getter
 @Setter
 @Alias("selfStudyResultVO")
+@ToString
 public class SelfStudyResultVO {
 
     private Long selfstudy_results_id;

@@ -6,10 +6,12 @@ import org.apache.ibatis.type.Alias;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 @Getter
 @Setter
 @Alias("quizVO")
+@ToString
 public class QuizVO {
 
     private Long quiz_id;
