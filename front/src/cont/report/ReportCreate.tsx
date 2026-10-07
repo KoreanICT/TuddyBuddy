@@ -133,17 +133,14 @@ const ReportCreate: React.FC = () => {
             form.reason ||
             form.content
         ) {
-
             const confirmCancel =
                 window.confirm(
                     '작성 중인 내용이 있습니다. 취소하시겠습니까?'
                 );
-
             if (!confirmCancel) {
                 return;
             }
         }
-
         navigate(-1);
     };
 
@@ -185,7 +182,6 @@ const ReportCreate: React.FC = () => {
                         </select>
                     </div>
                 </div>
-
                 {/* 신고 대상 */}
                 <div className={styles.formRow}>
                     <label

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 여기서 namespace는 @Mapper를 지정한 Interface인 즉 패키지포함해서 MemoDao를 작성해야 함. -->
+<mapper namespace="kr.co.ictedu.back.point.dao.PointDao">
+
+	<select id="select_point" parameterType="Long" resultType="Long">
+		SELECT POINT 
+	    FROM MEMBER 
+	    WHERE MEMBER_NUM = #{num}
+	</select>
+	
+	<select id="select_point_log" parameterType="Long" resultType="povo">
+		SELECT 
+		    p.POINT_NUM,
+		    p.MEMBER_NUM,
+		    p.AMOUNT,
+		    p.BALANCE_BEFORE,
+		    p.BALANCE_AFTER,
+		    p.PAYMENT_PRICE,
+		    p.POINT_TYPE,
+		    p.DESCRIPTION,
+		    p.REGDATE 
+		 FROM 
+		 	POINT p
+		 WHERE 
+		 	p.MEMBER_NUM = #{num}
+		 ORDER BY 
+		 	p.POINT_NUM DESC
+	</select>
+	
+	<insert id="insertPoint" parameterType="povo">
+	    INSERT INTO POINT (
+	        MEMBER_NUM,
+	        AMOUNT,
+	        BALANCE_BEFORE,
+	        BALANCE_AFTER,
+	        PAYMENT_PRICE,
+	        POINT_TYPE,
+	        DESCRIPTION
+	    ) VALUES (
+	        #{member_num},
+	        #{amount},
+	        #{balance_before},
+	        #{balance_after},
+	        #{payment_price},
+	        #{point_type},
+	        #{description}
+	    )
+	</insert>
+	
+	<update id="updatePoint" parameterType="povo">
+		UPDATE MEMBER 
+		  SET POINT = #{balance_after} 
+		WHERE MEMBER_NUM = #{member_num}
+	</update>
+	
+	
+</mapper>
