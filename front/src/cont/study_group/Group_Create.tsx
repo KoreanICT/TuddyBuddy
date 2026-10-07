@@ -2,8 +2,17 @@ import React, { useState, useRef } from 'react';
 import styles from './detail.module.css';
 import { GroupCreateModalProps, TagItem } from './GroupAPI';
 
-const PRESET_COLORS = ['#e2e8f0', '#fef08a', '#bbf7d0', '#c0f2ff','#bfdbfe', '#fbcfe8', '#fed7aa'];
+const PRESET_COLORS = ['#e2e8f0', '#fef08a', '#bbf7d0', '#c0f2ff', '#bfdbfe', '#fbcfe8', '#fed7aa'];
 
+interface FormData {
+    title: string,
+    description: string,
+    thumbnail: string,
+    isPrivate: boolean,
+    inviteCode: string,
+    maxMembers: number,
+    tags: string
+}
 export const Group_Create: React.FC<GroupCreateModalProps> = ({ isOpen, onClose, onSubmitSuccess }) => {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
@@ -78,7 +87,7 @@ export const Group_Create: React.FC<GroupCreateModalProps> = ({ isOpen, onClose,
         if (onSubmitSuccess) onSubmitSuccess(formData);
         onClose();
     };
-
+    
     return (
         <div className={styles.modal_overlay} onClick={onClose}>
             <div className={styles.modal_container} onClick={(e) => e.stopPropagation()}>

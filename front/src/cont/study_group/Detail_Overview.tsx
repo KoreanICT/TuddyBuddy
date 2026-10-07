@@ -16,8 +16,8 @@ export const Detail_Overview: React.FC = () => {
 
             {/* 최근 공지 영역 */}
             <div className={styles.detail_section_card}>
-                <h3 className={styles.section_title}>최근 공지</h3>
-                <p className={styles.empty_notice}>공지사항이 없습니다.</p>
+                <h3 className={styles.section_title}>최근 업데이트</h3>
+                <p className={styles.empty_notice}>업데이트된 사항이 없습니다.</p>
             </div>
         </div>
     );

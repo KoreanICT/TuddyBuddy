@@ -26,7 +26,6 @@ interface ProductSelectorProps {
 
 export const ProductSelector: React.FC<ProductSelectorProps> = ({ onSelectOrder }) => {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-
   const handleSelectProduct = (product: Product) => {
     setSelectedProduct(product);
   };

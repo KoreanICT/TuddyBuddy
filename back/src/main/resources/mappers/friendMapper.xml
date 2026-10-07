@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.ictedu.back.friend.dao.FriendDao">
+
+	<!-- 친구 요청 -->
+	<insert id="add" parameterType="frvo">
+		INSERT INTO friend (num, status, requested_date, responsed_date, request_num, response_num)
+		VALUES (friend_seq.NEXTVAL, 'PENDING', SYSDATE, NULL, #{request_num}, #{response_num})
+	</insert>
+
+	<!-- 받은 친구 요청 목록 -->
+	<select id="requestList" parameterType="long" resultType="frvo">
+		SELECT num, status, requested_date, responsed_date, request_num, response_num FROM friend
+		WHERE response_num = #{response_num} AND status = 'PENDING' ORDER BY num DESC
+	</select>
+
+	<!-- 보낸 친구 요청 목록 -->
+	<select id="responseList" parameterType="long" resultType="frvo">
+		SELECT num, status, requested_date, responsed_date, request_num, response_num FROM friend
+		WHERE request_num = #{request_num} ORDER BY num DESC
+	</select>
+
+	<!-- 친구 요청 상세 조회 -->
+	<select id="detail" parameterType="long" resultType="frvo">
+		SELECT num, status, requested_date, responsed_date, request_num, response_num
+		FROM friend WHERE num = #{num}
+	</select>
+
+	<!-- 친구 요청 수락 -->
+	<update id="accept" parameterType="long">
+		UPDATE friend SET status = 'ACCEPTED', responsed_date = SYSDATE
+		WHERE num = #{num} AND status = 'PENDING'
+	</update>
+
+	<!-- 친구 요청 거절 -->
+	<update id="reject" parameterType="long">
+		UPDATE friend SET status = 'REJECTED', responsed_date = SYSDATE
+		WHERE num = #{num} AND status = 'PENDING'
+	</update>
+
+	<!-- 친구 목록 -->
+	<select id="friendList" parameterType="long" resultType="frvo">
+		SELECT num, status, requested_date, responsed_date, request_num, response_num
+		FROM friend WHERE status = 'ACCEPTED'
+		AND (request_num = #{member_num} OR response_num = #{member_num})
+		ORDER BY responsed_date DESC
+	</select>
+
+	<!-- 친구 삭제 -->
+	<delete id="del" parameterType="long">
+		DELETE FROM friend WHERE num = #{num}
+	</delete>
+
+</mapper>

@@ -10,8 +10,8 @@ import lombok.Setter;
 @Getter
 @Setter
 public class NoticeVO {
-	private int num;
-	private int admin_num;
+	private Long num;
+	private Long admin_num;
 	private String title;
 	private String content;
 	private String imgn;

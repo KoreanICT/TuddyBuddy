@@ -1,5 +1,4 @@
-import { DetailTab } from "./Type";
-
+import { DetailTab, Repeat_type, TDLStatus } from "./Type";
 /* 공개 스터디룸 컴포넌트 관련 API */
 
 /**
@@ -124,4 +123,20 @@ export interface MemoInsertRequest {
 export interface MemoUpdateRequest {
     memo_num: number;
     memo_content: string;
+}
+
+/**
+ * 해야할 일(TDL) 관련 API
+ */
+export interface TDLData {
+    tdlid: number;
+    member: string;
+    name: string;
+    detail: string;
+    status: TDLStatus;
+    repeat_type: Repeat_type;
+    created_at: string;
+    updated_at?: string;
+    completed_at?: string;
+    due_at?: string;
 }

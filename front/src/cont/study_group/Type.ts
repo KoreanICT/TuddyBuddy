@@ -1,5 +1,5 @@
-export type DetailTab = 'overview' | 'video' | 'image' | 'memo' | 'member' | 'project';
+export type DetailTab = 'overview' | 'memo' | 'member' | 'calendar' | 'course' | 'discussion' | 'board' | 'document';
 
-export type ProjectTab = 'overview' | 'board' | 'calendar' | 'course' | 'discussion';
+export type TDLStatus = 'To Do' | 'In Progress' | 'Done'
 
-export type TDLStatus = 'new' | 'In Progressing' | 'Done'
+export type Repeat_type = null | 'Daily' | 'Weekly'

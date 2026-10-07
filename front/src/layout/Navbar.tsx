@@ -60,6 +60,12 @@ const Navbar: React.FC = () => {
                                 친구 추가
                             </NavLink>
                         </li>
+                        {/* 마이페이지 들어갈 신고 답변 확인 */}
+                                                <li>
+                            <NavLink to="/reportReplyList" className={linkClass}>
+                                신고 답변 확인
+                            </NavLink>
+                        </li>
                     </ul>
 
                     {/* User */}

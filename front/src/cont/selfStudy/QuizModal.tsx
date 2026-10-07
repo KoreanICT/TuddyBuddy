@@ -56,6 +56,8 @@ export const QuizModal: React.FC<QuizModalProps> = ({
     ? subjects.filter((s) => s.categoryId === selectedCategoryId)
     : [];
 
+  console.log("categories:", categories);
+  console.log("첫 번째 카테고리:", categories[0]);
   return (
     <div className={styles.modalOverlay}>
       <div className={styles.modalContent}>
@@ -68,14 +70,14 @@ export const QuizModal: React.FC<QuizModalProps> = ({
           {/* 1. 이미지 첨부 (quiz_image_url) */}
           <div className={styles.formGroup}>
             <label className={styles.label}>이미지 첨부 (quiz_image_url)</label>
-            <input 
-              type="file" 
-              ref={fileInputRef} 
-              accept="image/*" 
-              onChange={handleFileChange} 
+            <input
+              type="file"
+              ref={fileInputRef}
+              accept="image/*"
+              onChange={handleFileChange}
               style={{ display: 'none' }}
             />
-            <div 
+            <div
               className={styles.imageUploadBox}
               onClick={() => fileInputRef.current?.click()}
             >
@@ -94,13 +96,13 @@ export const QuizModal: React.FC<QuizModalProps> = ({
           <div className={styles.formRow}>
             <div className={styles.formGroup}>
               <label className={styles.label}>카테고리 (category_id)</label>
-              <select 
-                className={styles.selectInput} 
-                value={selectedCategoryId ?? ''} 
+              <select
+                className={styles.selectInput}
+                value={selectedCategoryId ?? ''}
                 onChange={(e) => {
                   const val = e.target.value ? Number(e.target.value) : null;
                   setSelectedCategoryId(val);
-                  setSelectedSubjectId(null); 
+                  setSelectedSubjectId(null);
                 }}
               >
                 <option value="">카테고리 선택</option>
@@ -112,9 +114,9 @@ export const QuizModal: React.FC<QuizModalProps> = ({
 
             <div className={styles.formGroup}>
               <label className={styles.label}>과목 (subject_id)</label>
-              <select 
-                className={styles.selectInput} 
-                value={selectedSubjectId ?? ''} 
+              <select
+                className={styles.selectInput}
+                value={selectedSubjectId ?? ''}
                 onChange={(e) => setSelectedSubjectId(e.target.value ? Number(e.target.value) : null)}
                 disabled={!selectedCategoryId}
               >
@@ -128,8 +130,12 @@ export const QuizModal: React.FC<QuizModalProps> = ({
 
           {/* 3. 문제 유형 (quiz_type) */}
           <div className={styles.formGroup}>
-            <label className={styles.label}>문제 유형 (quiz_type)</label>
-            <select className={styles.selectInput} value={quizType} onChange={(e) => setQuizType(e.target.value)}>
+            <label className={styles.label}>문제 유형</label>
+
+            <select
+              value={quizType}
+              onChange={(e) => setQuizType(e.target.value)}
+            >
               <option value="MULTIPLE_CHOICE">객관식 (4보기)</option>
               <option value="SHORT_ANSWER">주관식 단답형</option>
               <option value="OX">O / X 퀴즈</option>
@@ -159,7 +165,7 @@ export const QuizModal: React.FC<QuizModalProps> = ({
           {/* 5. 추가 프롬프트 지침 (quiz_prompt) */}
           <div className={styles.formGroup}>
             <label className={styles.label}>추가 요청사항 (quiz_prompt)</label>
-            <input 
+            <input
               type="text"
               className={styles.textInput}
               placeholder="예: 개념 위주로 문제 내줘, 해설을 자세히 적어줘"
@@ -176,7 +182,7 @@ export const QuizModal: React.FC<QuizModalProps> = ({
           </button>
         </div>
       </div>
-    </div>
+    </div >
   );
 };
 

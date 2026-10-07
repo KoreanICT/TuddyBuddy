@@ -1,23 +1,31 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, UserPlus, Plus, X, Flag } from 'lucide-react';
+import { User, UserPlus, Plus, X, Flag, Bot } from 'lucide-react';
 
 import styles from './floatingButton.module.css';
+import ChatBot from '../../cont/chatbot/ChatBot';
 
 const FloatingButton: React.FC = () => {
 
     const navigate = useNavigate();
 
     const [open, setOpen] = useState(false);
+    const [chatOpen, setChatOpen] = useState(false);
 
     const toggleMenu = () => {
         setOpen(prev => !prev);
     };
 
+    // 챗봇 이동
+    const openChatBot = () => {
+        setChatOpen(true);
+        setOpen(false);
+    }
+
     // 마이페이지 이동
     const moveMyPage = () => {
         // TODO: 마이페이지 완성 후 경로 변경
-        navigate('/auth/mypage');
+        navigate('/auth/member');
         setOpen(false);
     };
 
@@ -38,6 +46,21 @@ const FloatingButton: React.FC = () => {
             {/* 펼쳐지는 메뉴 */}
             {open && (
                 <div className={styles.floatingMenu}>
+
+                    {/* 챗봇 */}
+                    <button
+                        type="button"
+                        className={styles.menuButton}
+                        onClick={openChatBot}
+                    >
+                        <span className={styles.menuIcon}>
+                            <Bot size={22} />
+                        </span>
+
+                        <span>
+                            버디봇
+                        </span>
+                    </button>
 
                     {/* 마이페이지 */}
                     <button
@@ -83,6 +106,12 @@ const FloatingButton: React.FC = () => {
                     </button>
 
                 </div>
+            )}
+
+            {/* 챗봇 */}
+            {chatOpen && (
+                <ChatBot 
+                    onClose={() => setChatOpen(false)}/>
             )}
 
             {/* 메인 플로팅 버튼 */}

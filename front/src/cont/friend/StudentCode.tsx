@@ -52,7 +52,7 @@ const StudentCode: React.FC = () => {
             <StudentCodeModal
                 isOpen={isOpen}
                 onClose={() => setIsOpen(false)}
-                studentCode={studentCode}
+                memberCode={studentCode}
             />
 
         </div>

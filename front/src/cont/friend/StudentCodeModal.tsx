@@ -5,13 +5,13 @@ import styles from './studentCodeModal.module.css';
 interface StudentCodeModalProps {
     isOpen: boolean;
     onClose: () => void;
-    studentCode: string;
+    memberCode: string;
 }
 
 const StudentCodeModal: React.FC<StudentCodeModalProps> = ({
     isOpen,
     onClose,
-    studentCode
+    memberCode
 }) => {
 
     const [copied, setCopied] = useState(false);
@@ -22,7 +22,7 @@ const StudentCodeModal: React.FC<StudentCodeModalProps> = ({
 
         try {
 
-            await navigator.clipboard.writeText(studentCode);
+            await navigator.clipboard.writeText(memberCode);
 
             setCopied(true);
 
@@ -55,7 +55,7 @@ const StudentCodeModal: React.FC<StudentCodeModalProps> = ({
 
                 {/* Student Code */}
                 <div className={styles.codeBox}>
-                    {studentCode}
+                    {memberCode}
                 </div>
 
 
