@@ -4,6 +4,7 @@ import { User, UserPlus, Plus, X, Flag, Bot } from 'lucide-react';
 
 import styles from './floatingButton.module.css';
 import ChatBot from '../../cont/chatbot/ChatBot';
+import FocusButton from '../../cont/focusButton/FocusButton';
 
 const FloatingButton: React.FC = () => {
 
@@ -62,6 +63,7 @@ const FloatingButton: React.FC = () => {
                         </span>
                     </button>
 
+
                     {/* 마이페이지 */}
                     <button
                         type="button"
@@ -110,9 +112,10 @@ const FloatingButton: React.FC = () => {
 
             {/* 챗봇 */}
             {chatOpen && (
-                <ChatBot 
-                    onClose={() => setChatOpen(false)}/>
+                <ChatBot
+                    onClose={() => setChatOpen(false)} />
             )}
+
 
             {/* 메인 플로팅 버튼 */}
             <button
