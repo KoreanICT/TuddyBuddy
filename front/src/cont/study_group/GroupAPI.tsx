@@ -1,3 +1,4 @@
+import axios from "axios";
 import { DetailTab, Repeat_type, TDLStatus } from "./Type";
 /* 공개 스터디룸 컴포넌트 관련 API */
 
@@ -31,23 +32,68 @@ export interface PrivateStudyItem {
 /* 스터디룸 생성 컴포넌트 관련 API */
 
 /**
- * 스터디룸 생성 모달 관련 API
- */
-export interface GroupCreateModalProps {
-    isOpen: boolean;
-    onClose: () => void;
-    onSubmitSuccess?: (data: any) => void;
-}
-
-/**
  * 태그 관련 API !! 조만간 수정 예정
  */
 export interface TagItem {
-    id: string;
-    text: string;
-    color: string;
+    tag_num?: number;
+    tag_name: string;
+    tag_color: string;
 }
 
+export interface GroupData {
+    group_num?: number;
+    group_title: string;
+    group_desc: string;
+    group_isPrivate: number;
+    group_maxMembers: number;
+    group_thumbnail?: string | null;
+    group_invitecode?: string | null;
+}
+
+export interface GroupCreateRequest {
+    group: GroupData;
+    tags: TagItem[];
+}
+
+/**
+ * 태그 검색
+ */
+export const searchGroupTags = async (
+    keyword: string
+): Promise<TagItem[]> => {
+    const response = await axios.get<TagItem[]>(
+        `http://192.168.0.11/back/api/group/tags/search`,
+        {
+            params: {
+                keyword
+            }
+        }
+    );
+    return response.data;
+};
+
+/**
+ * 스터디 그룹 생성
+ */
+export const createGroup = async (requestData: GroupCreateRequest,thumbnail: File | null) => {
+    const formData = new FormData();
+
+    formData.append(
+        'groupData',
+        new Blob(
+            [JSON.stringify(requestData)],
+            { type: 'application/json' }
+        )
+    );
+    if (thumbnail) {
+        formData.append('thumbnail',thumbnail);
+    }
+    const response = await axios.post(
+        `http://192.168.0.11/back/api/group/add`,
+        formData
+    );
+    return response.data.group_num;
+};
 /* 스터디룸 선택 탭 사이드바 관련 API */
 
 /**
