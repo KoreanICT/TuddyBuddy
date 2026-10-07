@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
     ReactFlow,
     useNodesState,
@@ -19,6 +19,7 @@ import '@xyflow/react/dist/style.css';
 import styles from './project.module.css'
 import axios from 'axios';
 import { useSearchParams } from 'react-router-dom';
+
 export interface CustomNodeData extends Record<string, unknown> {
     label: string;
 }
@@ -32,19 +33,28 @@ export interface DiagramSaveRequest {
     diagram_data: string;
 }
 export interface DiagramResponse {
-    diagram_num: number;
     group_num: number;
     title: string;
     diagram_data: string;
     created_at: string;
     updated_at?: string;
 }
+// export interface DiagramResponse {
+//     diagram_num: number;
+//     group_num: number;
+//     title: string;
+//     diagram_data: string;
+//     created_at: string;
+//     updated_at?: string;
+// }
 export type AppNode = Node<CustomNodeData>;
 export type AppEdge = Edge;
 
 const initialNodes: AppNode[] = [];
 
 const initialEdges: AppEdge[] = [];
+
+const backendUrl = process.env.REACT_APP_BACK_END_URL;
 
 export const Project_Course: React.FC = () => {
 
@@ -60,7 +70,7 @@ export const Project_Course: React.FC = () => {
     const [nodeNameInput, setNodeNameInput] = useState<string>('');
 
     const [searchParams, setSearchParams] = useSearchParams();
-    const [groupnum, setGroupnum] = useState<number>(0)
+    const [groupnum, setGroupnum] = useState<number>(1)
 
     const gnum = searchParams.get('group_num');
 
@@ -85,21 +95,21 @@ export const Project_Course: React.FC = () => {
 
     // 2. 새 노드 추가
     const handleAddNode = (): void => {
-    const newNodeId = `node-${Date.now()}`;
+        const newNodeId = `node-${Date.now()}`;
 
-    const newNode: AppNode = {
-        id: newNodeId,
-        position: {
-            x: Math.random() * 300 + 50,
-            y: Math.random() * 300 + 50,
-        },
-        data: {
-            label: `새 노드 ${nodes.length + 1}`,
-        },
+        const newNode: AppNode = {
+            id: newNodeId,
+            position: {
+                x: Math.random() * 300 + 50,
+                y: Math.random() * 300 + 50,
+            },
+            data: {
+                label: `새 노드 ${nodes.length + 1}`,
+            },
+        };
+
+        setNodes((nds) => nds.concat(newNode));
     };
-
-    setNodes((nds) => nds.concat(newNode));
-};
 
     // 3. 노드 클릭 이벤트
     const onNodeClick: NodeMouseHandler<AppNode> = useCallback((_event, node: AppNode) => {
@@ -175,7 +185,7 @@ export const Project_Course: React.FC = () => {
         nodes.some((n: AppNode) => n.selected) ||
         edges.some((e: AppEdge) => e.selected);
 
-    const backendUrl = process.env.REACT_APP_BACK_END_URL;
+
 
     const handleSaveDiagram = async (): Promise<void> => {
         if (!diagramTitle.trim()) {
@@ -198,7 +208,7 @@ export const Project_Course: React.FC = () => {
             setIsSaving(true);
 
             const response = await axios.post<DiagramResponse>(
-                `${backendUrl}/api/diagram`,
+                `http://192.168.0.11/back/api/diagram/add`,
                 requestData
             );
 
@@ -213,6 +223,15 @@ export const Project_Course: React.FC = () => {
             setIsSaving(false);
         }
     };
+
+    // useEffect(() => {
+    //     const response = axios.get(
+    //         `${backendUrl}/api/diagram/get/{}`
+    //     )
+
+
+    // }, [])
+
     return (
         <div className={styles.detail_content_wrapper}>
             <div className={styles.detail_section_card}>

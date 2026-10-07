@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useRef } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 interface Post {
@@ -103,6 +103,11 @@ const Community: React.FC = () => {
   const [newWriteCategory, setNewWriteCategory] = useState("자유게시판");
   const [newAuthor, setNewAuthor] = useState("나(사용자)");
 
+  // 에디터 관련 Ref 및 툴바 상태
+  const editorRef = useRef<HTMLDivElement>(null);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   // 댓글 State
   const [comments, setComments] = useState<{ [postId: number]: Comment[] }>({
     1: [
@@ -134,14 +139,45 @@ const Community: React.FC = () => {
   const handleDeletePost = (postId: number) => {
     if (window.confirm("정말 이 게시글을 삭제하시겠습니까?")) {
       setPosts((prevPosts) => prevPosts.filter((post) => post.id !== postId));
-      setSelectedPost(null); // 모달 닫기
+      setSelectedPost(null);
     }
+  };
+
+  // 에디터 서식 명령어 실행
+  const executeCommand = (command: string, value: string = "") => {
+    document.execCommand(command, false, value);
+    if (editorRef.current) {
+      setNewContent(editorRef.current.innerHTML);
+    }
+  };
+
+  // 이미지 업로드
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const file = files[0];
+    const reader = new FileReader();
+    reader.onload = (uploadEvent) => {
+      const base64Image = uploadEvent.target?.result as string;
+      executeCommand("insertImage", base64Image);
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  };
+
+  // 이모티콘 삽입
+  const handleInsertEmoji = (emoji: string) => {
+    executeCommand("insertText", emoji);
+    setShowEmojiPicker(false);
   };
 
   // 게시글 등록 핸들러
   const handleCreatePost = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newTitle.trim() || !newContent.trim()) {
+    const currentHtmlContent = editorRef.current ? editorRef.current.innerHTML : newContent;
+
+    if (!newTitle.trim() || !currentHtmlContent.trim() || currentHtmlContent === "<br>") {
       alert("제목과 내용을 모두 입력해주세요.");
       return;
     }
@@ -150,17 +186,17 @@ const Community: React.FC = () => {
     const newPost: Post = {
       id: Date.now(),
       title: newTitle.trim(),
-      content: newContent.trim(),
+      content: currentHtmlContent,
       category: newWriteCategory,
       author: newAuthor.trim() || "익명",
       date: todayStr,
     };
 
-    setPosts([newPost, ...posts]); // 최신 글이 맨 위에 오도록 추가
+    setPosts([newPost, ...posts]);
     setNewTitle("");
     setNewContent("");
     setNewWriteCategory("자유게시판");
-    setIsWriteModalOpen(false); // 모달 닫기
+    setIsWriteModalOpen(false);
   };
 
   const handleAddComment = (postId: number) => {
@@ -194,8 +230,21 @@ const Community: React.FC = () => {
     }
   };
 
+  // contenteditable 전용 placeholder CSS
+  const editorPlaceholderCss = `
+    .content-editor:empty:before {
+      content: "내용을 입력하세요...";
+      color: #adb5bd;
+      pointer-events: none;
+      display: block;
+    }
+  `;
+
   return (
     <div className="bg-light min-vh-100 py-4 py-md-5">
+      {/* 인라인 스타일 주입 */}
+      <style>{editorPlaceholderCss}</style>
+
       <div className="container" style={{ maxWidth: "1000px" }}>
         {/* Header with Write Button */}
         <div className="d-flex align-items-center justify-content-between mb-4">
@@ -272,7 +321,7 @@ const Community: React.FC = () => {
                 </div>
                 <h5 className="fw-bold text-dark mb-2">{post.title}</h5>
                 <p className="text-secondary mb-3 fs-6" style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
-                  {post.content}
+                  {post.content.replace(/<[^>]*>?/gm, '')}
                 </p>
                 <div className="d-flex justify-content-between align-items-center pt-2 border-top">
                   <span className="small fw-semibold text-dark">{post.author}</span>
@@ -314,31 +363,31 @@ const Community: React.FC = () => {
                   <button type="button" className="btn-close" onClick={() => setIsWriteModalOpen(false)} />
                 </div>
                 <form onSubmit={handleCreatePost}>
-                  <div className="modal-body p-4" style={{ maxHeight: "70vh", overflowY: "auto" }}>
-                    <div className="mb-3">
-                      <label className="form-label fw-semibold text-dark">카테고리</label>
-                      <select
-                        className="form-select"
-                        value={newWriteCategory}
-                        onChange={(e) => setNewWriteCategory(e.target.value)}
-                      >
-                        {writeCategories.map((cat) => (
-                          <option key={cat} value={cat}>
-                            {cat}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div className="mb-3">
-                      <label className="form-label fw-semibold text-dark">작성자</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        value={newAuthor}
-                        onChange={(e) => setNewAuthor(e.target.value)}
-                        placeholder="작성자 이름을 입력하세요"
-                      />
+                  <div className="modal-body p-4" style={{ maxHeight: "75vh", overflowY: "auto" }}>
+                    
+                    <div className="row g-3 mb-3">
+                      <div className="col-md-6">
+                        <label className="form-label fw-semibold text-dark">카테고리</label>
+                        <select
+                          className="form-select"
+                          value={newWriteCategory}
+                          onChange={(e) => setNewWriteCategory(e.target.value)}
+                        >
+                          {writeCategories.map((cat) => (
+                            <option key={cat} value={cat}>{cat}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="col-md-6">
+                        <label className="form-label fw-semibold text-dark">작성자</label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          value={newAuthor}
+                          onChange={(e) => setNewAuthor(e.target.value)}
+                          placeholder="작성자 이름을 입력하세요"
+                        />
+                      </div>
                     </div>
 
                     <div className="mb-3">
@@ -353,17 +402,117 @@ const Community: React.FC = () => {
                       />
                     </div>
 
+                    {/* 에디터 영역 (placeholder 오류 해결 적용) */}
                     <div className="mb-3">
                       <label className="form-label fw-semibold text-dark">내용</label>
-                      <textarea
-                        className="form-control"
-                        rows={6}
-                        value={newContent}
-                        onChange={(e) => setNewContent(e.target.value)}
-                        placeholder="내용을 입력하세요"
-                        required
-                      />
+                      
+                      <div className="border rounded-3 bg-white overflow-hidden shadow-sm">
+                        {/* 툴바 */}
+                        <div className="d-flex flex-wrap align-items-center gap-1 p-2 bg-light border-bottom">
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-light border bg-white fw-semibold px-2 py-1"
+                            title="사진 올리기"
+                            onClick={() => fileInputRef.current?.click()}
+                          >
+                            📷 사진
+                          </button>
+                          <input
+                            type="file"
+                            ref={fileInputRef}
+                            style={{ display: "none" }}
+                            accept="image/*"
+                            onChange={handleImageUpload}
+                          />
+
+                          <div className="position-relative">
+                            <button
+                              type="button"
+                              className="btn btn-sm btn-light border bg-white fw-semibold px-2 py-1"
+                              title="이모티콘"
+                              onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                            >
+                              😊 이모티콘
+                            </button>
+                            {showEmojiPicker && (
+                              <div className="position-absolute bg-white border shadow rounded p-2 d-flex gap-2 z-3 mt-1" style={{ width: "200px", flexWrap: "wrap" }}>
+                                {["😀", "😂", "😍", "👍", "🔥", "❤️", "🙏", "💡", "🎉", "😢"].map((emoji) => (
+                                  <button
+                                    key={emoji}
+                                    type="button"
+                                    className="btn btn-sm btn-light p-1"
+                                    onClick={() => handleInsertEmoji(emoji)}
+                                  >
+                                    {emoji}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="vr mx-1"></div>
+
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-light border bg-white px-2 py-1 fw-bold"
+                            onClick={() => executeCommand("bold")}
+                            title="굵게"
+                          >
+                            B
+                          </button>
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-light border bg-white px-2 py-1 fst-italic"
+                            onClick={() => executeCommand("italic")}
+                            title="기울임"
+                          >
+                            I
+                          </button>
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-light border bg-white px-2 py-1 text-decoration-underline"
+                            onClick={() => executeCommand("underline")}
+                            title="밑줄"
+                          >
+                            U
+                          </button>
+                          
+                          <div className="vr mx-1"></div>
+
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-light border bg-white px-2 py-1 small"
+                            onClick={() => executeCommand("justifyLeft")}
+                            title="왼쪽 정렬"
+                          >
+                            왼쪽정렬
+                          </button>
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-light border bg-white px-2 py-1 small"
+                            onClick={() => executeCommand("justifyCenter")}
+                            title="가운데 정렬"
+                          >
+                            가운데
+                          </button>
+                        </div>
+
+                        {/* 편집 영역 */}
+                        <div
+                          ref={editorRef}
+                          className="p-3 content-editor"
+                          contentEditable={true}
+                          style={{
+                            minHeight: "220px",
+                            maxHeight: "350px",
+                            overflowY: "auto",
+                            outline: "none",
+                          }}
+                          onInput={(e) => setNewContent(e.currentTarget.innerHTML)}
+                        />
+                      </div>
                     </div>
+
                   </div>
                   <div className="modal-footer border-top bg-light-subtle p-3">
                     <button
@@ -417,9 +566,11 @@ const Community: React.FC = () => {
                   </div>
 
                   {/* Post Content */}
-                  <div className="fs-6 text-dark leading-relaxed mb-5" style={{ minHeight: "100px", whiteSpace: "pre-wrap" }}>
-                    {selectedPost.content}
-                  </div>
+                  <div 
+                    className="fs-6 text-dark leading-relaxed mb-5" 
+                    style={{ minHeight: "100px", wordBreak: "break-all" }}
+                    dangerouslySetInnerHTML={{ __html: selectedPost.content }}
+                  />
 
                   {/* Comments Section */}
                   <div className="pt-4 border-top">

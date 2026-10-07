@@ -1,0 +1,283 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.ictedu.back.member.dao.MemberDAO">
+
+
+    <!-- ===================================================== -->
+    <!-- 회원가입 -->
+    <!-- ===================================================== -->
+    <insert id="insertMember" parameterType="mvo">
+    INSERT INTO member (
+        member_num,
+        member_email,
+        member_pwd,
+        member_name,
+        member_nick,
+        member_phone,
+        authority,
+        regdate,
+        member_code,
+        point,
+        member_login_type,
+        member_social_id
+    )
+    VALUES (
+        member_seq.NEXTVAL,
+        #{member_email, jdbcType=VARCHAR},
+        #{member_pwd, jdbcType=VARCHAR},
+        #{member_name, jdbcType=VARCHAR},
+        #{member_nick, jdbcType=VARCHAR},
+        #{member_phone, jdbcType=VARCHAR},
+        #{authority, jdbcType=VARCHAR},
+        SYSDATE,
+        #{member_code, jdbcType=VARCHAR},
+        0,
+        'LOCAL',
+        #{member_social_id, jdbcType=VARCHAR}
+    )
+</insert>
+
+
+    <!-- ===================================================== -->
+    <!-- 이메일 중복 확인 -->
+    <!-- ===================================================== -->
+    <select id="countByEmail"
+            parameterType="string"
+            resultType="int">
+
+        SELECT COUNT(*)
+        FROM member
+        WHERE member_email = #{email}
+
+    </select>
+
+
+    <!-- ===================================================== -->
+    <!-- 이메일 확인 -->
+    <!-- MemberDAO의 checkEmail()에 대응 -->
+    <!-- ===================================================== -->
+    <select id="checkEmail"
+            parameterType="string"
+            resultType="int">
+
+        SELECT COUNT(*)
+        FROM member
+        WHERE member_email = #{email}
+
+    </select>
+
+
+    <!-- ===================================================== -->
+    <!-- 닉네임 중복 확인 -->
+    <!-- ===================================================== -->
+    <select id="countByNick"
+            parameterType="string"
+            resultType="int">
+
+        SELECT COUNT(*)
+        FROM member
+        WHERE member_nick = #{nick}
+
+    </select>
+
+
+    <!-- ===================================================== -->
+    <!-- 이메일로 회원 정보 조회 -->
+    <!-- ===================================================== -->
+    <select id="getMemberByEmail"
+            parameterType="string"
+            resultType="mvo">
+
+        SELECT
+            member_num,
+            member_email,
+            member_pwd,
+            member_name,
+            member_nick,
+            member_phone,
+            authority,
+            regdate,
+            member_code,
+            point,
+            member_login_type,
+            member_social_id
+        FROM member
+        WHERE member_email = #{email}
+
+    </select>
+
+
+    <!-- ===================================================== -->
+    <!-- 회원 정보 수정 -->
+    <!-- ===================================================== -->
+    <update id="updateMember"
+            parameterType="mvo">
+
+        UPDATE member
+        SET
+            member_nick = #{member_nick},
+            member_phone = #{member_phone}
+        WHERE member_email = #{member_email}
+
+    </update>
+
+
+    <!-- ===================================================== -->
+    <!-- 회원 탈퇴 -->
+    <!-- 현재 Service가 실제 삭제를 요청하고 있으므로 DELETE 사용 -->
+    <!-- ===================================================== -->
+    <delete id="deleteMember"
+            parameterType="java.lang.Long">
+
+        DELETE FROM member
+        WHERE member_num = #{mnum}
+
+    </delete>
+
+
+    <!-- ===================================================== -->
+    <!-- 회원 전체 조회 + 검색 + 페이징 -->
+    <!-- ===================================================== -->
+    <select id="memberList"
+            parameterType="map"
+            resultType="mvo">
+
+        SELECT
+            member_num,
+            member_email,
+            member_name,
+            member_nick,
+            member_phone,
+            authority,
+            regdate,
+            member_code,
+            point,
+            member_login_type,
+            member_social_id
+        FROM (
+            SELECT
+                member_num,
+                member_email,
+                member_name,
+                member_nick,
+                member_phone,
+                authority,
+                regdate,
+                member_code,
+                point,
+                member_login_type,
+                member_social_id,
+                ROW_NUMBER() OVER (
+                    ORDER BY member_num DESC
+                ) AS row_num
+            FROM member
+
+            <if test="searchType != null
+                      and searchType != ''
+                      and searchValue != null
+                      and searchValue != ''">
+
+                <where>
+
+                    <choose>
+
+                        <!-- 이름 검색 -->
+                        <when test="searchType == '1'">
+                            member_name LIKE '%' || #{searchValue} || '%'
+                        </when>
+
+                        <!-- 이메일 검색 -->
+                        <when test="searchType == '2'">
+                            member_email LIKE '%' || #{searchValue} || '%'
+                        </when>
+
+                        <!-- 권한 검색 -->
+                        <when test="searchType == '3'">
+                            authority LIKE '%' || #{searchValue} || '%'
+                        </when>
+
+                    </choose>
+
+                </where>
+
+            </if>
+
+        )
+        WHERE row_num BETWEEN #{begin} AND #{end}
+
+    </select>
+
+
+    <!-- ===================================================== -->
+    <!-- 전체 회원 수 -->
+    <!-- ===================================================== -->
+    <select id="totalCount"
+            parameterType="map"
+            resultType="int">
+
+        SELECT COUNT(*)
+        FROM member
+
+        <if test="searchType != null
+                  and searchType != ''
+                  and searchValue != null
+                  and searchValue != ''">
+
+            <where>
+
+                <choose>
+
+                    <!-- 이름 검색 -->
+                    <when test="searchType == '1'">
+                        member_name LIKE '%' || #{searchValue} || '%'
+                    </when>
+
+                    <!-- 이메일 검색 -->
+                    <when test="searchType == '2'">
+                        member_email LIKE '%' || #{searchValue} || '%'
+                    </when>
+
+                    <!-- 권한 검색 -->
+                    <when test="searchType == '3'">
+                        authority LIKE '%' || #{searchValue} || '%'
+                    </when>
+
+                </choose>
+
+            </where>
+
+        </if>
+
+    </select>
+
+
+    <!-- ===================================================== -->
+    <!-- 선택된 회원 권한 변경 -->
+    <!-- ===================================================== -->
+    <update id="updateGrade"
+            parameterType="map">
+
+        UPDATE member
+        SET authority = #{authority}
+
+        WHERE member_num IN
+
+        <foreach
+                collection="memberNums"
+                item="memberNum"
+                open="("
+                separator=","
+                close=")">
+
+            #{memberNum}
+
+        </foreach>
+
+    </update>
+
+
+</mapper>

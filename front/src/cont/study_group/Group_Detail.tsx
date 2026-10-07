@@ -72,6 +72,10 @@ export const Group_Detail: React.FC<GroupDetailProps> = ({ onBackToHome }) => {
                             <p className={styles.group_desc}>면접 대비 CSS 공부</p>
                         </div>
                         <div className={styles.header_menu_wrapper} ref={menuRef}>
+                            {/* 스터디룸 변경 관리 버튼 */}
+                            <button>
+                                
+                            </button>
                             <button
                                 type="button"
                                 className={styles.header_menu_btn}
