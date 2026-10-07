@@ -16,30 +16,23 @@ import kr.co.ictedu.back.selfstudy.vo.SubjectVO;
 public interface SelfStudyDao {
 
     List<CategoryVO> getCategories();
-
     List<SubjectVO> getSubjects(@Param("categoryId") Long categoryId);
 
     int insertQuizSession(QuizSessionVO vo);
-
     int insertQuiz(QuizVO vo);
-
     int insertQuizResponse(QuizResponseVO vo);
-
     int insertResult(SelfStudyResultVO vo);
 
     List<QuizSessionVO> getSessions();
-
     QuizSessionVO getSession(@Param("quizSessionId") Long quizSessionId);
 
     List<QuizVO> getQuizzes(@Param("quizSessionId") Long quizSessionId);
-
     List<QuizResponseVO> getResponses(
             @Param("selfstudyResultsId") Long selfstudyResultsId);
 
     List<SelfStudyResultVO> getResults();
 
     int updateQuizSession(QuizSessionVO vo);
-
     int updateQuizResponse(QuizResponseVO vo);
 
     int deleteQuizSession(@Param("quizSessionId") Long quizSessionId);

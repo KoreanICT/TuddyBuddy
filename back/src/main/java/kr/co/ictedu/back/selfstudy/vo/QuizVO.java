@@ -2,11 +2,14 @@ package kr.co.ictedu.back.selfstudy.vo;
 
 import java.time.LocalDateTime;
 
+import org.apache.ibatis.type.Alias;
+
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
+@Alias("quizVO")
 public class QuizVO {
 
     private Long quiz_id;

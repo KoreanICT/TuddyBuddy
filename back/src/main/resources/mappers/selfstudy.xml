@@ -33,6 +33,7 @@
 		resultType="kr.co.ictedu.back.selfstudy.vo.QuizSessionVO">
 		SELECT
 		quiz_session_id,
+		member_num,
 		subject_id,
 		quiz_image_url,
 		quiz_type,
@@ -69,7 +70,7 @@
 		SELECT
 		selfstudy_results_id,
 		quiz_session_id,
-		subject_id,
+		member_num,
 		selfstudy_total_score,
 		submitted_at
 		FROM selfstudy_results
@@ -85,11 +86,11 @@
 		SELECT
 		selfstudy_results_id,
 		quiz_session_id,
-		subject_id,
+		member_num,
 		selfstudy_total_score,
 		submitted_at
 		FROM selfstudy_results
-		WHERE selfstudy_results_id = #{resultId}
+		WHERE selfstudy_results_id = #{selfstudyResultsId}
 
 	</select>
 
@@ -106,7 +107,7 @@
 		quiz_correct,
 		submitted_at
 		FROM quiz_responses
-		WHERE selfstudy_results_id = #{selfstudyResultsId}
+		WHERE selfstudy_results_id = #{resultId}
 		ORDER BY quiz_responses_id
 	</select>
 
@@ -114,7 +115,7 @@
 	<!-- 퀴즈 답안 등록 -->
 	<insert id="insertQuizResponse"
 		parameterType="kr.co.ictedu.back.selfstudy.vo.QuizResponseVO">
-		<selectKey keyProperty="quizResponsesId"
+		<selectKey keyProperty="quiz_responses_id"
 			resultType="long"
 			order="BEFORE">
 			SELECT quiz_responses_seq.NEXTVAL
@@ -122,8 +123,8 @@
 		</selectKey>
 		INSERT INTO quiz_responses ( quiz_responses_id, selfstudy_results_id,
 		quiz_id, quiz_user_response, quiz_correct, submitted_at ) VALUES (
-		#{quizResponsesId}, #{selfstudyResultsId}, #{quizId},
-		#{quizUserResponse}, #{quizCorrect}, SYSDATE ) </insert>
+		#{quiz_responses_id}, #{selfstudy_results_id}, #{quiz_id},
+		#{quiz_user_response}, #{quiz_correct}, SYSDATE ) </insert>
 
 	<!-- 결과 등록 -->
 	<insert id="insertResult"
@@ -136,12 +137,12 @@
 			FROM dual
 		</selectKey>
 		INSERT INTO selfstudy_results ( selfstudy_results_id, quiz_session_id,
-		subject_id, selfstudy_total_score, submitted_at ) VALUES (
-		#{selfstudy_results_id}, #{quiz_session_id}, #{subject_id},
+		member_num, selfstudy_total_score, submitted_at ) VALUES (
+		#{selfstudy_results_id}, #{quiz_session_id}, #{member_num},
 		#{selfstudy_total_score}, SYSDATE ) </insert>
 
 	<!-- 세션 삭제 -->
-	<delete id="deleteSession"
+	<delete id="deleteQuizSession"
 		parameterType="long">
 		DELETE FROM quizzes
 		WHERE quiz_session_id = #{quizSessionId}
@@ -158,14 +159,14 @@
 			SELECT quiz_sessions_seq.NEXTVAL
 			FROM dual
 
-		</selectKey>
+		</selectKey><!-- quiz_image_url, #{quiz_image_url}, 추가하기  -->
 		INSERT INTO quiz_sessions ( quiz_session_id, subject_id,
-		quiz_type, quiz_difficulty, quiz_count, quiz_prompt,
-		created_at ) VALUES ( #{quiz_session_id}, #{subject_id},
-		#{quiz_type}, #{quiz_difficulty}, #{quiz_count},
+		 member_num, quiz_type, quiz_difficulty, quiz_count, quiz_prompt,
+		created_at ) VALUES ( #{quiz_session_id}, #{subject_id},#{member_num},
+        #{quiz_type}, #{quiz_difficulty}, #{quiz_count},
 		#{quiz_prompt}, SYSDATE ) </insert>
 		
-	<!-- member_num, quiz_image_url 추가하기  -->
+	
 
 	<!-- 생성된 문제 등록 -->
 	<insert id="insertQuiz"
