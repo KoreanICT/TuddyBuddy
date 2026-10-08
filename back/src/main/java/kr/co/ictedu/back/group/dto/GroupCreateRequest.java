@@ -13,4 +13,5 @@ import lombok.Setter;
 public class GroupCreateRequest {
 	private GroupVO group;
 	private List<TagVO> tags = new ArrayList<>();
+	//private Long member_num;
 }

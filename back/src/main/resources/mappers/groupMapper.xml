@@ -1,93 +1,114 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="kr.co.ictedu.back.group.dao.GroupDao">
-    <!-- ==========================================
+	<!-- ==========================================
          STUDYGROUP INSERT
          ========================================== -->
-    <insert id="addGroup" parameterType="groupvo">
-        <!--
+	<insert id="addGroup" parameterType="groupvo">
+		<!--
             INSERT 전에 group_seq.nextval 획득
         -->
-        <selectKey keyProperty="group_num" resultType="long" order="BEFORE">
-            SELECT group_seq.NEXTVAL FROM dual
-        </selectKey>
-        INSERT INTO studygroup (
-            group_num,
-            group_title,
-            group_desc,
-            group_isPrivate,
-            group_maxMembers,
-            group_thumbnail,
-            group_invitecode,
-            created_at
-        ) VALUES (
-            #{group_num},
-            #{group_title},
-            #{group_desc},
-            #{group_isPrivate},
-            #{group_maxMembers},
-            #{group_thumbnail},
-            #{group_invitecode, jdbcType=VARCHAR},
-            SYSDATE
-        )
-    </insert>
-    <!-- ==========================================
+        <selectKey
+			keyProperty="group_num" resultType="long" order="BEFORE">
+			SELECT group_seq.NEXTVAL FROM dual
+		</selectKey> INSERT INTO
+		studygroup ( group_num, group_title, group_desc, group_isPrivate,
+		group_maxMembers, group_thumbnail, group_invitecode, created_at ) VALUES
+		( #{group_num}, #{group_title}, #{group_desc}, #{group_isPrivate},
+		#{group_maxMembers}, #{group_thumbnail, jdbcType=VARCHAR},
+		#{group_invitecode, jdbcType=VARCHAR}, SYSDATE ) </insert>
+	<!-- ==========================================
          태그 부분 검색
          ========================================== -->
-    <select id="searchTags" resultType="tagvo">
-        SELECT
-            tag_num,
-            tag_name,
-            tag_color
-        FROM studytag
-        WHERE LOWER(tag_name)
-              LIKE
-              '%' || LOWER(#{keyword}) || '%'
-        ORDER BY tag_name
-        FETCH FIRST 10 ROWS ONLY
-    </select>
-    <!-- ==========================================
+	<select id="searchTags" resultType="tagvo">
+		SELECT
+		tag_num,
+		tag_name,
+		tag_color
+		FROM studytag
+		WHERE LOWER(tag_name)
+		LIKE
+		'%' || LOWER(#{keyword}) || '%'
+		ORDER BY tag_name
+		FETCH FIRST 10 ROWS ONLY
+	</select>
+	<!-- ==========================================
          태그 이름 정확히 검색
          ========================================== -->
-    <select id="findTagByName" resultType="tagvo">
-        SELECT
-            tag_num,
-            tag_name,
-            tag_color
-        FROM studytag
-        WHERE LOWER(tag_name) = LOWER(#{tag_name})
-    </select>
-    <!-- ==========================================
+	<select id="findTagByName" resultType="tagvo">
+		SELECT
+		tag_num,
+		tag_name,
+		tag_color
+		FROM studytag
+		WHERE LOWER(tag_name) = LOWER(#{tag_name})
+	</select>
+	<!-- ==========================================
          TAG INSERT
          ========================================== -->
-    <insert id="addTag" parameterType="tagvo">
-        <selectKey keyProperty="tag_num" resultType="long" order="BEFORE">
-            SELECT studytag_seq.NEXTVAL FROM dual
-        </selectKey>
-        INSERT INTO studytag (
-            tag_num,
-            tag_name,
-            tag_color
-        ) VALUES (
-            #{tag_num},
-            #{tag_name},
-            #{tag_color}
-        )
-    </insert>
+	<insert id="addTag" parameterType="tagvo">
+		<selectKey keyProperty="tag_num" resultType="long" order="BEFORE">
+			SELECT studytag_seq.NEXTVAL FROM dual
+		</selectKey> INSERT INTO
+		studytag ( tag_num, tag_name, tag_color ) VALUES (#{tag_num},
+		#{tag_name}, #{tag_color} ) </insert>
 
-    <!-- ==========================================
+	<!-- ==========================================
          GROUP_TAG INSERT
          ========================================== -->
-    <insert id="addGroupTag">
-        INSERT INTO group_tag (
-            group_num,
-            tag_num
-        ) VALUES (
-            #{group_num},
-            #{tag_num}
+	<insert id="addGroupTag">
+		INSERT INTO group_tag (
+		group_num,
+		tag_num
+		) VALUES (
+		#{group_num},
+		#{tag_num}
+		)
+	</insert>
+
+	<insert id="addGroupMember" parameterType="groupmembervo">
+		INSERT INTO group_member ( group_num, member_num, is_leader) VALUES
+		(#{group_num}, #{member_num}, #{is_leader})
+	</insert>
+
+	<select id="getGroups" parameterType="Long" resultType="grouplistdto">
+		SELECT g.group_num, g.group_title, g.group_desc, g.group_isPrivate,
+		g.group_maxMembers, g.group_thumbnail, g.group_invitecode, g.created_at,
+		gm.is_leader,
+		(SELECT count(*) FROM group_member gm2 WHERE gm2.group_num =
+		g.group_num) AS current_members
+		FROM studygroup g JOIN group_member gm ON g.group_num = gm.group_num
+		where gm.member_num = #{member_num}
+		ORDER BY created_at desc
+	</select>
+
+	<resultMap id="groupListMap" type="kr.co.ictedu.back.group.dto.GroupListDTO">
+		<id property="group_num" column="group_num" />
+		<result property="group_title" column="group_title" />
+		<result property="group_desc" column="group_desc" />
+		<result property="group_isPrivate" column="group_isPrivate" />
+		<result property="group_maxMembers" column="group_maxMembers" />
+		<result property="group_thumbnail" column="group_thumbnail" />
+		<result property="group_invitecode" column="group_invitecode" />
+		<result property="created_at" column="created_at" />
+		<result property="is_leader" column="is_leader" />
+		<result property="current_members" column="current_members" />
+	</resultMap>
+
+	<resultMap id="groupTagMap" type="kr.co.ictedu.back.group.dto.GroupTagDTO">
+		<result property="group_num" column="group_num" />
+		<result property="tag_num" column="tag_num" />
+		<result property="tag_name" column="tag_name" />
+		<result property="tag_color" column="tag_color" />
+	</resultMap>
+	
+	<select id="getMyGroupsProc" statementType="CALLABLE" parameterType="map">
+    {
+        CALL GET_MY_GROUPS_PROC(
+            #{member_num, mode=IN, jdbcType=NUMERIC},
+            #{group_cursor, mode=OUT, jdbcType=CURSOR, javaType=java.sql.ResultSet, resultMap=groupListMap},
+            #{tag_cursor, mode=OUT, jdbcType=CURSOR, javaType=java.sql.ResultSet, resultMap=groupTagMap}
         )
-    </insert>
-
-
+    }
+	</select>
 </mapper>

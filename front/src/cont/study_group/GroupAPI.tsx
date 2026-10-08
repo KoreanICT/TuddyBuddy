@@ -29,6 +29,13 @@ export interface PrivateStudyItem {
     role: string;
 }
 
+export interface StudyRoomItem {
+    group_num: number;
+    group_title: string;
+    group_desc: string;
+    group_isPrivate: number;
+    group_thumbnail: string;
+}
 /* 스터디룸 생성 컴포넌트 관련 API */
 
 /**
