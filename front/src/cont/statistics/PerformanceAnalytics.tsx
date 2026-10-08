@@ -8,14 +8,18 @@ import { ChartDataState, LLMFeedbackState, Subject } from './types';
 import './PerformanceAnalytics.css';
 
 export default function PerformanceAnalytics() {
-    // 0. 과목 목록 및 선택된 과목 ID (NUMBER 타입 PK 매핑)
+
+    // 유저 고유식별자 member_num 추출
+    const [memberNum, setMemberNum] = useState<number>();
+
+    // 과목 목록 및 선택된 과목 ID (NUMBER 타입 PK 매핑)
     const [subjects, setSubjects] = useState<Subject[]>([]);
     const [selectedSubjectId, setSelectedSubjectId] = useState<number>(1);
 
-    // 1. 차트용 데이터 State
+    // 차트용 데이터 State
     const [chartData, setChartData] = useState<ChartDataState | null>(null);
 
-    // 2. LLM 평가 컨설팅 State
+    // LLM 평가 컨설팅 State
     const [llmFeedback, setLlmFeedback] = useState<LLMFeedbackState | null>(null);
 
     // 로딩 및 에러 상태
@@ -25,27 +29,39 @@ export default function PerformanceAnalytics() {
     // 1. 초기 마운트 시 과목 목록(subjects) 조회
     // --------------------------------------------------------------------------
     useEffect(() => {
-        const fetchSubjects = async () => {
+
+        //더미데이터 반드시 수정할것 > member_num
+        setMemberNum(1)
+
+        const fetchAnalytics = async () => {
+            setLoading(true);
             try {
-                const response = await axios.get('/api/v1/subjects');
-                setSubjects(response.data);
-                if (response.data.length > 0) {
-                    setSelectedSubjectId(response.data[0].subjectId);
+                // 1. 먼저 DB에 저장된 기존 LLM 분석 데이터 조회 (API 2)
+                const savedResponse = await axios.post('/api/v1/analytics/saved', {
+                    memberNum: memberNum,
+                });
+
+                if (savedResponse.data && savedResponse.data.llmFeedback) {
+                    // 기존 데이터가 존재하면 LLM 호출 없이 바로 화면 표시 (토큰 절약)
+                    // 테이블 형태에 맞게 테이터도 변환필요
+                    setChartData(savedResponse.data.chartData);
+                    setLlmFeedback(savedResponse.data.llmFeedback);
+                } else {
+                    // 2. 저장된 기록이 없거나 갱신이 필요한 경우 신규 LLM 분석 요청 (API 1)
+                    const newResponse = await axios.post('/api/v1/analytics/saved', {
+                        memberNum: memberNum,
+                    });
+                    setLlmFeedback(newResponse.data.llmFeedback);
                 }
             } catch (error) {
-                console.warn("과목 목록 조회 실패 -> 테스트용 기본 과목 세팅");
-                const dummySubjects: Subject[] = [
-                    { subjectId: 1, categoryId: 1, subjectName: '정보처리기사 (소프트웨어 설계)', usageCount: 12 },
-                    { subjectId: 2, categoryId: 1, subjectName: '정보처리기사 (데이터베이스 구축)', usageCount: 8 },
-                    { subjectId: 3, categoryId: 2, subjectName: '9급 공무원 (행정학 총론)', usageCount: 5 },
-                ];
-                setSubjects(dummySubjects);
-                setSelectedSubjectId(dummySubjects[0].subjectId);
+                console.error("분석 데이터 로딩 실패:", error);
+            } finally {
+                setLoading(false);
             }
         };
 
-        fetchSubjects();
-    }, []);
+        fetchAnalytics();
+    }, [selectedSubjectId]);
 
     // --------------------------------------------------------------------------
     // 2. 과목 변경 시 데이터 조회 (selfstudy_results 및 quiz_responses 기반 분석)
