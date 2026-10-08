@@ -2,6 +2,7 @@ package kr.co.ictedu.back.chatbot.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
 
 import kr.co.ictedu.back.chatbot.dto.ChatAIRequest;
 import kr.co.ictedu.back.chatbot.dto.ChatAIResponse;
@@ -50,11 +51,34 @@ public class ChatBotService {
 	// 전체 챗봇 처리
 	public ChatAIResponse chat(ChatAIRequest request) {
 		
+		// 사용자 질문 DB 저장
 		saveUserMessage(request);
-		ChatAIResponse response = askAI(request);
-		saveBotMessage(request, response);
 		
-		return response;
+		try {
+			// FastAPI 호출
+			ChatAIResponse response = askAI(request);
+			
+			// AI 답변 DB 저장
+			saveBotMessage(request, response);
+			
+			// 정상 응답 반환
+			return response;
+		
+		} catch (RestClientException e) { // RestClientException : HTTP 통신 관련 예외 클래스
+			// AI 서버 통신 오류 안내
+			ChatAIResponse errorResponse = new ChatAIResponse();
+			
+			errorResponse.setAnswer(
+					"죄송합니다. 현재 답변을 가져오지 못했습니다. 잠시 후 다시 시도해 주세요."
+			);
+			
+			// 오류 안내 DB 저장
+			saveBotMessage(request, errorResponse);
+			
+			// 오류 안내 반환
+			return errorResponse;
+		}
+		
 				
 	}
 }
