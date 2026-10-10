@@ -6,6 +6,7 @@ import fullpage from 'fullpage.js';
 import 'fullpage.js/dist/fullpage.css';
 
 import Modal from './modal/Modal';
+import FocusButton from './focusButton/FocusButton';
 
 const Home: React.FC = () => {
 
@@ -71,6 +72,7 @@ const Home: React.FC = () => {
               <button className={styles.primaryButton} onClick={() => { navigate('/homeGroup') }}>
                 스터디 그룹 참가하기
               </button>
+              <FocusButton />
 
             </div>
 

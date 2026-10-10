@@ -2,17 +2,14 @@ import React from 'react';
 import styles from './face.module.css';
 
 interface FacePanelProps {
-
-    videoRef:
-        React.RefObject<HTMLVideoElement | null>;
+    videoRef: React.RefObject<HTMLVideoElement | null>;
 
     cameraActive: boolean;
     detecting: boolean;
 
     faceDetected: boolean;
     movementDetected: boolean;
-
-    drowsy: boolean;
+    studying: boolean;
 
     startCamera: () => void;
     stopCamera: () => void;
@@ -21,56 +18,30 @@ interface FacePanelProps {
     stopDetection: () => void;
 
     onClose?: () => void;
-
-    setFaceDetected:
-        React.Dispatch<
-            React.SetStateAction<boolean>
-        >;
-
-    setMovementDetected:
-        React.Dispatch<
-            React.SetStateAction<boolean>
-        >;
 }
 
-const FacePanel:
-    React.FC<FacePanelProps> = ({
-
-        videoRef,
-
-        cameraActive,
-        detecting,
-
-        faceDetected,
-        movementDetected,
-
-        drowsy,
-
-        startCamera,
-        stopCamera,
-
-        startDetection,
-        stopDetection,
-
-        onClose,
-
-        setFaceDetected,
-        setMovementDetected
-
-    }) => {
+const FacePanel: React.FC<FacePanelProps> = ({
+    videoRef,
+    cameraActive,
+    detecting,
+    faceDetected,
+    movementDetected,
+    studying,
+    startCamera,
+    stopCamera,
+    startDetection,
+    stopDetection,
+    onClose
+}) => {
 
     return (
         <div className={styles.wrapper}>
-
             <div className={styles.panel}>
 
                 {/* Header */}
                 <div className={styles.header}>
-
                     <div>
-                        <p>
-                            얼굴과 움직임 상태를 감지합니다.
-                        </p>
+                        <p>얼굴과 움직임 상태를 감지합니다.</p>
                     </div>
 
                     {onClose && (
@@ -81,13 +52,10 @@ const FacePanel:
                             ×
                         </button>
                     )}
-
                 </div>
-
 
                 {/* Webcam */}
                 <div className={styles.cameraArea}>
-
                     <video
                         ref={videoRef}
                         muted
@@ -97,44 +65,38 @@ const FacePanel:
                     />
 
                     {!cameraActive && (
-                        <div
-                            className={
-                                styles.cameraPlaceholder
-                            }
-                        >
+                        <div className={styles.cameraPlaceholder}>
                             카메라가 꺼져 있습니다.
                         </div>
                     )}
-
                 </div>
-
 
                 {/* 상태 */}
                 <div className={styles.statusArea}>
-
                     <div className={styles.statusItem}>
                         <span>얼굴 감지</span>
-
                         <strong>
-                            {faceDetected
-                                ? '감지됨'
-                                : '감지 안됨'}
+                            {!detecting
+                                ? '대기'
+                                : faceDetected
+                                    ? '감지됨'
+                                    : '감지 안됨'}
                         </strong>
                     </div>
 
                     <div className={styles.statusItem}>
                         <span>움직임 감지</span>
-
                         <strong>
-                            {movementDetected
-                                ? '감지됨'
-                                : '감지 안됨'}
+                            {!detecting
+                                ? '대기'
+                                : movementDetected
+                                    ? '감지됨'
+                                    : '감지 안됨'}
                         </strong>
                     </div>
 
                     <div className={styles.statusItem}>
                         <span>감지 상태</span>
-
                         <strong>
                             {detecting
                                 ? '감지 중'
@@ -142,20 +104,27 @@ const FacePanel:
                         </strong>
                     </div>
 
+                    <div className={styles.statusItem}>
+                        <span>학습 상태</span>
+                        <strong>
+                            {!detecting
+                                ? '대기'
+                                : studying
+                                    ? '학습 중'
+                                    : '학습 중 아님'}
+                        </strong>
+                    </div>
                 </div>
 
-
-                {/* 졸음 경고 */}
-                {drowsy && (
+                {/* 학습 상태 안내 */}
+                {detecting && !studying && (
                     <div className={styles.warning}>
-                        ⚠ 졸음이 의심됩니다.
+                        ⚠ 학습 상태가 감지되지 않습니다.
                     </div>
                 )}
 
-
                 {/* 버튼 */}
                 <div className={styles.actions}>
-
                     {!cameraActive ? (
                         <button onClick={startCamera}>
                             카메라 시작
@@ -175,39 +144,9 @@ const FacePanel:
                             감지 중지
                         </button>
                     )}
-
-                </div>
-
-
-                {/* 개발용 임시 */}
-                <div className={styles.testArea}>
-
-                    <p>개발용 감지 테스트</p>
-
-                    <button
-                        onClick={() =>
-                            setFaceDetected(
-                                prev => !prev
-                            )
-                        }
-                    >
-                        얼굴 상태 변경
-                    </button>
-
-                    <button
-                        onClick={() =>
-                            setMovementDetected(
-                                prev => !prev
-                            )
-                        }
-                    >
-                        움직임 상태 변경
-                    </button>
-
                 </div>
 
             </div>
-
         </div>
     );
 };

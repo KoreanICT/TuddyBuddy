@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import styles from './userMenu.module.css';
+import FocusButton from '../cont/focusButton/FocusButton';
 
 const UserMenu: React.FC = () => {
     // TODO: 추후 useAuth()로 교체
@@ -103,6 +104,7 @@ const UserMenu: React.FC = () => {
                     <NavLink to="/friend/list" onClick={closeMenu}>
                         내 친구
                     </NavLink>
+                    <FocusButton />
                 </nav>
 
                 {/* Logout */}

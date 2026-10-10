@@ -5,25 +5,40 @@
 
 	<!-- 친구 요청 -->
 	<insert id="add" parameterType="frvo">
-		INSERT INTO friend (num, status, requested_date, responsed_date, request_num, response_num)
-		VALUES (friend_seq.NEXTVAL, 'PENDING', SYSDATE, NULL, #{request_num}, #{response_num})
+		INSERT INTO friend (num, status, requested_date, responsed_date,
+		request_num, response_num)
+		VALUES (friend_seq.NEXTVAL, 'PENDING', SYSDATE, NULL, #{request_num},
+		#{response_num})
 	</insert>
+
+	<!-- 친구 중복 요청 확인 -->
+	<select id="checkDuplicate" resultType="int">
+		SELECT COUNT(*) FROM friend
+		WHERE ((request_num = #{request_num} AND response_num = #{response_num})
+		OR
+		(request_num = #{response_num} AND response_num = #{request_num}))
+		AND status IN ('PENDING', 'ACCEPTED')
+	</select>
 
 	<!-- 받은 친구 요청 목록 -->
 	<select id="requestList" parameterType="long" resultType="frvo">
-		SELECT num, status, requested_date, responsed_date, request_num, response_num FROM friend
-		WHERE response_num = #{response_num} AND status = 'PENDING' ORDER BY num DESC
+		SELECT num, status, requested_date, responsed_date, request_num,
+		response_num FROM friend
+		WHERE response_num = #{response_num} AND status = 'PENDING' ORDER BY num
+		DESC
 	</select>
 
 	<!-- 보낸 친구 요청 목록 -->
 	<select id="responseList" parameterType="long" resultType="frvo">
-		SELECT num, status, requested_date, responsed_date, request_num, response_num FROM friend
+		SELECT num, status, requested_date, responsed_date, request_num,
+		response_num FROM friend
 		WHERE request_num = #{request_num} ORDER BY num DESC
 	</select>
 
 	<!-- 친구 요청 상세 조회 -->
 	<select id="detail" parameterType="long" resultType="frvo">
-		SELECT num, status, requested_date, responsed_date, request_num, response_num
+		SELECT num, status, requested_date, responsed_date, request_num,
+		response_num
 		FROM friend WHERE num = #{num}
 	</select>
 
@@ -41,15 +56,19 @@
 
 	<!-- 친구 목록 -->
 	<select id="friendList" parameterType="long" resultType="frvo">
-		SELECT num, status, requested_date, responsed_date, request_num, response_num
+		SELECT num, status, requested_date, responsed_date, request_num,
+		response_num
 		FROM friend WHERE status = 'ACCEPTED'
 		AND (request_num = #{member_num} OR response_num = #{member_num})
 		ORDER BY responsed_date DESC
 	</select>
 
 	<!-- 친구 삭제 -->
-	<delete id="del" parameterType="long">
-		DELETE FROM friend WHERE num = #{num}
+	<delete id="del">
+		DELETE FROM friend
+		WHERE num = #{num}
+		AND status = 'ACCEPTED'
+		AND (request_num = #{member_num} OR response_num = #{member_num})
 	</delete>
 
 </mapper>

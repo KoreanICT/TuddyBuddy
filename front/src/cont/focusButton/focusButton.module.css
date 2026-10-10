@@ -1,8 +1,4 @@
 .focusButton {
-    position: fixed;
-    top: 92px;
-    left: 24px;
-    z-index: 1200;
     padding: 10px 16px;
     border: none;
     border-radius: var(--radius-sm);
@@ -19,14 +15,13 @@
 
 .focusButton:hover {
     background-color: var(--primary-hover);
-
     transform: translateY(-1px);
 }
 
 .focusModal {
     position: fixed;
     z-index: 1300;
-    width: 360px;   
+    width: 360px;
     max-width: calc(100vw - 20px);
     max-height: calc(100vh - 20px);
     overflow-y: auto;
@@ -56,17 +51,10 @@
 
 .dragHandle span {
     color: var(--text-secondary);
-
     font-size: 16px;
 }
 
 @media (max-width: 768px) {
-
-    .focusButton {
-        top: 84px;
-        left: 12px;
-    }
-
     .focusModal {
         width: 340px;
         max-width: calc(100vw - 20px);
