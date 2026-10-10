@@ -5,6 +5,7 @@ import { MainTabContent } from './MainTabContent';
 import { RightSidebar } from './RightSidebar';
 import QuizModal from './QuizModal';
 
+
 import {
   Quiz,
   MainTabType,
@@ -330,6 +331,7 @@ const SelfStudy: React.FC = () => {
     <div className={styles.container}>
       {/* Header */}
       <SelfStudyHeader />
+      
       <div className={styles.layoutWrapper}>
 
         {/* ================================================
