@@ -42,16 +42,20 @@
 		FROM friend WHERE num = #{num}
 	</select>
 
+
 	<!-- 친구 요청 수락 -->
-	<update id="accept" parameterType="long">
+	<update id="accept">
 		UPDATE friend SET status = 'ACCEPTED', responsed_date = SYSDATE
-		WHERE num = #{num} AND status = 'PENDING'
+		WHERE num = #{num} AND response_num = #{response_num} AND status =
+		'PENDING'
 	</update>
 
+
 	<!-- 친구 요청 거절 -->
-	<update id="reject" parameterType="long">
+	<update id="reject">
 		UPDATE friend SET status = 'REJECTED', responsed_date = SYSDATE
-		WHERE num = #{num} AND status = 'PENDING'
+		WHERE num = #{num} AND response_num = #{response_num} AND status =
+		'PENDING'
 	</update>
 
 	<!-- 친구 목록 -->

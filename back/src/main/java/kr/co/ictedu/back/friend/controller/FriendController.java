@@ -26,22 +26,23 @@ public class FriendController {
 	private FriendService friendService;
 
 	// 친구 요청
-    @PostMapping("/friendAdd")
-    public ResponseEntity<?> friendAdd(@ModelAttribute FriendVO vo) {
-        try {
-            friendService.add(vo);
-            System.out.println("친구 요청 성공");
-            return ResponseEntity.ok().body("친구 요청 성공!");
-        } catch (IllegalArgumentException e) {
-            System.out.println("친구 요청 실패: " + e.getMessage());
+	@PostMapping("/friendAdd")
+	public ResponseEntity<?> friendAdd(@ModelAttribute FriendVO vo) {
+		try {
+			friendService.add(vo);
+			System.out.println("친구 요청 성공");
+			return ResponseEntity.ok().body("친구 요청 성공!");
+		} catch (IllegalArgumentException e) {
+			System.out.println("친구 요청 실패: " + e.getMessage());
 
-            if (e.getMessage().contains("이미 친구")) {
-                return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
-            }
+			if (e.getMessage().contains("이미 친구")) {
+				return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+			}
 
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-    }
+			return ResponseEntity.badRequest().body(e.getMessage());
+		}
+	}
+
 	// 받은 친구 요청 목록
 	@GetMapping("/friendRequestList")
 	public List<FriendVO> friendRequestList(@RequestParam("response_num") Long response_num) {
@@ -63,30 +64,30 @@ public class FriendController {
 		return friendService.detail(num);
 	}
 
+	// 친구 요청 수락
+	@PutMapping("/friendAccept")
+	public ResponseEntity<?> friendAccept(@RequestParam("num") Long num,
+			@RequestParam("response_num") Long response_num) {
+		try {
+			friendService.accept(num, response_num);
+			return ResponseEntity.ok("친구 요청을 수락했습니다.");
+		} catch (IllegalArgumentException e) {
+			return ResponseEntity.badRequest().body(e.getMessage());
+		}
+	}
 
-    // 친구 요청 수락
-    @PutMapping("/friendAccept")
-    public ResponseEntity<?> friendAccept(@RequestParam("num") Long num) {
-        try {
-            friendService.accept(num);
-            System.out.println("친구 요청 수락 성공");
-            return ResponseEntity.ok().body("요청 수락");
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-    }
+	// 친구 요청 거절
+	@PutMapping("/friendReject")
+	public ResponseEntity<?> friendReject(@RequestParam("num") Long num,
+			@RequestParam("response_num") Long response_num) {
+		try {
+			friendService.reject(num, response_num);
+			return ResponseEntity.ok("친구 요청을 거절했습니다.");
+		} catch (IllegalArgumentException e) {
+			return ResponseEntity.badRequest().body(e.getMessage());
+		}
+	}
 
-    // 친구 요청 거절
-    @PutMapping("/friendReject")
-    public ResponseEntity<?> friendReject(@RequestParam("num") Long num) {
-        try {
-            friendService.reject(num);
-            System.out.println("친구 요청 거절 성공");
-            return ResponseEntity.ok().body("요청 거절");
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-    }
 	// 친구 목록
 	@GetMapping("/friendList")
 	public List<FriendVO> friendList(@RequestParam("member_num") Long member_num) {
@@ -97,12 +98,12 @@ public class FriendController {
 	// 친구 삭제
 	@DeleteMapping("/friendDelete")
 	public ResponseEntity<?> friendDelete(@RequestParam("num") Long num, @RequestParam("member_num") Long member_num) {
-	    try {
-	        friendService.del(num, member_num);
-	        System.out.println("친구 삭제 성공");
-	        return ResponseEntity.ok().body("삭제 성공");
-	    } catch (IllegalArgumentException e) {
-	        return ResponseEntity.badRequest().body(e.getMessage());
-	    }
+		try {
+			friendService.del(num, member_num);
+			System.out.println("친구 삭제 성공");
+			return ResponseEntity.ok().body("삭제 성공");
+		} catch (IllegalArgumentException e) {
+			return ResponseEntity.badRequest().body(e.getMessage());
+		}
 	}
 }
