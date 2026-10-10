@@ -36,23 +36,17 @@ export default function PerformanceAnalytics() {
         const fetchAnalytics = async () => {
             setLoading(true);
             try {
-                // 1. 먼저 DB에 저장된 기존 LLM 분석 데이터 조회 (API 2)
-                const savedResponse = await axios.post('/api/v1/analytics/saved', {
+                // 1. 먼저 DB에 저장된 성적 데이터 수집
+                const savedResponse = await axios.post('/api/analytics', {
                     memberNum: memberNum,
                 });
 
-                if (savedResponse.data && savedResponse.data.llmFeedback) {
-                    // 기존 데이터가 존재하면 LLM 호출 없이 바로 화면 표시 (토큰 절약)
-                    // 테이블 형태에 맞게 테이터도 변환필요
-                    setChartData(savedResponse.data.chartData);
-                    setLlmFeedback(savedResponse.data.llmFeedback);
-                } else {
-                    // 2. 저장된 기록이 없거나 갱신이 필요한 경우 신규 LLM 분석 요청 (API 1)
-                    const newResponse = await axios.post('/api/v1/analytics/saved', {
-                        memberNum: memberNum,
-                    });
-                    setLlmFeedback(newResponse.data.llmFeedback);
-                }
+                // 타입가드
+                if (!savedResponse.data && !savedResponse.data.chartData) return;
+                    
+                setChartData(savedResponse.data.chartData);
+                setLlmFeedback(savedResponse.data.statistics);
+
             } catch (error) {
                 console.error("분석 데이터 로딩 실패:", error);
             } finally {
@@ -73,7 +67,7 @@ export default function PerformanceAnalytics() {
             setLoading(true);
             try {
                 // 스프링부트 API 호출: /api/v1/analytics/subjects/{subjectId}
-                const response = await axios.get(`/api/v1/analytics/subjects/${selectedSubjectId}`);
+                const response = await axios.get(`/api/analytics`);
 
                 setChartData(response.data.chartData);
                 setLlmFeedback(response.data.llmFeedback);
