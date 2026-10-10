@@ -114,6 +114,7 @@ export interface GroupSidebarProps {
     onSearchTypeChange: (type: 'name' | 'tag') => void;
     searchTerm: string;
     onSearchChange: (value: string) => void;
+    onOpenInviteModal: () => void;
 }
 
 /* 스터디룸 상세 탭 사이드바 관련 API */

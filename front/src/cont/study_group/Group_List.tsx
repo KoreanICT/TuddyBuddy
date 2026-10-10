@@ -1,98 +1,172 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import styles from './group.module.css';
-import { PublicStudyItem } from './GroupAPI';
+import { TagItem } from './GroupAPI';
+import axios from 'axios';
+import { NavLink } from 'react-router-dom';
 
 interface GroupPublicProps {
+    mode: 'my' | 'public';
     searchType: 'name' | 'tag';
     searchTerm: string;
 }
 
-const mockPublicStudies: PublicStudyItem[] = [
-    {
-        id: 101,
-        title: '프론트엔드 CSS 지식 면접 대비반',
-        description: '면접 대비 CSS 공부',
-        tags: ['CSS', '면접', 'React'],
-        currentMembers: 3,
-        maxCapacity: 5,
-    },
-    {
-        id: 102,
-        title: '커뮤니티 토이 프로젝트',
-        description: 'React + Spring Boot 커뮤니티 포트폴리오 스터디',
-        tags: ['React', 'Spring', '프로젝트'],
-        currentMembers: 10,
-        maxCapacity: 10,
-    },
-    {
-        id: 103,
-        title: 'TypeScript 초보 모여라',
-        description: '기초 문법 익히며 타입스크립트 고수가 되고 싶은 분들 환영',
-        tags: ['TypeScript', '기초'],
-        currentMembers: 12,
-        maxCapacity: 20,
-    },
-    {
-        id: 104,
-        title: '파이썬 pandas 기초부터',
-        description: '빅데이터 및 ai 관련 학습할 사람 모집',
-        tags: ['Python', 'pandas'],
-        currentMembers: 8,
-        maxCapacity: 20,
-    },
-];
+export interface GroupListItem {
+    group_num: number;
+    group_title: string;
+    group_desc: string;
 
-export const Group_Public: React.FC<GroupPublicProps> = ({ searchType, searchTerm }) => {
-    const filteredStudies = mockPublicStudies.filter((study) => {
-        if (!searchTerm.trim()) return true;
-        if (searchType === 'name') {
-            return study.title.toLowerCase().includes(searchTerm.toLowerCase());
-        } else {
-            return study.tags.some((tag) => tag.toLowerCase().includes(searchTerm.toLowerCase()));
+    group_isPrivate: number;
+    group_maxMembers: number;
+
+    group_thumbnail: string | null;
+    group_invitecode: string | null;
+
+    created_at: string;
+
+    current_members: number;
+
+    // 내 스터디룸에서 사용
+    is_leader?: number;
+
+    tags: TagItem[];
+}
+
+export const Group_List: React.FC<GroupPublicProps> = ({ mode, searchType, searchTerm }) => {
+    const [groups, setGroups] = useState<GroupListItem[]>([]);
+    const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        const loadGroups = async () => {
+            try {
+                setLoading(true);
+                const data = mode === 'my' ? await getMyGroups() : await getPublicGroups();
+                setGroups(data);
+            } catch (error) {
+                console.error('스터디룸 조회 실패', error)
+            } finally {
+                setLoading(false);
+            }
+        };
+        loadGroups();
+    }, [mode]);
+
+    const filteredGroups = groups.filter(group => {
+        if (!searchTerm.trim()) {
+            return true;
         }
+        const keyword = searchTerm.toLowerCase();
+        if (searchType === 'name') {
+            return group.group_title.toLowerCase().includes(keyword);
+        }
+
+        return group.tags.some(tag => tag.tag_name.toLowerCase().includes(keyword));
     });
 
+    const getFirstLetter = (title: string) => {
+        const trimmed = title.trim();
+
+        return Array.from(trimmed)[0] ?? '?';
+    }
+    // 내 스터디룸
+    const getMyGroups = async (): Promise<GroupListItem[]> => {
+        const response = await axios.get(
+            `http://192.168.0.11/back/api/group/getmyrooms`
+        );
+
+        return response.data;
+    };
+    // 공개 스터디룸
+    const getPublicGroups = async (): Promise<GroupListItem[]> => {
+        const response = await axios.get(
+            `http://192.168.0.11/back/api/group/public`
+        );
+
+        return response.data;
+    };
+    // 초대 코드로 입장
+    const joinGroupByInviteCode = async (
+        inviteCode: string
+    ) => {
+        const response = await axios.post(
+            `http://192.168.0.11/back/api/group/join/invite`,
+            {
+                inviteCode
+            }
+        );
+        return response.data;
+    };
     return (
         <section className={styles.study_main_content}>
-            <div className={styles.study_section_header}>
-                <h2>공개된 스터디룸 목록</h2>
-            </div>
 
             <div className={styles.study_list_wrapper}>
-                {filteredStudies.length > 0 ? (
-                    filteredStudies.map((study) => {
-                        const isFull = study.currentMembers >= study.maxCapacity;
+                {loading ? (
+                    <div>
+                        스터디룸을 불러오는 중입니다.
+                    </div>
+                ) : filteredGroups.length > 0 ? (
+                    filteredGroups.map(group => {
+                        const isFull = group.current_members >= group.group_maxMembers;
                         return (
-                            <div key={study.id} className={styles.study_card}>
+                            <div key={group.group_num} className={styles.study_card}>
                                 <div className={styles.study_card_header}>
-                                    <h3 className={styles.study_card_title}>{study.title}</h3>
+                                    <div className={styles.study_thumbnail}>
+                                        {group.group_thumbnail ? (
+                                            <img src={`http://192.168.0.11/back/api/group/thumbnail/` + encodeURIComponent(group.group_thumbnail)} alt="" className={styles.study_thumbnail_img} />
+                                        ) : (
+                                            <span>
+                                                {getFirstLetter(group.group_title)}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <div className={styles.study_card_text}>
+                                        <h3 className={styles.study_card_title}>{group.group_title}</h3>
+                                        <p className={styles.study_card_desc}>{group.group_desc}</p>
+                                    </div>
+
+                                    {mode === 'my' && (
+                                        <span className={`${styles.study_badge} ${styles.my_role}`}>
+                                            {group.is_leader === 1 ? '방장' : '멤버'}
+                                        </span>
+                                    )}
                                 </div>
-                                <p className={styles.study_card_desc}>{study.description}</p>
+                                <div className={styles.study_card_divider} />
+
                                 <div className={styles.study_card_footer}>
                                     <div className={styles.study_tags}>
-                                        {study.tags.map((tag, idx) => (
-                                            <span key={idx} className={styles.study_tag}>{tag}</span>
+                                        {group.tags.map(tag => (
+                                            <span key={tag.tag_num ?? tag.tag_name} className={styles.study_tag} style={{ backgroundColor: tag.tag_color }}>
+                                                {tag.tag_name}
+                                            </span>
                                         ))}
                                     </div>
                                     <div className={styles.study_card_info}>
-                                        <span className={`${styles.study_capacity} ${isFull ? 'full' : ''}`}>
-                                            인원: {study.currentMembers} / {study.maxCapacity}명
+                                        <span className={styles.study_capacity}>
+                                            인원:{' '} {group.current_members} {' / '}{group.group_maxMembers}명
                                         </span>
-                                        <button
-                                            className={`${styles.study_action_btn} ${isFull ? `${styles.disabled}` : `${styles.primary}`}`}
-                                            disabled={isFull}
-                                            onClick={()=>{alert("참여 신청 완료.")}}
-                                        >
-                                            {isFull ? '정원 초과' : '참여하기'}
-                                        </button>
+                                        {mode === 'my' ? (
+                                            <NavLink
+                                                to={`/group/detail/${group.group_num}`}
+                                                className={`${styles.study_action_btn} ${styles.primary}`}
+                                            >
+                                                입장하기
+                                            </NavLink>
+                                        ) : (
+                                            <button
+                                                type="button"
+                                                disabled={isFull}
+                                                className={`${styles.study_action_btn} ${isFull ? styles.disabled : styles.primary}`}
+                                            >
+                                                {isFull ? '정원 초과' : '참여하기'}
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
                             </div>
                         );
                     })
                 ) : (
-                    <div className="study-empty-card">
-                        조회된 공개 스터디룸이 없습니다.
+                    <div className={styles.study_empty_card}>
+                        조회된 스터디룸이 없습니다.
                     </div>
                 )}
             </div>

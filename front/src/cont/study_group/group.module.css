@@ -1,6 +1,7 @@
 /* 레이아웃 */
 .study_page_layout {
     display: flex;
+    align-items: flex-start;
     gap: 32px;
     margin-top: 32px;
     margin-bottom: 32px;
@@ -14,12 +15,37 @@
 }
 
 .study_section_header h2 {
-    font-size: 20px;
+    font-size: 22px;
     font-weight: 700;
     color: var(--text);
     margin-bottom: 8px;
+    margin-top: 24px;
+}
+.study_section_header p {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+.study_thumbnail {
+    width: 56px;
+    height: 56px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: var(--radius-md);
+    background-color: var(--primary);
+    color: var(--background);
+    font-size: 24px;
+    font-weight: 700;
 }
 
+.study_thumbnail_img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
 /* 카드 목록 */
 .study_list_wrapper {
     display: flex;
@@ -36,22 +62,33 @@
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 2px;
+}
+.study_card_text {
+    flex: 1;
+    min-width: 0;
+
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
 }
 
 .study_card_header {
     display: flex;
     justify-content: space-between;
+    gap: 20px;
     align-items: center;
 }
 
 .study_card_title {
+    margin: 0;
     font-size: 17px;
     font-weight: 700;
     color: var(--text);
 }
 
 .study_card_desc {
+    margin: 0;
     font-size: 14px;
     color: var(--text-secondary);
 }
@@ -73,13 +110,16 @@
 
 .study_tag {
     font-size: 12px;
-    color: var(--primary);
+    font-weight: 500;
+    color: #1e293b;
     background-color: var(--background-secondary);
     padding: 4px 8px;
-    border-radius: var(--radius-sm);
+    border-radius: 12px;
 }
 
 .study_badge.my_role {
+    margin-left:auto;
+    align-self: flex-start;
     font-size: 12px;
     font-weight: 600;
     padding: 2px 8px;

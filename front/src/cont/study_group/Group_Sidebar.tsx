@@ -10,6 +10,7 @@ export const Group_Sidebar: React.FC<GroupSidebarProps> = ({
     onSearchTypeChange,
     searchTerm,
     onSearchChange,
+    onOpenInviteModal,
 }) => {
     return (
         <aside className={styles.study_sidebar_container}>
@@ -29,6 +30,12 @@ export const Group_Sidebar: React.FC<GroupSidebarProps> = ({
                     onClick={() => onTabChange('public')}
                 >
                     공개된 스터디룸
+                </button>
+
+                <div className={styles.study_menu_divider} />
+
+                <button className={styles.study_menu_button} onClick={onOpenInviteModal}>
+                    초대코드로 입장하기
                 </button>
 
                 <div className={styles.study_menu_divider} />

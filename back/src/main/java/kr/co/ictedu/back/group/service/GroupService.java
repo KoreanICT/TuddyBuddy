@@ -123,6 +123,7 @@ public class GroupService {
 		Map<String, Object> params = new HashMap<>();
 		params.put("member_num", memberNum);
 		dao.getMyGroupsProc(params);
+		//제너릭을 사용하더라도 params가 object type으로 오기 때문에 type safe관련 경고문이 출력되는 것을 방지하기 위해 @SuppressWarnings를 사용
 		@SuppressWarnings("unchecked") List<GroupListDTO> groups = (List<GroupListDTO>) params.get("group_cursor");
 		@SuppressWarnings("unchecked") List<GroupTagDTO> tags = (List<GroupTagDTO>) params.get("tag_cursor");
 		

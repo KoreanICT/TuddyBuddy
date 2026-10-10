@@ -1,5 +1,6 @@
 package kr.co.ictedu.back.group.dto;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,5 +21,6 @@ public class GroupListDTO {
 	private String group_thumbnail;
 	private int current_members;
 	private int is_leader;
+	private LocalDateTime created_at;
 	private List<TagVO> tags = new ArrayList<>();
 }
