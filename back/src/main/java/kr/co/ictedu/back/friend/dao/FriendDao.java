@@ -26,10 +26,10 @@ public interface FriendDao {
     FriendVO detail(Long num);
 
     // 친구 요청 수락
-    int accept(Long num);
+    int accept(@Param("num") Long num, @Param("response_num") Long response_num);
 
     // 친구 요청 거절
-    int reject(Long num);
+    int reject(@Param("num") Long num, @Param("response_num") Long response_num);
 
     // 친구 목록
     List<FriendVO> friendList(Long member_num);

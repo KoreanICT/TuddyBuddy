@@ -26,6 +26,8 @@ const FaceDetector: React.FC<FaceDetectorProps> = ({ onClose }) => {
     const [movementDetected, setMovementDetected] = useState(false);
     const [studying, setStudying] = useState(false);
 
+    const errorHandledRef = useRef(false);
+
     // =========================
     // 카메라 시작
     // =========================
@@ -87,13 +89,11 @@ const FaceDetector: React.FC<FaceDetectorProps> = ({ onClose }) => {
             alert('먼저 카메라를 실행해주세요.');
             return;
         }
-
+        errorHandledRef.current = false;
         setDetecting(true);
     };
 
-    // =========================
     // 감지 중지
-    // =========================
     const stopDetection = () => {
         setDetecting(false);
         setFaceDetected(false);
@@ -101,9 +101,7 @@ const FaceDetector: React.FC<FaceDetectorProps> = ({ onClose }) => {
         setStudying(false);
     };
 
-    // =========================
     // FastAPI 감지 요청
-    // =========================
     useEffect(() => {
         if (!detecting) {
             return;
@@ -111,18 +109,15 @@ const FaceDetector: React.FC<FaceDetectorProps> = ({ onClose }) => {
 
         const detect = async () => {
             const video = videoRef.current;
-
             if (!video || video.videoWidth === 0 || video.videoHeight === 0) {
                 return;
             }
 
             const canvas = document.createElement('canvas');
-
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
 
             const context = canvas.getContext('2d');
-
             if (!context) {
                 return;
             }
@@ -153,9 +148,12 @@ const FaceDetector: React.FC<FaceDetectorProps> = ({ onClose }) => {
                             body: formData
                         }
                     );
+                    if (!response.ok) {
+                        throw new Error(`FastAPI 서버 오류: ${response.status}`);
+                    }
 
                     const data: DetectResponse = await response.json();
-
+                    if (errorHandledRef.current) return;
                     if (!data.success) {
                         return;
                     }
@@ -169,7 +167,13 @@ const FaceDetector: React.FC<FaceDetectorProps> = ({ onClose }) => {
                     }
 
                 } catch (error) {
+                    if (errorHandledRef.current) return;
+                    errorHandledRef.current = true;
+
                     console.error('학습 집중 감지 오류:', error);
+                    stopCamera();
+                    alert('학습 집중 서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.');
+                    onClose?.();
                 }
             }, 'image/jpeg');
         };
@@ -182,9 +186,7 @@ const FaceDetector: React.FC<FaceDetectorProps> = ({ onClose }) => {
 
     }, [detecting]);
 
-    // =========================
     // 컴포넌트 종료 시 카메라 정리
-    // =========================
     useEffect(() => {
         return () => {
             if (videoRef.current) {
