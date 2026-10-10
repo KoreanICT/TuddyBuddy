@@ -31,13 +31,13 @@ public class ChatAIService {
     			new JdkClientHttpRequestFactory(httpClient);
     	
         this.restClient = RestClient.builder()
-        		.baseUrl("http://192.168.0.72:8000")
+        		.baseUrl("http://192.168.0.72:8000") // 나중에 application.properties에 분리하기
         		.requestFactory(requestFactory)
         		.build();
     }
 	
 
-	// 질문 정보 ChatAIResponse로 반환
+	// FastAPI에 질문을 전달하고 AI 응답 반환
 	public ChatAIResponse askAI(ChatAIRequest request) {
 		
 		// FastAPI에 전달할 데이터 생성
@@ -50,7 +50,7 @@ public class ChatAIService {
 		return restClient.post()						// POST 요청
 				.uri("/chat") 							// 요청 주소 (http://192.168.0.72:8000/chat)
 				.contentType(MediaType.APPLICATION_JSON)// 요청 데이터 형식을 JSON으로 지정
-				.body(request)							// Java 객체 -> 요청 Body(JSON)
+				.body(fastAPIRequest)							// Java 객체 -> 요청 Body(JSON)
 				.retrieve()								// HTTP 응답 처리
 				.body(ChatAIResponse.class);			// 응답 Body(JSON) -> Java 객체
 	}

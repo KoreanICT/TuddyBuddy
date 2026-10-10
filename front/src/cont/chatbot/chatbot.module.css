@@ -105,3 +105,28 @@
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
 }
+
+
+/* AI 답변 대기 메시지 */
+.loadingMessage {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* 로딩 아이콘 */
+.loadingIcon {
+    flex-shrink: 0;
+    animation: loadingSpin 1s linear infinite;
+}
+
+/* 회전 애니메이션 */
+@keyframes loadingSpin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
