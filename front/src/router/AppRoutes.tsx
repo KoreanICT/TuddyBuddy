@@ -27,8 +27,10 @@ import StudyManagement from "../cont/admin/study_group/StudyManagement";
 import AuthLayout from "../layout/auth/AuthLayout";
 import SelfStudy from "../cont/selfStudy/SelfStudy";
 import Community from "../cont/community/Community";
+
 import PointHistory from "../mypage/PointHistory";
 import Member_Edit from "../mypage/Member_edit";
+
 import ReportReplyList from "../cont/report/ReportReplyList";
 import ReportReplyDetail from "../cont/report/ReportReplyDetail";
 import FriendRequestList from "../cont/friend/FriendRequestList";
@@ -37,6 +39,7 @@ import AdminNoticeList from "../cont/admin/notice/AdminNoticeList";
 import AdminNoticeForm from "../cont/admin/notice/AdminNoticeForm";
 import NoticeList from "../cont/notice/NoticeList";
 import NoticeDetail from "../cont/notice/NoticeDetail";
+
 
 interface RouteItem {
     path: string;

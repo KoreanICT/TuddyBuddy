@@ -49,4 +49,5 @@ public class MemberVO {
 
     // 소셜 로그인 ID
     private String member_social_id;
+
 }

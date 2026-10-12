@@ -679,65 +679,7 @@ TuddyBuddy(이하 "회사")는 회원가입, 원활한 고객 상담, 각종 서
             />
 
           </div>
-
-
-          {/* 가입 유형 */}
-
-          <div className="signup-input-group">
-
-            <label>
-              가입 유형
-            </label>
-
-            <div className="signup-radio-group">
-
-              <label className="signup-radio">
-
-                <input
-                  type="radio"
-                  name="authority"
-                  defaultChecked
-                />
-
-                <span>
-                  학생
-                </span>
-
-              </label>
-
-
-              <label className="signup-radio">
-
-                <input
-                  type="radio"
-                  name="authority"
-                />
-
-                <span>
-                  선생님
-                </span>
-
-              </label>
-
-
-              <label className="signup-radio">
-
-                <input
-                  type="radio"
-                  name="authority"
-                />
-
-                <span>
-                  관리자
-                </span>
-
-              </label>
-
-            </div>
-
-          </div>
-
-
+          
           {/* 약관 */}
 
           <div className="signup-agreement">
