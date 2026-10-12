@@ -69,7 +69,7 @@ export const searchGroupTags = async (
     keyword: string
 ): Promise<TagItem[]> => {
     const response = await axios.get<TagItem[]>(
-        `http://192.168.0.11/back/api/group/tags/search`,
+        `http://localhost/back/api/group/tags/search`,
         {
             params: {
                 keyword
@@ -96,7 +96,7 @@ export const createGroup = async (requestData: GroupCreateRequest,thumbnail: Fil
         formData.append('thumbnail',thumbnail);
     }
     const response = await axios.post(
-        `http://192.168.0.11/back/api/group/add`,
+        `http://localhost/back/api/group/add`,
         formData
     );
     return response.data.group_num;
@@ -116,7 +116,21 @@ export interface GroupSidebarProps {
     onSearchChange: (value: string) => void;
     onOpenInviteModal: () => void;
 }
+/**
+ * 초대코드 모달 관련 API
+ */
 
+export const joinGroupByInviteCode = async (
+        inviteCode: string
+    ) => {
+        const response = await axios.post(
+            `http://localhost/back/api/group/join/invite`,
+            {
+                inviteCode
+            }
+        );
+        return response.data;
+    };
 /* 스터디룸 상세 탭 사이드바 관련 API */
 
 /**
@@ -136,6 +150,22 @@ export interface SidebarDirection {
     alias: DetailTab;
     detail: string;
 }
+
+/**
+ * 문자열 첫 글자 가져오기 관련 API
+ */
+export const getFirstLetter = (title: string) => {
+    const trimmed = title.trim();
+
+    return Array.from(trimmed)[0] ?? '?';
+}
+/**
+ * groupNum 조회 관련 API
+ */
+export interface GetGroupNum {
+    groupNum: number;
+}
+
 /* Member 컴포넌트 관련 API */
 
 /**

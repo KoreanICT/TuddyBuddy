@@ -712,10 +712,13 @@
 .header_menu_wrapper {
     position: relative;
 
-    /* flex 내부에서 가장 오른쪽으로 밀어냄 */
     margin-left: auto;
-
     flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
 }
 
 

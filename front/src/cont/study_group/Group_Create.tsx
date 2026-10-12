@@ -90,7 +90,7 @@ export const Group_Create: React.FC<GroupCreateModalProps> = ({ isOpen, onClose,
                 );
             }
             return (
-                selectedTag.tag_name.toLowerCase()===tag.tag_name.toLowerCase()
+                selectedTag.tag_name.toLowerCase() === tag.tag_name.toLowerCase()
             );
         });
 
@@ -147,10 +147,10 @@ export const Group_Create: React.FC<GroupCreateModalProps> = ({ isOpen, onClose,
     };
 
     const handleRemoveTag = (index: number) => {
-        setTags(tags.filter((_,i) => i !== index));
+        setTags(tags.filter((_, i) => i !== index));
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.SubmitEvent) => {
         e.preventDefault();
 
         if (!title.trim() || !description.trim()) {
@@ -170,11 +170,11 @@ export const Group_Create: React.FC<GroupCreateModalProps> = ({ isOpen, onClose,
                 group_isPrivate: isPrivate ? 1 : 0,
                 group_maxMembers: maxMembers,
                 group_thumbnail: null,
-                group_invitecode: isPrivate ?  inviteCode : null
+                group_invitecode: isPrivate ? inviteCode : null
             },
             tags
         };
-        
+
         try {
             setSubmitting(true);
             const groupNum = await createGroup(requestData, thumbnail);
@@ -183,13 +183,13 @@ export const Group_Create: React.FC<GroupCreateModalProps> = ({ isOpen, onClose,
             if (onSubmitSuccess) onSubmitSuccess(groupNum);
             onClose();
 
-        } catch(error) {
+        } catch (error) {
             console.error('스터디룸 생성 실패:', error);
             alert('스터디룸 생성 중 오류가 발생했습니다.');
         } finally {
             setSubmitting(false);
         }
-        console.log('thumbnail:' , thumbnail);
+        console.log('thumbnail:', thumbnail);
         console.log('thumbnail name: ', thumbnail?.name);
     };
 
@@ -237,47 +237,22 @@ export const Group_Create: React.FC<GroupCreateModalProps> = ({ isOpen, onClose,
                         </div>
 
                         {/* 2. 스터디룸 이름 (우측 공간 전체 차지) */}
-                        <div
-                            className={
-                                styles.title_field
-                            }
-                        >
-
-                            <label
-                                className={
-                                    styles.form_label
-                                }
-                            >
+                        <div className={styles.title_field}>
+                            <label className={styles.form_label}>
                                 스터디룸 이름
-
-                                <span
-                                    className={
-                                        styles.required
-                                    }
-                                >
+                                <span className={styles.required}>
                                     *
                                 </span>
                             </label>
-
-
                             <input
                                 type="text"
-                                className={
-                                    styles.form_input
-                                }
+                                className={styles.form_input}
                                 placeholder="예: 프론트엔드 CS 지식 면접 스터디"
                                 value={title}
-                                onChange={
-                                    e =>
-                                        setTitle(
-                                            e.target.value
-                                        )
-                                }
+                                onChange={e => setTitle(e.target.value)}
                                 required
                             />
-
                         </div>
-
                     </div>
 
 
@@ -285,83 +260,41 @@ export const Group_Create: React.FC<GroupCreateModalProps> = ({ isOpen, onClose,
                         설명
                        ===================== */}
 
-                    <div
-                        className={
-                            styles.form_group
-                        }
-                    >
-
-                        <label
-                            className={
-                                styles.form_label
-                            }
-                        >
+                    <div className={styles.form_group}>
+                        <label className={styles.form_label}>
                             스터디룸 소개
-
-                            <span
-                                className={
-                                    styles.required
-                                }
-                            >
+                            <span className={styles.required}>
                                 *
                             </span>
                         </label>
 
-
-                        <textarea
-                            className={
-                                styles.form_textarea
-                            }
+                        <textarea 
+                            className={styles.form_textarea}
                             placeholder="스터디 목적, 목표, 규칙 등을 간단히 입력해주세요."
                             value={description}
-                            onChange={
-                                e =>
-                                    setDescription(
-                                        e.target.value
-                                    )
-                            }
+                            onChange={e => setDescription(e.target.value)}
                             rows={3}
                             required
                         />
-
                     </div>
-
 
                     {/* =====================
                         태그
                        ===================== */}
 
-                    <div
-                        className={
-                            styles.form_group
-                        }
-                    >
+                    <div className={styles.form_group}>
 
-                        <label
-                            className={
-                                styles.form_label
-                            }
-                        >
+                        <label className={styles.form_label}>
                             태그 설정
                             {' '}
                             ({tags.length}/3)
                         </label>
 
 
-                        <div
-                            className={
-                                styles.tag_color_picker
-                            }
-                        >
-
-                            <span
-                                className={
-                                    styles.picker_title
-                                }
-                            >
+                        <div className={styles.tag_color_picker}>
+                            <span className={styles.picker_title}>
                                 새 태그 배경색:
                             </span>
-
 
                             {PRESET_COLORS.map(
                                 color => (
@@ -370,253 +303,120 @@ export const Group_Create: React.FC<GroupCreateModalProps> = ({ isOpen, onClose,
                                         key={color}
                                         type="button"
                                         className={
-                                            `${styles.color_dot} ${
-                                                selectedColor === color
-                                                    ? styles.selected_color
-                                                    : ''
+                                            `${styles.color_dot} ${selectedColor === color
+                                                ? styles.selected_color
+                                                : ''
                                             }`
                                         }
-                                        style={{
-                                            backgroundColor:
-                                                color
-                                        }}
-                                        onClick={() =>
-                                            setSelectedColor(
-                                                color
-                                            )
-                                        }
+                                        style={{backgroundColor:color}}
+                                        onClick={() => setSelectedColor(color)}
                                     />
-
                                 )
                             )}
-
                         </div>
-
-
-                        <div
-                            className={
-                                styles.inline_input_group
-                            }
-                        >
-
+                        <div className={styles.inline_input_group}>
                             <input
                                 type="text"
-                                className={
-                                    styles.form_input
-                                }
+                                className={styles.form_input}
                                 placeholder="태그명 입력 (예: React)"
                                 value={tagInput}
-                                disabled={
-                                    tags.length >= 3
-                                }
-                                onChange={
-                                    e =>
-                                        setTagInput(
-                                            e.target.value
-                                        )
-                                }
-                                onKeyDown={
-                                    e => {
-
-                                        if (
-                                            e.key ===
-                                            'Enter'
-                                        ) {
-
+                                disabled={tags.length >= 3}
+                                onChange={e => setTagInput(e.target.value)}
+                                onKeyDown={e => {
+                                    if (e.key === 'Enter') {
                                             e.preventDefault();
-
                                             handleAddTag();
                                         }
                                     }
                                 }
                             />
-
-
                             <button
                                 type="button"
-                                className={
-                                    `${styles.action_btn} ${styles.secondary}`
-                                }
-                                onClick={
-                                    handleAddTag
-                                }
-                                disabled={
-                                    tags.length >= 3
-                                }
+                                className={`${styles.action_btn} ${styles.secondary}`}
+                                onClick={handleAddTag}
+                                disabled={tags.length >= 3}
                             >
                                 추가
                             </button>
-
                         </div>
-
-
                         {/* 검색중 */}
-
                         {tagLoading && (
                             <div>
                                 태그 검색 중...
                             </div>
                         )}
-
-
                         {/* 태그 자동완성 */}
-
                         {suggestedTags.length > 0 && (
-
-                            <div
-                                className={
-                                    styles.tag_suggestions
-                                }
-                            >
-
-                                {suggestedTags.map(
-                                    tag => (
-
+                            <div className={styles.tag_suggestions}>
+                                {suggestedTags.map(tag => (
                                         <button
                                             type="button"
-                                            key={
-                                                tag.tag_num
-                                            }
-                                            className={
-                                                styles.tag_suggestion_item
-                                            }
+                                            key={tag.tag_num}
+                                            className={styles.tag_suggestion_item}
                                             onClick={() =>
-                                                handleSelectTag(
-                                                    tag
-                                                )
+                                                handleSelectTag(tag)
                                             }
                                         >
-
-                                            <span
-                                                style={{
-                                                    backgroundColor:
-                                                        tag.tag_color
-                                                }}
-                                            >
-                                                {
-                                                    tag.tag_name
-                                                }
+                                            <span style={{backgroundColor:tag.tag_color}}>
+                                                {tag.tag_name}
                                             </span>
-
                                         </button>
-
                                     )
                                 )}
-
                             </div>
                         )}
-
-
                         {/* 선택된 태그 */}
-
-                        <div
-                            className={
-                                styles.tag_list
-                            }
-                        >
-
+                        <div className={styles.tag_list}>
                             {tags.map(
                                 (tag, index) => (
-
                                     <span
-                                        key={
-                                            tag.tag_num
-                                            ??
-                                            `${tag.tag_name}-${index}`
-                                        }
-                                        className={
-                                            styles.custom_tag
-                                        }
-                                        style={{
-                                            backgroundColor:
-                                                tag.tag_color
-                                        }}
+                                        key={tag.tag_num ?? `${tag.tag_name}-${index}`}
+                                        className={styles.custom_tag}
+                                        style={{backgroundColor:tag.tag_color}}
                                     >
-
-                                        {
-                                            tag.tag_name
-                                        }
-
-
+                                        {tag.tag_name}
                                         <button
                                             type="button"
                                             onClick={() =>
-                                                handleRemoveTag(
-                                                    index
-                                                )
+                                                handleRemoveTag(index)
                                             }
-                                            className={
-                                                styles.remove_tag_btn
-                                            }
+                                            className={styles.remove_tag_btn}
                                         >
                                             &times;
                                         </button>
-
                                     </span>
-
                                 )
                             )}
-
                         </div>
-
                     </div>
-
-
                     {/* =====================
                         비공개
                        ===================== */}
 
-                    <div
-                        className={
-                            styles.form_group
-                        }
-                    >
-
-                        <label
-                            className={
-                                styles.checkbox_label
-                            }
-                        >
-
+                    <div className={styles.form_group}>
+                        <label className={styles.checkbox_label}>
                             <input
                                 type="checkbox"
-                                checked={
-                                    isPrivate
-                                }
-                                onChange={
-                                    handlePrivateToggle
-                                }
+                                checked={isPrivate}
+                                onChange={handlePrivateToggle}
                             />
-
                             <span>
                                 비공개 스터디룸으로 설정
                             </span>
-
                         </label>
-
-
                         {isPrivate && (
-
-                            <div
-                                className={
-                                    styles.invite_code_box
-                                }
-                            >
-
+                            <div className={styles.invite_code_box}>
                                 <label className={styles.form_label_sub}>
                                     초대 코드
                                 </label>
-
                                 <div className={styles.inline_input_group}>
-
                                     <input
                                         type="text"
                                         className={styles.form_input}
                                         value={inviteCode}
-                                        onChange={e =>setInviteCode(e.target.value)}
+                                        onChange={e => setInviteCode(e.target.value)}
                                         placeholder="초대 코드를 입력하세요"
                                     />
-
                                     <button
                                         type="button"
                                         className={`${styles.action_btn} ${styles.secondary}`}
@@ -642,7 +442,7 @@ export const Group_Create: React.FC<GroupCreateModalProps> = ({ isOpen, onClose,
                             className={styles.compact_select}
                             value={maxMembers}
                             onChange={e =>
-                                    setMaxMembers(Number(e.target.value))
+                                setMaxMembers(Number(e.target.value))
                             }
                         >
                             <option value={5}>

@@ -3,6 +3,7 @@ import { Group_Sidebar } from './Group_Sidebar';
 import { Group_List } from './Group_List';
 import styles from './group.module.css';
 import { Group_Create } from './Group_Create';
+import { Group_InviteModal } from './Group_InviteModal';
 
 export const Group_Home: React.FC = () => {
     const [currentTab, setCurrentTab] = useState<'public' | 'my'>('my');
@@ -15,6 +16,7 @@ export const Group_Home: React.FC = () => {
     // const [isCreateModalOpen, setIsCreateModalOpen] = useState<boolean>(false);
     const openCreateModal = () => setIsModalOpen(true);
     const closeCreateModal = () => setIsModalOpen(false);
+    const [selectedGroupNum, setSelectedGroupNum] = useState<number | null>(null);
 
     return (
         <div className="container">
@@ -26,7 +28,7 @@ export const Group_Home: React.FC = () => {
 
             <div className={styles.study_page_layout}>
                 {/* 1. 좌측 렌더링 영역 (탭 선택에 따라 자식 컴포넌트 교체) */}
-                <Group_List mode={currentTab} searchType={searchType} searchTerm={searchTerm} />
+                <Group_List mode={currentTab} searchType={searchType} searchTerm={searchTerm}  onEnterGroup={(groupNum) => {setSelectedGroupNum(groupNum)}}/>
 
                 {/* 2. 우측 고정 사이드바 */}
                 <Group_Sidebar
@@ -49,6 +51,13 @@ export const Group_Home: React.FC = () => {
                         </div>
                     </div>
                 )}
+
+                {/* 4. 초대코드 모달 */}
+                <Group_InviteModal 
+                    isOpen={isInviteModalOpen}
+                    onClose={() => setIsInviteModalOpen(false)}
+                    onJoined={() => setCurrentTab('my')}
+                />
             </div>
         </div>
     );

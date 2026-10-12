@@ -22,4 +22,8 @@ public interface GroupDao {
 	void addGroupMember(GroupMemberVO groupMember);
 	List<GroupListDTO> getGroups(@Param("member_num") Long memberNum);
 	void getMyGroupsProc(Map<String, Object> params);
+	void getPublicGroupsProc(Map<String,Object> params);
+	GroupVO findGroupByInviteCode(@Param("invite_code") String inviteCode);
+	int countGroupMember(@Param("group_num") Long groupNum, @Param("member_num") Long memberNum);
+	int countGroupMembers(@Param("group_num") Long groupNum);
 }

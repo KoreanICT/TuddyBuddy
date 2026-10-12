@@ -3,11 +3,12 @@ import styles from './group.module.css';
 import { TagItem } from './GroupAPI';
 import axios from 'axios';
 import { NavLink } from 'react-router-dom';
-
+import { getFirstLetter } from './GroupAPI';
 interface GroupPublicProps {
     mode: 'my' | 'public';
     searchType: 'name' | 'tag';
     searchTerm: string;
+    onEnterGroup: (groupNum: number) => void;
 }
 
 export interface GroupListItem {
@@ -31,7 +32,22 @@ export interface GroupListItem {
     tags: TagItem[];
 }
 
-export const Group_List: React.FC<GroupPublicProps> = ({ mode, searchType, searchTerm }) => {
+export interface PublicGroupListItem {
+    group_num: number;
+    group_title: string;
+    group_desc: string;
+
+    group_maxMembers: number;
+    group_thumbnail: string | null;
+    
+    created_at: string;
+
+    current_members: number;
+
+    tags: TagItem[];
+}
+
+export const Group_List: React.FC<GroupPublicProps> = ({ mode, searchType, searchTerm, onEnterGroup }) => {
     const [groups, setGroups] = useState<GroupListItem[]>([]);
     const [loading, setLoading] = useState(false);
 
@@ -62,15 +78,10 @@ export const Group_List: React.FC<GroupPublicProps> = ({ mode, searchType, searc
         return group.tags.some(tag => tag.tag_name.toLowerCase().includes(keyword));
     });
 
-    const getFirstLetter = (title: string) => {
-        const trimmed = title.trim();
-
-        return Array.from(trimmed)[0] ?? '?';
-    }
     // 내 스터디룸
     const getMyGroups = async (): Promise<GroupListItem[]> => {
         const response = await axios.get(
-            `http://192.168.0.11/back/api/group/getmyrooms`
+            `http://localhost/back/api/group/getmyrooms`
         );
 
         return response.data;
@@ -78,23 +89,12 @@ export const Group_List: React.FC<GroupPublicProps> = ({ mode, searchType, searc
     // 공개 스터디룸
     const getPublicGroups = async (): Promise<GroupListItem[]> => {
         const response = await axios.get(
-            `http://192.168.0.11/back/api/group/public`
+            `http://localhost/back/api/group/getpublicrooms`
         );
 
         return response.data;
     };
-    // 초대 코드로 입장
-    const joinGroupByInviteCode = async (
-        inviteCode: string
-    ) => {
-        const response = await axios.post(
-            `http://192.168.0.11/back/api/group/join/invite`,
-            {
-                inviteCode
-            }
-        );
-        return response.data;
-    };
+
     return (
         <section className={styles.study_main_content}>
 
@@ -111,7 +111,7 @@ export const Group_List: React.FC<GroupPublicProps> = ({ mode, searchType, searc
                                 <div className={styles.study_card_header}>
                                     <div className={styles.study_thumbnail}>
                                         {group.group_thumbnail ? (
-                                            <img src={`http://192.168.0.11/back/api/group/thumbnail/` + encodeURIComponent(group.group_thumbnail)} alt="" className={styles.study_thumbnail_img} />
+                                            <img src={`http://localhost/back/api/group/thumbnail/` + encodeURIComponent(group.group_thumbnail)} alt="" className={styles.study_thumbnail_img} />
                                         ) : (
                                             <span>
                                                 {getFirstLetter(group.group_title)}

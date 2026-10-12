@@ -82,6 +82,20 @@
 		ORDER BY created_at desc
 	</select>
 
+	<select id="findGroupByInviteCode" resultType="groupvo">
+		SELECT group_num, group_title, group_desc, group_isPrivate, group_maxMembers, group_thumbnail,group_invitecode, created_at 
+		FROM studygroup
+		WHERE group_invitecode = #{invite_code}
+	</select>
+	
+	<select id="countGroupMember" resultType="int">
+		SELECT count(*) FROM group_member WHERE group_num = #{group_num} AND member_num=#{member_num}
+	</select>
+	
+	<select id="countGroupMembers" resultType="int">
+		SELECT count(*) FROM group_member WHERE group_num = #{group_num}
+	</select>
+	
 	<resultMap id="groupListMap" type="kr.co.ictedu.back.group.dto.GroupListDTO">
 		<id property="group_num" column="group_num" />
 		<result property="group_title" column="group_title" />
@@ -89,7 +103,6 @@
 		<result property="group_isPrivate" column="group_isPrivate" />
 		<result property="group_maxMembers" column="group_maxMembers" />
 		<result property="group_thumbnail" column="group_thumbnail" />
-		<result property="group_invitecode" column="group_invitecode" />
 		<result property="created_at" column="created_at" />
 		<result property="is_leader" column="is_leader" />
 		<result property="current_members" column="current_members" />
@@ -107,6 +120,26 @@
         CALL GET_MY_GROUPS_PROC(
             #{member_num, mode=IN, jdbcType=NUMERIC},
             #{group_cursor, mode=OUT, jdbcType=CURSOR, javaType=java.sql.ResultSet, resultMap=groupListMap},
+            #{tag_cursor, mode=OUT, jdbcType=CURSOR, javaType=java.sql.ResultSet, resultMap=groupTagMap}
+        )
+    }
+	</select>
+	
+	<resultMap id="publicGroupListMap" type="kr.co.ictedu.back.group.dto.PublicGroupListDTO">
+		<id property="group_num" column="group_num" />
+		<result property="group_title" column="group_title" />
+		<result property="group_desc" column="group_desc" />
+		<result property="group_maxMembers" column="group_maxMembers" />
+		<result property="group_thumbnail" column="group_thumbnail" />
+		<result property="created_at" column="created_at" />
+		<result property="current_members" column="current_members" />
+	</resultMap>
+	
+	<select id="getPublicGroupsProc" statementType="CALLABLE" parameterType="map">
+    {
+        CALL GET_PUBLIC_GROUPS_PROC(
+            #{member_num, mode=IN, jdbcType=NUMERIC},
+            #{group_cursor, mode=OUT, jdbcType=CURSOR, javaType=java.sql.ResultSet, resultMap=publicGroupListMap},
             #{tag_cursor, mode=OUT, jdbcType=CURSOR, javaType=java.sql.ResultSet, resultMap=groupTagMap}
         )
     }

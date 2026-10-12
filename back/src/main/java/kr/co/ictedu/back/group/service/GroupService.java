@@ -24,6 +24,7 @@ import kr.co.ictedu.back.group.dao.GroupDao;
 import kr.co.ictedu.back.group.dto.GroupCreateRequest;
 import kr.co.ictedu.back.group.dto.GroupListDTO;
 import kr.co.ictedu.back.group.dto.GroupTagDTO;
+import kr.co.ictedu.back.group.dto.PublicGroupListDTO;
 import kr.co.ictedu.back.group.vo.DiagramVO;
 import kr.co.ictedu.back.group.vo.GroupMemberVO;
 import kr.co.ictedu.back.group.vo.GroupVO;
@@ -114,6 +115,39 @@ public class GroupService {
 		return groupNum;
 	}
 
+	@Transactional
+	public Long joinByInviteCode(String inviteCode, Long memberNum) {
+		if (inviteCode == null || inviteCode.trim().isEmpty()) {
+			throw new IllegalArgumentException("초대코드를 입력해주세요.");
+		}
+		GroupVO group = dao.findGroupByInviteCode(inviteCode.trim());
+		
+		if (group == null) {
+			throw new IllegalArgumentException("존재하지 않는 초대코드입니다.");
+		}
+		Long groupNum = group.getGroup_num();
+		
+		int memberExists = dao.countGroupMember(groupNum, memberNum);
+		
+		if (memberExists > 0) {
+			throw new IllegalStateException("이미 가입한 스터디룸입니다.");
+		};
+		
+		int currentMembers = dao.countGroupMembers(groupNum);
+		
+		if (currentMembers >= group.getGroup_maxMembers()) {
+			throw new IllegalStateException("스터디룸 정원이 가득 찼습니다.");
+		}
+		
+		GroupMemberVO groupMember = new GroupMemberVO();
+		groupMember.setGroup_num(groupNum);
+		groupMember.setMember_num(memberNum);
+		groupMember.setIs_leader(0);
+		
+		dao.addGroupMember(groupMember);
+		
+		return groupNum;
+	}
 	public List<GroupListDTO> getGroups(Long memberNum) {
 		List<GroupListDTO> list = dao.getGroups(memberNum);
 		return list;
@@ -127,8 +161,7 @@ public class GroupService {
 		@SuppressWarnings("unchecked") List<GroupListDTO> groups = (List<GroupListDTO>) params.get("group_cursor");
 		@SuppressWarnings("unchecked") List<GroupTagDTO> tags = (List<GroupTagDTO>) params.get("tag_cursor");
 		
-		Map<Long, List<TagVO>> tagMap =
-		        new HashMap<>();
+		Map<Long, List<TagVO>> tagMap = new HashMap<>();
 		    for (GroupTagDTO tag : tags) {
 		        TagVO tagVO = new TagVO();
 		        tagVO.setTag_num(tag.getTag_num());
@@ -142,6 +175,28 @@ public class GroupService {
 		    return groups;
 	}
 
+	public List<PublicGroupListDTO> getPublicGroups(Long memberNum) {
+		Map<String, Object> params = new HashMap<>();
+		params.put("member_num", memberNum);
+		dao.getPublicGroupsProc(params);
+		//제너릭을 사용하더라도 params가 object type으로 오기 때문에 type safe관련 경고문이 출력되는 것을 방지하기 위해 @SuppressWarnings를 사용
+		@SuppressWarnings("unchecked") List<PublicGroupListDTO> groups = (List<PublicGroupListDTO>) params.get("group_cursor");
+		@SuppressWarnings("unchecked") List<GroupTagDTO> tags = (List<GroupTagDTO>) params.get("tag_cursor");
+		
+		Map<Long, List<TagVO>> tagMap = new HashMap<>();
+		    for (GroupTagDTO tag : tags) {
+		        TagVO tagVO = new TagVO();
+		        tagVO.setTag_num(tag.getTag_num());
+		        tagVO.setTag_name(tag.getTag_name());
+		        tagVO.setTag_color(tag.getTag_color());
+		        tagMap.computeIfAbsent(tag.getGroup_num(),key -> new ArrayList<>()).add(tagVO);
+		    }
+		    for (PublicGroupListDTO group : groups) {
+		        group.setTags(tagMap.getOrDefault(group.getGroup_num(),new ArrayList<>()));
+		    }
+		    return groups;
+	}
+	
 	private String saveThumbnail(MultipartFile thumbnail) {
 		try {
 			// 업로드 디렉토리
@@ -172,6 +227,32 @@ public class GroupService {
 		}
 	}
 
+//	@Transactional
+//	public Long joinByInviteCode(String inviteCode, Long memberNum) {
+//		GroupVO group = dao.findGroupByInviteCode(inviteCode);
+//		if (group == null) {
+//			throw new IllegalArgumentException("존재하지 않는 초대코드입니다.");
+//		}
+//		
+//		int exists = dao.existsGroupMember(group.getGroup_num(), memberNum);
+//		
+//		int currentMembers = dao.countGroupMembers( group.getGroup_num() );
+//		
+//		if (currentMembers >= group.getGroup_maxMembers()) {
+//			throw new IllegalStateException("스터디룸 정원이 가득 찼습니다.");
+//		}
+//		
+//		GroupMemberVO member = new GroupMemberVO();
+//		
+//		member.setGroup_num(group.getGroup_num());
+//		member.setMember_num(memberNum);
+//		
+//		member.setIs_leader(0);
+//		dao.addGroupMember(member);
+//		
+//		return group.getGroup_num();
+//	}
+	
 	@PostConstruct
 	public void checkUploadPath() {
 		System.out.println("===== 실제 uploadPath =====");
