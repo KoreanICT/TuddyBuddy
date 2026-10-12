@@ -78,7 +78,7 @@ const NoticeList: React.FC = () => {
     }, [cPage, searchField, searchKeyword]);
 
     // 검색
-    const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
+    const handleSearch = (e: React.SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
         setCPage(1);
         setSearchField(searchType);
