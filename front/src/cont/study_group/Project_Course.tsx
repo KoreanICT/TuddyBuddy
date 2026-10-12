@@ -19,6 +19,7 @@ import '@xyflow/react/dist/style.css';
 import styles from './project.module.css'
 import axios from 'axios';
 import { useSearchParams } from 'react-router-dom';
+import { GetGroupNum } from './GroupAPI'
 
 export interface CustomNodeData extends Record<string, unknown> {
     label: string;
@@ -39,6 +40,7 @@ export interface DiagramResponse {
     created_at: string;
     updated_at?: string;
 }
+
 // export interface DiagramResponse {
 //     diagram_num: number;
 //     group_num: number;
@@ -56,7 +58,7 @@ const initialEdges: AppEdge[] = [];
 
 const backendUrl = process.env.REACT_APP_BACK_END_URL;
 
-export const Project_Course: React.FC = () => {
+export const Project_Course: React.FC<GetGroupNum> = ({groupNum}) => {
 
     const [diagramTitle, setDiagramTitle] = useState<string>('새 다이어그램');
     const [isSaving, setIsSaving] = useState<boolean>(false);
@@ -68,15 +70,7 @@ export const Project_Course: React.FC = () => {
     const [selectedNode, setSelectedNode] = useState<AppNode | null>(null);
     const [selectedEdge, setSelectedEdge] = useState<AppEdge | null>(null);
     const [nodeNameInput, setNodeNameInput] = useState<string>('');
-
-    const [searchParams, setSearchParams] = useSearchParams();
-    const [groupnum, setGroupnum] = useState<number>(1)
-
-    const gnum = searchParams.get('group_num');
-
-    if (gnum !== null) {
-        setGroupnum(parseInt(gnum))
-    }
+    
     // 1. 화살표(Edge) 연결
     const onConnect: OnConnect = useCallback(
         (connection: Connection) =>
@@ -185,8 +179,6 @@ export const Project_Course: React.FC = () => {
         nodes.some((n: AppNode) => n.selected) ||
         edges.some((e: AppEdge) => e.selected);
 
-
-
     const handleSaveDiagram = async (): Promise<void> => {
         if (!diagramTitle.trim()) {
             alert('다이어그램 제목을 입력해주세요.');
@@ -199,7 +191,7 @@ export const Project_Course: React.FC = () => {
         };
 
         const requestData: DiagramSaveRequest = {
-            groupnum: groupnum,
+            groupnum: groupNum,
             title: diagramTitle.trim(),
             diagram_data: JSON.stringify(diagramData),
         };
@@ -208,7 +200,7 @@ export const Project_Course: React.FC = () => {
             setIsSaving(true);
 
             const response = await axios.post<DiagramResponse>(
-                `http://localhost:80/back/api/diagram/add`,
+                `http://localhost/back/api/diagram/add/${groupNum}`,
                 requestData
             );
 

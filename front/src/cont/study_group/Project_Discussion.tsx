@@ -1,5 +1,7 @@
 import React from 'react'
 import styles from './project.module.css'
+import { GetGroupNum } from './GroupAPI'
+
 interface QuestionList {
     questionid: number,
     groupid: number,
@@ -10,11 +12,7 @@ interface QuestionList {
 
 }
 
-interface QuestionDetail {
-
-}
-
-const Project_Discussion: React.FC = () => {
+export const Project_Discussion: React.FC<GetGroupNum> = (groupNum) => {
 
     
     return (
@@ -28,5 +26,3 @@ const Project_Discussion: React.FC = () => {
         </div>
     )
 }
-
-export default Project_Discussion

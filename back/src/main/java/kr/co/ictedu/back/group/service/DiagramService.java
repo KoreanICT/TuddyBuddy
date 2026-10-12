@@ -11,6 +11,7 @@ public class DiagramService {
 
 	@Autowired
 	private DiagramDao dao;
+	
 	public void addDiagram(DiagramVO vo) {
 		dao.merge(vo);
 	}

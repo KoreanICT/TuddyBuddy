@@ -3,7 +3,7 @@ import styles from "./project.module.css";
 //import { useAuth } from "../../hooks/useAuth"
 import { getMember } from "./getMembernum";
 import axios from "axios";
-
+import { GetGroupNum } from './GroupAPI'
 interface Schedule {
     schedule_num: number;
     group_num: number;
@@ -78,7 +78,7 @@ const initialTdls: Tdl[] = [
     },
 ];
 
-export const Project_Calendar: React.FC = () => {
+export const Project_Calendar: React.FC<GetGroupNum> = (groupNum) => {
 
     const member = getMember();//멤버 정보 가져오기 임시 함수 import
     const currentMemberNum = member?.member_num;

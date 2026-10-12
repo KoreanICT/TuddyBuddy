@@ -57,7 +57,7 @@ const AppRoutes: React.FC = () => {
 
 
         { path: '/homeGroup', element: <Group_Home /> },
-        { path: '/group/detail', element: <Group_Detail /> },
+        { path: '/group/detail/:groupNum', element: <Group_Detail /> },
 
 
         // contents

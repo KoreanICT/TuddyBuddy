@@ -1,0 +1,48 @@
+CREATE OR REPLACE PROCEDURE GET_MY_GROUPS_PROC (
+    P_MEMBER_NUM IN NUMBER,
+    P_GROUP_CURSOR OUT SYS_REFCURSOR,
+    P_TAG_CURSOR OUT SYS_REFCURSOR
+)
+AS
+BEGIN
+    OPEN P_GROUP_CURSOR FOR
+        SELECT g.group_num, g.group_title, g.group_desc, g.group_isPrivate, g.group_maxMembers, g.group_thumbnail, g.group_invitecode, g.created_at,
+        gm.is_leader,
+        (SELECT COUNT(*) FROM group_member gm_count WHERE gm_count.group_num = g.group_num) AS current_members
+        FROM studygroup g JOIN group_member gm ON g.group_num = gm.group_num WHERE gm.member_num = P_MEMBER_NUM
+        ORDER BY g.created_at DESC;
+        
+    OPEN P_TAG_CURSOR FOR
+        SELECT gt.group_num, t.tag_num, t.tag_name, t.tag_color 
+        FROM group_tag gt JOIN studytag t ON gt.tag_num = t.tag_num 
+        WHERE gt.group_num IN ( SELECT gm.group_num FROM group_member gm WHERE gm.member_num = P_MEMBER_NUM)
+        ORDER BY gt.group_num, t.tag_name;
+
+END;
+/
+    
+CREATE OR REPLACE PROCEDURE GET_PUBLIC_GROUPS_PROC (
+    P_MEMBER_NUM IN NUMBER,
+    P_GROUP_CURSOR OUT SYS_REFCURSOR,
+    P_TAG_CURSOR OUT SYS_REFCURSOR
+)
+AS
+BEGIN
+    OPEN P_GROUP_CURSOR FOR
+        SELECT g.group_num, g.group_title, g.group_desc, g.group_maxMembers, g.group_thumbnail, g.created_at,
+        (SELECT COUNT(*) FROM group_member gm_count WHERE gm_count.group_num = g.group_num) AS current_members
+        FROM studygroup g WHERE g.group_isPrivate = 0
+        AND NOT EXISTS (SELECT 1 FROM group_member gm WHERE gm.group_num = g.group_num AND gm.member_num = P_MEMBER_NUM)
+        ORDER BY g.created_at DESC;
+        
+    OPEN P_TAG_CURSOR FOR
+        SELECT gt.group_num, t.tag_num, t.tag_name, t.tag_color 
+        FROM group_tag gt JOIN studytag t ON gt.tag_num = t.tag_num 
+        WHERE gt.group_num IN ( SELECT g.group_num FROM studygroup g WHERE g.group_isPrivate = 0
+        AND NOT EXISTS (SELECT 1 FROM group_member gm WHERE gm.group_num = g.group_num AND gm.member_num = P_MEMBER_NUM))
+        ORDER BY gt.group_num, t.tag_name;
+
+END;
+/
+        
+        
