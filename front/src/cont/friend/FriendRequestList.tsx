@@ -190,11 +190,9 @@ const FriendRequestList: React.FC = () => {
                             </div>
 
                             <h2>받은 친구 요청이 없습니다.</h2>
-
                             <p>
                                 새로운 친구 요청이 오면 이곳에서 확인할 수 있습니다.
                             </p>
-
                         </div>
 
                     )}

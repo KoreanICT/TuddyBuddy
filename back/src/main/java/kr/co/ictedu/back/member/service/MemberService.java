@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,32 +16,39 @@ public class MemberService {
 
     @Autowired
     private MemberDAO memberDao;
+    
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
+ // =========================
+ // 회원가입
+ // =========================
+ public void create(MemberVO vo) {
 
-    // =========================
-    // 회원가입
-    // =========================
-    public void create(MemberVO vo) {
+     System.out.println("1");
 
-        System.out.println("1");
+     // 이메일 중복 확인
+     if (memberDao.countByEmail(vo.getMember_email()) > 0) {
+         throw new RuntimeException("이미 사용 중인 이메일입니다.");
+     }
 
-        // 이메일 중복 확인
-        if (memberDao.countByEmail(vo.getMember_email()) > 0) {
-            throw new RuntimeException("이미 사용 중인 이메일입니다.");
-        }
+     // 닉네임 중복 확인
+     if (memberDao.countByNick(vo.getMember_nick()) > 0) {
+         throw new RuntimeException("이미 사용 중인 닉네임입니다.");
+     }
 
-        // 닉네임 중복 확인
-        if (memberDao.countByNick(vo.getMember_nick()) > 0) {
-            throw new RuntimeException("이미 사용 중인 닉네임입니다.");
-        }
+     System.out.println("4");
 
-        System.out.println("4");
+     //비밀번호 BCrypt 암호화
+     vo.setMember_pwd(
+         passwordEncoder.encode(vo.getMember_pwd())
+     );
 
-        // 회원가입
-        memberDao.insertMember(vo);
+     // 회원가입
+     memberDao.insertMember(vo);
 
-        System.out.println("5");
-    }
+     System.out.println("5");
+ }
 
 
     // =========================

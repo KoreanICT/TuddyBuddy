@@ -29,13 +29,13 @@ public class NoticeService {
 		return noticeDao.totalCount(map);
 	}
 	
-	public void hit(int num) {
+	public void hit(Long num) {
 		noticeDao.hit(num);
 	}
 
 	// 상세보기 하기 전에 한번 조회수를 증가 시키기
 	public NoticeVO detail(Long num) {
-		hit(num.intValue());
+		hit(num);
 		return noticeDao.detail(num);
 	}
 

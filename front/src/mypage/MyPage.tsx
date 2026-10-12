@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './MyPage.css';
+import MyReportList from './report/MyReportList';
 
 const MyPage: React.FC = () => {
   const [activeMenu, setActiveMenu] = useState('info');
@@ -31,7 +32,18 @@ const MyPage: React.FC = () => {
             }
             onClick={() => setActiveMenu('point')}
           >
-            포인트 내역
+            포인트 내역 - 준위 김진규
+          </button>
+
+          <button
+            className={
+              activeMenu === 'report'
+                ? 'sidebar-menu active'
+                : 'sidebar-menu'
+            }
+            onClick={() => setActiveMenu('report')}
+          >
+            나의 신고내역
           </button>
 
           <button
@@ -42,8 +54,9 @@ const MyPage: React.FC = () => {
             }
             onClick={() => setActiveMenu('example1')}
           >
-            나의 게시글
+            나의 게시글 - 주화님
           </button>
+
 
           <button
             className={
@@ -53,7 +66,7 @@ const MyPage: React.FC = () => {
             }
             onClick={() => setActiveMenu('example2')}
           >
-            친구 목록
+            친구 목록 - 용센
           </button>
 
           <button
@@ -64,7 +77,7 @@ const MyPage: React.FC = () => {
             }
             onClick={() => setActiveMenu('example3')}
           >
-            나의 스터디 그룹
+            나의 스터디 그룹 - 중령오진석
           </button>
 
           <button
@@ -75,7 +88,7 @@ const MyPage: React.FC = () => {
             }
             onClick={() => setActiveMenu('example4')}
           >
-            학습 분석
+            학습 분석 ??? 
           </button>
         </aside>
 
@@ -188,6 +201,8 @@ const MyPage: React.FC = () => {
               </p>
             </div>
           )}
+          {/* 나의 신고내역 */}
+          {activeMenu === 'report' && <MyReportList />}
 
           {/* 나의 게시글 */}
           {activeMenu === 'example1' && (

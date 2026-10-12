@@ -27,12 +27,19 @@ import StudyManagement from "../cont/admin/study_group/StudyManagement";
 import AuthLayout from "../layout/auth/AuthLayout";
 import SelfStudy from "../cont/selfStudy/SelfStudy";
 import Community from "../cont/community/Community";
+
 import PointHistory from "../mypage/PointHistory";
 import Member_Edit from "../mypage/Member_edit";
+
 import ReportReplyList from "../cont/report/ReportReplyList";
 import ReportReplyDetail from "../cont/report/ReportReplyDetail";
 import FriendRequestList from "../cont/friend/FriendRequestList";
 import FriendSentList from "../cont/friend/FriendSentList";
+import AdminNoticeList from "../cont/admin/notice/AdminNoticeList";
+import AdminNoticeForm from "../cont/admin/notice/AdminNoticeForm";
+import NoticeList from "../cont/notice/NoticeList";
+import NoticeDetail from "../cont/notice/NoticeDetail";
+
 
 interface RouteItem {
     path: string;
@@ -70,6 +77,9 @@ const AppRoutes: React.FC = () => {
         { path: '/reportReplyList', element: <ReportReplyList /> },
         { path: "/report/replyDetail/:id", element: <ReportReplyDetail /> },
 
+        { path: "/notice", element: <NoticeList /> },
+        { path: "/notice/:num", element: <NoticeDetail /> },
+
 
         // admin
         { path: "/admin", element: <AdminHome /> },
@@ -79,6 +89,9 @@ const AppRoutes: React.FC = () => {
         { path: "/admin/reportDetail/:id", element: <ReportDetail /> },
         { path: "/admin/reportReply/:id", element: <ReportReply /> },
         { path: "/admin/studyManagement", element: <StudyManagement /> },
+        { path: "/admin/notice", element: <AdminNoticeList /> },
+        { path: "/admin/notice/add", element: <AdminNoticeForm /> },
+        { path: "/admin/notice/edit/:num", element: <AdminNoticeForm /> },
 
 
         // auth

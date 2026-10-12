@@ -31,6 +31,11 @@ const Navbar: React.FC = () => {
                                 홈
                             </NavLink>
                         </li>
+                        <li>
+                            <NavLink to="/notice" className={linkClass}>
+                                공지사항
+                            </NavLink>
+                        </li>
 
                         <li>
                             <NavLink to="/community" className={linkClass}>
@@ -58,12 +63,6 @@ const Navbar: React.FC = () => {
                         <li>
                             <NavLink to="/friend/add" className={linkClass}>
                                 친구 추가
-                            </NavLink>
-                        </li>
-                        {/* 마이페이지 들어갈 신고 답변 확인 */}
-                                                <li>
-                            <NavLink to="/reportReplyList" className={linkClass}>
-                                신고 답변 확인
                             </NavLink>
                         </li>
                     </ul>
