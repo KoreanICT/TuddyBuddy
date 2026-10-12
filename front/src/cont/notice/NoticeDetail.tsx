@@ -8,11 +8,13 @@ import styles from './noticeDetail.module.css';
 
 interface NoticeVO {
     num: number;
-    admin_num: number;
+    member_num: number;
     title: string;
     content: string;
     imgn?: string;
-    regdate?: string;
+    hit?: number;
+    created_date?: string;
+    updated_date?: string;
 }
 
 const NoticeDetail: React.FC = () => {
@@ -25,6 +27,8 @@ const NoticeDetail: React.FC = () => {
 
     // 공지사항 상세 조회
     const fetchNoticeDetail = async () => {
+        setLoading(true);
+
         try {
             const urls = "http://localhost:80/back/api/notice/noticeDetail";
             const response = await axios.get<NoticeVO>(urls, {
@@ -44,6 +48,7 @@ const NoticeDetail: React.FC = () => {
 
     useEffect(() => {
         if (!num || !/^\d+$/.test(num)) {
+            setNotice(null);
             setError(true);
             setLoading(false);
             return;
@@ -55,6 +60,7 @@ const NoticeDetail: React.FC = () => {
     // 작성일 표시
     const formatDate = (date?: string) => {
         if (!date) return '-';
+
         const parsed = new Date(date);
         return isNaN(parsed.getTime()) ? date : parsed.toLocaleDateString('ko-KR');
     };
@@ -86,7 +92,7 @@ const NoticeDetail: React.FC = () => {
                         <div className={styles.detailHeader}>
                             <h2>{notice.title}</h2>
                             <div className={styles.meta}>
-                                <span><CalendarDays size={16} /> {formatDate(notice.regdate)}</span>
+                                <span><CalendarDays size={16} /> {formatDate(notice.created_date)}</span>
                                 <span>공지번호 {notice.num}</span>
                             </div>
                         </div>

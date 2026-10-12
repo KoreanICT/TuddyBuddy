@@ -31,6 +31,11 @@ const Navbar: React.FC = () => {
                                 홈
                             </NavLink>
                         </li>
+                        <li>
+                            <NavLink to="/notice" className={linkClass}>
+                                공지사항
+                            </NavLink>
+                        </li>
 
                         <li>
                             <NavLink to="/community" className={linkClass}>

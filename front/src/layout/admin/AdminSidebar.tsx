@@ -15,8 +15,7 @@ const AdminSidebar: React.FC = () => {
                     end
                     className={({ isActive }) =>
                         `${styles.menuItem} ${isActive ? styles.active : ''}`
-                    }
-                >
+                    }>
                     대시보드
                 </NavLink>
 
@@ -24,19 +23,27 @@ const AdminSidebar: React.FC = () => {
                     to="/admin/memberManagement"
                     className={({ isActive }) =>
                         `${styles.menuItem} ${isActive ? styles.active : ''}`
-                    }
-                >
+                    }>
                     회원 관리
+                </NavLink>
+
+                <NavLink
+                    to="/admin/notice"
+                    className={({ isActive }) =>
+                        `${styles.menuItem} ${isActive ? styles.active : ''}`
+                    }>
+                    공지 관리
                 </NavLink>
 
                 <NavLink
                     to="/admin/boardManagement"
                     className={({ isActive }) =>
                         `${styles.menuItem} ${isActive ? styles.active : ''}`
-                    }
-                >
+                    }>
                     게시판 관리
                 </NavLink>
+
+
 
                 <NavLink
                     to="/admin/reportList"
@@ -51,16 +58,14 @@ const AdminSidebar: React.FC = () => {
                     to="/admin/studyManagement"
                     className={({ isActive }) =>
                         `${styles.menuItem} ${isActive ? styles.active : ''}`
-                    }
-                >
+                    }>
                     스터디 관리
                 </NavLink>
                 <NavLink
                     to="/"
                     className={({ isActive }) =>
                         `${styles.menuItem} ${isActive ? styles.active : ''}`
-                    }
-                >
+                    }>
                     홈으로
                 </NavLink>
             </nav>

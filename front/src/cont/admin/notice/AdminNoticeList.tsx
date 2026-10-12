@@ -4,15 +4,17 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Search, Pencil, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 
-import styles from './AdminNoticeList.module.css';
+import styles from './adminNoticeList.module.css';
 
 interface NoticeVO {
     num: number;
-    admin_num: number;
+    member_num: number;
     title: string;
     content: string;
     imgn?: string;
-    regdate?: string;
+    hit?: number;
+    created_date?: string;
+    updated_date?: string;
 }
 
 interface PageVO {
@@ -22,9 +24,12 @@ interface PageVO {
 }
 
 interface NoticeListResponse {
-    list: NoticeVO[];
-    totalCount: number;
-    page: PageVO;
+    data: NoticeVO[];
+    totalItems: number;
+    totalPages: number;
+    currentPage: number;
+    startPage: number;
+    endPage: number;
 }
 
 const AdminNoticeList: React.FC = () => {
@@ -35,10 +40,11 @@ const AdminNoticeList: React.FC = () => {
     const [totalCount, setTotalCount] = useState(0);
     const [page, setPage] = useState<PageVO>({ totalPage: 1, startPage: 1, endPage: 1 });
 
-    const [searchType, setSearchType] = useState('title');
+    const [searchType, setSearchType] = useState('1');
     const [keyword, setKeyword] = useState('');
-    const [searchField, setSearchField] = useState('title');
+    const [searchField, setSearchField] = useState('1');
     const [searchKeyword, setSearchKeyword] = useState('');
+
     const [loading, setLoading] = useState(false);
 
     // 공지사항 목록 조회
@@ -48,16 +54,21 @@ const AdminNoticeList: React.FC = () => {
         try {
             const urls = "http://localhost:80/back/api/notice/noticeList";
             const response = await axios.get<NoticeListResponse>(urls, {
-                params: { cPage, searchType: searchField, keyword: searchKeyword }
+                params: { cPage, searchType: searchField, searchValue: searchKeyword }
             });
 
-            setNotices(response.data.list || []);
-            setTotalCount(response.data.totalCount || 0);
-            setPage(response.data.page || { totalPage: 1, startPage: 1, endPage: 1 });
+            setNotices(response.data.data || []);
+            setTotalCount(response.data.totalItems || 0);
+            setPage({
+                totalPage: response.data.totalPages || 1,
+                startPage: response.data.startPage || 1,
+                endPage: response.data.endPage || 1
+            });
         } catch (error) {
             console.error('공지사항 목록 조회 실패:', error);
             setNotices([]);
             setTotalCount(0);
+            setPage({ totalPage: 1, startPage: 1, endPage: 1 });
         } finally {
             setLoading(false);
         }
@@ -68,7 +79,7 @@ const AdminNoticeList: React.FC = () => {
     }, [cPage, searchField, searchKeyword]);
 
     // 공지사항 검색
-    const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
+    const handleSearch = (e: React.SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
         setCPage(1);
         setSearchField(searchType);
@@ -81,7 +92,7 @@ const AdminNoticeList: React.FC = () => {
         if (!confirmed) return;
 
         try {
-            const urls = "http://localhost:80/back/api/notice/noticeDel";
+            const urls = "http://localhost:80/back/api/notice/noticeDelete";
 
             await axios.delete(urls, {
                 params: { num }
@@ -125,8 +136,8 @@ const AdminNoticeList: React.FC = () => {
                 {/* Search */}
                 <form className={styles.searchBox} onSubmit={handleSearch}>
                     <select value={searchType} onChange={e => setSearchType(e.target.value)}>
-                        <option value="title">제목</option>
-                        <option value="content">내용</option>
+                        <option value="1">제목</option>
+                        <option value="2">내용</option>
                     </select>
                     <input type="text" value={keyword} onChange={e => setKeyword(e.target.value)} placeholder="검색어를 입력해주세요." />
                     <button type="submit"><Search size={17} /> 검색</button>
@@ -159,7 +170,7 @@ const AdminNoticeList: React.FC = () => {
                                         <td className={styles.titleCell}>
                                             <button type="button" onClick={() => navigate(`/admin/notice/edit/${notice.num}`)}>{notice.title}</button>
                                         </td>
-                                        <td>{notice.regdate || '-'}</td>
+                                        <td>{notice.created_date || '-'}</td>
                                         <td>
                                             <div className={styles.manageButtons}>
                                                 <button type="button" className={styles.editButton} onClick={() => navigate(`/admin/notice/edit/${notice.num}`)} title="수정">
