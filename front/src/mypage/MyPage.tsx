@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './MyPage.css';
+import MyReportList from './report/MyReportList';
 
 const MyPage: React.FC = () => {
   const [activeMenu, setActiveMenu] = useState('info');
@@ -36,6 +37,17 @@ const MyPage: React.FC = () => {
 
           <button
             className={
+              activeMenu === 'report'
+                ? 'sidebar-menu active'
+                : 'sidebar-menu'
+            }
+            onClick={() => setActiveMenu('report')}
+          >
+            나의 신고내역
+          </button>
+
+          <button
+            className={
               activeMenu === 'example1'
                 ? 'sidebar-menu active'
                 : 'sidebar-menu'
@@ -44,6 +56,7 @@ const MyPage: React.FC = () => {
           >
             나의 게시글
           </button>
+
 
           <button
             className={
@@ -188,6 +201,8 @@ const MyPage: React.FC = () => {
               </p>
             </div>
           )}
+          {/* 나의 신고내역 */}
+          {activeMenu === 'report' && <MyReportList />}
 
           {/* 나의 게시글 */}
           {activeMenu === 'example1' && (
