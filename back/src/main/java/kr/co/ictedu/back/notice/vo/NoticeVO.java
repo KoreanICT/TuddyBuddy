@@ -11,7 +11,7 @@ import lombok.Setter;
 @Setter
 public class NoticeVO {
 	private Long num;
-	private Long admin_num;
+	private Long member_num;
 	private String title;
 	private String content;
 	private String imgn;

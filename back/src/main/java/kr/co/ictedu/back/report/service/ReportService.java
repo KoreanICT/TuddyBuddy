@@ -19,6 +19,16 @@ public class ReportService {
 		reportDao.add(vo);
 	}
 	
+	// 회원별 신고 목록
+	public List<ReportVO> myList(Map<String, String> map) {
+	    return reportDao.myList(map);
+	}
+
+	// 회원별 신고 개수
+	public int myTotalCount(Map<String, String> map) {
+	    return reportDao.myTotalCount(map);
+	}
+	
     public List<ReportVO> list(Map<String, String> map) {
         return reportDao.list(map);
     }

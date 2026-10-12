@@ -3,8 +3,6 @@ import styles from './layout.module.css';
 
 import Navbar from './Navbar';
 import FloatingButton from './floatingButton/FloatingButton';
-import FaceDetector from '../cont/detect/FaceDetector';
-import FocusButton from '../cont/focusButton/FocusButton';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -16,8 +14,6 @@ interface Position {
 }
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
-
-  const [showFaceDetector, setShowFaceDetector] = useState(false);
 
   // FaceDetector 위치
   const [position, setPosition] = useState<Position>({

@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import kr.co.ictedu.back.chatbot.dto.ChatAIRequest;
 import kr.co.ictedu.back.chatbot.dto.ChatAIResponse;
-import kr.co.ictedu.back.chatbot.service.ChatAIService;
 import kr.co.ictedu.back.chatbot.service.ChatBotService;
 import kr.co.ictedu.back.chatbot.service.ChatMessageService;
 import kr.co.ictedu.back.chatbot.service.ChatSessionService;
@@ -61,7 +60,7 @@ public class ChatController {
 
     // 특정 세션의 대화 내용 조회
     @GetMapping("/message/session/{chat_num}")
-    public List<ChatMessageVO> messageList(@PathVariable int chat_num) {
+    public List<ChatMessageVO> messageList(@PathVariable("chat_num") int chat_num) {
         return messageService.list(chat_num);
     }
 

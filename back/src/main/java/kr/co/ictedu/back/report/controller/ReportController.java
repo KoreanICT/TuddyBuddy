@@ -28,125 +28,138 @@ import kr.co.ictedu.back.report.vo.ReportVO;
 public class ReportController {
 	@Autowired
 	private ReportService reportService;
-	
-    @Autowired
-    private ReportReplyService reportReplyService;
-    
-    @Autowired
-    private PagingService pagingService;
-    
 
+	@Autowired
+	private ReportReplyService reportReplyService;
 
-    // 신고 등록
-    @PostMapping("/reportAdd")
-    public ResponseEntity<?> reportAdd(@ModelAttribute ReportVO vo) {
+	@Autowired
+	private PagingService pagingService;
 
-        reportService.add(vo);
-        return ResponseEntity.ok().body("신고 등록 성공!");
-    }
-    
-    // 신고 목록
-    @RequestMapping("/reportList")
-    public Map<String, Object> reportList(
-            @RequestParam Map<String, String> paramMap,
-            HttpServletRequest request) {
+	// 신고 등록
+	@PostMapping("/reportAdd")
+	public ResponseEntity<?> reportAdd(@ModelAttribute ReportVO vo) {
 
-        String cPage = paramMap.get("cPage");
-        int totalCnt = reportService.totalCount(paramMap);
-        PageVO pageVO = pagingService.makePage(totalCnt, cPage);
-        Map<String, String> map = new HashMap<>(paramMap);
+		reportService.add(vo);
+		return ResponseEntity.ok().body("신고 등록 성공!");
+	}
 
-        map.put(
-                "begin",
-                String.valueOf(pageVO.getBeginPerPage()));
+	// 회원별 신고 목록
+	@GetMapping("/myReportList")
+	public Map<String, Object> myReportList(@RequestParam Map<String, String> paramMap) {
+		String cPage = paramMap.get("cPage");
 
-        map.put(
-                "end",
-                String.valueOf(pageVO.getEndPerPage()));
+		int totalCnt = reportService.myTotalCount(paramMap);
+		PageVO pageVO = pagingService.makePage(totalCnt, cPage);
 
-        // 페이지에 해당하는 신고 목록
-        List<ReportVO> list = reportService.list(map);
-        // JSON 응답
-        Map<String, Object> response = new HashMap<>();
-        response.put("data", list);
-        response.put("totalItems", pageVO.getTotalRecord());
-        response.put("totalPages", pageVO.getTotalPage());
-        response.put("currentPage", pageVO.getNowPage());
-        response.put("startPage", pageVO.getStartPage());
-        response.put("endPage", pageVO.getEndPage());
+		Map<String, String> map = new HashMap<>(paramMap);
+		map.put("begin", String.valueOf(pageVO.getBeginPerPage()));
+		map.put("end", String.valueOf(pageVO.getEndPerPage()));
 
-        return response;
-    }
-    
-    // 신고 상세 조회
-    @GetMapping("/reportDetail")
-    public ReportVO reportDetail(@RequestParam("num") Long num) {
+		List<ReportVO> list = reportService.myList(map);
 
-        return reportService.detail(num);
-    }
-    
-    // 신고 수정
-    @PutMapping("/reportUpdate")
-    public ResponseEntity<?> reportUpdate(@ModelAttribute ReportVO vo) {
-        int result = reportService.update(vo);
-        return ResponseEntity.ok(result);
-    }
-    
-    // 신고 삭제
-    @DeleteMapping("/reportDelete")
-    public String reportDelete(
-            @RequestParam("num") Long num) {
+		Map<String, Object> response = new HashMap<>();
+		response.put("data", list);
+		response.put("totalItems", pageVO.getTotalRecord());
+		response.put("totalPages", pageVO.getTotalPage());
+		response.put("currentPage", pageVO.getNowPage());
+		response.put("startPage", pageVO.getStartPage());
+		response.put("endPage", pageVO.getEndPage());
 
-        reportService.del(num);
+		return response;
+	}
 
-        return "삭제 완료";
-    }
-    
-    /* 신고 관리 */
+	// 신고 목록
+	@RequestMapping("/reportList")
+	public Map<String, Object> reportList(@RequestParam Map<String, String> paramMap, HttpServletRequest request) {
 
-    // 신고 상태 변경
-    @PutMapping("/reportStatusUpdate")
-    public ResponseEntity<?> reportStatusUpdate(@ModelAttribute ReportVO vo) {
-        int result = reportService.updateStatus(vo);
-        return ResponseEntity.ok(result);
-    }
-    
-    // 신고 답변 등록
-    @PostMapping("/reportReplyAdd")
-    public ResponseEntity<?> reportReplyAdd(@ModelAttribute ReportReplyVO vo) {
-        reportReplyService.add(vo);
-        return ResponseEntity.ok().body("신고 답변 등록 성공!");
-    }
-    
-    // 멤버 번호로 신고 답변 목록 조회
-    @GetMapping("/reportReplyList")
-    public List<ReportReplyVO> reportReplyList(@RequestParam("member_num") Long member_num) {
-        return reportReplyService.list(member_num);
-    }
+		String cPage = paramMap.get("cPage");
+		int totalCnt = reportService.totalCount(paramMap);
+		PageVO pageVO = pagingService.makePage(totalCnt, cPage);
+		Map<String, String> map = new HashMap<>(paramMap);
 
+		map.put("begin", String.valueOf(pageVO.getBeginPerPage()));
 
-    // 신고 번호로 신고 답변 조회
-    @GetMapping("/reportReplyDetail")
-    public ReportReplyVO reportReplyDetail(@RequestParam("report_num") Long report_num) {
-        return reportReplyService.detail(report_num);
-    }
+		map.put("end", String.valueOf(pageVO.getEndPerPage()));
 
+		// 페이지에 해당하는 신고 목록
+		List<ReportVO> list = reportService.list(map);
+		// JSON 응답
+		Map<String, Object> response = new HashMap<>();
+		response.put("data", list);
+		response.put("totalItems", pageVO.getTotalRecord());
+		response.put("totalPages", pageVO.getTotalPage());
+		response.put("currentPage", pageVO.getNowPage());
+		response.put("startPage", pageVO.getStartPage());
+		response.put("endPage", pageVO.getEndPage());
 
-    // 신고 답변 수정
-    @PutMapping("/reportReplyUpdate")
-    public ResponseEntity<?> reportReplyUpdate(@ModelAttribute ReportReplyVO vo) {
-        int result = reportReplyService.update(vo);
-        return ResponseEntity.ok(result);
-    }
+		return response;
+	}
 
+	// 신고 상세 조회
+	@GetMapping("/reportDetail")
+	public ReportVO reportDetail(@RequestParam("num") Long num) {
 
-    // 신고 답변 삭제
-    @DeleteMapping("/reportReplyDelete")
-    public ResponseEntity<?> reportReplyDelete(@RequestParam("num") Long num) {
+		return reportService.detail(num);
+	}
 
-        int result = reportReplyService.del(num);
+	// 신고 수정
+	@PutMapping("/reportUpdate")
+	public ResponseEntity<?> reportUpdate(@ModelAttribute ReportVO vo) {
+		int result = reportService.update(vo);
+		return ResponseEntity.ok(result);
+	}
 
-        return ResponseEntity.ok(result);
-    }
-    
+	// 신고 삭제
+	@DeleteMapping("/reportDelete")
+	public String reportDelete(@RequestParam("num") Long num) {
+
+		reportService.del(num);
+
+		return "삭제 완료";
+	}
+
+	/* 신고 관리 */
+
+	// 신고 상태 변경
+	@PutMapping("/reportStatusUpdate")
+	public ResponseEntity<?> reportStatusUpdate(@ModelAttribute ReportVO vo) {
+		int result = reportService.updateStatus(vo);
+		return ResponseEntity.ok(result);
+	}
+
+	// 신고 답변 등록
+	@PostMapping("/reportReplyAdd")
+	public ResponseEntity<?> reportReplyAdd(@ModelAttribute ReportReplyVO vo) {
+		reportReplyService.add(vo);
+		return ResponseEntity.ok().body("신고 답변 등록 성공!");
+	}
+
+	// 멤버 번호로 신고 답변 목록 조회
+	@GetMapping("/reportReplyList")
+	public List<ReportReplyVO> reportReplyList(@RequestParam("member_num") Long member_num) {
+		return reportReplyService.list(member_num);
+	}
+
+	// 신고 번호로 신고 답변 조회
+	@GetMapping("/reportReplyDetail")
+	public ReportReplyVO reportReplyDetail(@RequestParam("report_num") Long report_num) {
+		return reportReplyService.detail(report_num);
+	}
+
+	// 신고 답변 수정
+	@PutMapping("/reportReplyUpdate")
+	public ResponseEntity<?> reportReplyUpdate(@ModelAttribute ReportReplyVO vo) {
+		int result = reportReplyService.update(vo);
+		return ResponseEntity.ok(result);
+	}
+
+	// 신고 답변 삭제
+	@DeleteMapping("/reportReplyDelete")
+	public ResponseEntity<?> reportReplyDelete(@RequestParam("num") Long num) {
+
+		int result = reportReplyService.del(num);
+
+		return ResponseEntity.ok(result);
+	}
+
 }
