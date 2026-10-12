@@ -15,8 +15,8 @@ public class GroupVO {
 	private Long group_num;
 	private String group_title;
 	private String group_desc;
-	private int group_isPrivate;
-	private int maxMembers;
+	private String group_isPrivate;
+	private int group_maxMembers;
 	private String group_thumbnail;
 	private String group_invitecode;
 	private LocalDateTime created_at;

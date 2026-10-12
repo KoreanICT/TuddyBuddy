@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 import kr.co.ictedu.back.chatbot.dao.ChatMessageDAO;
 import kr.co.ictedu.back.chatbot.vo.ChatMessageVO;
 
+// 메시지 DB 처리
+
 @Service
 public class ChatMessageService {
 

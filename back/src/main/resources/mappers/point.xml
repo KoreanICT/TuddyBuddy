@@ -49,11 +49,6 @@
 	    )
 	</insert>
 	
-	<update id="updatePoint" parameterType="povo">
-		UPDATE MEMBER 
-		  SET POINT = #{balance_after} 
-		WHERE MEMBER_NUM = #{member_num}
-	</update>
 	
 	
 </mapper>

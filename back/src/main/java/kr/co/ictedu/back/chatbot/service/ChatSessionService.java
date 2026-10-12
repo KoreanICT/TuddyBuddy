@@ -8,12 +8,15 @@ import org.springframework.stereotype.Service;
 import kr.co.ictedu.back.chatbot.dao.ChatSessionDAO;
 import kr.co.ictedu.back.chatbot.vo.ChatSessionVO;
 
+
+// 채팅 세션 DB 처리
+
 @Service
 public class ChatSessionService {
 
 	@Autowired
 	private ChatSessionDAO chatSessionDAO;
-	
+		
 	// 새로운 채팅 세션 생성
 	public void add(ChatSessionVO vo) {
 		chatSessionDAO.add(vo);

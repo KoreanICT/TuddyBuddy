@@ -63,7 +63,7 @@ export const QuizModal: React.FC<QuizModalProps> = ({
       <div className={styles.modalContent}>
         <div className={styles.modalHeader}>
           <h3>AI 문제 생성 설정 (quiz_sessions)</h3>
-          <button className={styles.closeBtn} onClick={onClose}>×</button>
+          <button className={styles.closeBtn} onClick={onClose} disabled={loading}>×</button>
         </div>
 
         <div className={styles.modalBody}>
@@ -73,7 +73,7 @@ export const QuizModal: React.FC<QuizModalProps> = ({
             <input
               type="file"
               ref={fileInputRef}
-              accept="image/*"
+              accept="image/jpeg,image/png,image/webp"
               onChange={handleFileChange}
               style={{ display: 'none' }}
             />
@@ -169,6 +169,7 @@ export const QuizModal: React.FC<QuizModalProps> = ({
               type="text"
               className={styles.textInput}
               placeholder="예: 개념 위주로 문제 내줘, 해설을 자세히 적어줘"
+              maxLength={1000}
               value={quizPrompt}
               onChange={(e) => setQuizPrompt(e.target.value)}
             />
@@ -176,8 +177,8 @@ export const QuizModal: React.FC<QuizModalProps> = ({
         </div>
 
         <div className={styles.modalFooter}>
-          <button className={styles.cancelBtn} onClick={onClose}>취소</button>
-          <button className={styles.submitBtn} onClick={handleUploadSubmit}>
+          <button className={styles.cancelBtn} onClick={onClose} disabled={loading}>취소</button>
+          <button className={styles.submitBtn} onClick={handleUploadSubmit} disabled={loading}>
             {loading ? "AI가 문제를 생성하는 중..." : "문제 생성 시작"}
           </button>
         </div>

@@ -6,6 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import kr.co.ictedu.back.chatbot.dto.ChatAIRequest;
+import kr.co.ictedu.back.chatbot.dto.ChatAIResponse;
+import kr.co.ictedu.back.chatbot.service.ChatBotService;
 import kr.co.ictedu.back.chatbot.service.ChatMessageService;
 import kr.co.ictedu.back.chatbot.service.ChatSessionService;
 import kr.co.ictedu.back.chatbot.vo.ChatMessageVO;
@@ -27,10 +30,14 @@ public class ChatController {
 	@Autowired
 	private ChatMessageService messageService;
 	
+	@Autowired
+	private ChatBotService chatBotService;
+	
 	// 새로운 채팅 세션 생성
 	@PostMapping("/session")
-	public void addSession(@RequestBody ChatSessionVO vo) {
+	public ChatSessionVO addSession(@RequestBody ChatSessionVO vo) {
 		sessionService.add(vo);
+		return vo;
 	}
 	
 	// 특정 세션 하나 조회
@@ -53,7 +60,7 @@ public class ChatController {
 
     // 특정 세션의 대화 내용 조회
     @GetMapping("/message/session/{chat_num}")
-    public List<ChatMessageVO> messageList(@PathVariable int chat_num) {
+    public List<ChatMessageVO> messageList(@PathVariable("chat_num") int chat_num) {
         return messageService.list(chat_num);
     }
 
@@ -62,5 +69,13 @@ public class ChatController {
     public List<ChatMessageVO> memberMessageList(@PathVariable int member_num) {
         return messageService.memberList(member_num);
     }
+    
+    @PostMapping("/ai")
+    public ChatAIResponse askAI(@RequestBody ChatAIRequest request) {
+//    	System.out.println("question = " + request.getQuestion());
+//    	System.out.println("user_type = " + request.getUser_type());
+        return chatBotService.chat(request);
+    }
+    
 
 }

@@ -15,34 +15,60 @@ import kr.co.ictedu.back.selfstudy.vo.SubjectVO;
 @Mapper
 public interface SelfStudyDao {
 
-    List<CategoryVO> getCategories();
+	SubjectVO selectSubject(@Param("subjectId") Long subjectId);
+    List<CategoryVO> selectCategories();
+    
+    List<SubjectVO> selectSubjects(
+            @Param("categoryId") Long categoryId);
 
-    List<SubjectVO> getSubjects(@Param("categoryId") Long categoryId);
 
+    // Quiz Session
     int insertQuizSession(QuizSessionVO vo);
 
+    List<QuizSessionVO> selectQuizSessions(
+            @Param("memberNum") Long memberNum);
+
+    QuizSessionVO selectQuizSession(
+            @Param("quizSessionId") Long quizSessionId);
+
+
+    // Quiz
     int insertQuiz(QuizVO vo);
 
+    List<QuizVO> selectQuizzes(
+            @Param("quizSessionId") Long quizSessionId);
+
+    QuizVO selectQuiz(
+            @Param("quizId") Long quizId);
+
+
+    // Result
+    int insertSelfStudyResult(SelfStudyResultVO vo);
+
+    SelfStudyResultVO selectResult(
+            @Param("resultId") Long resultId);
+
+    List<SelfStudyResultVO> selectResults(
+            @Param("memberNum") Long memberNum);
+
+    
+    // Response
     int insertQuizResponse(QuizResponseVO vo);
 
-    int insertResult(SelfStudyResultVO vo);
+    List<QuizResponseVO> selectQuizResponses(
+            @Param("resultId") Long resultId);
 
-    List<QuizSessionVO> getSessions();
 
-    QuizSessionVO getSession(@Param("quizSessionId") Long quizSessionId);
+    // Delete
+    int deleteQuizResponsesBySession(
+            @Param("quizSessionId") Long quizSessionId);
 
-    List<QuizVO> getQuizzes(@Param("quizSessionId") Long quizSessionId);
+    int deleteResultsBySession(
+            @Param("quizSessionId") Long quizSessionId);
 
-    List<QuizResponseVO> getResponses(
-            @Param("selfstudyResultsId") Long selfstudyResultsId);
+    int deleteQuizzesBySession(
+            @Param("quizSessionId") Long quizSessionId);
 
-    List<SelfStudyResultVO> getResults();
-
-    int updateQuizSession(QuizSessionVO vo);
-
-    int updateQuizResponse(QuizResponseVO vo);
-
-    int deleteQuizSession(@Param("quizSessionId") Long quizSessionId);
-
-    SelfStudyResultVO getResult(@Param("resultId") Long resultId);
+    int deleteQuizSession(
+            @Param("quizSessionId") Long quizSessionId);
 }

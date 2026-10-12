@@ -307,7 +307,45 @@
     outline: none;
     transition: border-color 0.2s;
 }
+.tag_suggestions {
+    display: flex;
+    flex-direction: column;
 
+    margin-top: 6px;
+
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+
+    background-color: var(--background);
+
+    overflow: hidden;
+}
+
+.tag_suggestion_item {
+    display: flex;
+    align-items: center;
+
+    width: 100%;
+
+    padding: 8px 12px;
+
+    border: none;
+    background: none;
+
+    cursor: pointer;
+
+    text-align: left;
+}
+
+.tag_suggestion_item:hover {
+    background-color: var(--muted);
+}
+
+.tag_suggestion_item span {
+    padding: 4px 10px;
+
+    border-radius: 999px;
+}
 /* 스터디룸 소개 텍스트 영역 높이 확장 및 리사이즈 비활성화 */
 .form_textarea {
     width: 100%;

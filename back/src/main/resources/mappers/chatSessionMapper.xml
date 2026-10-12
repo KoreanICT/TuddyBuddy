@@ -5,8 +5,15 @@
 
 	<!-- 채팅 세션 생성 -->
 	<insert id="add" parameterType="csvo">
+		<!-- chat_num 시퀀스 값을 먼저 생성하여 VO의 chat_num에 저장 
+		selectKey를 기존 INSERT문 보다 먼저 실행 -->
+		<selectKey keyProperty="chat_num" resultType="int" order="BEFORE">
+			SELECT chat_session_seq.NEXTVAL
+    		FROM dual
+		</selectKey>
+		
 		INSERT INTO chat_session (chat_num, member_num, chat_regdate)
-		VALUES (chat_session_seq.NEXTVAL, #{member_num}, SYSDATE)
+		VALUES (#{chat_num}, #{member_num, jdbcType=NUMERIC}, SYSDATE)
 	</insert>
 
 	<!-- 특정 세션 하나 조회 -->
