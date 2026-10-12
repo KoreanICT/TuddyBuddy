@@ -17,7 +17,7 @@ interface FriendVO {
 const FriendList: React.FC = () => {
     const [friends, setFriends] = useState<FriendVO[]>([]);
 
-    // TODO: 로그인 연결 후 실제 로그인 회원 번호 사용
+    // !!! 로그인 연결 후 실제 로그인 회원 번호 사용
     const memberNum = 1;
 
     // 친구 목록 조회
