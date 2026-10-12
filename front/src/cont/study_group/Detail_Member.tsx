@@ -1,8 +1,9 @@
 import React from 'react';
 import styles from './detail.module.css';
 import { MemberData } from './GroupAPI';
+import { GetGroupNum } from './GroupAPI'
 
-export const Detail_Member: React.FC = () => {
+export const Detail_Member: React.FC<GetGroupNum> = (groupNum) => {
     // 샘플 멤버 데이터 (실제 연동 시 props 또는 API 데이터로 대체)
     const members: MemberData[] = [
         {

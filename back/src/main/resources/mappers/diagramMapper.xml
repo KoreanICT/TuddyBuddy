@@ -29,7 +29,7 @@
 			VALUES (diagram_seq.nextVAL, s.group_num, s.title, s.diagram_data, sysdate)
 	</update>
 	
-	<select id="get" parameterType="int" resultType="diagramvo">
+	<select id="get" parameterType="long" resultType="diagramvo">
 		SELECT DIAGRAM_NUM, GROUP_NUM, TITLE, DIAGRAM_DATA, CREATED_AT, UPDATED_AT FROM diagram
 		WHERE GROUP_NUM = #{group_num}
 	</select>

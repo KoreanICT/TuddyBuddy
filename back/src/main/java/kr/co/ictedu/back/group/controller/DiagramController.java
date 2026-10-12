@@ -1,6 +1,7 @@
 package kr.co.ictedu.back.group.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,9 +23,12 @@ public class DiagramController {
 	@Autowired
 	private DiagramService service;
 	
-	@PostMapping("/add")
-	public void addDiagram(@RequestBody DiagramVO vo) {
+	@PostMapping("/add/{group_num}")
+	public ResponseEntity<String> addDiagram(@RequestBody DiagramVO vo, @PathVariable("group_num") Long groupNum) {
+		System.out.println(groupNum);
+		vo.setGroup_num(groupNum);
 		service.addDiagram(vo);
+		return ResponseEntity.ok("저장 완료.");
 	}
 	
 	@GetMapping("/getdiagram")

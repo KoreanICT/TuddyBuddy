@@ -41,7 +41,7 @@ export const Detail_Document_insert: React.FC<UploadingFileProps> = ({
     };
 
     const handleSubmit = (
-        e: React.FormEvent<HTMLFormElement>
+        e: React.SubmitEvent<HTMLFormElement>
     ) => {
 
         e.preventDefault();

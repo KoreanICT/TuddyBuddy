@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import styles from './detail.module.css'
 import { Detail_Document_insert } from './Detail_Document_insert';
+import { GetGroupNum } from './GroupAPI'
 import axios from 'axios';
 interface DocumentData {
     document_num: number;
@@ -15,9 +16,10 @@ interface DocumentData {
     updated_at?: string | null;
 }
 
+
 const backendUrl = process.env.REACT_APP_BACK_END_URL;
 
-export const Detail_Document: React.FC = () => {
+export const Detail_Document: React.FC<GetGroupNum> = (groupNum) => {
 
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [documents, setDocuments] = useState<DocumentData[]>([{
@@ -132,7 +134,7 @@ export const Detail_Document: React.FC = () => {
                                         {formatFileSize(document.document_size)}
                                     </span>
                                     <span>
-                                        조회 {document.hit}
+                                        다운로드 {document.hit}
                                     </span>
                                     <span>
                                         {document.created_at}
