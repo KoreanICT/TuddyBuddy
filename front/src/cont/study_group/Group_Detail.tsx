@@ -62,7 +62,7 @@ export const Group_Detail: React.FC = () => {
             console.error('스터디룸 상세 조회 실패', error);
         }
     };
-    
+
     useEffect(() => {
         loadGroupDetail();
     }, [groupNum]);
@@ -81,7 +81,7 @@ export const Group_Detail: React.FC = () => {
             {/* 1. 상단 목록으로 돌아가기 버튼 (입장하기 버튼과 동일 서식) */}
             <div className={styles.top_navigation}>
                 <NavLink
-                    to="/homegroup"
+                    to="/group"
                     className={`${styles.action_btn} ${styles.primary}`}
                 >
                     스터디 목록으로 돌아가기

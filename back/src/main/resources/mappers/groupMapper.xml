@@ -51,7 +51,8 @@
 			SELECT studytag_seq.NEXTVAL FROM dual
 		</selectKey> INSERT INTO
 		studytag ( tag_num, tag_name, tag_color ) VALUES (#{tag_num},
-		#{tag_name}, #{tag_color} ) </insert>
+		#{tag_name}, #{tag_color} ) 
+	</insert>
 
 	<!-- ==========================================
          GROUP_TAG INSERT

@@ -39,7 +39,7 @@ export interface StudyRoomItem {
 /* 스터디룸 생성 컴포넌트 관련 API */
 
 /**
- * 태그 관련 API !! 조만간 수정 예정
+ * 태그 관련 API 
  */
 export interface TagItem {
     tag_num?: number;
@@ -57,10 +57,7 @@ export interface GroupData {
     group_invitecode?: string | null;
 }
 
-export interface GroupCreateRequest {
-    group: GroupData;
-    tags: TagItem[];
-}
+
 
 /**
  * 태그 검색
@@ -101,6 +98,43 @@ export const createGroup = async (requestData: GroupCreateRequest,thumbnail: Fil
     );
     return response.data.group_num;
 };
+export interface GroupCreateRequest {
+    group: GroupData;
+    tags: TagItem[];
+}
+
+/**
+ * 스터디 그룹 변경
+ */
+
+export interface GroupUpdateData {
+    group_title: string;
+    group_desc: string;
+    group_thumbnail: File | null;
+}
+
+export const patchGroup = async (groupNum: number, requestData: GroupUpdateRequest, thumbnail: File | null) => {
+    const formData = new FormData();
+    formData.append(
+        'groupData',
+        new Blob(
+            [JSON.stringify(requestData)],
+            { type: 'application/json' }
+        )
+    );
+    if (thumbnail) {
+        formData.append('thumbnail', thumbnail);
+    }
+    const response = await axios.patch(
+        `http://localhost/back/api/group/detail/patchGroup/${groupNum}`,
+        formData
+    );
+    return response.data;
+};
+export interface GroupUpdateRequest {
+    group: GroupUpdateData;
+    tags: TagItem[];
+}
 /* 스터디룸 선택 탭 사이드바 관련 API */
 
 /**
