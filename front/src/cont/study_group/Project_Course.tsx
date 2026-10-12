@@ -208,7 +208,7 @@ export const Project_Course: React.FC = () => {
             setIsSaving(true);
 
             const response = await axios.post<DiagramResponse>(
-                `http://192.168.0.11/back/api/diagram/add`,
+                `http://localhost:80/back/api/diagram/add`,
                 requestData
             );
 

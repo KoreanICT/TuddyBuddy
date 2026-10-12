@@ -7,11 +7,13 @@ import styles from './adminNoticeForm.module.css';
 
 interface NoticeVO {
     num: number;
-    admin_num?: number;
-    member_num?: number;
+    member_num: number;
     title: string;
     content: string;
     imgn?: string;
+    hit?: number;
+    created_date?: string;
+    updated_date?: string;
 }
 
 const API_URL = 'http://localhost:80/back/api/notice';
@@ -109,7 +111,7 @@ const AdminNoticeForm: React.FC = () => {
         const formData = new FormData();
         formData.append('title', title.trim());
         formData.append('content', content.trim());
-        formData.append('admin_num', String(adminNum));
+        formData.append('member_num', String(adminNum));
 
         if (image) formData.append('mfile', image);
 
