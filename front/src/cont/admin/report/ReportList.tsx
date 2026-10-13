@@ -1,6 +1,18 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import styles from './report.module.css'
+import styles from './report.module.css';
+import {
+    BarChart,
+    Bar,
+    XAxis,
+    YAxis,
+    Tooltip,
+    ResponsiveContainer,
+    PieChart,
+    Pie,
+    Cell,
+    Legend
+} from 'recharts';
 
 type ReportStatus =
     | 'PENDING'
@@ -163,10 +175,7 @@ const ReportList: React.FC = () => {
     // 페이지네이션
     // =========================
 
-    // 한 페이지에 보여줄 신고 수
     const pageSize = 5;
-
-    // 페이지 번호를 몇 개씩 보여줄지
     const pageGroupSize = 5;
 
     const [totalItems, setTotalItems] = useState(0);
@@ -186,7 +195,6 @@ const ReportList: React.FC = () => {
     // =========================
 
     const filteredReports = reports.filter(report => {
-
         const matchStatus =
             statusFilter === 'ALL' ||
             report.status === statusFilter;
@@ -195,30 +203,56 @@ const ReportList: React.FC = () => {
     });
 
     // =========================
+    // 시각화 데이터 가공 (필터링된 데이터 기준)
+    // =========================
+
+    const typeChartData = useMemo(() => {
+        const typeMap: Record<ReportType, string> = {
+            POST: '게시글',
+            COMMENT: '댓글',
+            USER: '회원',
+            STUDY: '스터디',
+        };
+
+        const counts: Record<string, number> = { 게시글: 0, 댓글: 0, 회원: 0, 스터디: 0 };
+        filteredReports.forEach((r) => {
+            const koreanType = typeMap[r.type];
+            if (koreanType) {
+                counts[koreanType] = (counts[koreanType] || 0) + 1;
+            }
+        });
+
+        return Object.keys(counts).map((key) => ({
+            name: key,
+            count: counts[key],
+        }));
+    }, [filteredReports]);
+
+    const reasonChartData = useMemo(() => {
+        const counts: Record<string, number> = {};
+        filteredReports.forEach((r) => {
+            counts[r.reason] = (counts[r.reason] || 0) + 1;
+        });
+
+        return Object.keys(counts).map((key) => ({
+            name: key,
+            value: counts[key],
+        }));
+    }, [filteredReports]);
+
+    const COLORS = ['#0d6efd', '#198754', '#ffc107', '#dc3545', '#6c757d', '#6610f2', '#fd7e14'];
+
+    // =========================
     // 페이지 계산
-    //
-    // 나중에 백엔드에서
-    // totalItems
-    // totalPages
-    // currentPage
-    // 등을 받아오면
-    // 이 계산 부분은 제거 가능
     // =========================
 
     useEffect(() => {
-
-        const total =
-            filteredReports.length;
-
-        const pages =
-            Math.ceil(total / pageSize);
+        const total = filteredReports.length;
+        const pages = Math.ceil(total / pageSize);
 
         setTotalItems(total);
-
         setTotalPages(pages);
 
-        // 필터 변경 등으로
-        // 현재 페이지가 존재하지 않게 된 경우
         if (
             pages > 0 &&
             currentPage > pages
@@ -226,7 +260,6 @@ const ReportList: React.FC = () => {
             setCurrentPage(1);
         }
 
-        // 페이지 그룹 시작 번호
         const start =
             Math.floor(
                 (currentPage - 1) /
@@ -235,7 +268,6 @@ const ReportList: React.FC = () => {
             pageGroupSize +
             1;
 
-        // 페이지 그룹 마지막 번호
         const end =
             Math.min(
                 start +
@@ -277,7 +309,6 @@ const ReportList: React.FC = () => {
     const pageChange = (
         page: number
     ) => {
-
         if (
             page < 1 ||
             page > totalPages
@@ -295,9 +326,7 @@ const ReportList: React.FC = () => {
     const getStatusText = (
         status: ReportStatus
     ) => {
-
         switch (status) {
-
             case 'PENDING':
                 return '접수';
 
@@ -319,9 +348,7 @@ const ReportList: React.FC = () => {
     const getTypeText = (
         type: ReportType
     ) => {
-
         switch (type) {
-
             case 'POST':
                 return '게시글';
 
@@ -343,7 +370,6 @@ const ReportList: React.FC = () => {
     const handleDetail = (
         id: number
     ) => {
-
         navigate(
             `/admin/reportDetail/${id}`
         );
@@ -354,25 +380,14 @@ const ReportList: React.FC = () => {
 
             {/* Header */}
             <div className={styles.header}>
-
                 <div>
-
-                    <h1>
-                        신고 관리
-                    </h1>
-
-                    <p>
-                        접수된 신고 내역을 조회하고
-                        처리 상태를 확인합니다.
-                    </p>
-
+                    <h1>신고 관리</h1>
+                    <p>접수된 신고 내역을 조회하고 처리 상태를 확인합니다.</p>
                 </div>
-
             </div>
 
-            {/* Status Filter */}
+            {/* Status Filter (<결과> 카테고리 제거됨) */}
             <div className={styles.filter}>
-
                 <button
                     className={
                         statusFilter === 'ALL'
@@ -394,9 +409,7 @@ const ReportList: React.FC = () => {
                             : ''
                     }
                     onClick={() => {
-                        setStatusFilter(
-                            'PENDING'
-                        );
+                        setStatusFilter('PENDING');
                         setCurrentPage(1);
                     }}
                 >
@@ -405,15 +418,12 @@ const ReportList: React.FC = () => {
 
                 <button
                     className={
-                        statusFilter ===
-                        'REVIEWING'
+                        statusFilter === 'REVIEWING'
                             ? styles.activeFilter
                             : ''
                     }
                     onClick={() => {
-                        setStatusFilter(
-                            'REVIEWING'
-                        );
+                        setStatusFilter('REVIEWING');
                         setCurrentPage(1);
                     }}
                 >
@@ -422,15 +432,12 @@ const ReportList: React.FC = () => {
 
                 <button
                     className={
-                        statusFilter ===
-                        'COMPLETED'
+                        statusFilter === 'COMPLETED'
                             ? styles.activeFilter
                             : ''
                     }
                     onClick={() => {
-                        setStatusFilter(
-                            'COMPLETED'
-                        );
+                        setStatusFilter('COMPLETED');
                         setCurrentPage(1);
                     }}
                 >
@@ -439,21 +446,61 @@ const ReportList: React.FC = () => {
 
                 <button
                     className={
-                        statusFilter ===
-                        'REJECTED'
+                        statusFilter === 'REJECTED'
                             ? styles.activeFilter
                             : ''
                     }
                     onClick={() => {
-                        setStatusFilter(
-                            'REJECTED'
-                        );
+                        setStatusFilter('REJECTED');
                         setCurrentPage(1);
                     }}
                 >
                     반려
                 </button>
+            </div>
 
+            {/* ========================= */}
+            {/* 시각화 차트 영역 */}
+            {/* ========================= */}
+            <div style={{ display: 'flex', gap: '20px', marginBottom: '30px', flexWrap: 'wrap' }}>
+                <div style={{ flex: 1, minWidth: '300px', background: '#fff', padding: '20px', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
+                    <h3 style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '15px', color: '#333' }}>📊 신고 유형별 현황</h3>
+                    <div style={{ width: '100%', height: '220px' }}>
+                        <ResponsiveContainer>
+                            <BarChart data={typeChartData}>
+                                <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                                <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
+                                <Tooltip />
+                                <Bar dataKey="count" fill="#0d6efd" radius={[6, 6, 0, 0]} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
+                </div>
+
+                <div style={{ flex: 1, minWidth: '300px', background: '#fff', padding: '20px', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
+                    <h3 style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '15px', color: '#333' }}>🥧 신고 사유별 비율</h3>
+                    <div style={{ width: '100%', height: '220px' }}>
+                        <ResponsiveContainer>
+                            <PieChart>
+                                <Pie
+                                    data={reasonChartData}
+                                    dataKey="value"
+                                    nameKey="name"
+                                    cx="50%"
+                                    cy="50%"
+                                    outerRadius={75}
+                                    label={{ fontSize: 11 }}
+                                >
+                                    {reasonChartData.map((_, index) => (
+                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                    ))}
+                                </Pie>
+                                <Tooltip />
+                                <Legend wrapperStyle={{ fontSize: '11px' }} />
+                            </PieChart>
+                        </ResponsiveContainer>
+                    </div>
+                </div>
             </div>
 
             {/* 신고 수 */}
@@ -462,250 +509,84 @@ const ReportList: React.FC = () => {
             </div>
 
             {/* Report Table */}
-            <div
-                className={
-                    styles.tableWrapper
-                }
-            >
-
-                <table
-                    className={
-                        styles.table
-                    }
-                >
-
-                    <thead>
-
-                        <tr>
-
-                            <th>
-                                번호
-                            </th>
-
-                            <th>
-                                유형
-                            </th>
-
-                            <th>
-                                신고자
-                            </th>
-
-                            <th>
-                                신고 대상
-                            </th>
-
-                            <th>
-                                신고 사유
-                            </th>
-
-                            <th>
-                                상태
-                            </th>
-
-                            <th>
-                                신고일
-                            </th>
-
-                        </tr>
-
-                    </thead>
-
+            <div className={styles.tableWrapper}>
+                <table className={styles.table}>
                     <tbody>
-
                         {
-                            currentReports.length >
-                            0 ? (
-
-                                currentReports.map(
-                                    report => (
-
-                                        <tr
-                                            key={
-                                                report.id
-                                            }
-                                            onClick={() =>
-                                                handleDetail(
-                                                    report.id
-                                                )
-                                            }
-                                        >
-
-                                            <td>
-                                                {
-                                                    report.id
-                                                }
-                                            </td>
-
-                                            <td>
-                                                {
-                                                    getTypeText(
-                                                        report.type
-                                                    )
-                                                }
-                                            </td>
-
-                                            <td>
-                                                {
-                                                    report.reporter
-                                                }
-                                            </td>
-
-                                            <td>
-                                                {
-                                                    report.target
-                                                }
-                                            </td>
-
-                                            <td>
-                                                {
-                                                    report.reason
-                                                }
-                                            </td>
-
-                                            <td>
-
-                                                <span
-                                                    className={`${styles.status} ${
-                                                        styles[
-                                                            report.status.toLowerCase()
-                                                        ]
-                                                    }`}
-                                                >
-
-                                                    {
-                                                        getStatusText(
-                                                            report.status
-                                                        )
-                                                    }
-
-                                                </span>
-
-                                            </td>
-
-                                            <td>
-                                                {
-                                                    report.createdAt
-                                                }
-                                            </td>
-
-                                        </tr>
-
-                                    )
-                                )
-
-                            ) : (
-
-                                <tr>
-
-                                    <td
-                                        colSpan={7}
-                                        className={
-                                            styles.empty
-                                        }
+                            currentReports.length > 0 ? (
+                                currentReports.map(report => (
+                                    <tr
+                                        key={report.id}
+                                        onClick={() => handleDetail(report.id)}
                                     >
-                                        신고 데이터가 없습니다.
+                                        <td>{report.id}</td>
+                                        <td>{getTypeText(report.type)}</td>
+                                        <td>{report.reporter}</td>
+                                        <td>{report.target}</td>
+                                        <td>{report.reason}</td>
+                                        <td>
+                                            <span className={`${styles.status} ${styles[report.status.toLowerCase()]}`}>
+                                                {getStatusText(report.status)}
+                                            </span>
+                                        </td>
+                                        <td>{report.createdAt}</td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan={7} style={{ textAlign: 'center', padding: '20px', color: '#777' }}>
+                                        조회된 신고 내역이 없습니다.
                                     </td>
-
                                 </tr>
-
                             )
                         }
-
                     </tbody>
-
                 </table>
-
             </div>
 
             {/* Pagination */}
             {
                 totalPages > 0 && (
-
-                    <div
-                        className={
-                            styles.pagination
-                        }
-                    >
-
-                        {/* 이전 */}
+                    <div className={styles.pagination}>
                         {
                             startPage > 1 && (
-
                                 <button
-                                    className={
-                                        styles.pageArrow
-                                    }
-                                    onClick={() =>
-                                        pageChange(
-                                            startPage -
-                                            1
-                                        )
-                                    }
+                                    className={styles.pageArrow}
+                                    onClick={() => pageChange(startPage - 1)}
                                 >
                                     이전
                                 </button>
-
                             )
                         }
 
-                        {/* 페이지 번호 */}
                         {
                             Array.from(
-                                {
-                                    length:
-                                        endPage -
-                                        startPage +
-                                        1
-                                },
-                                (_, i) =>
-                                    i +
-                                    startPage
+                                { length: endPage - startPage + 1 },
+                                (_, i) => i + startPage
                             ).map(page => (
-
                                 <button
                                     key={page}
                                     className={`${styles.pageButton} ${
-                                        page ===
-                                        currentPage
-                                            ? styles.activePage
-                                            : ''
+                                        page === currentPage ? styles.activePage : ''
                                     }`}
-                                    onClick={() =>
-                                        pageChange(
-                                            page
-                                        )
-                                    }
+                                    onClick={() => pageChange(page)}
                                 >
                                     {page}
                                 </button>
-
                             ))
                         }
 
-                        {/* 다음 */}
                         {
-                            endPage <
-                                totalPages && (
-
+                            endPage < totalPages && (
                                 <button
-                                    className={
-                                        styles.pageArrow
-                                    }
-                                    onClick={() =>
-                                        pageChange(
-                                            endPage +
-                                            1
-                                        )
-                                    }
+                                    className={styles.pageArrow}
+                                    onClick={() => pageChange(endPage + 1)}
                                 >
                                     다음
                                 </button>
-
                             )
                         }
-
                     </div>
-
                 )
             }
 
