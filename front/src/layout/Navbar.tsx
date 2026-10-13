@@ -44,7 +44,7 @@ const Navbar: React.FC = () => {
                         </li>
 
                         <li>
-                            <NavLink to="/homeGroup" className={linkClass}>
+                            <NavLink to="/group" className={linkClass}>
                                 스터디룸
                             </NavLink>
                         </li>

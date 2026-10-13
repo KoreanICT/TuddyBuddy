@@ -62,7 +62,7 @@ export const Group_Detail: React.FC = () => {
             console.error('스터디룸 상세 조회 실패', error);
         }
     };
-    
+
     useEffect(() => {
         loadGroupDetail();
     }, [groupNum]);
@@ -81,7 +81,7 @@ export const Group_Detail: React.FC = () => {
             {/* 1. 상단 목록으로 돌아가기 버튼 (입장하기 버튼과 동일 서식) */}
             <div className={styles.top_navigation}>
                 <NavLink
-                    to="/homegroup"
+                    to="/group"
                     className={`${styles.action_btn} ${styles.primary}`}
                 >
                     스터디 목록으로 돌아가기
@@ -162,7 +162,7 @@ export const Group_Detail: React.FC = () => {
                     {currentTab === 'calendar' && <Project_Calendar groupNum={parsedGroupNum} />}
                     {currentTab === 'board' && <Project_TDL groupNum={parsedGroupNum} />}
                     {currentTab === 'discussion' && <Project_Discussion groupNum={parsedGroupNum} />}
-                    {currentTab === 'course' && <Project_Course groupNum={parsedGroupNum} />}
+                    {currentTab === 'course' && <Project_Course groupNum={parsedGroupNum}  isLeader={groupData?.is_leader === 1} />}
                     {currentTab === 'document' && <Detail_Document groupNum={parsedGroupNum} />}
                 </main>
             </div>

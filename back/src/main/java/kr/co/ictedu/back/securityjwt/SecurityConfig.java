@@ -54,6 +54,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf((csrf) -> csrf.disable())
+                //.csrf((csrf) -> csrf.disable())
                 //리액트와 크로스 통신 및 리액트의 view를 사용 
                 .cors((cors) -> cors.configurationSource(corsConfigurationSource()))
                 .formLogin((login) -> login.disable())
@@ -68,7 +69,7 @@ public class SecurityConfig {
 //                        .requestMatchers("/api/employees/**").permitAll()
                         .requestMatchers("/uploads/**").permitAll() //이미지 경로도 열어줘야 한다.
                         //.requestMatchers("/demos/**").permitAll()
-                        //.requestMatchers("/**").permitAll()
+                        .requestMatchers("/**").permitAll()
                         .anyRequest().authenticated()) // 모든 요청에 대해 인증을 요구
                 // JWT 토큰 필터 추가: JwtTokenFilter를 BasicAuthenticationFilter 전에 추가하여 JWT 토큰을 검증
                 .addFilterBefore(jwtTokenFilter, BasicAuthenticationFilter.class)
