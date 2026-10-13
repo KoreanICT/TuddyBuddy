@@ -2,15 +2,20 @@ import React, { useEffect, useRef, useState } from 'react'
 import styles from './chatbot.module.css'
 import { Bot, LoaderCircle, Send, X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface ChatBotProps {
     onClose: () => void;
 }
 
 interface Message {
-    id: number;
+    // DB 메시지는 숫자, 임시 메시지는 문자열
+    id: number | string;
     sender: 'user' | 'bot';
     text: string;
+    // 상태: 서버 응답 대기중 | 서버 정상 응답 | 서버 정상 처리 여부 미확인
+    status?: 'sending' | 'sent' | 'failed';
 }
 
 interface ChatMessageResponse {
@@ -22,20 +27,53 @@ interface ChatMessageResponse {
 }
 
 
-
 const ChatBot: React.FC<ChatBotProps> = (props) => {
 
     const navigate = useNavigate();
-    const isLogin = false;
+    const isLogin = true;
+
+    // 비회원 대표 질문
+    const guestQuestions = [
+        '회원가입은 어떻게 하나요?',
+        '이메일 인증은 반드시 해야 하나요?',
+        '어떤 방법으로 로그인할 수 있나요?'
+    ];
+
+    // 회원 대표 질문
+    const memberQuestions = [
+        '스터디룸은 어떻게 생성하나요?',
+        '학습 이미지를 업로드해서 AI 문제를 생성하려면 어떻게 하나요?',
+        '셀프스터디에서 문제를 푼 후 채점 결과는 어떻게 확인하나요?'
+    ];
+
+    // 로그인 여부에 따라 대표 질문 구분
+    const exampleQuestions = isLogin ? memberQuestions : guestQuestions;
 
     // 현재 채팅 세션 번호
     const [chatNum, setChatNum] = useState<number | null>(null);
 
+    // 채팅 세션 생성 실패 여부
+    const [sessionError, setSessionError] = useState(false);
+
+    // 채팅 세션 생성 재시도 횟수
+    const [sessionRetry, setSessionRetry] = useState(0);
+
     // 대화 메시지
     const [messages, setMessages] = useState<Message[]>([]);
 
+    // 기존 대화 내역 조회 완료 여부
+    const [isHistoryLoaded, setIsHistoryLoaded] = useState(false);
+
+    // 대화 내역 조회 실패 여부
+    const [historyError, setHistoryError] = useState(false);
+
+    // 대화 내역 재조회 요청 횟수
+    const [historyRetry, setHistoryRetry] = useState(0);
+
     // 채팅 세션 생성 및 유지
     useEffect(() => {
+        let cancelled = false;
+
         // sessionStorage 사용 이유 => 기존 세션 번호 확인
         const savedChatNum = sessionStorage.getItem('chatNum');
         if (savedChatNum) {
@@ -45,6 +83,8 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
 
         // 새로운 채팅 세션 생성
         const createSession = async () => {
+            setSessionError(false);
+
             try {
                 const response = await fetch(
                     'http://192.168.0.114:80/back/api/chatbot/session',
@@ -64,22 +104,43 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
                 }
                 const data = await response.json();
 
-                // 발급받은 세션 번호 저장
-                setChatNum(data.chat_num);
-                sessionStorage.setItem('chatNum', String(data.chat_num));
+                if (!cancelled) {
+                    // 발급받은 세션 번호 저장
+                    setChatNum(data.chat_num);
+                    sessionStorage.setItem('chatNum', String(data.chat_num));
+                }
+
             } catch (error) {
-                console.error('채팅 세션 생성 오류: ', error);
+                if (!cancelled) {
+                    console.error('채팅 세션 생성 오류: ', error);
+                    setSessionError(true);
+                }
             }
         };
         createSession();
-    }, []);
+
+        return () => {
+            cancelled = true;
+        };
+    }, [sessionRetry]);
+
+    // 채팅 세션 생성 다시 시도
+    const retryCreateSession = () => {
+        setSessionRetry(prev => prev + 1);
+    };
 
     // DB에서 기존 대화 내역 조회
     useEffect(() => {
         // 세션 번호가 없으면 조회하지 않음
         if (chatNum === null) return;
 
+        let cancelled = false;
+
         const loadMessages = async () => {
+            // 대화 조회 시작
+            setIsHistoryLoaded(false);
+            setHistoryError(false);
+
             try {
                 const response = await fetch(
                     `http://192.168.0.114:80/back/api/chatbot/message/session/${chatNum}`
@@ -98,42 +159,73 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
                     text: message.message_content
                 }));
 
-                // 조회한 대화 내역을 화면에 표시
-                setMessages(loadedMessages);
+                if (!cancelled) {
+                    // 조회한 대화 내역을 화면에 표시
+                    setMessages(loadedMessages);
+                    setIsHistoryLoaded(true);
+                }
+
             } catch (error) {
-                console.error('대화 내역 조회 오류: ', error);
+                if (!cancelled) {
+                    console.error('대화 내역 조회 오류: ', error);
+                    setHistoryError(true);
+                }
             }
         };
         loadMessages();
-    }, [chatNum])
+
+        return () => {
+            cancelled = true;
+        }
+    }, [chatNum, historyRetry])
+
+    // 기존 대화 내역 다시 조회
+    const retryLoadMessages = () => {
+        setHistoryRetry(prev => prev + 1);
+    };
 
     // 입력한 질문
     const [input, setInput] = useState('');
 
-    // AI 다변 대기 상태
+    // AI 답변 대기 상태
     const [isLoading, setIsLoading] = useState(false);
 
     // <div>를 가리킬 변수
     const chatEndRef = useRef<HTMLDivElement>(null);
 
+    // 임시 메시지 ID 관리
+    const messageIdRef = useRef(0);
+
+    // 임시 메시지 ID 생성 함수
+    const getMessageId = () => {
+        messageIdRef.current += 1;
+        return `temp-${messageIdRef.current}`;
+    };
+
     // 사용자 질문 정송 및 AI 답변 받기
     const sendMessage = async () => {
         // 질문이 비어 있거나 세션 번호가 없으면 전송하지 않음
-        if (input.trim() === '' || chatNum ===null || isLoading) return;
+        if (input.trim() === '' || chatNum === null || !isHistoryLoaded || isLoading) {
+            return;
+        }
 
         const question = input.trim();
-
-        const newMessage: Message = {
-            id: Date.now(),
-            sender: 'user',
-            text: question
-        };
+        const messageId = getMessageId();
 
         // 중복 전송 방지를 위해 로딩 상태 변경
         setIsLoading(true);
 
-        // 사용자 질문 화면에 표시
-        setMessages(prev => [...prev, newMessage]);
+        // 사용자 메시지 추가 (전송 중)
+        setMessages(prev => [
+            ...prev,
+            {
+                id: messageId,
+                sender:'user',
+                text: question,
+                status: 'sending'
+            }
+        ]);
+
         setInput('');
 
         try {
@@ -147,7 +239,7 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
                     },
                     body: JSON.stringify({
                         chat_num: chatNum,
-                        question: question,
+                        question,
                         user_type: isLogin ? 'MEMBER' : 'GUEST'
                     })
                 }
@@ -158,24 +250,48 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
 
             // Spring Boot에서 반환한 AI 응답
             const data = await response.json();
-            const botMessage: Message = {
-                id: Date.now() + 1,
-                sender: 'bot',
-                text: data.answer // AI 답변 채팅창에 표시
-            };
 
-            // AI 답변 화면에 표시
-            setMessages(prev => [...prev, botMessage]);
+            // 정상 응답 확인 후 전송 상태 변경
+            setMessages(prev => 
+                prev.map(message => 
+                    message.id === messageId
+                        ? {...message, status: 'sent'}
+                        : message
+                )
+            );
+
+            // AI 답변 추가
+            setMessages(prev => [
+                ...prev,
+                {
+                    id: getMessageId(),
+                    sender: 'bot',
+                    text: data.answer
+                }
+            ]);
+
         } catch (error) {
             console.error('챗봇 오류: ', error);
 
-            // 오류 발생 시 사용자에게 안내 메시지 표시
-            const errorMessage: Message = {
-                id: Date.now() + 2,
-                sender: 'bot',
-                text: '죄송합니다. 현재 답변을 가져오지 못했습니다. 잠시 후 다시 시도해 주세요.'
-            };
-            setMessages(prev => [...prev, errorMessage]);
+            // 서버 처리 여부를 확인할 수 없는 상태
+            setMessages(prev => 
+                prev.map(message => 
+                    message.id === messageId
+                        ? {...message, status: 'failed'}
+                        : message
+                )
+            );
+
+            // 오류 안내 추가
+            setMessages(prev => [
+                ...prev,
+                {
+                    id: getMessageId(),
+                    sender: 'bot',
+                    text: '서버 응답을 받지 못했습니다. 잠시 후 대화 내역을 다시 확인해 주세요.'
+                }
+            ]);
+
         } finally {
             // 성공하거나 오류가 발생해도 다시 질문할 수 있도록 변경
             setIsLoading(false);
@@ -227,34 +343,102 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
 
             {/* 대화 - 대화 내용 */}
             <div className={styles.chatContent}>
-
-                {/* 초기 안내 */}
-                {isLogin ? (
-                    <div className={styles.botMessage}>
-                        안녕하세요! 버디봇입니다.
-                        <br />
-                        사이트 이용 중 궁금한 점이나 문제점을 물어보세요.
-                    </div>
-                ) : (
-                    <div className={styles.botMessage}>
-                        안녕하세요! 버디봇입니다.
-                        <br />
-                        터디버디 기본 이용 방법에 대해 물어보세요.
+                {/* 채팅 세션 생성 실패 안내 */}
+                {sessionError && chatNum === null && (
+                    <div className={styles.historyError}>
+                        <p>채팅을 시작하지 못했습니다.</p>
+                        <span>서버 연결 상태를 확인한 후 다시 시도해 주세요.</span>
+                        <button
+                            type='button'
+                            onClick={retryCreateSession}
+                        >
+                            다시 시도
+                        </button>
                     </div>
                 )}
 
+                {/* 대화 내역 조회 실패 안내 */}
+                {historyError && (
+                    <div className={styles.historyError}>
+                        <p>대화 내역을 불러오지 못했습니다.</p>
+                        <span>서버 연결 상태를 확인한 후 다시 시도해 주세요.</span>
+                        <button
+                            type='button'
+                            onClick={retryLoadMessages}
+                        >
+                            다시 시도
+                        </button>
+                    </div>
+                )}
+
+                {/* 초기 안내 및 대표 질문 */}
+                {isHistoryLoaded && messages.length === 0 && (
+                    <>
+                        <div className={styles.botMessage}>
+                            안녕하세요! 버디봇입니다.
+                            <br />
+                            {isLogin
+                                ? '사이트 이용 중 궁금한 점이나 문제점을 물어보세요.'
+                                : '회원가입 및 로그인 등 기본 이용 방법을 안내해 드릴게요.'
+                            }
+                        </div>
+
+                        {/* 초기 질문 예시 */}
+                        {messages.length === 0 && (
+                            <div className={styles.exampleQuestions}>
+                                <p>이런 질문을 해보세요.</p>
+
+                                {exampleQuestions.map((question, index) => (
+                                    <button
+                                        key={index}
+                                        type='button'
+                                        onClick={() => setInput(question)}
+                                    >
+                                        {question}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </>
+                )}
+
+
                 {/* 실제 대화 */}
-                {messages.map((message) => (
+                {isHistoryLoaded && messages.map((message) => (
                     <div
                         key={message.id}
-                        className={message.sender === 'bot' ? styles.botMessage : styles.userMessage}>
-                        {message.text}
+                        className={
+                            message.sender === 'bot' 
+                                ? styles.botMessage 
+                                : styles.userMessage
+                        }
+                    >
+                        {/* 봇 메시지만 Markdown 적용 */}
+                        {message.sender === 'bot' ? (
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                {message.text}
+                            </ReactMarkdown>
+                        ) : (
+                            message.text
+                        )}
+                        
+                        {message.sender === 'user' && message.status === 'sending' && (
+                            <div className={styles.messageStatus}>
+                                전송 중...
+                            </div>
+                        )}
+
+                        {message.sender === 'user' && message.status === 'failed' && (
+                            <div className={styles.messageStatusError}>
+                                전송 결과를 확인하지 못했습니다.
+                            </div>
+                        )}
                     </div>
                 ))}
 
                 {/* AI 답변 대기 메시지 */}
                 {isLoading && (
-                    <div className={`{styles.botMessage} ${styles.loadedMessages}`}>
+                    <div className={`${styles.botMessage} ${styles.loadingMessage}`}>
                         <LoaderCircle size={16} className={styles.loadingIcon} />
                         <span> 버디봇이 답변을 생성하고 있습니다...</span>
                     </div>
@@ -266,9 +450,9 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
 
             {/* 입력 - 메시지 입력 */}
             <div className={styles.chatInput}>
-                <input 
-                    type="text" 
-                    placeholder='질문을 입력해주세요.' 
+                <input
+                    type="text"
+                    placeholder='질문을 입력해주세요.'
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={(e) => {
@@ -277,10 +461,10 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
                         }
                     }}
                 />
-                <button 
+                <button
                     type='button'
                     onClick={sendMessage}
-                    disabled={isLoading || chatNum === null}
+                    disabled={isLoading || chatNum === null || !isHistoryLoaded}
                 >
                     <Send size={20} />
                 </button>
