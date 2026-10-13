@@ -3,6 +3,10 @@ import { Quiz, MainTabType } from './types';
 import styles from './selfstudy.module.css';
 
 interface Props {
+  onSubmit: () => void;
+  submitting: boolean;
+  submitted: boolean;
+  score: number | null;
   activeTab: MainTabType;
   setActiveTab: (tab: MainTabType) => void;
   setIsModalOpen: (open: boolean) => void;
@@ -12,6 +16,7 @@ interface Props {
 }
 
 export const MainTabContent: React.FC<Props> = ({
+  onSubmit, submitting, submitted, score,
   activeTab,
   setActiveTab,
   setIsModalOpen,
@@ -73,6 +78,16 @@ export const MainTabContent: React.FC<Props> = ({
                       <h4 className={styles.quizTitle}>{quiz.quizQuestion}</h4>
                     </div>
                     
+                    {quiz.quizSelections.length === 0 && (
+                      <form onSubmit={e => {
+                        e.preventDefault();
+                        const answer = new FormData(e.currentTarget).get('answer');
+                        if (typeof answer === 'string' && answer.trim()) handleSelectAnswer(quiz.quizId, answer.trim());
+                      }}>
+                        <input name="answer" aria-label="단답형 답안" required maxLength={1000} />
+                        <button type="submit">답 확인</button>
+                      </form>
+                    )}
                     <ul className={styles.optionList}>
                       {quiz.quizSelections?.map((opt, optIdx) => (
                         <li 
@@ -127,6 +142,10 @@ export const MainTabContent: React.FC<Props> = ({
 
         {quizList.length > 0 && (
           <div className={styles.actionBar}>
+            {score !== null && <strong>저장된 점수: {score}점</strong>}
+            <button className={styles.actionPrimaryBtn} disabled={submitting || submitted} onClick={onSubmit}>
+              {submitted ? '답안 저장 완료' : submitting ? '저장 중...' : '답안 제출 및 저장'}
+            </button>
             <button className={styles.actionBtn} onClick={() => setIsModalOpen(true)}>
               문제 다시 만들기
             </button>

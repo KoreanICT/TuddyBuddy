@@ -1,3 +1,5 @@
+// 주용현
+
 import React, { useState } from 'react';
 import styles from './studentCode.module.css';
 import StudentCodeModal from './StudentCodeModal';
@@ -52,7 +54,7 @@ const StudentCode: React.FC = () => {
             <StudentCodeModal
                 isOpen={isOpen}
                 onClose={() => setIsOpen(false)}
-                studentCode={studentCode}
+                memberCode={studentCode}
             />
 
         </div>

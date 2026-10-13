@@ -7,13 +7,11 @@ import { ProductSelector } from "../cont/point/ProductSelector";
 import PerformanceAnalytics from "../cont/statistics/PerformanceAnalytics";
 import React from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
-import VideoSummary from "../cont/video/VideoSummary";
 import { Group_Home } from "../cont/study_group/Group_Home";
 import { Group_Detail } from "../cont/study_group/Group_Detail";
 import AdminHome from "../cont/admin/AdminHome";
 import MemberManagement from "../cont/admin/member/MemberManagement";
 import BoardManagement from "../cont/admin/board/BoardManagement";
-import StudentCode from "../cont/friend/StudentCode";
 import FriendAdd from "../cont/friend/FriendAdd";
 import FriendList from "../cont/friend/FriendList";
 //import Community from "../cont/community/Community";
@@ -30,6 +28,19 @@ import AuthLayout from "../layout/auth/AuthLayout";
 import SelfStudy from "../cont/selfStudy/SelfStudy";
 import Community from "../cont/community/Community";
 
+import PointHistory from "../mypage/PointHistory";
+import Member_Edit from "../mypage/Member_edit";
+
+import ReportReplyList from "../cont/report/ReportReplyList";
+import ReportReplyDetail from "../cont/report/ReportReplyDetail";
+import FriendRequestList from "../cont/friend/FriendRequestList";
+import FriendSentList from "../cont/friend/FriendSentList";
+import AdminNoticeList from "../cont/admin/notice/AdminNoticeList";
+import AdminNoticeForm from "../cont/admin/notice/AdminNoticeForm";
+import NoticeList from "../cont/notice/NoticeList";
+import NoticeDetail from "../cont/notice/NoticeDetail";
+
+
 interface RouteItem {
     path: string;
     element: React.ReactElement;
@@ -42,22 +53,32 @@ const AppRoutes: React.FC = () => {
     const isAuth = pathname.startsWith("/auth");
 
     const routeList: RouteItem[] = [
-        { path: '/videoSummary', element: <VideoSummary /> },
         { path: '/community', element: <Community /> },
 
 
-        { path: '/homeGroup', element: <Group_Home /> },
-        { path: '/group/detail', element: <Group_Detail /> },
+        { path: '/group', element: <Group_Home /> },
+        { path: '/group/detail/:groupNum', element: <Group_Detail /> },
 
 
         // contents
         { path: "/", element: <Home /> },
         { path: "/friend/add", element: <FriendAdd /> },
         { path: "/friend/list", element: <FriendList /> },
+
+        { path: "/friend/request", element: <FriendRequestList /> },
+        { path: "/friend/sent", element: <FriendSentList /> },
+
         { path: '/point', element: <ProductSelector /> },
         { path: '/statistics', element: <PerformanceAnalytics /> },
         { path: '/selfStudy', element: <SelfStudy /> },
         { path: '/reportCreate', element: <ReportCreate /> },
+
+
+        { path: '/reportReplyList', element: <ReportReplyList /> },
+        { path: "/report/replyDetail/:id", element: <ReportReplyDetail /> },
+
+        { path: "/notice", element: <NoticeList /> },
+        { path: "/notice/:num", element: <NoticeDetail /> },
 
 
         // admin
@@ -68,12 +89,17 @@ const AppRoutes: React.FC = () => {
         { path: "/admin/reportDetail/:id", element: <ReportDetail /> },
         { path: "/admin/reportReply/:id", element: <ReportReply /> },
         { path: "/admin/studyManagement", element: <StudyManagement /> },
+        { path: "/admin/notice", element: <AdminNoticeList /> },
+        { path: "/admin/notice/add", element: <AdminNoticeForm /> },
+        { path: "/admin/notice/edit/:num", element: <AdminNoticeForm /> },
 
 
         // auth
         { path: '/auth/member', element: <Login /> },
         { path: '/auth/signup', element: <Signup /> },
         { path: '/auth/mypage', element: <MyPage /> },
+        { path: '/point_history', element: <PointHistory /> },
+        { path: '/member_edit', element: <Member_Edit /> },
     ];
 
 

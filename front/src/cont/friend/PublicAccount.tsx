@@ -1,3 +1,5 @@
+// 주용현
+
 import React, { useState } from 'react';
 import { UserRound, UserPlus, Check } from 'lucide-react';
 import styles from './publicAccount.module.css';

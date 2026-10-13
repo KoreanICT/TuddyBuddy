@@ -1,5 +1,5 @@
-import { DetailTab } from "./Type";
-
+import axios from "axios";
+import { AppEdge, AppNode, DetailTab, Repeat_type, TDLStatus } from "./Type";
 /* 공개 스터디룸 컴포넌트 관련 API */
 
 /**
@@ -29,26 +29,108 @@ export interface PrivateStudyItem {
     role: string;
 }
 
+export interface StudyRoomItem {
+    group_num: number;
+    group_title: string;
+    group_desc: string;
+    group_isPrivate: number;
+    group_thumbnail: string;
+}
 /* 스터디룸 생성 컴포넌트 관련 API */
 
 /**
- * 스터디룸 생성 모달 관련 API
+ * 태그 관련 API 
  */
-export interface GroupCreateModalProps {
-    isOpen: boolean;
-    onClose: () => void;
-    onSubmitSuccess?: (data: any) => void;
+export interface TagItem {
+    tag_num?: number;
+    tag_name: string;
+    tag_color: string;
+}
+
+export interface GroupData {
+    group_num?: number;
+    group_title: string;
+    group_desc: string;
+    group_isPrivate: number;
+    group_maxMembers: number;
+    group_thumbnail?: string | null;
+    group_invitecode?: string | null;
+}
+
+
+
+/**
+ * 태그 검색
+ */
+export const searchGroupTags = async (
+    keyword: string
+): Promise<TagItem[]> => {
+    const response = await axios.get<TagItem[]>(
+        `http://localhost/back/api/group/tags/search`,
+        {
+            params: {
+                keyword
+            }
+        }
+    );
+    return response.data;
+};
+
+/**
+ * 스터디 그룹 생성
+ */
+export const createGroup = async (requestData: GroupCreateRequest,thumbnail: File | null) => {
+    const formData = new FormData();
+
+    formData.append(
+        'groupData',
+        new Blob(
+            [JSON.stringify(requestData)],
+            { type: 'application/json' }
+        )
+    );
+    if (thumbnail) {
+        formData.append('thumbnail',thumbnail);
+    }
+    const response = await axios.post(
+        `http://localhost/back/api/group/add`,
+        formData
+    );
+    return response.data.group_num;
+};
+export interface GroupCreateRequest {
+    group: GroupData;
+    tags: TagItem[];
 }
 
 /**
- * 태그 관련 API !! 조만간 수정 예정
+ * 스터디 그룹 변경
  */
-export interface TagItem {
-    id: string;
-    text: string;
-    color: string;
-}
 
+export const patchGroup = async (groupNum: number, requestData: GroupUpdateRequest, thumbnail: File | null) => {
+    const formData = new FormData();
+    formData.append(
+        'groupData',
+        new Blob(
+            [JSON.stringify(requestData)],
+            { type: 'application/json' }
+        )
+    );
+    if (thumbnail) {
+        formData.append('thumbnail', thumbnail);
+    }
+    const response = await axios.patch(
+        `http://localhost/back/api/group/detail/patchGroup/${groupNum}`,
+        formData
+    );
+    return response.data;
+};
+export interface GroupUpdateRequest {
+    group_title: string;
+    group_desc: string;
+    group_thumbnail: string | null;
+    tags: TagItem[];
+}
 /* 스터디룸 선택 탭 사이드바 관련 API */
 
 /**
@@ -62,8 +144,23 @@ export interface GroupSidebarProps {
     onSearchTypeChange: (type: 'name' | 'tag') => void;
     searchTerm: string;
     onSearchChange: (value: string) => void;
+    onOpenInviteModal: () => void;
 }
+/**
+ * 초대코드 모달 관련 API
+ */
 
+export const joinGroupByInviteCode = async (
+        inviteCode: string
+    ) => {
+        const response = await axios.post(
+            `http://localhost/back/api/group/join/invite`,
+            {
+                inviteCode
+            }
+        );
+        return response.data;
+    };
 /* 스터디룸 상세 탭 사이드바 관련 API */
 
 /**
@@ -82,6 +179,29 @@ export interface SidebarDirection {
     id: number;
     alias: DetailTab;
     detail: string;
+}
+
+/**
+ * 문자열 첫 글자 가져오기 관련 API
+ */
+export const getFirstLetter = (title: string) => {
+    const trimmed = title.trim();
+
+    return Array.from(trimmed)[0] ?? '?';
+}
+/**
+ * groupNum 조회 관련 API
+ */
+export interface GetGroupNum {
+    groupNum: number;
+}
+
+/**
+ * grouNum 및 is_leader 조회 관련 API
+ */
+export interface GetIsleaderandGroupNum {
+    groupNum: number;
+    isLeader: boolean;
 }
 /* Member 컴포넌트 관련 API */
 
@@ -125,3 +245,53 @@ export interface MemoUpdateRequest {
     memo_num: number;
     memo_content: string;
 }
+
+/**
+ * 해야할 일(TDL) 관련 API
+ */
+export interface TDLData {
+    tdlid: number;
+    member: string;
+    name: string;
+    detail: string;
+    status: TDLStatus;
+    repeat_type: Repeat_type;
+    created_at: string;
+    updated_at?: string;
+    completed_at?: string;
+    due_at?: string;
+}
+
+/**
+ * 다이어그램 관련 API
+ */
+export interface CustomNodeData extends Record<string, unknown> {
+    label: string;
+}
+export interface DiagramData {
+    nodes: AppNode[];
+    edges: AppEdge[];
+}
+export interface DiagramSaveRequest {
+    groupnum: number;
+    title: string;
+    diagram_data: string;
+}
+export interface DiagramResponse {
+    group_num: number;
+    title: string;
+    diagram_data: string;
+    created_at: string;
+    updated_at?: string;
+}
+export const getDiagram = async (
+    groupNum: number
+): Promise<DiagramResponse | null> => {
+
+    const response = await axios.get<DiagramResponse | null>(
+        `http://localhost/back/api/detail/diagram/${groupNum}`
+    );
+
+    return response.data;
+};
+

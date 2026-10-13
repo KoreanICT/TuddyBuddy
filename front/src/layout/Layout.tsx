@@ -3,7 +3,6 @@ import styles from './layout.module.css';
 
 import Navbar from './Navbar';
 import FloatingButton from './floatingButton/FloatingButton';
-import FaceDetector from '../cont/detect/FaceDetector';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -15,8 +14,6 @@ interface Position {
 }
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
-
-  const [showFaceDetector, setShowFaceDetector] = useState(false);
 
   // FaceDetector 위치
   const [position, setPosition] = useState<Position>({
@@ -96,49 +93,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       </main>
 
       <FloatingButton />
-
-
-      {/* 학습 집중 버튼 */}
-      {!showFaceDetector && (
-        <button
-          type="button"
-          className={styles.focusButton}
-          onClick={() => setShowFaceDetector(true)}
-        >
-          학습 집중
-        </button>
-      )}
-
-
-      {/* FaceDetector */}
-      {showFaceDetector && (
-
-        <div
-          className={styles.focusModal}
-          style={{
-            left: `${position.x}px`,
-            top: `${position.y}px`
-          }}
-        >
-
-          {/* 드래그 영역 */}
-          <div
-            className={styles.dragHandle}
-            onPointerDown={handlePointerDown}
-            onPointerMove={handlePointerMove}
-            onPointerUp={handlePointerUp}
-          >
-            학습 집중 감지
-            <span>⋮⋮</span>
-          </div>
-
-          <FaceDetector
-            onClose={() => setShowFaceDetector(false)}
-          />
-
-        </div>
-
-      )}
 
     </div>
   );

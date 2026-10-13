@@ -37,6 +37,7 @@ export interface QuizSession {
   quizPrompt?: string;
   createdAt?: string;
   quizzes?: Quiz[];
+  quizSelections: string[]
 }
 
 export type MainTabType = 'quiz' | 'wrongNotes';

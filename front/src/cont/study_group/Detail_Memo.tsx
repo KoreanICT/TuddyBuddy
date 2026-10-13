@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import styles from './memo.module.css';
 import { Detail_MemoBoard } from './Detail_MemoBoard';
 import type { MemoData } from './Detail_MemoCard';
+import { GetGroupNum } from './GroupAPI'
 
-export const Detail_Memo: React.FC = () => {
+export const Detail_Memo: React.FC<GetGroupNum> = (groupNum) => {
     // ===========================
     // 임시 데이터
     // 나중에는 GET API 결과로 교체
@@ -96,14 +97,14 @@ export const Detail_Memo: React.FC = () => {
     };
 
     return (
-        <div className={styles.memoWrapper}>
-            <section className={styles.memoSection}>
+        <div className={styles.detail_content_wrapper}>
+            <section className={styles.detail_section_card}>
                 <div className={styles.memoHeader}>
                     <div>
-                        <h3 className={styles.memoTitle}>
+                        <h3 className={styles.section_title}>
                             메모
                         </h3>
-                        <p className={styles.memoDescription}>
+                        <p className={styles.section_desc}>
                             자유롭게 공부를 하면서 필요한 메모를 적는 공간입니다.
                         </p>
                     </div>

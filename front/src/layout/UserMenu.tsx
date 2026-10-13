@@ -79,7 +79,7 @@ const UserMenu: React.FC = () => {
 
                 {/* Menu */}
                 <nav className={styles.drawerMenu}>
-                    <NavLink to="/mypage" onClick={closeMenu}>
+                    <NavLink to="/auth/mypage" onClick={closeMenu}>
                         내정보
                     </NavLink>
 

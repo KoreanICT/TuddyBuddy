@@ -20,24 +20,29 @@ type ReportStatus =
     | 'COMPLETED'
     | 'REJECTED';
 
-type ReportType =
-    | 'POST'
-    | 'COMMENT'
-    | 'USER'
-    | 'STUDY';
+type ReportStatus = 'PENDING' | 'REVIEWING' | 'COMPLETED' | 'REJECTED';
+type ReportType = 'POST' | 'COMMENT' | 'USER' | 'STUDY';
 
-interface Report {
-    id: number;
+interface ReportVO {
+    num: number;
+    member_num: number;
     type: ReportType;
-    reporter: string;
-    target: string;
-    reason: string;
+    category: string;
+    content: string;
     status: ReportStatus;
-    createdAt: string;
+    created_date: string;
+}
+
+interface ReportListResponse {
+    data: ReportVO[];
+    totalItems: number;
+    totalPages: number;
+    currentPage: number;
+    startPage: number;
+    endPage: number;
 }
 
 const ReportList: React.FC = () => {
-
     const navigate = useNavigate();
 
     // =========================
@@ -276,34 +281,22 @@ const ReportList: React.FC = () => {
                 pages
             );
 
-        setStartPage(start);
-        setEndPage(end);
+        fetchReportList();
 
-    }, [
-        filteredReports.length,
-        currentPage
-    ]);
-
-    // =========================
-    // 현재 페이지 데이터
-    // =========================
-
-    const startIndex =
-        (currentPage - 1) *
-        pageSize;
-
-    const endIndex =
-        startIndex +
-        pageSize;
-
-    const currentReports =
-        filteredReports.slice(
-            startIndex,
-            endIndex
-        );
+        return () => {
+            active = false;
+        };
+    }, [currentPage, statusFilter]);
 
     // =========================
     // 페이지 변경
+    // =========================
+    const pageChange = (page: number) => {
+        setCurrentPage(page);
+    };
+
+    // =========================
+    // 상태 필터
     // =========================
 
     const pageChange = (

@@ -14,7 +14,7 @@ const Login: React.FC = () => {
         {/* 제목 */}
         <div className="login-header">
           <h2>로그인</h2>
-          <p>OOO에 오신 것을 환영합니다.</p>
+          <p>TuuddyBuddy에 오신 것을 환영합니다.</p>
         </div>
 
         {/* 이메일 */}
@@ -55,7 +55,7 @@ const Login: React.FC = () => {
         <div className="login-footer">
           <span>아직 회원이 아니신가요?</span>
 
-          <Link to="/user/signup">
+          <Link to="/auth/signup">
             회원가입하기
           </Link>
         </div>

@@ -1,3 +1,5 @@
+// 주용현
+
 package kr.co.ictedu.back.notice.dao;
 
 import java.util.List;
@@ -12,8 +14,8 @@ public interface NoticeDao {
 	void add(NoticeVO vo);
 	List<NoticeVO> list(Map<String, String> map);
 	int totalCount(Map<String, String> map);
-	void hit(int num);
-	NoticeVO detail(int num);
-	void del(int num);
+	void hit(Long num);
+	NoticeVO detail(Long num);
+	void del(Long num);
 	int update(NoticeVO vo);
 }
