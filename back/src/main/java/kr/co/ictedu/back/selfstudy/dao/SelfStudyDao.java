@@ -71,4 +71,14 @@ public interface SelfStudyDao {
 
     int deleteQuizSession(
             @Param("quizSessionId") Long quizSessionId);
+    
+    
+    //=========================================================================================
+    
+    List<String> selectCategories(
+    		@Param("memberNum") Long memberNum);
+    
+    Long selectSessionId(
+    		@Param("memberNum") Long memberNum);
+    
 }

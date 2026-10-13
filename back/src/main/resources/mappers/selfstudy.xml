@@ -1,383 +1,334 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE mapper PUBLIC
-        "-//mybatis.org//DTD Mapper 3.0//EN"
-        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="kr.co.ictedu.back.selfstudy.dao.SelfStudyDao">
-    <select id="selectSubject" resultType="kr.co.ictedu.back.selfstudy.vo.SubjectVO">
-        SELECT subject_id, category_id, subject_name, usage_count, created_at
-        FROM subjects WHERE subject_id = #{subjectId}
-    </select>
+	<select id="selectSubject"
+		resultType="kr.co.ictedu.back.selfstudy.vo.SubjectVO">
+		SELECT subject_id, category_id, subject_name, usage_count, created_at
+		FROM subjects WHERE subject_id = #{subjectId}
+	</select>
 
 
-    <!-- =====================================================
+	<!-- =====================================================
          Category
          ===================================================== -->
 
-    <!-- 카테고리 전체 조회 -->
-    <select id="selectCategories"
-            resultType="kr.co.ictedu.back.selfstudy.vo.CategoryVO">
+	<!-- 카테고리 전체 조회 -->
+	<select id="selectCategories"
+		resultType="kr.co.ictedu.back.selfstudy.vo.CategoryVO">
 
-        SELECT
-            category_id,
-            category_name
-        FROM categories
-        ORDER BY category_id
+		SELECT
+		category_id,
+		category_name
+		FROM categories
+		ORDER BY category_id
 
-    </select>
+	</select>
 
 
-    <!-- =====================================================
+	<!-- =====================================================
          Subject
          ===================================================== -->
 
-    <!-- 카테고리별 과목 조회 -->
-    <select id="selectSubjects"
-            resultType="kr.co.ictedu.back.selfstudy.vo.SubjectVO">
+	<!-- 카테고리별 과목 조회 -->
+	<select id="selectSubjects"
+		resultType="kr.co.ictedu.back.selfstudy.vo.SubjectVO">
 
-        SELECT
-            subject_id,
-            category_id,
-            subject_name,
-            usage_count,
-            created_at
-        FROM subjects
-        WHERE category_id = #{categoryId}
-        ORDER BY subject_id
+		SELECT
+		subject_id,
+		category_id,
+		subject_name,
+		usage_count,
+		created_at
+		FROM subjects
+		WHERE category_id = #{categoryId}
+		ORDER BY subject_id
 
-    </select>
+	</select>
 
 
-    <!-- =====================================================
+	<!-- =====================================================
          Quiz Session
          ===================================================== -->
 
-    <!-- 퀴즈 세션 등록 -->
-    <insert id="insertQuizSession"
-            parameterType="kr.co.ictedu.back.selfstudy.vo.QuizSessionVO">
+	<!-- 퀴즈 세션 등록 -->
+	<insert id="insertQuizSession"
+		parameterType="kr.co.ictedu.back.selfstudy.vo.QuizSessionVO">
 
-        <selectKey
-                keyProperty="quiz_session_id"
-                resultType="long"
-                order="BEFORE">
+		<selectKey
+			keyProperty="quiz_session_id"
+			resultType="long"
+			order="BEFORE">
 
-            SELECT quiz_sessions_seq.NEXTVAL
-            FROM dual
+			SELECT quiz_sessions_seq.NEXTVAL
+			FROM dual
 
-        </selectKey>
-
-        INSERT INTO quiz_sessions (
-            quiz_session_id,
-            subject_id,
-            member_num,
-            quiz_image_url,
-            quiz_type,
-            quiz_difficulty,
-            quiz_count,
-            quiz_prompt,
-            created_at
-        )
-        VALUES (
-            #{quiz_session_id},
-            #{subject_id},
-            #{member_num},
-            #{quiz_image_url},
-            #{quiz_type},
-            #{quiz_difficulty},
-            #{quiz_count},
-            #{quiz_prompt, jdbcType=VARCHAR},
-            SYSDATE
-        )
-
-    </insert>
+		</selectKey>
+		INSERT INTO quiz_sessions ( quiz_session_id, subject_id, member_num,
+		quiz_image_url, quiz_type, quiz_difficulty, quiz_count, quiz_prompt,
+		created_at ) VALUES ( #{quiz_session_id}, #{subject_id}, #{member_num},
+		#{quiz_image_url}, #{quiz_type}, #{quiz_difficulty}, #{quiz_count},
+		#{quiz_prompt, jdbcType=VARCHAR}, SYSDATE ) </insert>
 
 
-    <!-- 회원별 퀴즈 세션 목록 -->
-    <select id="selectQuizSessions"
-            resultType="kr.co.ictedu.back.selfstudy.vo.QuizSessionVO">
+	<!-- 회원별 퀴즈 세션 목록 -->
+	<select id="selectQuizSessions"
+		resultType="kr.co.ictedu.back.selfstudy.vo.QuizSessionVO">
 
-        SELECT
-            quiz_session_id,
-            subject_id,
-            member_num,
-            quiz_image_url,
-            quiz_type,
-            quiz_difficulty,
-            quiz_count,
-            quiz_prompt,
-            created_at
-        FROM quiz_sessions
-        WHERE member_num = #{memberNum}
-        ORDER BY created_at DESC
+		SELECT
+		quiz_session_id,
+		subject_id,
+		member_num,
+		quiz_image_url,
+		quiz_type,
+		quiz_difficulty,
+		quiz_count,
+		quiz_prompt,
+		created_at
+		FROM quiz_sessions
+		WHERE member_num = #{memberNum}
+		ORDER BY created_at DESC
 
-    </select>
-
-
-    <!-- 퀴즈 세션 1개 조회 -->
-    <select id="selectQuizSession"
-            resultType="kr.co.ictedu.back.selfstudy.vo.QuizSessionVO">
-
-        SELECT
-            quiz_session_id,
-            subject_id,
-            member_num,
-            quiz_image_url,
-            quiz_type,
-            quiz_difficulty,
-            quiz_count,
-            quiz_prompt,
-            created_at
-        FROM quiz_sessions
-        WHERE quiz_session_id = #{quizSessionId}
-
-    </select>
+	</select>
 
 
-    <!-- =====================================================
+	<!-- 퀴즈 세션 1개 조회 -->
+	<select id="selectQuizSession"
+		resultType="kr.co.ictedu.back.selfstudy.vo.QuizSessionVO">
+
+		SELECT
+		quiz_session_id,
+		subject_id,
+		member_num,
+		quiz_image_url,
+		quiz_type,
+		quiz_difficulty,
+		quiz_count,
+		quiz_prompt,
+		created_at
+		FROM quiz_sessions
+		WHERE quiz_session_id = #{quizSessionId}
+
+	</select>
+
+
+	<!-- =====================================================
          Quiz
          ===================================================== -->
 
-    <!-- 생성된 문제 등록 -->
-    <insert id="insertQuiz"
-            parameterType="kr.co.ictedu.back.selfstudy.vo.QuizVO">
+	<!-- 생성된 문제 등록 -->
+	<insert id="insertQuiz"
+		parameterType="kr.co.ictedu.back.selfstudy.vo.QuizVO">
 
-        <selectKey
-                keyProperty="quiz_id"
-                resultType="long"
-                order="BEFORE">
+		<selectKey
+			keyProperty="quiz_id"
+			resultType="long"
+			order="BEFORE">
 
-            SELECT quizzes_seq.NEXTVAL
-            FROM dual
+			SELECT quizzes_seq.NEXTVAL
+			FROM dual
 
-        </selectKey>
-
-        INSERT INTO quizzes (
-            quiz_id,
-            quiz_session_id,
-            quiz_question,
-            quiz_selections,
-            quiz_correct_answer,
-            quiz_explanation,
-            created_at
-        )
-        VALUES (
-            #{quiz_id},
-            #{quiz_session_id},
-            #{quiz_question},
-            #{quiz_selections},
-            #{quiz_correct_answer},
-            #{quiz_explanation},
-            SYSDATE
-        )
-
-    </insert>
+		</selectKey> INSERT
+		INTO quizzes ( quiz_id, quiz_session_id, quiz_question, quiz_selections,
+		quiz_correct_answer, quiz_explanation, created_at ) VALUES ( #{quiz_id},
+		#{quiz_session_id}, #{quiz_question}, #{quiz_selections},
+		#{quiz_correct_answer}, #{quiz_explanation}, SYSDATE ) </insert>
 
 
-    <!-- 세션별 문제 목록 -->
-    <select id="selectQuizzes"
-            resultType="kr.co.ictedu.back.selfstudy.vo.QuizVO">
+	<!-- 세션별 문제 목록 -->
+	<select id="selectQuizzes"
+		resultType="kr.co.ictedu.back.selfstudy.vo.QuizVO">
 
-        SELECT
-            quiz_id,
-            quiz_session_id,
-            quiz_question,
-            quiz_selections,
-            quiz_correct_answer,
-            quiz_explanation,
-            created_at
-        FROM quizzes
-        WHERE quiz_session_id = #{quizSessionId}
-        ORDER BY quiz_id
+		SELECT
+		quiz_id,
+		quiz_session_id,
+		quiz_question,
+		quiz_selections,
+		quiz_correct_answer,
+		quiz_explanation,
+		created_at
+		FROM quizzes
+		WHERE quiz_session_id = #{quizSessionId}
+		ORDER BY quiz_id
 
-    </select>
-
-
-    <!-- 문제 1개 조회 -->
-    <select id="selectQuiz"
-            resultType="kr.co.ictedu.back.selfstudy.vo.QuizVO">
-
-        SELECT
-            quiz_id,
-            quiz_session_id,
-            quiz_question,
-            quiz_selections,
-            quiz_correct_answer,
-            quiz_explanation,
-            created_at
-        FROM quizzes
-        WHERE quiz_id = #{quizId}
-
-    </select>
+	</select>
 
 
-    <!-- =====================================================
+	<!-- 문제 1개 조회 -->
+	<select id="selectQuiz"
+		resultType="kr.co.ictedu.back.selfstudy.vo.QuizVO">
+
+		SELECT
+		quiz_id,
+		quiz_session_id,
+		quiz_question,
+		quiz_selections,
+		quiz_correct_answer,
+		quiz_explanation,
+		created_at
+		FROM quizzes
+		WHERE quiz_id = #{quizId}
+
+	</select>
+
+
+	<!-- =====================================================
          Self Study Result
          ===================================================== -->
 
-    <!-- 학습 결과 등록 -->
-    <insert id="insertSelfStudyResult"
-            parameterType="kr.co.ictedu.back.selfstudy.vo.SelfStudyResultVO">
+	<!-- 학습 결과 등록 -->
+	<insert id="insertSelfStudyResult"
+		parameterType="kr.co.ictedu.back.selfstudy.vo.SelfStudyResultVO">
 
-        <selectKey
-                keyProperty="selfstudy_results_id"
-                resultType="long"
-                order="BEFORE">
+		<selectKey
+			keyProperty="selfstudy_results_id"
+			resultType="long"
+			order="BEFORE">
 
-            SELECT selfstudy_results_seq.NEXTVAL
-            FROM dual
+			SELECT selfstudy_results_seq.NEXTVAL
+			FROM dual
 
-        </selectKey>
-
-        INSERT INTO selfstudy_results (
-            selfstudy_results_id,
-            quiz_session_id,
-            member_num,
-            selfstudy_total_score,
-            submitted_at
-        )
-        VALUES (
-            #{selfstudy_results_id},
-            #{quiz_session_id},
-            #{member_num},
-            #{selfstudy_total_score},
-            SYSDATE
-        )
-
-    </insert>
+		</selectKey>
+		INSERT INTO selfstudy_results ( selfstudy_results_id, quiz_session_id,
+		member_num, selfstudy_total_score, submitted_at ) VALUES (
+		#{selfstudy_results_id}, #{quiz_session_id}, #{member_num},
+		#{selfstudy_total_score}, SYSDATE ) </insert>
 
 
-    <!-- 결과 1개 조회 -->
-    <select id="selectResult"
-            resultType="kr.co.ictedu.back.selfstudy.vo.SelfStudyResultVO">
+	<!-- 결과 1개 조회 -->
+	<select id="selectResult"
+		resultType="kr.co.ictedu.back.selfstudy.vo.SelfStudyResultVO">
 
-        SELECT
-            selfstudy_results_id,
-            quiz_session_id,
-            member_num,
-            selfstudy_total_score,
-            submitted_at
-        FROM selfstudy_results
-        WHERE selfstudy_results_id = #{resultId}
+		SELECT
+		selfstudy_results_id,
+		quiz_session_id,
+		member_num,
+		selfstudy_total_score,
+		submitted_at
+		FROM selfstudy_results
+		WHERE selfstudy_results_id = #{resultId}
 
-    </select>
-
-
-    <!-- 회원별 결과 목록 -->
-    <select id="selectResults"
-            resultType="kr.co.ictedu.back.selfstudy.vo.SelfStudyResultVO">
-
-        SELECT
-            selfstudy_results_id,
-            quiz_session_id,
-            member_num,
-            selfstudy_total_score,
-            submitted_at
-        FROM selfstudy_results
-        WHERE member_num = #{memberNum}
-        ORDER BY submitted_at DESC
-
-    </select>
+	</select>
 
 
-    <!-- =====================================================
+	<!-- 회원별 결과 목록 -->
+	<select id="selectResults"
+		resultType="kr.co.ictedu.back.selfstudy.vo.SelfStudyResultVO">
+
+		SELECT
+		selfstudy_results_id,
+		quiz_session_id,
+		member_num,
+		selfstudy_total_score,
+		submitted_at
+		FROM selfstudy_results
+		WHERE member_num = #{memberNum}
+		ORDER BY submitted_at DESC
+
+	</select>
+
+
+	<!-- =====================================================
          Quiz Response
          ===================================================== -->
 
-    <!-- 문제별 사용자 답변 등록 -->
-    <insert id="insertQuizResponse"
-            parameterType="kr.co.ictedu.back.selfstudy.vo.QuizResponseVO">
+	<!-- 문제별 사용자 답변 등록 -->
+	<insert id="insertQuizResponse"
+		parameterType="kr.co.ictedu.back.selfstudy.vo.QuizResponseVO">
 
-        <selectKey
-                keyProperty="quiz_responses_id"
-                resultType="long"
-                order="BEFORE">
+		<selectKey
+			keyProperty="quiz_responses_id"
+			resultType="long"
+			order="BEFORE">
 
-            SELECT quiz_responses_seq.NEXTVAL
-            FROM dual
+			SELECT quiz_responses_seq.NEXTVAL
+			FROM dual
 
-        </selectKey>
-
-        INSERT INTO quiz_responses (
-            quiz_responses_id,
-            selfstudy_results_id,
-            quiz_id,
-            quiz_user_response,
-            quiz_correct,
-            submitted_at
-        )
-        VALUES (
-            #{quiz_responses_id},
-            #{selfstudy_results_id},
-            #{quiz_id},
-            #{quiz_user_response},
-            #{quiz_correct},
-            SYSDATE
-        )
-
-    </insert>
+		</selectKey>
+		INSERT INTO quiz_responses ( quiz_responses_id, selfstudy_results_id,
+		quiz_id, quiz_user_response, quiz_correct, submitted_at ) VALUES (
+		#{quiz_responses_id}, #{selfstudy_results_id}, #{quiz_id},
+		#{quiz_user_response}, #{quiz_correct}, SYSDATE ) </insert>
 
 
-    <!-- 결과별 사용자 답변 조회 -->
-    <select id="selectQuizResponses"
-            resultType="kr.co.ictedu.back.selfstudy.vo.QuizResponseVO">
+	<!-- 결과별 사용자 답변 조회 -->
+	<select id="selectQuizResponses"
+		resultType="kr.co.ictedu.back.selfstudy.vo.QuizResponseVO">
 
-        SELECT
-            quiz_responses_id,
-            selfstudy_results_id,
-            quiz_id,
-            quiz_user_response,
-            quiz_correct,
-            submitted_at
-        FROM quiz_responses
-        WHERE selfstudy_results_id = #{resultId}
-        ORDER BY quiz_responses_id
+		SELECT
+		quiz_responses_id,
+		selfstudy_results_id,
+		quiz_id,
+		quiz_user_response,
+		quiz_correct,
+		submitted_at
+		FROM quiz_responses
+		WHERE selfstudy_results_id = #{resultId}
+		ORDER BY quiz_responses_id
 
-    </select>
+	</select>
 
 
-    <!-- =====================================================
+	<!-- =====================================================
          Delete
          
          자식 테이블 → 부모 테이블 순서로 삭제
          ===================================================== -->
 
-    <!-- 세션에 속한 사용자 답변 삭제 -->
-    <delete id="deleteQuizResponsesBySession">
+	<!-- 세션에 속한 사용자 답변 삭제 -->
+	<delete id="deleteQuizResponsesBySession">
 
-        DELETE FROM quiz_responses
-        WHERE selfstudy_results_id IN (
-            SELECT selfstudy_results_id
-            FROM selfstudy_results
-            WHERE quiz_session_id = #{quizSessionId}
-        )
+		DELETE FROM quiz_responses
+		WHERE selfstudy_results_id IN (
+		SELECT selfstudy_results_id
+		FROM selfstudy_results
+		WHERE quiz_session_id = #{quizSessionId}
+		)
 
-    </delete>
-
-
-    <!-- 세션에 속한 결과 삭제 -->
-    <delete id="deleteResultsBySession">
-
-        DELETE FROM selfstudy_results
-        WHERE quiz_session_id = #{quizSessionId}
-
-    </delete>
+	</delete>
 
 
-    <!-- 세션에 속한 문제 삭제 -->
-    <delete id="deleteQuizzesBySession">
+	<!-- 세션에 속한 결과 삭제 -->
+	<delete id="deleteResultsBySession">
 
-        DELETE FROM quizzes
-        WHERE quiz_session_id = #{quizSessionId}
+		DELETE FROM selfstudy_results
+		WHERE quiz_session_id = #{quizSessionId}
 
-    </delete>
+	</delete>
 
 
-    <!-- 마지막으로 퀴즈 세션 삭제 -->
-    <delete id="deleteQuizSession">
+	<!-- 세션에 속한 문제 삭제 -->
+	<delete id="deleteQuizzesBySession">
 
-        DELETE FROM quiz_sessions
-        WHERE quiz_session_id = #{quizSessionId}
+		DELETE FROM quizzes
+		WHERE quiz_session_id = #{quizSessionId}
 
-    </delete>
+	</delete>
+
+
+	<!-- 마지막으로 퀴즈 세션 삭제 -->
+	<delete id="deleteQuizSession">
+
+		DELETE FROM quiz_sessions
+		WHERE quiz_session_id = #{quizSessionId}
+
+	</delete>
+
+	<!-- 
+	===================================================================	
+	-->
+
+	<select id="selectCategories">
+		SELECT c.CATEGORY_NAME FROM
+		CATEGORIES c, QUIZ_SESSIONS qs,SUBJECTS s,MEMBER m
+		WHERE c.CATEGORY_ID = s.CATEGORY_ID AND qs.SUBJECT_ID = s.SUBJECT_ID AND
+		qs.MEMBER_NUM = #{num}
+	</select>
+
+	<select id="selectSessionId">
+		SELECT qs.SUBJECT_ID FROM
+		QUIZ_SESSIONS qs,MEMBER M
+		WHERE qs.MEMBER_NUM = #{num}
+	</select>
 
 </mapper>

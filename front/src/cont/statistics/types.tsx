@@ -7,13 +7,6 @@ export interface Category {
     categoryName: string;
 }
 
-export interface Subject {
-    subjectId: number;
-    categoryId: number;
-    subjectName: string;
-    usageCount: number;
-}
-
 // ==========================================
 // PerformanceAnalytics 전용 데이터 인터페이스
 // ==========================================

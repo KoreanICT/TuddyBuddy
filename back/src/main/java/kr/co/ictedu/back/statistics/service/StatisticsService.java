@@ -19,20 +19,30 @@ public class StatisticsService {
 	// 1. @Autowired를 이용한 필드 주입 방식 적용
 	@Autowired
 	private SelfStudyDao selfStudyDao;
+	
+	
+	public List<String> selectCategories(Long memberNum) {
+		//카테고리 추출
+		List<String> categories = selfStudyDao.selectCategories(memberNum);
+		return categories;
+	}
 
-	public Map<String, Object> getAiPerformanceFeedback(Long resultId) {
-
+	public Map<String, Object> selectStatistics(Long memberNum) {
+		
+		Long sessionId = selfStudyDao.selectSessionId(memberNum);
+		
 		// 2. 학습 결과 단건 조회 (세션 ID 및 회원 번호 확인용)
-		SelfStudyResultVO result = selfStudyDao.selectResult(resultId);
+		SelfStudyResultVO result = selfStudyDao.selectResult(sessionId);
 		if (result == null) {
 			throw new IllegalArgumentException("존재하지 않는 학습 결과입니다.");
 		}
 
+		
 		// 3. 해당 세션의 전체 문제 목록 조회 (기존 쿼리 재사용)
 		List<QuizVO> quizzes = selfStudyDao.selectQuizzes(result.getQuiz_session_id());
 
 		// 4. 해당 결과의 유저 답변 목록 조회 (기존 쿼리 재사용)
-		List<QuizResponseVO> responses = selfStudyDao.selectQuizResponses(resultId);
+		List<QuizResponseVO> responses = selfStudyDao.selectQuizResponses(memberNum);
 
 		// 5. 문제와 유저 답변을 맵핑하여 오답(`quiz_correct == 'N'`)만 골라내어 Map 리스트로 구성
 		List<Map<String, Object>> quizLogs = new ArrayList<>();
