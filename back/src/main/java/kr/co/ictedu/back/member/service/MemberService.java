@@ -119,5 +119,15 @@ public class MemberService {
     public int checkemail(String email) {
         return memberDao.countByEmail(email);
     }
+    
+    // 담당 인원 : 주용현
+    // 회원 코드로 회원 검색
+    public MemberVO findByMemberCode(String member_code) {
+        if (member_code == null || member_code.isBlank()) {
+            throw new IllegalArgumentException("회원 코드를 입력해주세요.");
+        }
+
+        return memberDao.findByMemberCode(member_code.trim());
+    }
 
 }
