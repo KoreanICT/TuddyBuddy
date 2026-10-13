@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import kr.co.ictedu.back.group.dao.DocumentDao;
+import kr.co.ictedu.back.group.dto.DocumentListDTO;
 import kr.co.ictedu.back.group.vo.DocumentVO;
 
 @Service
@@ -47,9 +49,7 @@ public class DocumentService {
 		String storedName = UUID.randomUUID().toString() + (extension.isEmpty() ? "" : "." + extension);
 		Path target = uploadPath.resolve(storedName);
 		file.transferTo(target.toFile());
-		
-		
-		
+			
 		document.setGroup_num(groupNum);
 		document.setMember_num(memberNum);
 		document.setDocument_title(title);
@@ -61,6 +61,18 @@ public class DocumentService {
 		
 		document.setHit(0L);
 		dao.addDocument(document);
-		
 	}
+	
+	public List<DocumentListDTO> getDocuments(Long groupNum, Long memberNum) {
+		DocumentVO documentvo = new DocumentVO();
+		
+		documentvo.setGroup_num(groupNum);
+		documentvo.setMember_num(memberNum);
+		dao.getDocuments(documentvo);
+		
+		List<DocumentListDTO> list = dao.getDocuments(documentvo);
+		return list;
+	}
+	
+	
 }

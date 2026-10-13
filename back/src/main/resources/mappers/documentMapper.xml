@@ -8,4 +8,13 @@
 		VALUES (gdocument_seq.nextVal, #{group_num}, #{member_num}, #{document_title}, #{original_name}, #{stored_name},
 		#{document_path}, #{document_type}, #{document_size}, #{hit}, SYSDATE)
 	</insert>
+	
+	<select id="getDocuments" resultType="documentvo" parameterType="kr.co.ictedu.back.group.dto.DocumentListDTO">
+		SELECT d.document_num, d.document_title, d.original_name, d.stored_name, d.document_path, d.document_type, d.document_size, d.hit, d.created_at, d.updated_at,
+		FN_GROUP_RESOURCE_PERMISSION(d.group_num, d.member_num, #{member_num}) AS can_manage
+		FROM group_document d
+		WHERE d.group_num = #{group_num} 
+		ORDER BY d.created_at DESC
+	</select> 
+	
 </mapper>

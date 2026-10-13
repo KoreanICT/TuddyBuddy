@@ -1,19 +1,20 @@
 import React, { useEffect, useState } from 'react'
 import styles from './detail.module.css'
 import { Detail_Document_insert } from './Detail_Document_insert';
-import { GetGroupNum } from './GroupAPI'
+import { GetGroupNum, formatFileSize } from './GroupAPI'
 import axios from 'axios';
 interface DocumentData {
     document_num: number;
     group_num: number;
     member_nick: string;
-    title: string;
-    original_name: string;
+    document_title: string;
     document_type: string;
     document_size: number;
+    original_name: string;
     hit: number;
     created_at: string;
     updated_at?: string | null;
+    can_manage: number;
 }
 
 
@@ -22,71 +23,31 @@ const backendUrl = process.env.REACT_APP_BACK_END_URL;
 export const Detail_Document: React.FC<GetGroupNum> = ({ groupNum }) => {
 
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-    const [documents, setDocuments] = useState<DocumentData[]>([{
-        document_num: 1,
-        group_num: 1,
-        member_nick: '오진석',
-        title: '파이썬 2강 교재',
-        original_name: '파이썬',
-        document_type: 'pdf',
-        document_size: 87003,
-        hit: 67,
-        created_at: "2026.09.30",
-    },
-    {
-        document_num: 2,
-        group_num: 1,
-        member_nick: '오진석',
-        title: '파이썬 3강 교재',
-        original_name: '파이썬',
-        document_type: 'pdf',
-        document_size: 78803,
-        hit: 103,
-        created_at: "2026.10.02",
-    }]);
+    const [documents, setDocuments] = useState<DocumentData[]>([]);
 
     const handleUploadSuccess = () => {
         setIsModalOpen(false);
     }
 
-    const formatFileSize = (size: number) => {
-        if (size < 1024) {
-            return `${size} B`;
-        }
+    const documentdataHandle = (responseData:DocumentData[]) => {
+        setDocuments(responseData)
+    }
+    useEffect(() => {
 
-        if (size < 1024 * 1024) {
-            return `${(size / 1024).toFixed(1)} KB`
-        }
+        const getDocuments = async () => {
+            try {
+                const response = await axios.get<DocumentData[]>(`http://localhost/back/api/detail/document/getDocuments/${groupNum}`);
 
-        return `${(size / (1024 * 1024)).toFixed(1)} MB`
-    };
+                const responseData:DocumentData[] = response.data;
+                setDocuments(responseData)
+                console.log("Documentlist 출력 성공.");
 
-    // const documentdataHandle = (responseData:DocumentData[]) => {
-    //     setDocuments(responseData)
-    // }
-    // useEffect(() => {
-
-    //     if (!isModalOpen) return;
-
-    //     const getDocuments = async () => {
-    //         try {
-    //             const response = await axios.get<DocumentData>(`http://localhost/back/api/`);
-
-    //             const responseData:DocumentData = response.data;
-    //             if (!responseData) {
-    //                 return;
-    //             } else {
-    //                 documentdataHandle([responseData])
-    //             }
-    //             console.log("Documentlist 출력 성공.");
-
-
-    //         } catch (error) {
-    //             console.error("Documentlist 출력 실패. 원인:", error);
-    //         }
-    //     };
-    //     getDocuments();
-    // }, [])
+            } catch (error) {
+                console.error("Documentlist 출력 실패. 원인:", error);
+            }
+        };
+        getDocuments();
+    }, [])
 
     return (
         <div className={styles.detail_content_wrapper}>
@@ -118,7 +79,7 @@ export const Detail_Document: React.FC<GetGroupNum> = ({ groupNum }) => {
                             >
                                 <div className={styles.document_main}>
                                     <strong className={styles.document_title}>
-                                        {document.title}
+                                        {document.document_title}
                                     </strong>
 
                                     <span className={styles.document_name}>

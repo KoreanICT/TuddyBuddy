@@ -1,6 +1,7 @@
 //작성자 : 오진석
 import React, { useRef, useState } from 'react';
 import styles from './detail.module.css';
+import { formatFileSize } from './GroupAPI';
 import { useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 
@@ -9,11 +10,6 @@ interface UploadingFileProps {
     onClose: () => void;
     onSubmitSuccess?: () => void;
     groupNum: number;
-}
-
-interface DocumentData {
-    
-
 }
 export const Detail_Document_insert: React.FC<UploadingFileProps> = ({isOpen,onClose,onSubmitSuccess,groupNum}) => {
 
@@ -160,7 +156,7 @@ export const Detail_Document_insert: React.FC<UploadingFileProps> = ({isOpen,onC
                                     {file.name}
                                 </strong>
                                 <span>
-                                    {(file.size / 1024 / 1024).toFixed(2)} MB
+                                    {formatFileSize(file.size)}
                                 </span>
                             </div>
                         )}

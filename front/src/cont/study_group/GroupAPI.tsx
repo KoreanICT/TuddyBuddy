@@ -79,7 +79,7 @@ export const searchGroupTags = async (
 /**
  * 스터디 그룹 생성
  */
-export const createGroup = async (requestData: GroupCreateRequest,thumbnail: File | null) => {
+export const createGroup = async (requestData: GroupCreateRequest, thumbnail: File | null) => {
     const formData = new FormData();
 
     formData.append(
@@ -90,7 +90,7 @@ export const createGroup = async (requestData: GroupCreateRequest,thumbnail: Fil
         )
     );
     if (thumbnail) {
-        formData.append('thumbnail',thumbnail);
+        formData.append('thumbnail', thumbnail);
     }
     const response = await axios.post(
         `http://localhost/back/api/group/add`,
@@ -151,16 +151,16 @@ export interface GroupSidebarProps {
  */
 
 export const joinGroupByInviteCode = async (
-        inviteCode: string
-    ) => {
-        const response = await axios.post(
-            `http://localhost/back/api/group/join/invite`,
-            {
-                inviteCode
-            }
-        );
-        return response.data;
-    };
+    inviteCode: string
+) => {
+    const response = await axios.post(
+        `http://localhost/back/api/group/join/invite`,
+        {
+            inviteCode
+        }
+    );
+    return response.data;
+};
 /* 스터디룸 상세 탭 사이드바 관련 API */
 
 /**
@@ -295,3 +295,17 @@ export const getDiagram = async (
     return response.data;
 };
 
+/**
+ * 참조 문서 관련 API
+ */
+export const formatFileSize = (size: number) => {
+    if (size < 1024) {
+        return `${size} B`;
+    }
+
+    if (size < 1024 * 1024) {
+        return `${(size / 1024).toFixed(1)} KB`
+    }
+
+    return `${(size / (1024 * 1024)).toFixed(1)} MB`
+};
