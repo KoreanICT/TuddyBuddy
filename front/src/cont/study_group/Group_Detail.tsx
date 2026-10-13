@@ -162,7 +162,7 @@ export const Group_Detail: React.FC = () => {
                     {currentTab === 'calendar' && <Project_Calendar groupNum={parsedGroupNum} />}
                     {currentTab === 'board' && <Project_TDL groupNum={parsedGroupNum} />}
                     {currentTab === 'discussion' && <Project_Discussion groupNum={parsedGroupNum} />}
-                    {currentTab === 'course' && <Project_Course groupNum={parsedGroupNum} />}
+                    {currentTab === 'course' && <Project_Course groupNum={parsedGroupNum}  isLeader={groupData?.is_leader === 1} />}
                     {currentTab === 'document' && <Detail_Document groupNum={parsedGroupNum} />}
                 </main>
             </div>

@@ -18,39 +18,9 @@ import {
 import '@xyflow/react/dist/style.css';
 import styles from './project.module.css'
 import axios from 'axios';
-import { useSearchParams } from 'react-router-dom';
-import { GetGroupNum } from './GroupAPI'
-
-export interface CustomNodeData extends Record<string, unknown> {
-    label: string;
-}
-export interface DiagramData {
-    nodes: AppNode[];
-    edges: AppEdge[];
-}
-export interface DiagramSaveRequest {
-    groupnum: number;
-    title: string;
-    diagram_data: string;
-}
-export interface DiagramResponse {
-    group_num: number;
-    title: string;
-    diagram_data: string;
-    created_at: string;
-    updated_at?: string;
-}
-
-// export interface DiagramResponse {
-//     diagram_num: number;
-//     group_num: number;
-//     title: string;
-//     diagram_data: string;
-//     created_at: string;
-//     updated_at?: string;
-// }
-export type AppNode = Node<CustomNodeData>;
-export type AppEdge = Edge;
+import { GetGroupNum, GetIsleaderandGroupNum } from './GroupAPI'
+import { CustomNodeData, DiagramData, DiagramSaveRequest, DiagramResponse } from './GroupAPI';
+import { AppNode, AppEdge } from './Type';
 
 const initialNodes: AppNode[] = [];
 
@@ -58,7 +28,7 @@ const initialEdges: AppEdge[] = [];
 
 const backendUrl = process.env.REACT_APP_BACK_END_URL;
 
-export const Project_Course: React.FC<GetGroupNum> = ({groupNum}) => {
+export const Project_Course: React.FC<GetIsleaderandGroupNum> = ({groupNum, isLeader}) => {
 
     const [diagramTitle, setDiagramTitle] = useState<string>('새 다이어그램');
     const [isSaving, setIsSaving] = useState<boolean>(false);
@@ -179,6 +149,7 @@ export const Project_Course: React.FC<GetGroupNum> = ({groupNum}) => {
         nodes.some((n: AppNode) => n.selected) ||
         edges.some((e: AppEdge) => e.selected);
 
+
     const handleSaveDiagram = async (): Promise<void> => {
         if (!diagramTitle.trim()) {
             alert('다이어그램 제목을 입력해주세요.');
@@ -200,7 +171,7 @@ export const Project_Course: React.FC<GetGroupNum> = ({groupNum}) => {
             setIsSaving(true);
 
             const response = await axios.post<DiagramResponse>(
-                `http://localhost/back/api/diagram/add/${groupNum}`,
+                `http://localhost/back/api/detail/diagram/add/${groupNum}`,
                 requestData
             );
 
@@ -216,14 +187,27 @@ export const Project_Course: React.FC<GetGroupNum> = ({groupNum}) => {
         }
     };
 
-    // useEffect(() => {
-    //     const response = axios.get(
-    //         `${backendUrl}/api/diagram/get/{}`
-    //     )
+    useEffect(() => {
+        const loadDiagram = async () => {
+            try {
+                const response = await axios.get<DiagramResponse> (
+                    `http://localhost/back/api/detail/diagram/getDiagram/${groupNum}`
+                );
+                const diagram = response.data;
+                if (!diagram) {
+                    return;
+                }
 
-
-    // }, [])
-
+                const parsedData: DiagramData = JSON.parse(diagram.diagram_data);
+                setDiagramTitle(diagram.title ?? '새 다이어그램');
+                setNodes(parsedData.nodes ?? []);
+                setEdges(parsedData.edges ?? []);
+            } catch (error) {
+                console.log('다이어그램 조회 실패',error);
+            }
+        }
+        loadDiagram();
+    },[groupNum, setNodes, setEdges])
     return (
         <div className={styles.detail_content_wrapper}>
             <div className={styles.detail_section_card}>
@@ -239,10 +223,13 @@ export const Project_Course: React.FC<GetGroupNum> = ({groupNum}) => {
                         edges={edges}
                         onNodesChange={onNodesChange}
                         onEdgesChange={onEdgesChange}
-                        onConnect={onConnect}
-                        onNodeClick={onNodeClick}
-                        onEdgeClick={onEdgeClick}
+                        onConnect={ isLeader ? onConnect : undefined }
+                        onNodeClick={ isLeader ? onNodeClick : undefined }
+                        onEdgeClick={ isLeader ? onEdgeClick : undefined }
                         onPaneClick={onPaneClick}
+                        nodesDraggable={isLeader}
+                        nodesConnectable={isLeader}
+                        elementsSelectable={isLeader}
                         fitView
                     >
                         <Background gap={16} size={1} />
@@ -252,6 +239,7 @@ export const Project_Course: React.FC<GetGroupNum> = ({groupNum}) => {
                         <MiniMap />
 
                         {/* React Flow 우상단 도구 패널 */}
+                        {isLeader && (
                         <Panel
                             position="top-right"
                             className={styles.diagram_panel}
@@ -352,6 +340,7 @@ export const Project_Course: React.FC<GetGroupNum> = ({groupNum}) => {
                                     : '다이어그램 저장'}
                             </button>
                         </Panel>
+                        )}
                     </ReactFlow>
                 </div>
             </div>

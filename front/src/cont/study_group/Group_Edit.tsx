@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import styles from './detail.module.css';
-import { TagItem, searchGroupTags, patchGroup } from './GroupAPI';
+import { TagItem, searchGroupTags, patchGroup, GroupUpdateRequest } from './GroupAPI';
 import axios from 'axios';
 
 const PRESET_COLORS = ['#e2e8f0', '#fef08a', '#bbf7d0', '#c0f2ff', '#bfdbfe', '#fbcfe8', '#fed7aa'];
@@ -183,12 +183,10 @@ export const Group_EditModal: React.FC<GroupEditProps> = ({ groupNum, isOpen, on
             return;
         };
 
-        const requestData = {
-            group: {
-                group_title: title.trim(),
-                group_desc: description.trim(),
-                group_thumbnail: null
-            },
+        const requestData: GroupUpdateRequest = {
+            group_title: title.trim(),
+            group_desc: description.trim(),
+            group_thumbnail: null,
             tags
         };
 
@@ -203,7 +201,7 @@ export const Group_EditModal: React.FC<GroupEditProps> = ({ groupNum, isOpen, on
 
         } catch (error) {
             console.error('스터디룸 변경 실패:', error);
-            alert('스터디룸 생성 중 오류가 발생했습니다.');
+            alert('스터디룸 변경 중 오류가 발생했습니다.');
         } finally {
             setSubmitting(false);
         }

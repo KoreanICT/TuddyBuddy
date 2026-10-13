@@ -1,13 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="kr.co.ictedu.back.group.dao.GroupDao">
-	<!-- ==========================================
-         STUDYGROUP INSERT
-         ========================================== -->
+	
 	<insert id="addGroup" parameterType="groupvo">
-		<!--
-            INSERT 전에 group_seq.nextval 획득
-        -->
         <selectKey
 			keyProperty="group_num" resultType="long" order="BEFORE">
 			SELECT group_seq.NEXTVAL FROM dual
@@ -16,10 +11,9 @@
 		group_maxMembers, group_thumbnail, group_invitecode, created_at ) VALUES
 		( #{group_num}, #{group_title}, #{group_desc}, #{group_isPrivate},
 		#{group_maxMembers}, #{group_thumbnail, jdbcType=VARCHAR},
-		#{group_invitecode, jdbcType=VARCHAR}, SYSDATE ) </insert>
-	<!-- ==========================================
-         태그 부분 검색
-         ========================================== -->
+		#{group_invitecode, jdbcType=VARCHAR}, SYSDATE ) 
+	</insert>
+	
 	<select id="searchTags" resultType="tagvo">
 		SELECT
 		tag_num,
@@ -32,9 +26,7 @@
 		ORDER BY tag_name
 		FETCH FIRST 10 ROWS ONLY
 	</select>
-	<!-- ==========================================
-         태그 이름 정확히 검색
-         ========================================== -->
+	
 	<select id="findTagByName" resultType="tagvo">
 		SELECT
 		tag_num,
@@ -43,9 +35,7 @@
 		FROM studytag
 		WHERE LOWER(tag_name) = LOWER(#{tag_name})
 	</select>
-	<!-- ==========================================
-         TAG INSERT
-         ========================================== -->
+	
 	<insert id="addTag" parameterType="tagvo">
 		<selectKey keyProperty="tag_num" resultType="long" order="BEFORE">
 			SELECT studytag_seq.NEXTVAL FROM dual

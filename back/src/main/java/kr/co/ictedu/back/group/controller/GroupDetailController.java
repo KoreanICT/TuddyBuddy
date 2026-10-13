@@ -44,7 +44,7 @@ public class GroupDetailController {
 	@PatchMapping(value="/patchGroup/{groupNum}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<Map<String, Object>> updateGroup(
 			@PathVariable("groupNum") Long groupNum, 
-			@PathVariable("groupData") GroupUpdateDTO request, 
+			@RequestPart("groupData") GroupUpdateDTO request, 
 			@RequestPart(value="thumbnail", required=false) MultipartFile thumbnail) {
 		service.updateGroup(groupNum, request, thumbnail);
 		Map<String, Object> result = new HashMap<>();

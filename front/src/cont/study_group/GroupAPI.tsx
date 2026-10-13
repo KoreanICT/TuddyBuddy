@@ -1,5 +1,5 @@
 import axios from "axios";
-import { DetailTab, Repeat_type, TDLStatus } from "./Type";
+import { AppEdge, AppNode, DetailTab, Repeat_type, TDLStatus } from "./Type";
 /* 공개 스터디룸 컴포넌트 관련 API */
 
 /**
@@ -107,12 +107,6 @@ export interface GroupCreateRequest {
  * 스터디 그룹 변경
  */
 
-export interface GroupUpdateData {
-    group_title: string;
-    group_desc: string;
-    group_thumbnail: File | null;
-}
-
 export const patchGroup = async (groupNum: number, requestData: GroupUpdateRequest, thumbnail: File | null) => {
     const formData = new FormData();
     formData.append(
@@ -132,7 +126,9 @@ export const patchGroup = async (groupNum: number, requestData: GroupUpdateReque
     return response.data;
 };
 export interface GroupUpdateRequest {
-    group: GroupUpdateData;
+    group_title: string;
+    group_desc: string;
+    group_thumbnail: string | null;
     tags: TagItem[];
 }
 /* 스터디룸 선택 탭 사이드바 관련 API */
@@ -200,6 +196,13 @@ export interface GetGroupNum {
     groupNum: number;
 }
 
+/**
+ * grouNum 및 is_leader 조회 관련 API
+ */
+export interface GetIsleaderandGroupNum {
+    groupNum: number;
+    isLeader: boolean;
+}
 /* Member 컴포넌트 관련 API */
 
 /**
@@ -258,3 +261,37 @@ export interface TDLData {
     completed_at?: string;
     due_at?: string;
 }
+
+/**
+ * 다이어그램 관련 API
+ */
+export interface CustomNodeData extends Record<string, unknown> {
+    label: string;
+}
+export interface DiagramData {
+    nodes: AppNode[];
+    edges: AppEdge[];
+}
+export interface DiagramSaveRequest {
+    groupnum: number;
+    title: string;
+    diagram_data: string;
+}
+export interface DiagramResponse {
+    group_num: number;
+    title: string;
+    diagram_data: string;
+    created_at: string;
+    updated_at?: string;
+}
+export const getDiagram = async (
+    groupNum: number
+): Promise<DiagramResponse | null> => {
+
+    const response = await axios.get<DiagramResponse | null>(
+        `http://localhost/back/api/detail/diagram/${groupNum}`
+    );
+
+    return response.data;
+};
+
