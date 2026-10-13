@@ -1,4 +1,3 @@
-
 // 주용현
 
 package kr.co.ictedu.back.report;
@@ -53,9 +52,11 @@ public class ReportListDataTest {
 			String[] data = testData[i];
 
 			int result = jdbcTemplate.update(
-					"INSERT INTO report " + "(num, member_num, type, category, content, status, created_date) "
-							+ "VALUES (report_seq.NEXTVAL, ?, ?, ?, ?, ?, SYSDATE)",
-					memberNum, data[0], data[1], TEST_MARKER + " 신고 목록 시각화 테스트 " + (i + 1), data[2]);
+					"INSERT INTO report "
+							+ "(num, member_num, type, category, content, status, created_date, target_num) "
+							+ "VALUES (report_seq.NEXTVAL, ?, ?, ?, ?, ?, SYSDATE, ?)",
+					memberNum, data[0], data[1], TEST_MARKER + " 신고 목록 시각화 테스트 " + (i + 1), data[2],
+					Long.parseLong(data[3]));
 
 			inserted += result;
 		}
@@ -74,8 +75,11 @@ public class ReportListDataTest {
 
 		System.out.println("등록된 신고 테스트 데이터: " + count + "건");
 
-		List<String> results = jdbcTemplate.queryForList("SELECT type || ' / ' || category || ' / ' || status "
-				+ "FROM report WHERE content LIKE ? ORDER BY num DESC", String.class, TEST_MARKER + "%");
+		List<String> results = jdbcTemplate
+				.queryForList(
+						"SELECT type || ' / ' || category || ' / ' || status || ' / 대상번호: ' || target_num "
+								+ "FROM report WHERE content LIKE ? ORDER BY num DESC",
+						String.class, TEST_MARKER + "%");
 
 		results.forEach(System.out::println);
 	}
