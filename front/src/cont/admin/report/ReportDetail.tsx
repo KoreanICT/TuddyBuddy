@@ -11,6 +11,7 @@ type ReportType = 'POST' | 'COMMENT' | 'USER' | 'STUDY';
 interface ReportVO {
     num: number;
     member_num: number;
+    target_num: number;
     type: ReportType;
     category: string;
     content: string;
@@ -187,6 +188,12 @@ const ReportDetail: React.FC = () => {
                 <div className={styles.detailRow}>
                     <div className={styles.label}>신고자</div>
                     <div className={styles.value}>{report.member_num}</div>
+                </div>
+
+                {/* 신고 대상 번호 */}
+                <div className={styles.detailRow}>
+                    <div className={styles.label}>신고 대상 번호</div>
+                    <div className={styles.value}>{report.target_num ?? '-'}</div>
                 </div>
 
                 <div className={styles.detailRow}>

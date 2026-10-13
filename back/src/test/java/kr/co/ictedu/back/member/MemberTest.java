@@ -15,7 +15,6 @@ import kr.co.ictedu.back.member.service.MemberService;
 import kr.co.ictedu.back.member.vo.MemberVO;
 
 @SpringBootTest
-@Transactional
 public class MemberTest {
 
     @Autowired
