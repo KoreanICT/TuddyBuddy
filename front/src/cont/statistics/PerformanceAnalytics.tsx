@@ -61,7 +61,7 @@ export default function PerformanceAnalytics() {
     // 2. 과목 변경 시 데이터 조회 (selfstudy_results 및 quiz_responses 기반 분석)
     // --------------------------------------------------------------------------
     useEffect(() => {
-        if (!categories) return;
+        // if (!categories) return;
 
         const fetchAnalyticsData = async () => {
             setLoading(true);
