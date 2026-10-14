@@ -1,3 +1,4 @@
+// 주용현
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -8,6 +9,7 @@ type ReportType = 'POST' | 'COMMENT' | 'USER' | 'STUDY';
 
 interface ReportForm {
     type: ReportType;
+    target_num: string;
     reason: string;
     content: string;
 }
@@ -17,6 +19,7 @@ const ReportCreate: React.FC = () => {
 
     const [form, setForm] = useState<ReportForm>({
         type: 'POST',
+        target_num: '',
         reason: '',
         content: '',
     });
@@ -39,6 +42,13 @@ const ReportCreate: React.FC = () => {
 
         if (submitting) return;
 
+        const targetNum = Number(form.target_num);
+
+        if (!Number.isSafeInteger(targetNum) || targetNum <= 0 || !form.target_num.trim()) {
+            alert('신고 대상 번호를 올바르게 입력해주세요.');
+            return;
+        }
+
         if (!form.reason.trim()) {
             alert('신고 사유를 입력해주세요.');
             return;
@@ -57,6 +67,7 @@ const ReportCreate: React.FC = () => {
             // TODO: 로그인 기능 연결 후 실제 회원 번호로 변경
             formData.append('member_num', '1');
             formData.append('type', form.type);
+            formData.append('target_num', String(targetNum));
             formData.append('category', form.reason.trim());
             formData.append('content', form.content.trim());
 
@@ -86,7 +97,7 @@ const ReportCreate: React.FC = () => {
     // 취소
     // =========================
     const handleCancel = () => {
-        if (form.reason || form.content) {
+        if (form.target_num || form.reason || form.content) {
             const confirmCancel = window.confirm('작성 중인 내용이 있습니다. 취소하시겠습니까?');
             if (!confirmCancel) return;
         }
@@ -113,6 +124,18 @@ const ReportCreate: React.FC = () => {
                             <option value="USER">회원</option>
                             <option value="STUDY">스터디</option>
                         </select>
+                    </div>
+                </div>
+
+                {/* 신고 대상 번호 */}
+                <div className={styles.formRow}>
+                    <label className={styles.label} htmlFor="target_num">신고 대상 번호</label>
+                    <div className={styles.formContent}>
+                        <input
+                            id="target_num" name="target_num" type="number" min="1" step="1"
+                            value={form.target_num} onChange={handleChange}
+                            className={styles.input} placeholder="신고 대상 번호를 입력해주세요."
+                        />
                     </div>
                 </div>
 

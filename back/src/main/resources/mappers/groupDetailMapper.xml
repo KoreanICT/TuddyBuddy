@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.ictedu.back.group.dao.GroupDetailDao">
+	
+	<insert id="addGroupTag">
+		INSERT INTO group_tag (group_num,tag_num) VALUES (#{group_num},#{tag_num})
+	</insert>
+	
+	<insert id="addTag" parameterType="tagvo">
+		<selectKey keyProperty="tag_num" resultType="long" order="BEFORE">
+			SELECT studytag_seq.NEXTVAL FROM dual
+		</selectKey> INSERT INTO
+		studytag ( tag_num, tag_name, tag_color ) VALUES (#{tag_num},
+		#{tag_name}, #{tag_color} ) 
+	</insert>
+	
+	<select id="findTagByName" resultType="tagvo">
+		SELECT
+		tag_num,
+		tag_name,
+		tag_color
+		FROM studytag
+		WHERE LOWER(tag_name) = LOWER(#{tag_name})
+	</select>
+	
+	<select id="getHeader" parameterType="long" resultType="kr.co.ictedu.back.group.dto.GroupDetailHeaderDTO">
+		SELECT g.group_title, g.group_desc, g.group_thumbnail, gm.is_leader
+		FROM studygroup g  JOIN group_member gm ON g.group_num = gm.group_num 
+		WHERE g.group_num = #{group_num} AND gm.member_num = #{member_num}
+	</select>
+	
+	<select id="getDetail" parameterType="long" resultType="groupvo">
+		SELECT group_title, group_desc, group_thumbnail, group_invitecode
+		FROM studygroup 
+		WHERE group_num = #{group_num}
+	</select>
+	
+	<select id="getDetailTags" parameterType="long" resultType="tagvo">
+		SELECT t.tag_num, t.tag_name, t.tag_color 
+		FROM studytag t JOIN group_tag gt ON t.tag_num = gt.tag_num
+		WHERE gt.group_num = #{group_num}   
+	</select>
+	
+	<update id="updateGroup">
+		UPDATE studygroup SET group_title = #{request.group_title}, group_desc = #{request.group_desc}
+        <if test="request.group_thumbnail != null">
+            , group_thumbnail = #{request.group_thumbnail}
+        </if>
+    	WHERE group_num = #{group_num}
+	</update>
+	
+	<delete id="deleteGroupTags">
+		DELETE FROM group_tag WHERE group_num = #{group_num}
+	</delete>
+</mapper>

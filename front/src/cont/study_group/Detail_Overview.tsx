@@ -1,7 +1,8 @@
 import React from 'react';
 import styles from './detail.module.css';
+import { GetGroupNum } from './GroupAPI'
 
-export const Detail_Overview: React.FC = () => {
+export const Detail_Overview: React.FC<GetGroupNum> = ( {groupNum} ) => {
     return (
         <div className={styles.detail_content_wrapper}>
             {/* 공부 현황 요약 영역 */}

@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import styles from './memo.module.css';
 import { Detail_MemoBoard } from './Detail_MemoBoard';
 import type { MemoData } from './Detail_MemoCard';
+import { GetGroupNum } from './GroupAPI'
 
-export const Detail_Memo: React.FC = () => {
+export const Detail_Memo: React.FC<GetGroupNum> = (groupNum) => {
     // ===========================
     // 임시 데이터
     // 나중에는 GET API 결과로 교체

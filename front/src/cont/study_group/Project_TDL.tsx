@@ -4,10 +4,11 @@ import styles from './project.module.css';
 import { Project_Board } from './Project_Board';
 import { TDLData } from './GroupAPI';
 import { TDLStatus } from './Type';
+import { GetGroupNum } from './GroupAPI'
 
 type ViewMode = 'board' | 'list';
 
-export const Project_TDL: React.FC = () => {
+export const Project_TDL: React.FC<GetGroupNum> = (groupNum) => {
 
     const [viewMode, setViewMode] = useState<ViewMode>('board');
 
