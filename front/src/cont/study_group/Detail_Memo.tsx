@@ -101,7 +101,7 @@ export const Detail_Memo: React.FC<GetGroupNum> = ({ groupNum }) => {
                             메모
                         </h3>
                         <p className={styles.section_desc}>
-                            자유롭게 공부를 하면서 필요한 메모를 적는 공간입니다.
+                            공부를 하면서 필요한 메모를 자유롭게 적는 공간입니다.
                         </p>
                     </div>
                     <button
