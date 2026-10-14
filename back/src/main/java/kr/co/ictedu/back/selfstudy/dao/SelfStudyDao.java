@@ -1,6 +1,7 @@
 package kr.co.ictedu.back.selfstudy.dao;
 
 import java.util.List;
+import java.util.Map;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -72,13 +73,5 @@ public interface SelfStudyDao {
     int deleteQuizSession(
             @Param("quizSessionId") Long quizSessionId);
     
-    
-    //=========================================================================================
-    
-    List<String> selectCategories_Statistics(
-    		@Param("memberNum") Long memberNum);
-    
-    Long selectSessionId_Statistics(
-    		@Param("memberNum") Long memberNum);
-    
+   
 }

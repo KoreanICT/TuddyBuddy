@@ -314,21 +314,5 @@
 
 	</delete>
 
-	<!-- 
-	===================================================================	
-	-->
-
-	<select id="selectCategories_Statistics">
-		SELECT c.CATEGORY_NAME FROM
-		CATEGORIES c, QUIZ_SESSIONS qs,SUBJECTS s,MEMBER m
-		WHERE c.CATEGORY_ID = s.CATEGORY_ID AND qs.SUBJECT_ID = s.SUBJECT_ID AND
-		qs.MEMBER_NUM = #{num}
-	</select>
-
-	<select id="selectSessionId_Statistics">
-		SELECT qs.SUBJECT_ID FROM
-		QUIZ_SESSIONS qs,MEMBER M
-		WHERE qs.MEMBER_NUM = #{num}
-	</select>
 
 </mapper>
