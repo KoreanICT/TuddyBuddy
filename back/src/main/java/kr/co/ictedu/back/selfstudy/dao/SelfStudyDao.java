@@ -75,10 +75,10 @@ public interface SelfStudyDao {
     
     //=========================================================================================
     
-    List<String> selectCategories(
+    List<String> selectCategories_Statistics(
     		@Param("memberNum") Long memberNum);
     
-    Long selectSessionId(
+    Long selectSessionId_Statistics(
     		@Param("memberNum") Long memberNum);
     
 }

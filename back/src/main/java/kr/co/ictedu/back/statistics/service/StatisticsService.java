@@ -23,13 +23,13 @@ public class StatisticsService {
 	
 	public List<String> selectCategories(Long memberNum) {
 		//카테고리 추출
-		List<String> categories = selfStudyDao.selectCategories(memberNum);
+		List<String> categories = selfStudyDao.selectCategories_Statistics(memberNum);
 		return categories;
 	}
 
 	public Map<String, Object> selectStatistics(Long memberNum) {
 		
-		Long sessionId = selfStudyDao.selectSessionId(memberNum);
+		Long sessionId = selfStudyDao.selectSessionId_Statistics(memberNum);
 		
 		// 2. 학습 결과 단건 조회 (세션 ID 및 회원 번호 확인용)
 		SelfStudyResultVO result = selfStudyDao.selectResult(sessionId);
