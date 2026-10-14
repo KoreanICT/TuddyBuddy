@@ -11,6 +11,7 @@ import kr.co.ictedu.back.group.vo.TagVO;
 import lombok.Getter;
 import lombok.Setter;
 
+@Alias("grouplistdto")
 @Getter
 @Setter
 public class GroupListDTO {

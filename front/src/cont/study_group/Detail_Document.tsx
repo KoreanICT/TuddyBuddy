@@ -1,6 +1,7 @@
+//작성자 : 오진석
 import React, { useEffect, useState } from 'react'
 import styles from './detail.module.css'
-import { Detail_Document_insert } from './Detail_Document_insert';
+import { Detail_DocumentModal } from './Detail_DocumentModal';
 import { GetGroupNum, formatFileSize } from './GroupAPI'
 import axios from 'axios';
 interface DocumentData {
@@ -22,32 +23,76 @@ const backendUrl = process.env.REACT_APP_BACK_END_URL;
 
 export const Detail_Document: React.FC<GetGroupNum> = ({ groupNum }) => {
 
+    
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [documents, setDocuments] = useState<DocumentData[]>([]);
+    const [editingDocumentNum, setEditingDocumentNum] = useState<number | null>(null);
 
-    const handleUploadSuccess = () => {
+    const handleUploadSuccess = async () => {
         setIsModalOpen(false);
+
+        await getDocuments();
     }
 
-    const documentdataHandle = (responseData:DocumentData[]) => {
-        setDocuments(responseData)
-    }
-    useEffect(() => {
+    const handleDownload = async (documentNum: number, originalName: string, documentType: string) => {
+        try {
+            const response = await axios.get(
+                `http://localhost/back/api/detail/document/download/${documentNum}`,
+                {
+                    responseType: 'blob'
+                }
+            );
+            const blobUrl = window.URL.createObjectURL(new Blob([response.data]))
+            const link = document.createElement('a');
+            link.href = blobUrl;
+            link.download = documentType ? `${originalName}.${documentType}` : originalName;
 
-        const getDocuments = async () => {
-            try {
-                const response = await axios.get<DocumentData[]>(`http://localhost/back/api/detail/document/getDocuments/${groupNum}`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
 
-                const responseData:DocumentData[] = response.data;
-                setDocuments(responseData)
-                console.log("Documentlist 출력 성공.");
-
-            } catch (error) {
-                console.error("Documentlist 출력 실패. 원인:", error);
-            }
+            window.URL.revokeObjectURL(blobUrl);
+        } catch (error) {
+            console.error('문서 다운로드 실패', error);
+            alert('파일 다운로드 중 오류가 발생했습니다.')
         };
+    };
+
+    const handleDelete = async (documentNum: number) => {
+        const confirmed = window.confirm('삭제하시겠습니까?');
+        if(!confirmed) {
+            return;
+        }
+        try {
+            await axios.delete(`http://localhost/back/api/detail/document/deleteDocument/${documentNum}`);
+            alert('참고 자료가 삭제되었습니다.')
+            await getDocuments();
+        }  catch (error) {
+            console.error('문서 삭제 실패:', error);
+            alert('문서 삭제 중 오류가 발생했습니다.');
+        }
+    }
+
+    const handleEdit = (document: DocumentData) => {
+        setEditingDocumentNum(document.document_num);
+        setIsModalOpen(true);
+    }
+    const getDocuments = async () => {
+        try {
+            const response = await axios.get<DocumentData[]>(`http://localhost/back/api/detail/document/getDocuments/${groupNum}`);
+
+            const responseData: DocumentData[] = response.data;
+            setDocuments(responseData)
+            console.log("Documentlist 출력 성공.", responseData);
+
+        } catch (error) {
+            console.error("Documentlist 출력 실패. 원인:", error);
+        }
+    };
+
+    useEffect(() => {
         getDocuments();
-    }, [])
+    }, [groupNum])
 
     return (
         <div className={styles.detail_content_wrapper}>
@@ -83,7 +128,7 @@ export const Detail_Document: React.FC<GetGroupNum> = ({ groupNum }) => {
                                     </strong>
 
                                     <span className={styles.document_name}>
-                                        {document.original_name}.{document.document_type}
+                                        {document.original_name}
                                     </span>
                                 </div>
 
@@ -98,12 +143,36 @@ export const Detail_Document: React.FC<GetGroupNum> = ({ groupNum }) => {
                                         다운로드 {document.hit}
                                     </span>
                                     <span>
-                                        {document.created_at}
+                                        {document.updated_at ? document.updated_at : document.created_at}
                                     </span>
                                 </div>
+                                {document.can_manage === 1 && (
+                                    <>
+                                        <button 
+                                            type="button"
+                                            className={styles.document_edit_btn}
+                                            onClick={() => handleEdit(document)}
+                                        >
+                                            수정
+                                        </button>
+
+                                        <button 
+                                            type="button"
+                                            className={styles.document_delete_btn}
+                                            onClick={() => handleDelete(document.document_num)}
+                                        >
+                                            삭제
+                                        </button>
+                                    </>
+                                )}
                                 <button
                                     type="button"
                                     className={styles.document_download_btn}
+                                    onClick={() => handleDownload(
+                                        document.document_num,
+                                        document.original_name,
+                                        document.document_type
+                                    )}
                                 >
                                     다운로드
                                 </button>
@@ -111,11 +180,18 @@ export const Detail_Document: React.FC<GetGroupNum> = ({ groupNum }) => {
                         ))
                     )}
 
-                    <Detail_Document_insert
+                    <Detail_DocumentModal
                         isOpen={isModalOpen}
-                        onClose={() => setIsModalOpen(false)}
-                        onSubmitSuccess={handleUploadSuccess}
+                        onClose={() => {setIsModalOpen(false); setEditingDocumentNum(null);}}
+                        onSubmitSuccess={async () => {
+                            setIsModalOpen(false);
+                            setEditingDocumentNum(null);
+
+                            await getDocuments();
+                        }}
                         groupNum={groupNum}
+                        mode={editingDocumentNum ? 'edit' : 'create'}
+                        documentNum={editingDocumentNum ?? undefined}
                     />
                 </div>
             </div>

@@ -1,99 +1,95 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import styles from './memo.module.css';
 import { Detail_MemoBoard } from './Detail_MemoBoard';
 import type { MemoData } from './Detail_MemoCard';
 import { GetGroupNum } from './GroupAPI'
+import axios from 'axios';
 
-export const Detail_Memo: React.FC<GetGroupNum> = (groupNum) => {
-    // ===========================
-    // 임시 데이터
-    // 나중에는 GET API 결과로 교체
-    // ===========================
-    const [memos, setMemos] = useState<MemoData[]>([
-        {
-            memo_num: 1,
-            writer: '진석',
-            content: '왜 오늘 이렇게 시간이 늦게 가냐',
-            created_at: '2026.09.23 11:20'
-        },
-        {
-            memo_num: 2,
-            writer: '진석',
-            content:
-                'React에서 Drag & Drop을 구현하고 있습니다. ' +
-                '내용이 길어지면 이렇게 메모지에서는 일부만 보여주고 ' +
-                '클릭했을 때 전체 내용을 확인할 수 있도록 만들 예정입니다.',
-            created_at: '2026.09.23 13:15',
-            updated_at: '2026.09.23 14:33'
+export const Detail_Memo: React.FC<GetGroupNum> = ({ groupNum }) => {
+    
+    const [memos, setMemos] = useState<MemoData[]>([]);
+
+    const handleCreateDraft = () => {
+        const exists = memos.some((memo) => memo.isDraft);
+
+        if (exists) {
+            return;
         }
-    ]);
 
-    // ===========================
-    // 메모 등록 관련 상태
-    // ===========================
+        const tempId = -Date.now();
 
-    const [isWriting, setIsWriting] = useState<boolean>(false);
-    const [newContent, setNewContent] = useState<string>('');
+        const draftMemo: MemoData = {
+            memo_num: tempId,
+            group_num: groupNum,
+            writer: '',
+            memo_content: '',
+            created_at: '',
+            updated_at: null,
+            can_manage: 1, 
+            isDraft: true
+        }
 
-    // ===========================
-    // INSERT
-    // ===========================
-
-    const handleInsertMemo = (): void => {if (!newContent.trim()) {return;}
-        
-        const newMemo: MemoData = {
-            // 프론트 테스트용 ID
-            // 실제로는 DB의 memo_num을 사용
-            memo_num: Date.now(),
-            writer: '현재 로그인 사용자',
-            content: newContent,
-            created_at: new Date().toLocaleString('ko-KR')
-        };
         setMemos((prev) => [
-            newMemo,
-            ...prev
+            draftMemo, ...prev
         ]);
-        setNewContent('');
-        setIsWriting(false);
     };
-    // ===========================
-    // UPDATE
-    // ===========================
-    const handleUpdateMemo = async (
-        memoNum: number,
-        content: string
-    ): Promise<void> => {
+
+    const handleInsertMemo = async (tempMemoNum: number, memo_content: string):Promise<void> => {
+
+        const response = await axios.post<MemoData> (
+            `http://back/api/detail/memo/addMemo/${groupNum}`,
+            {memo_content}
+        );
+
+        const savedMemo = response.data;
 
         setMemos((prev) =>
-            prev.map((memo) =>
-                memo.memo_num === memoNum
-                    ? {
-                        ...memo,
-                        content,
-                        updated_at:
-                            new Date().toLocaleString('ko-KR')
-                    }
-                    : memo
+            prev.map((memo) => 
+                memo.memo_num === tempMemoNum ? savedMemo : memo
             )
         );
     };
-    // ===========================
-    // DELETE
-    // ===========================
-    const handleDeleteMemo = async (
-        memoNum: number
-    ): Promise<void> => {
-        /*
-        await axios.delete(
-            `${backendUrl}/api/memo/${memoNum}`
+
+    const handleUpdateMemo = async (memoNum: number,memo_content: string): Promise<void> => {
+
+        const response = await axios.patch<MemoData> (
+            `http://back/api/detail/memo/patchMemo/${memoNum}`,
+            {memo_content}
         );
-        */
+
+        setMemos((prev) =>
+            prev.map((memo) =>
+                memo.memo_num === memoNum ? {...memo,memo_content} : memo
+            )
+        );
+    };
+
+    const handleDeleteMemo = async (memoNum: number): Promise<void> => {
+        const targetMemo = memos.find((memo) => memo.memo_num === memoNum);
+
+        if(!targetMemo) {
+            return;
+        }
+
+        if (targetMemo.isDraft) {
+            setMemos((prev) => prev. filter((memo) => memo.memo_num !== memoNum));
+            return;
+        };
+
+        await axios.delete(
+            `http://localhost/back/api/detail/memo/deleteMemo/${memoNum}`
+        );
+
         setMemos((prev) =>
             prev.filter(
                 (memo) =>
                     memo.memo_num !== memoNum
             )
         );
+    };
+
+    const handleCancelDraft = (memoNum: number):void => {
+        setMemos((prev) => prev.filter((memo) => memo.memo_num !== memoNum));
     };
 
     return (
@@ -111,54 +107,18 @@ export const Detail_Memo: React.FC<GetGroupNum> = (groupNum) => {
                     <button
                         type="button"
                         className={styles.addButton}
-                        onClick={() =>
-                            setIsWriting((prev) => !prev)
-                        }
+                        onClick={handleCreateDraft}
                     >
                         + 메모 등록
                     </button>
                 </div>
-                {/* =======================
-                    메모 작성 영역
-                ======================= */}
-                {isWriting && (
-                    <div className={styles.memoWriter}>
-                        <textarea
-                            value={newContent}
-                            className={styles.memoWriterTextarea}
-                            placeholder="메모할 내용을 입력하세요."
-                            onChange={(
-                                e: React.ChangeEvent<HTMLTextAreaElement>
-                            ) => {
-                                setNewContent(e.target.value);
-                            }}
-                        />
-                        <div className={styles.memoWriterButtons}>
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setIsWriting(false);
-                                    setNewContent('');
-                                }}
-                            >
-                                취소
-                            </button>
-                            <button
-                                type="button"
-                                onClick={handleInsertMemo}
-                            >
-                                등록
-                            </button>
-                        </div>
-                    </div>
-                )}
-                {/* =======================
-                    코르크 게시판
-                ======================= */}
+                
                 <Detail_MemoBoard
                     memos={memos}
+                    onInsert={handleInsertMemo}
                     onUpdate={handleUpdateMemo}
                     onDelete={handleDeleteMemo}
+                    onCancelDraft={handleCancelDraft}
                 />
             </section>
         </div>

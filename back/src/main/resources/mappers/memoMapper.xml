@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--작성자 : 오진석 -->
+<mapper namespace="kr.co.ictedu.back.group.dao.MemoDao">
+
+	<insert id="addMemo" parameterType="memovo">
+		INSERT INTO memo (memo_num, group_num, member_num, memo_content, created_at) 
+		VALUES (memo_seq.nextVAL, #{group_num}, #{member_num}, #{memo_content}, SYSDATE)
+	</insert>
+	
+	<select id="getMemo"></select>
+</mapper>
