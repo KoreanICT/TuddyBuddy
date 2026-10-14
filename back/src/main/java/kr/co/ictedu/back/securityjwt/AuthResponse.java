@@ -11,6 +11,12 @@ import lombok.Setter;
 @Setter
 public class AuthResponse {
 
-	// 사용자 인증 후 생성된 접근 토큰을 저장
+	// JWT 토큰
 	private String accessToken;
+	
+	// 회원번호
+	private Long member_num;
+	
+	// 회원권한
+	private String authority;
 }
