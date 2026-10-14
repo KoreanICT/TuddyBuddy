@@ -3,6 +3,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.type.Alias;
 
 import kr.co.ictedu.back.member.vo.MemberVO;
@@ -49,5 +50,9 @@ public interface MemberDAO {
     // =========================
 
     int updateGrade(Map<String, Object> param);
+    
+    // 담당인원 : 주용현
+    // 회원 코드로 회원 검색
+    MemberVO findByMemberCode(@Param("member_code") String member_code);
 
 }

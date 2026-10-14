@@ -1,9 +1,10 @@
 
+// 주용현
+
 import axios from 'axios';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Search, Pencil, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
-
 import styles from './adminNoticeList.module.css';
 
 interface NoticeVO {
@@ -46,68 +47,92 @@ const AdminNoticeList: React.FC = () => {
     const [searchKeyword, setSearchKeyword] = useState('');
 
     const [loading, setLoading] = useState(false);
+    const [deletingNum, setDeletingNum] = useState<number | null>(null);
+    const [errorMessage, setErrorMessage] = useState('');
+    const [refreshKey, setRefreshKey] = useState(0);
 
     // 공지사항 목록 조회
-    const fetchNoticeList = async () => {
+    const fetchNoticeList = useCallback(async (signal?: AbortSignal) => {
         setLoading(true);
+        setErrorMessage('');
 
         try {
-            const urls = "http://localhost:80/back/api/notice/noticeList";
+            const urls = 'http://localhost:80/back/api/notice/noticeList';
             const response = await axios.get<NoticeListResponse>(urls, {
-                params: { cPage, searchType: searchField, searchValue: searchKeyword }
+                params: { cPage, searchType: searchField, searchValue: searchKeyword },
+                signal
             });
+
+            if (signal?.aborted) return;
 
             setNotices(response.data.data || []);
             setTotalCount(response.data.totalItems || 0);
             setPage({
-                totalPage: response.data.totalPages || 1,
+                totalPage: Math.max(1, response.data.totalPages || 1),
                 startPage: response.data.startPage || 1,
                 endPage: response.data.endPage || 1
             });
         } catch (error) {
+            if (signal?.aborted || axios.isCancel(error)) return;
+
             console.error('공지사항 목록 조회 실패:', error);
             setNotices([]);
             setTotalCount(0);
             setPage({ totalPage: 1, startPage: 1, endPage: 1 });
+            setErrorMessage('공지사항 목록을 불러오지 못했습니다.');
         } finally {
-            setLoading(false);
+            if (!signal?.aborted) setLoading(false);
         }
-    };
-
-    useEffect(() => {
-        fetchNoticeList();
     }, [cPage, searchField, searchKeyword]);
 
+    useEffect(() => {
+        const controller = new AbortController();
+        fetchNoticeList(controller.signal);
+
+        return () => controller.abort();
+    }, [fetchNoticeList, refreshKey]);
+
     // 공지사항 검색
-    const handleSearch = (e: React.SubmitEvent<HTMLFormElement>) => {
+    const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+
+        const nextKeyword = keyword.trim();
+
+        if (cPage === 1 && searchField === searchType && searchKeyword === nextKeyword) {
+            setRefreshKey(prev => prev + 1);
+            return;
+        }
+
         setCPage(1);
         setSearchField(searchType);
-        setSearchKeyword(keyword.trim());
+        setSearchKeyword(nextKeyword);
     };
 
     // 공지사항 삭제
     const handleDelete = async (num: number) => {
+        if (deletingNum !== null) return;
+
         const confirmed = window.confirm('공지사항을 삭제하시겠습니까?');
         if (!confirmed) return;
 
         try {
-            const urls = "http://localhost:80/back/api/notice/noticeDelete";
+            setDeletingNum(num);
 
-            await axios.delete(urls, {
-                params: { num }
-            });
+            const urls = 'http://localhost:80/back/api/notice/noticeDelete';
+            await axios.delete(urls, { params: { num } });
 
             alert('공지사항이 삭제되었습니다.');
 
             if (notices.length === 1 && cPage > 1) {
-                setCPage(cPage - 1);
+                setCPage(prev => prev - 1);
             } else {
-                fetchNoticeList();
+                setRefreshKey(prev => prev + 1);
             }
         } catch (error) {
             console.error('공지사항 삭제 실패:', error);
             alert('공지사항 삭제에 실패했습니다.');
+        } finally {
+            setDeletingNum(null);
         }
     };
 
@@ -161,6 +186,8 @@ const AdminNoticeList: React.FC = () => {
                         <tbody>
                             {loading ? (
                                 <tr><td colSpan={4} className={styles.empty}>공지사항을 불러오는 중입니다.</td></tr>
+                            ) : errorMessage ? (
+                                <tr><td colSpan={4} className={styles.empty}>{errorMessage}</td></tr>
                             ) : notices.length === 0 ? (
                                 <tr><td colSpan={4} className={styles.empty}>등록된 공지사항이 없습니다.</td></tr>
                             ) : (
@@ -176,7 +203,7 @@ const AdminNoticeList: React.FC = () => {
                                                 <button type="button" className={styles.editButton} onClick={() => navigate(`/admin/notice/edit/${notice.num}`)} title="수정">
                                                     <Pencil size={16} />
                                                 </button>
-                                                <button type="button" className={styles.deleteButton} onClick={() => handleDelete(notice.num)} title="삭제">
+                                                <button type="button" className={styles.deleteButton} onClick={() => handleDelete(notice.num)} title="삭제" disabled={deletingNum !== null}>
                                                     <Trash2 size={16} />
                                                 </button>
                                             </div>
@@ -190,17 +217,17 @@ const AdminNoticeList: React.FC = () => {
 
                 {/* Pagination */}
                 <div className={styles.pagination}>
-                    <button type="button" disabled={cPage <= 1} onClick={() => setCPage(cPage - 1)}>
+                    <button type="button" disabled={loading || cPage <= 1} onClick={() => setCPage(prev => prev - 1)}>
                         <ChevronLeft size={18} />
                     </button>
 
                     {pageNumbers.map(num => (
-                        <button type="button" key={num} className={cPage === num ? styles.activePage : ''} onClick={() => setCPage(num)}>
+                        <button type="button" key={num} className={cPage === num ? styles.activePage : ''} onClick={() => setCPage(num)} disabled={loading}>
                             {num}
                         </button>
                     ))}
 
-                    <button type="button" disabled={cPage >= page.totalPage} onClick={() => setCPage(cPage + 1)}>
+                    <button type="button" disabled={loading || cPage >= page.totalPage} onClick={() => setCPage(prev => prev + 1)}>
                         <ChevronRight size={18} />
                     </button>
                 </div>

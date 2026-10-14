@@ -1,12 +1,15 @@
 package kr.co.ictedu.back.chatbot.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
+import org.springframework.web.server.ResponseStatusException;
 
 import kr.co.ictedu.back.chatbot.dto.ChatAIRequest;
 import kr.co.ictedu.back.chatbot.dto.ChatAIResponse;
 import kr.co.ictedu.back.chatbot.vo.ChatMessageVO;
+import kr.co.ictedu.back.chatbot.vo.ChatSessionVO;
 
 // 챗봇 전체 흐름 처리
 //  1) 사용자 질문 DB 저장
@@ -22,6 +25,9 @@ public class ChatBotService {
 	
 	@Autowired
 	private ChatAIService chatAIService;
+	
+	@Autowired
+	private ChatSessionService chatSessionService;
 	
 	// 사용자 질문 DB 저장
 	public void saveUserMessage(ChatAIRequest request) {
@@ -50,6 +56,16 @@ public class ChatBotService {
 	
 	// 전체 챗봇 처리
 	public ChatAIResponse chat(ChatAIRequest request) {
+		
+		// 채팅 세션 존재 여부 확인
+		ChatSessionVO session = chatSessionService.detail(request.getChat_num());
+		
+		if (session == null) {
+			throw new ResponseStatusException(
+					HttpStatus.NOT_FOUND,
+					"존재하지 않는 채팅 세션입니다."
+			);
+		}
 		
 		// 사용자 질문 DB 저장
 		saveUserMessage(request);
