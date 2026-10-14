@@ -61,20 +61,14 @@ public class SecurityConfig {
                 .authorizeHttpRequests((auth) -> auth
 
                         .requestMatchers("/api/auth/**").permitAll() // /api/auth/** 에서 오는 모든 요청은 허용
-                        .requestMatchers("/demos/**").permitAll() 
-                        .requestMatchers("/api/gallery/**").permitAll()
-                        .requestMatchers("/api/board/**").permitAll()
                         .requestMatchers("/api/member/**").permitAll()
-//                        .requestMatchers("/api/employees/**").permitAll()
-                        .requestMatchers("/uploads/**").permitAll() //이미지 경로도 열어줘야 한다.
-                        //.requestMatchers("/demos/**").permitAll()
-                        //.requestMatchers("/**").permitAll()
+                        .requestMatchers("/uploads/**").permitAll() //이미지 경로도 열기
                         .anyRequest().authenticated()) // 모든 요청에 대해 인증을 요구
                 // JWT 토큰 필터 추가: JwtTokenFilter를 BasicAuthenticationFilter 전에 추가하여 JWT 토큰을 검증
                 .addFilterBefore(jwtTokenFilter, BasicAuthenticationFilter.class)
                 // 세션 정책 설정: SessionCreationPolicy.STATELESS로 설정하여 세션 기반 인증을 사용하지 않도록 한다.
                 .sessionManagement((session) -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                // 로그아웃 기능 비활성화: 상태를 유지하지 않는 인증 방식에서는 로그아웃이 필요 없다.
+                // 로그아웃 기능 비활성화
                 .logout((logout) -> logout.disable());
         return http.build();
     }
