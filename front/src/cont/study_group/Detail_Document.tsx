@@ -19,7 +19,7 @@ interface DocumentData {
 
 const backendUrl = process.env.REACT_APP_BACK_END_URL;
 
-export const Detail_Document: React.FC<GetGroupNum> = (groupNum) => {
+export const Detail_Document: React.FC<GetGroupNum> = ({ groupNum }) => {
 
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [documents, setDocuments] = useState<DocumentData[]>([{
@@ -70,7 +70,7 @@ export const Detail_Document: React.FC<GetGroupNum> = (groupNum) => {
 
     //     const getDocuments = async () => {
     //         try {
-    //             const response = await axios.get<DocumentData>(`${backendUrl}/api/`);
+    //             const response = await axios.get<DocumentData>(`http://localhost/back/api/`);
 
     //             const responseData:DocumentData = response.data;
     //             if (!responseData) {
@@ -154,6 +154,7 @@ export const Detail_Document: React.FC<GetGroupNum> = (groupNum) => {
                         isOpen={isModalOpen}
                         onClose={() => setIsModalOpen(false)}
                         onSubmitSuccess={handleUploadSuccess}
+                        groupNum={groupNum}
                     />
                 </div>
             </div>

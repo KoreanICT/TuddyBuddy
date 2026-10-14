@@ -8,6 +8,7 @@ interface Post {
   category: string;
   author: string;
   date: string;
+  views: number;
 }
 
 interface Draft {
@@ -38,6 +39,7 @@ const Community: React.FC = () => {
       category: "자유게시판",
       author: "홍길동",
       date: "2026-09-05",
+      views: 124,
     },
     {
       id: 2,
@@ -46,6 +48,7 @@ const Community: React.FC = () => {
       category: "합격후기",
       author: "김민수",
       date: "2026-09-04",
+      views: 352,
     },
     {
       id: 3,
@@ -54,6 +57,7 @@ const Community: React.FC = () => {
       category: "꿀팁",
       author: "이영희",
       date: "2026-09-03",
+      views: 215,
     },
     {
       id: 4,
@@ -62,6 +66,7 @@ const Community: React.FC = () => {
       category: "자유게시판",
       author: "박철수",
       date: "2026-09-02",
+      views: 89,
     },
     {
       id: 5,
@@ -70,6 +75,7 @@ const Community: React.FC = () => {
       category: "합격후기",
       author: "최유진",
       date: "2026-09-01",
+      views: 410,
     },
     {
       id: 6,
@@ -78,6 +84,7 @@ const Community: React.FC = () => {
       category: "꿀팁",
       author: "정다은",
       date: "2026-08-31",
+      views: 178,
     },
   ]);
 
@@ -135,6 +142,15 @@ const Community: React.FC = () => {
     if (e.key === "Enter") handleSearch();
   };
 
+  // 게시글 클릭 시 조회수 증가 및 상세 보기 오픈 핸들러
+  const handleOpenPost = (post: Post) => {
+    setPosts((prevPosts) =>
+      prevPosts.map((p) => (p.id === post.id ? { ...p, views: p.views + 1 } : p))
+    );
+    setSelectedPost({ ...post, views: post.views + 1 });
+    setNewCommentText("");
+  };
+
   // 게시글 삭제 핸들러
   const handleDeletePost = (postId: number) => {
     if (window.confirm("정말 이 게시글을 삭제하시겠습니까?")) {
@@ -190,6 +206,7 @@ const Community: React.FC = () => {
       category: newWriteCategory,
       author: newAuthor.trim() || "익명",
       date: todayStr,
+      views: 0,
     };
 
     setPosts([newPost, ...posts]);
@@ -242,7 +259,6 @@ const Community: React.FC = () => {
 
   return (
     <div className="bg-light min-vh-100 py-4 py-md-5">
-      {/* 인라인 스타일 주입 */}
       <style>{editorPlaceholderCss}</style>
 
       <div className="container" style={{ maxWidth: "1000px" }}>
@@ -308,16 +324,17 @@ const Community: React.FC = () => {
                 key={post.id}
                 className="card border-0 shadow-sm rounded-4 p-4"
                 style={{ cursor: "pointer" }}
-                onClick={() => {
-                  setSelectedPost(post);
-                  setNewCommentText("");
-                }}
+                onClick={() => handleOpenPost(post)}
               >
                 <div className="d-flex justify-content-between align-items-start mb-2">
                   <span className={`badge rounded-pill fw-semibold px-2.5 py-1 ${getBadgeStyle(post.category)}`}>
                     {post.category}
                   </span>
-                  <small className="text-muted">{post.date}</small>
+                  {/* 날짜 및 조회수 우측 상단 영역 (조회수 크기 확답/강조) */}
+                  <div className="text-end">
+                    <small className="text-muted d-block">{post.date}</small>
+                    <span className="small text-secondary fw-semibold">조회 {post.views}</span>
+                  </div>
                 </div>
                 <h5 className="fw-bold text-dark mb-2">{post.title}</h5>
                 <p className="text-secondary mb-3 fs-6" style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
@@ -402,7 +419,7 @@ const Community: React.FC = () => {
                       />
                     </div>
 
-                    {/* 에디터 영역 (placeholder 오류 해결 적용) */}
+                    {/* 에디터 영역 */}
                     <div className="mb-3">
                       <label className="form-label fw-semibold text-dark">내용</label>
                       
@@ -555,14 +572,18 @@ const Community: React.FC = () => {
 
                 {/* Body */}
                 <div className="modal-body p-4" style={{ maxHeight: "70vh", overflowY: "auto" }}>
-                  <div className="d-flex align-items-center gap-2 mb-4 pb-3 border-bottom">
-                    <div className="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold" style={{ width: "36px", height: "36px" }}>
-                      {selectedPost.author.charAt(0)}
+                  <div className="d-flex align-items-center justify-content-between mb-4 pb-3 border-bottom">
+                    <div className="d-flex align-items-center gap-2">
+                      <div className="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold" style={{ width: "36px", height: "36px" }}>
+                        {selectedPost.author.charAt(0)}
+                      </div>
+                      <div>
+                        <div className="fw-semibold text-dark">{selectedPost.author}</div>
+                        <small className="text-muted">{selectedPost.date}</small>
+                      </div>
                     </div>
-                    <div>
-                      <div className="fw-semibold text-dark">{selectedPost.author}</div>
-                      <small className="text-muted">{selectedPost.date}</small>
-                    </div>
+                    {/* 모달 내부 조회수 크기 조절 */}
+                    <span className="small text-secondary fw-semibold">조회 {selectedPost.views}</span>
                   </div>
 
                   {/* Post Content */}

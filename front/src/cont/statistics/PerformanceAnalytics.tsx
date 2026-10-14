@@ -4,8 +4,9 @@ import {
     LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell, Legend
 } from 'recharts';
 import { AlertTriangle, Award, BookOpen, Brain, Clock, MessageSquareQuote, TrendingUp } from 'lucide-react';
-import { ChartDataState, LLMFeedbackState, Subject } from './types';
+import { ChartDataState, LLMFeedbackState } from './types';
 import './PerformanceAnalytics.css';
+import { json } from 'stream/consumers';
 
 export default function PerformanceAnalytics() {
 
@@ -13,8 +14,8 @@ export default function PerformanceAnalytics() {
     const [memberNum, setMemberNum] = useState<number>();
 
     // 과목 목록 및 선택된 과목 ID (NUMBER 타입 PK 매핑)
-    const [subjects, setSubjects] = useState<Subject[]>([]);
-    const [selectedSubjectId, setSelectedSubjectId] = useState<number>(1);
+    const [subjects, setSubjects] = useState<string[]>([]);
+    const [categories, setCategories] = useState<string>("");
 
     // 차트용 데이터 State
     const [chartData, setChartData] = useState<ChartDataState | null>(null);
@@ -36,38 +37,37 @@ export default function PerformanceAnalytics() {
         const fetchAnalytics = async () => {
             setLoading(true);
             try {
-                // 1. 먼저 DB에 저장된 성적 데이터 수집
-                const savedResponse = await axios.post('/api/analytics', {
+                // 1.  카테고리 수집
+                const savedResponse = await axios.post('/api/statistics/getCategories', {
                     memberNum: memberNum,
                 });
 
-                // 타입가드
-                if (!savedResponse.data && !savedResponse.data.chartData) return;
-                    
-                setChartData(savedResponse.data.chartData);
-                setLlmFeedback(savedResponse.data.statistics);
+                if (!savedResponse.data) return;
+                setSubjects(savedResponse.data);
+                if (savedResponse.data.length > 0) {
+                    setCategories(savedResponse.data[0]);
+                }
 
             } catch (error) {
-                console.error("분석 데이터 로딩 실패:", error);
+                console.error("카테고리 로딩 실패:", error);
             } finally {
                 setLoading(false);
             }
         };
-
         fetchAnalytics();
-    }, [selectedSubjectId]);
+    }, []);
 
     // --------------------------------------------------------------------------
     // 2. 과목 변경 시 데이터 조회 (selfstudy_results 및 quiz_responses 기반 분석)
     // --------------------------------------------------------------------------
     useEffect(() => {
-        if (!selectedSubjectId) return;
+        // if (!categories) return;
 
         const fetchAnalyticsData = async () => {
             setLoading(true);
             try {
                 // 스프링부트 API 호출: /api/v1/analytics/subjects/{subjectId}
-                const response = await axios.get(`/api/analytics`);
+                const response = await axios.get(`/api/statistics/getStatistics`);
 
                 setChartData(response.data.chartData);
                 setLlmFeedback(response.data.llmFeedback);
@@ -112,7 +112,7 @@ export default function PerformanceAnalytics() {
         };
 
         fetchAnalyticsData();
-    }, [selectedSubjectId]);
+    }, [categories]);
 
     if (loading) {
         return <div className="analytics-page container">성적 분석 데이터를 산출하는 중입니다...</div>;
@@ -134,13 +134,13 @@ export default function PerformanceAnalytics() {
                         <label htmlFor="subject-select" className="label">학습 과목:</label>
                         <select
                             id="subject-select"
-                            value={selectedSubjectId}
-                            onChange={(e) => setSelectedSubjectId(Number(e.target.value))}
+                            value={categories}
+                            onChange={(e) => setCategories(e.target.value)}
                             className="select-box"
                         >
-                            {subjects.map((sub) => (
-                                <option key={sub.subjectId} value={sub.subjectId}>
-                                    {sub.subjectName}
+                            {subjects.map((sub, i) => (
+                                <option key={i} value={sub}>
+                                    {sub}
                                 </option>
                             ))}
                         </select>
