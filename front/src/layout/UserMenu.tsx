@@ -1,15 +1,30 @@
+
 import React, { useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import { useAppDispatch, RootState } from '../login/reducers/store';
+import { logoutAction } from '../login/authActions/authActions';
 import styles from './userMenu.module.css';
 
 const UserMenu: React.FC = () => {
-    // TODO: 추후 useAuth()로 교체
-    const [isLogin, setIsLogin] = useState(true);
-    const [isAdmin, setIsAdmin] = useState(true)
+
+    // Redux에 저장된 JWT로 로그인 상태 확인
+    const isLogin = useSelector(
+        (state: RootState) => Boolean(state.auth.token)
+    );
+
+    const dispatch = useAppDispatch();
+
     const [isOpen, setIsOpen] = useState(false);
 
     const closeMenu = () => {
         setIsOpen(false);
+    };
+
+    // 로그아웃 처리
+    const handleLogout = async () => {
+        await dispatch(logoutAction());
+        closeMenu();
     };
 
     // 로그인하지 않은 경우
@@ -29,15 +44,6 @@ const UserMenu: React.FC = () => {
 
     else return (
         <>
-            <div className={styles.userMenu}>
-                <Link to="/auth/member" className={styles.authButton}>
-                    로그인
-                </Link>
-
-                <Link to="/auth/signup" className={styles.authButton}>
-                    회원가입
-                </Link>
-            </div>
             {/* 프로필 버튼 */}
             <div className={styles.userMenu}>
                 <button
@@ -95,11 +101,11 @@ const UserMenu: React.FC = () => {
                         포인트 구매
                     </NavLink>
 
-                    {/* {isAdmin && ( */}
+                    {/* 기존 관리자 메뉴 표시 방식 유지 */}
                     <NavLink to="/admin" onClick={closeMenu}>
                         관리자 메뉴
                     </NavLink>
-                    {/* )} */}
+
                     <NavLink to="/friend/list" onClick={closeMenu}>
                         내 친구
                     </NavLink>
@@ -107,7 +113,7 @@ const UserMenu: React.FC = () => {
 
                 {/* Logout */}
                 <div className={styles.drawerFooter}>
-                    <button onClick={() => console.log('logout')}>
+                    <button onClick={handleLogout}>
                         로그아웃
                     </button>
                 </div>

@@ -1,6 +1,6 @@
 
 import Home from "../cont/Home";
-import Login from "../member/Login";
+import Login from "../login/Login";
 import Signup from "../member/Signup"
 import MyPage from "../mypage/MyPage";
 import { ProductSelector } from "../cont/point/ProductSelector";
