@@ -15,7 +15,6 @@ interface Position {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
 
-  // FaceDetector 위치
   const [position, setPosition] = useState<Position>({
     x: 20,
     y: 100
