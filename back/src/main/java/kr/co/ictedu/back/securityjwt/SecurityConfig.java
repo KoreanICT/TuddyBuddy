@@ -65,6 +65,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/member/**").permitAll()
 //                        .requestMatchers("/api/employees/**").permitAll()
                         .requestMatchers("/uploads/**").permitAll() //이미지 경로도 열어줘야 한다.
+
                         //.requestMatchers("/demos/**").permitAll()
 ///----------------------------------------------------------------------------------------------------                        
 //                        //셀프스터디) 카테고리·과목 조회 허용
@@ -74,6 +75,7 @@ public class SecurityConfig {
 //                        //셀프스터디) 문제 생성시에는 인증 후 가능하도록 
 //                        .requestMatchers("/api/selfstudy/**").authenticated()
 ///------------------------------------------------------------------------------------------------------                       
+
                         .requestMatchers("/**").permitAll()
                         .anyRequest().authenticated()) // 모든 요청에 대해 인증을 요구
                 // JWT 토큰 필터 추가: JwtTokenFilter를 BasicAuthenticationFilter 전에 추가하여 JWT 토큰을 검증

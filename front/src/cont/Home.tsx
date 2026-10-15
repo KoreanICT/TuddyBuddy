@@ -69,7 +69,7 @@ const Home: React.FC = () => {
                 함께 공부해보세요.
               </p>
 
-              <button className={styles.primaryButton} onClick={() => { navigate('/homeGroup') }}>
+              <button className={styles.primaryButton} onClick={() => { navigate('/group') }}>
                 스터디 그룹 참가하기
               </button>
               <FocusButton />
