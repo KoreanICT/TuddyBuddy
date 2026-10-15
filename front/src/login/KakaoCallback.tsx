@@ -11,9 +11,7 @@ import { useAppDispatch } from './reducers/store';
 import { loginSuccess } from './reducers/authReducer';
 
 // 백엔드 서버 주소
-const API_URL =
-  process.env.REACT_APP_BACK_END_URL ||
-  'http://192.168.0.20:80/back';
+const API_URL = 'http://localhost:80/back';
 
 // React StrictMode 개발 환경에서
 // 동일한 카카오 인가 코드로 중복 요청하지 않도록 관리

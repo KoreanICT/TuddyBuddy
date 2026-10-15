@@ -1,3 +1,4 @@
+//작성자 : 오진석
 import React from 'react';
 import styles from './group.module.css';
 import { GroupSidebarProps } from './GroupAPI';

@@ -4,6 +4,7 @@ import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import styles from './report.module.css';
+import { useAuth } from '../../../login/hooks/useAuth';
 
 type ReportStatus = 'PENDING' | 'REVIEWING' | 'COMPLETED' | 'REJECTED';
 type ReportType = 'POST' | 'COMMENT' | 'USER' | 'STUDY';
@@ -29,9 +30,9 @@ const ReportReply: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
 
-    // =========================
+    const { memberNum } = useAuth();
+
     // 신고 상세 조회
-    // =========================
     useEffect(() => {
         let active = true;
 

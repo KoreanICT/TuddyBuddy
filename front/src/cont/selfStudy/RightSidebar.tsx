@@ -1,3 +1,4 @@
+//최솔
 import React from 'react';
 import { RightTabType } from './types';
 import styles from './selfstudy.module.css';
