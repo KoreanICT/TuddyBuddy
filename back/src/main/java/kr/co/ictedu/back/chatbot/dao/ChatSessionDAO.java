@@ -1,3 +1,5 @@
+// 허승표
+
 package kr.co.ictedu.back.chatbot.dao;
 
 
@@ -17,5 +19,5 @@ public interface ChatSessionDAO {
 	ChatSessionVO detail(int chat_num);
 
 	// 특정 회원의 채팅 세션 목록 조회
-	List<ChatSessionVO> list(int member_num);
+	List<ChatSessionVO> list(Long member_num);
 }

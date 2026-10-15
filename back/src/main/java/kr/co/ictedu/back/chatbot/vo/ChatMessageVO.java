@@ -1,3 +1,5 @@
+// 허승표
+
 package kr.co.ictedu.back.chatbot.vo;
 
 import org.apache.ibatis.type.Alias;
