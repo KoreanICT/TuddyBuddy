@@ -1,12 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import styles from './home.module.css';
-
 import fullpage from 'fullpage.js';
 import 'fullpage.js/dist/fullpage.css';
-
 import Modal from './modal/Modal';
-import FocusButton from './focusButton/FocusButton';
 
 const Home: React.FC = () => {
 
@@ -72,7 +69,6 @@ const Home: React.FC = () => {
               <button className={styles.primaryButton} onClick={() => { navigate('/group') }}>
                 스터디 그룹 참가하기
               </button>
-              <FocusButton />
 
             </div>
 
