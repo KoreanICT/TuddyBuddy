@@ -1,3 +1,4 @@
+//작성자 : 오진석
 import React, { useState } from 'react';
 import styles from './detail.module.css';
 import { MemberData } from './GroupAPI';
@@ -15,23 +16,24 @@ export const Detail_Member: React.FC<GetGroupNum> = ({ groupNum }) => {
             is_leader: 1,
         }
     ]);
+    const [isLeader, setIsLeader] = useState<boolean>(true);
     const [meLeader, setMeLeader] = useState<number>(0);
 
 
-    useState(() => {
-        const getMembers = async () => {
-            try {
-                const response = await axios.get<MemberData[]>(
-                    `http://localhost/back/api/getMembers/${groupNum}`
-                )
-                const responseData: MemberData[] = response.data; 
-                setMembers(responseData);
-                setMeLeader(responseData.meLeader);
-            } catch (error) {
-                console.error('멤버 정보 조회 실패 :', error)
-            }
-        }
-    }, [])
+    // useState(() => {
+    //     const getMembers = async () => {
+    //         try {
+    //             const response = await axios.get<MemberData[]>(
+    //                 `http://localhost/back/api/getMembers/${groupNum}`
+    //             )
+    //             const responseData: MemberData[] = response.data; 
+    //             setMembers(responseData);
+    //             //setMeLeader(responseData.meLeader);
+    //         } catch (error) {
+    //             console.error('멤버 정보 조회 실패 :', error)
+    //         }
+    //     }
+    // }, [])
 
     const handleKick = (id: number, nickname: string) => {
         if (window.confirm(`${nickname} 님을 강퇴하시겠습니까?`)) {
@@ -49,23 +51,23 @@ export const Detail_Member: React.FC<GetGroupNum> = ({ groupNum }) => {
             `http://localhost/back/api/detail/groupQuit/${groupNum}`
         )
     }
-    
+
     return (
         <div className={styles.detail_content_wrapper}>
             <div className={styles.detail_section_card}>
                 <h3 className={styles.section_title}>멤버 목록 ({members.length})</h3>
                 <button
                     type="button"
-                    onClick{() => handleQuit()}
+                    
                 >
                     스터디룸 탈퇴
                 </button>
                 {/* 멤버 카드 횡방향 목록 컨테이너 */}
                 <div className={styles.member_grid}>
                     {members.map((member) => (
-                        <div key={member.id} className={styles.member_card}>
+                        <div className={styles.member_card}>
                             {/* 우상단 강퇴 버튼 (x) */}
-                            {!member.isLeader && (
+                            {/* {!member.isLeader && (
                                 <button
                                     type="button"
                                     className={styles.kick_btn}
@@ -75,7 +77,7 @@ export const Detail_Member: React.FC<GetGroupNum> = ({ groupNum }) => {
                                 >
                                     ✕
                                 </button>
-                            )}
+                            )} */}
 
                             {/* 동그란 썸네일 */}
                             <div className={styles.avatar_wrapper}>
@@ -93,9 +95,9 @@ export const Detail_Member: React.FC<GetGroupNum> = ({ groupNum }) => {
                             </div>
 
                             {/* 방장 라벨 */}
-                            {member.isLeader && (
+                            {/* {member.isLeader && (
                                 <span className={styles.leader_badge}>방장</span>
-                            )}
+                            )} */}
                         </div>
                     ))}
                 </div>

@@ -53,4 +53,14 @@
 	<delete id="deleteGroupTags">
 		DELETE FROM group_tag WHERE group_num = #{group_num}
 	</delete>
+	
+	<!--<select id="getMembers" resultType="getmemberdto">
+		SELECT gm.member_num, gm.is_leader, m.member_name, m.member_nick
+		FROM group_member gm JOIN member m ON gm.member_num = m.member_num
+		WHERE gm.group_num = #{group_num}
+	</select>-->
+	
+	<!--<select id="getCurrentData" resultType="getcurrentdatadto">
+		SELECT 
+	</select>-->
 </mapper>

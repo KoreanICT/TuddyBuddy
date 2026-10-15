@@ -1,3 +1,4 @@
+//작성자 : 오진석
 import React, { useState } from 'react';
 import { DndContext, DragEndEvent, DragStartEvent, PointerSensor, useDroppable, useSensor, useSensors } from '@dnd-kit/core';
 import { motion } from 'motion/react';
