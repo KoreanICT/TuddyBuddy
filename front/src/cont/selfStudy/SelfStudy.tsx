@@ -18,10 +18,10 @@ import {
 
 import styles from './selfstudy.module.css';
 
-const BACKEND_URL = (
-  process.env.REACT_APP_BACK_END_URL ||
-  'http://192.168.0.19/back'
-).replace(/\/$/, '');
+// Spring Boot 백엔드
+// server.port=80
+// server.servlet.context-path=/back
+const BACKEND_URL = (process.env.REACT_APP_BACK_END_URL || 'http://192.168.0.19/back').replace(/\/$/, '');
 
 const SelfStudy: React.FC = () => {
   const [quizSessionId, setQuizSessionId] = useState<number | null>(null);

@@ -4,6 +4,7 @@ import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './report.module.css';
+import { useAuth } from '../../login/hooks/useAuth';
 
 interface ReportReplyVO {
     num: number;
@@ -18,6 +19,8 @@ const ReportReplyList: React.FC = () => {
     const navigate = useNavigate();
     const [replyList, setReplyList] = useState<ReportReplyVO[]>([]);
 
+    const { memberNum } = useAuth();
+
     // 신고 답변 목록 조회
     const fetchReplyList = async () => {
         try {
@@ -25,8 +28,7 @@ const ReportReplyList: React.FC = () => {
 
             const response = await axios.get(urls, {
                 params: {
-                    // TODO: 로그인 연결 후 실제 회원 번호 사용
-                    member_num: 1
+                    member_num: memberNum
                 }
             });
 
