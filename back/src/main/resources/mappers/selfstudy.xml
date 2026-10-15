@@ -3,7 +3,7 @@
 
 <mapper namespace="kr.co.ictedu.back.selfstudy.dao.SelfStudyDao">
 	<select id="selectSubject"
-		resultType="kr.co.ictedu.back.selfstudy.vo.SubjectVO">
+		resultType="subjectVO">
 		SELECT subject_id, category_id, subject_name, usage_count, created_at
 		FROM subjects WHERE subject_id = #{subjectId}
 	</select>
@@ -15,7 +15,7 @@
 
 	<!-- 카테고리 전체 조회 -->
 	<select id="selectCategories"
-		resultType="kr.co.ictedu.back.selfstudy.vo.CategoryVO">
+		resultType="categoryVO">
 
 		SELECT
 		category_id,
@@ -32,7 +32,7 @@
 
 	<!-- 카테고리별 과목 조회 -->
 	<select id="selectSubjects"
-		resultType="kr.co.ictedu.back.selfstudy.vo.SubjectVO">
+		resultType="subjectVO">
 
 		SELECT
 		subject_id,
@@ -53,7 +53,7 @@
 
 	<!-- 퀴즈 세션 등록 -->
 	<insert id="insertQuizSession"
-		parameterType="kr.co.ictedu.back.selfstudy.vo.QuizSessionVO">
+		parameterType="quizSessionVO">
 
 		<selectKey
 			keyProperty="quiz_session_id"
@@ -73,7 +73,7 @@
 
 	<!-- 회원별 퀴즈 세션 목록 -->
 	<select id="selectQuizSessions"
-		resultType="kr.co.ictedu.back.selfstudy.vo.QuizSessionVO">
+		resultType="quizSessionVO">
 
 		SELECT
 		quiz_session_id,
@@ -94,7 +94,7 @@
 
 	<!-- 퀴즈 세션 1개 조회 -->
 	<select id="selectQuizSession"
-		resultType="kr.co.ictedu.back.selfstudy.vo.QuizSessionVO">
+		resultType="quizSessionVO">
 
 		SELECT
 		quiz_session_id,
@@ -118,7 +118,7 @@
 
 	<!-- 생성된 문제 등록 -->
 	<insert id="insertQuiz"
-		parameterType="kr.co.ictedu.back.selfstudy.vo.QuizVO">
+		parameterType="quizVO">
 
 		<selectKey
 			keyProperty="quiz_id"
@@ -137,7 +137,7 @@
 
 	<!-- 세션별 문제 목록 -->
 	<select id="selectQuizzes"
-		resultType="kr.co.ictedu.back.selfstudy.vo.QuizVO">
+		resultType="quizVO">
 
 		SELECT
 		quiz_id,
@@ -156,7 +156,7 @@
 
 	<!-- 문제 1개 조회 -->
 	<select id="selectQuiz"
-		resultType="kr.co.ictedu.back.selfstudy.vo.QuizVO">
+		resultType="quizVO">
 
 		SELECT
 		quiz_id,
@@ -178,7 +178,7 @@
 
 	<!-- 학습 결과 등록 -->
 	<insert id="insertSelfStudyResult"
-		parameterType="kr.co.ictedu.back.selfstudy.vo.SelfStudyResultVO">
+		parameterType="selfStudyResultVO">
 
 		<selectKey
 			keyProperty="selfstudy_results_id"
@@ -197,7 +197,7 @@
 
 	<!-- 결과 1개 조회 -->
 	<select id="selectResult"
-		resultType="kr.co.ictedu.back.selfstudy.vo.SelfStudyResultVO">
+		resultType="selfStudyResultVO">
 
 		SELECT
 		selfstudy_results_id,
@@ -213,7 +213,7 @@
 
 	<!-- 회원별 결과 목록 -->
 	<select id="selectResults"
-		resultType="kr.co.ictedu.back.selfstudy.vo.SelfStudyResultVO">
+		resultType="selfStudyResultVO">
 
 		SELECT
 		selfstudy_results_id,
@@ -234,7 +234,7 @@
 
 	<!-- 문제별 사용자 답변 등록 -->
 	<insert id="insertQuizResponse"
-		parameterType="kr.co.ictedu.back.selfstudy.vo.QuizResponseVO">
+		parameterType="quizResponseVO">
 
 		<selectKey
 			keyProperty="quiz_responses_id"
@@ -253,7 +253,7 @@
 
 	<!-- 결과별 사용자 답변 조회 -->
 	<select id="selectQuizResponses"
-		resultType="kr.co.ictedu.back.selfstudy.vo.QuizResponseVO">
+		resultType="quizResponseVO">
 
 		SELECT
 		quiz_responses_id,
@@ -314,21 +314,5 @@
 
 	</delete>
 
-	<!-- 
-	===================================================================	
-	-->
-
-	<select id="selectCategories_Statistics">
-		SELECT c.CATEGORY_NAME FROM
-		CATEGORIES c, QUIZ_SESSIONS qs,SUBJECTS s,MEMBER m
-		WHERE c.CATEGORY_ID = s.CATEGORY_ID AND qs.SUBJECT_ID = s.SUBJECT_ID AND
-		qs.MEMBER_NUM = #{num}
-	</select>
-
-	<select id="selectSessionId_Statistics">
-		SELECT qs.SUBJECT_ID FROM
-		QUIZ_SESSIONS qs,MEMBER M
-		WHERE qs.MEMBER_NUM = #{num}
-	</select>
 
 </mapper>

@@ -1,3 +1,4 @@
+//김진규
 package kr.co.ictedu.back.point.dao;
 
 import java.util.List;

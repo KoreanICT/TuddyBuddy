@@ -1,7 +1,9 @@
+
 package kr.co.ictedu.back.member.service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID; // 추가: UUID 생성
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -16,40 +18,47 @@ public class MemberService {
 
     @Autowired
     private MemberDAO memberDao;
-    
+
     @Autowired
     private PasswordEncoder passwordEncoder;
 
- // =========================
- // 회원가입
- // =========================
- public void create(MemberVO vo) {
+    // =========================
+    // 회원가입
+    // =========================
+    public void create(MemberVO vo) {
 
-     System.out.println("1");
+        System.out.println("1");
 
-     // 이메일 중복 확인
-     if (memberDao.countByEmail(vo.getMember_email()) > 0) {
-         throw new RuntimeException("이미 사용 중인 이메일입니다.");
-     }
+        // 이메일 중복 확인
+        if (memberDao.countByEmail(vo.getMember_email()) > 0) {
+            throw new RuntimeException("이미 사용 중인 이메일입니다.");
+        }
 
-     // 닉네임 중복 확인
-     if (memberDao.countByNick(vo.getMember_nick()) > 0) {
-         throw new RuntimeException("이미 사용 중인 닉네임입니다.");
-     }
+        // 닉네임 중복 확인
+        if (memberDao.countByNick(vo.getMember_nick()) > 0) {
+            throw new RuntimeException("이미 사용 중인 닉네임입니다.");
+        }
 
-     System.out.println("4");
+        System.out.println("4");
 
-     //비밀번호 BCrypt 암호화
-     vo.setMember_pwd(
-         passwordEncoder.encode(vo.getMember_pwd())
-     );
+        // 비밀번호 BCrypt 암호화
+        vo.setMember_pwd(
+            passwordEncoder.encode(vo.getMember_pwd())
+        );
 
-     // 회원가입
-     memberDao.insertMember(vo);
+        // =========================
+        // 추가: 회원코드 UUID 랜덤 생성
+        // =========================
+        String memberCode = UUID.randomUUID().toString();
+        vo.setMember_code(memberCode);
 
-     System.out.println("5");
- }
+        System.out.println("생성된 회원코드 : " + memberCode);
 
+        // 회원가입
+        memberDao.insertMember(vo);
+
+        System.out.println("5");
+    }
 
     // =========================
     // 닉네임 중복 확인
@@ -58,7 +67,6 @@ public class MemberService {
         return memberDao.countByNick(nick);
     }
 
-
     // =========================
     // 이메일로 회원 조회
     // =========================
@@ -66,14 +74,12 @@ public class MemberService {
         return memberDao.getMemberByEmail(email);
     }
 
-
     // =========================
     // 회원 정보 수정
     // =========================
     public int updateMember(MemberVO vo) {
         return memberDao.updateMember(vo);
     }
-
 
     // =========================
     // 회원 탈퇴
@@ -88,14 +94,12 @@ public class MemberService {
         return result > 0;
     }
 
-
     // =========================
     // 회원 전체 조회
     // =========================
     public List<MemberVO> list(Map<String, String> map) {
         return memberDao.memberList(map);
     }
-
 
     // =========================
     // 회원 전체 수
@@ -104,7 +108,6 @@ public class MemberService {
         return memberDao.totalCount(map);
     }
 
-
     // =========================
     // 선택된 회원 등급 변경
     // =========================
@@ -112,14 +115,13 @@ public class MemberService {
         return memberDao.updateGrade(param);
     }
 
-
     // =========================
     // 이메일 중복 확인
     // =========================
     public int checkemail(String email) {
         return memberDao.countByEmail(email);
     }
-    
+
     // 담당 인원 : 주용현
     // 회원 코드로 회원 검색
     public MemberVO findByMemberCode(String member_code) {
@@ -129,5 +131,4 @@ public class MemberService {
 
         return memberDao.findByMemberCode(member_code.trim());
     }
-
 }

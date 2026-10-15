@@ -30,7 +30,7 @@ interface ChatMessageResponse {
 const ChatBot: React.FC<ChatBotProps> = (props) => {
 
     const navigate = useNavigate();
-    const isLogin = true;
+    const isLogin = false;
 
     // 비회원 대표 질문
     const guestQuestions = [
