@@ -1,3 +1,4 @@
+//작성자 : 오진석
 import React, { useEffect, useRef, useState } from 'react';
 import { NavLink, useParams } from 'react-router-dom';
 import { Detail_Sidebar } from './Detail_Sidebar';

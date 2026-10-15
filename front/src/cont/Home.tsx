@@ -1,12 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import styles from './home.module.css';
-
 import fullpage from 'fullpage.js';
 import 'fullpage.js/dist/fullpage.css';
-
 import Modal from './modal/Modal';
-import FocusButton from './focusButton/FocusButton';
 
 const Home: React.FC = () => {
 
@@ -72,7 +69,6 @@ const Home: React.FC = () => {
               <button className={styles.primaryButton} onClick={() => { navigate('/group') }}>
                 스터디 그룹 참가하기
               </button>
-              <FocusButton />
 
             </div>
 
@@ -122,45 +118,6 @@ const Home: React.FC = () => {
                 개인 스터디 시작하기
               </button>
 
-            </div>
-
-          </div>
-        </section>
-
-
-        {/* Section 3 : 교육 이슈 */}
-        <section className="section">
-          <div className={styles.sectionInner}>
-
-            <div className={styles.content}>
-
-              <span className={styles.eyebrow}>
-                교육 이야기
-              </span>
-
-              <h2 className={styles.title}>
-                지금 주목해야 할<br />
-                교육 이슈를 만나보세요.
-              </h2>
-
-              <p className={styles.description}>
-                교육과 학습에 관한 다양한 소식을
-                한곳에서 확인할 수 있어요.
-              </p>
-
-              <button className={styles.secondaryButton}>
-                교육 이슈 확인하기
-              </button>
-
-            </div>
-
-
-            <div className={styles.issueImage}>
-              <img
-                src="/images/eduIssue.png"
-                alt="교육 이슈와 관련된 정보"
-                className={styles.sectionImage}
-              />
             </div>
 
           </div>

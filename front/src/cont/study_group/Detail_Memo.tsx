@@ -1,3 +1,4 @@
+//작성자 : 오진석
 import React, { useEffect, useState } from 'react';
 import styles from './memo.module.css';
 import { Detail_MemoBoard } from './Detail_MemoBoard';

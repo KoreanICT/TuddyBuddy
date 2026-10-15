@@ -1,3 +1,4 @@
+//작성자 : 오진석
 import React, { useState } from 'react';
 import { DndContext, DragEndEvent, DragStartEvent, PointerSensor, useDroppable, useSensor, useSensors } from '@dnd-kit/core';
 import { motion } from 'motion/react';
@@ -116,7 +117,6 @@ export const Detail_MemoBoard: React.FC<MemoBoardProps> = ({ memos, onInsert, on
                             }
                             onInsert={onInsert}
                             onUpdate={onUpdate}
-                            onDelete={onDelete}
                             onCancelDraft={onCancelDraft}
                             onCrumpleComplete={handleCrumpleComplete}
                         />

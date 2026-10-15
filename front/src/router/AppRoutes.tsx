@@ -37,6 +37,7 @@ import AdminNoticeList from "../cont/admin/notice/AdminNoticeList";
 import AdminNoticeForm from "../cont/admin/notice/AdminNoticeForm";
 import NoticeList from "../cont/notice/NoticeList";
 import NoticeDetail from "../cont/notice/NoticeDetail";
+import SelfStudyManagement from "../cont/admin/selfstudy/SelfStudyManagement";
 import KakaoCallback from "../login/KakaoCallback";
 import KakaoSignup from "../login/KakaoSignup";
 
@@ -85,8 +86,15 @@ const AppRoutes: React.FC = () => {
         { path: "/admin/notice", element: <AdminNoticeList /> },
         { path: "/admin/notice/add", element: <AdminNoticeForm /> },
         { path: "/admin/notice/edit/:num", element: <AdminNoticeForm /> },
+<<<<<<< HEAD
 
         { path: '/auth/member', element: <Navigate to="/?auth=login" replace /> },
+=======
+        { path: "/admin/selfstudy", element: <SelfStudyManagement /> },
+
+        // auth
+        { path: '/auth/member', element: <Login /> },
+>>>>>>> 6c8273a0e3719ba3dc40f6de00506d4a310bbde4
         { path: '/auth/signup', element: <Signup /> },
         { path: '/auth/kakao/callback', element: <KakaoCallback /> },
         { path: '/auth/mypage', element: <MyPage /> },

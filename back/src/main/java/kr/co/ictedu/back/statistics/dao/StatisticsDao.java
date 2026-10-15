@@ -7,6 +7,8 @@ import java.util.Map;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import kr.co.ictedu.back.selfstudy.vo.SelfStudyResultVO;
+
 @Mapper
 public interface StatisticsDao {
 	
@@ -33,4 +35,8 @@ public interface StatisticsDao {
     // 과목별 비중/분포 데이터 조회
     List<Map<String, Object>> selectSubjectShareStatistics(
     		@Param("memberNum") Long memberNum);
+    
+    // 결과 1개만 조회
+    SelfStudyResultVO selectResult(
+            @Param("resultId") Long resultId);
 }
