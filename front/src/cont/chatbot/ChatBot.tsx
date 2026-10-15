@@ -1,9 +1,13 @@
+// 허승표
+
 import React, { useEffect, useRef, useState } from 'react'
 import styles from './chatbot.module.css'
 import { Bot, LoaderCircle, Send, X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../login/reducers';
 
 interface ChatBotProps {
     onClose: () => void;
@@ -30,7 +34,14 @@ interface ChatMessageResponse {
 const ChatBot: React.FC<ChatBotProps> = (props) => {
 
     const navigate = useNavigate();
-    const isLogin = false;
+
+    // Redux에서 로그인 정보 가져오기
+    const {token, member_num} = useSelector(
+        (state: RootState) => state.auth
+    );
+
+    // Redux 상태로 로그인 여부 판단
+    const isLogin = Boolean(token && member_num !== null);
 
     // 비회원 대표 질문
     const guestQuestions = [
@@ -87,7 +98,7 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
 
             try {
                 const response = await fetch(
-                    'http://192.168.0.114:80/back/api/chatbot/session',
+                    'http://localhost:80/back/api/chatbot/session',
                     {
                         method: 'POST',
                         headers: {
@@ -143,7 +154,7 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
 
             try {
                 const response = await fetch(
-                    `http://192.168.0.114:80/back/api/chatbot/message/session/${chatNum}`
+                    `http://localhost:80/back/api/chatbot/message/session/${chatNum}`
                 );
 
                 if (!response.ok) {
@@ -231,7 +242,7 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
         try {
             // Spring Boot에 AI 질문 요청
             const response = await fetch(
-                'http://192.168.0.114:80/back/api/chatbot/ai',
+                'http://localhost:80/back/api/chatbot/ai',
                 {
                     method: 'POST',
                     headers: {

@@ -1,4 +1,7 @@
+// 허승표
+
 package kr.co.ictedu.back.chatbot.service;
+
 
 import java.util.List;
 
@@ -27,7 +30,7 @@ public class ChatMessageService {
 	}
 	
 	// 특정 회원의 전체 대화 내용
-	public List<ChatMessageVO> memberList(int member_num) {
+	public List<ChatMessageVO> memberList(Long member_num) {
 		return chatMessageDAO.memberList(member_num);
 	}
 }
