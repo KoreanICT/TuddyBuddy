@@ -1,3 +1,4 @@
+//김진규
 package kr.co.ictedu.back.statistics.controller;
 
 import java.util.List;
@@ -7,11 +8,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.co.ictedu.back.statistics.service.StatisticsService;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-
+@Tag(name = "평가분석 API", description = "시험성적 프리빙,llm평가 API")
 @RestController
 @RequestMapping("/api/statistics")
 public class StatisticsController {
