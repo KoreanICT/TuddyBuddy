@@ -222,7 +222,6 @@ const FriendAdd: React.FC = () => {
                 )}
             </div>
 
-            <PublicAccount />
 
             <StudentCodeModal
                 isOpen={isCodeOpen}
