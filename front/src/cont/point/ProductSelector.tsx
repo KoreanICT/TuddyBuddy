@@ -1,3 +1,4 @@
+//김진규
 import React, { useState } from 'react';
 import styles from './productSelector.module.css';
 

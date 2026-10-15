@@ -1,3 +1,4 @@
+//김진규
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import {
@@ -67,7 +68,7 @@ export default function PerformanceAnalytics() {
             setLoading(true);
             try {
                 // 스프링부트 API 호출: /api/v1/analytics/subjects/{subjectId}
-                const response = await axios.post(`http://192.168.0.44/80/back/api/statistics/getStatistics`);
+                const response = await axios.post(`http://localhost:80/back/api/statistics/getStatistics`);
 
                 setChartData(response.data.chartData);
                 setLlmFeedback(response.data.llmFeedback);
