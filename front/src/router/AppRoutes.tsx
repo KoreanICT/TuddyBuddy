@@ -1,7 +1,8 @@
 
 import Home from "../cont/Home";
 import Login from "../login/Login";
-import Signup from "../member/Signup"
+
+import Signup from "../member/Signup";
 import MyPage from "../mypage/MyPage";
 import { ProductSelector } from "../cont/point/ProductSelector";
 import PerformanceAnalytics from "../cont/statistics/PerformanceAnalytics";
@@ -39,6 +40,8 @@ import AdminNoticeList from "../cont/admin/notice/AdminNoticeList";
 import AdminNoticeForm from "../cont/admin/notice/AdminNoticeForm";
 import NoticeList from "../cont/notice/NoticeList";
 import NoticeDetail from "../cont/notice/NoticeDetail";
+import KakaoCallback from "../login/KakaoCallback";
+import KakaoSignup from "../login/KakaoSignup";
 
 
 interface RouteItem {
@@ -97,9 +100,12 @@ const AppRoutes: React.FC = () => {
         // auth
         { path: '/auth/member', element: <Login /> },
         { path: '/auth/signup', element: <Signup /> },
+        { path: '/auth/kakao/callback', element: <KakaoCallback /> },
         { path: '/auth/mypage', element: <MyPage /> },
         { path: '/point_history', element: <PointHistory /> },
         { path: '/member_edit', element: <Member_Edit /> },
+        { path: '/auth/kakao/signup', element: <KakaoSignup />
+},
     ];
 
 
