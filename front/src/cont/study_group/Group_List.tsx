@@ -1,3 +1,4 @@
+//작성자 : 오진석
 import React, { useEffect, useState } from 'react';
 import styles from './group.module.css';
 import { TagItem } from './GroupAPI';
