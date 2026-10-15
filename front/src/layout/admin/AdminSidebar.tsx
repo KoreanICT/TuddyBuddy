@@ -62,6 +62,14 @@ const AdminSidebar: React.FC = () => {
                     스터디 관리
                 </NavLink>
                 <NavLink
+                    to="/admin/selfstudy"
+                    className={({ isActive }) =>
+                        `${styles.menuItem} ${isActive ? styles.active : ''}`
+                    }
+                >
+                    셀프스터디 관리
+                </NavLink>
+                <NavLink
                     to="/"
                     className={({ isActive }) =>
                         `${styles.menuItem} ${isActive ? styles.active : ''}`

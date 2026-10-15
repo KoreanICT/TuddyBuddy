@@ -19,7 +19,7 @@ import styles from './selfstudy.module.css';
 // Spring Boot 백엔드
 // server.port=80
 // server.servlet.context-path=/back
-const BACKEND_URL = (process.env.REACT_APP_BACK_END_URL || 'http://localhost/back').replace(/\/$/, '');
+const BACKEND_URL = (process.env.REACT_APP_BACK_END_URL || 'http://192.168.0.19/back').replace(/\/$/, '');
 
 const SelfStudy: React.FC = () => {
 

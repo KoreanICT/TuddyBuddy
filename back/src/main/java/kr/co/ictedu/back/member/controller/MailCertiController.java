@@ -16,10 +16,10 @@ import kr.co.ictedu.back.member.service.MemberService;
 import kr.co.ictedu.back.member.vo.EmailCheckVO;
 import kr.co.ictedu.back.member.vo.EmailCountCheckVO;
 
-@CrossOrigin(
-    origins = "http://localhost:3000",
-    allowCredentials = "true"
-)
+//@CrossOrigin(
+//    origins = "http://localhost:3000",
+//    allowCredentials = "true"
+//)
 @RestController
 @RequestMapping("/api/auth")
 public class MailCertiController {

@@ -16,11 +16,15 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.co.ictedu.back.group.dto.GroupDetailHeaderDTO;
 import kr.co.ictedu.back.group.dto.GroupUpdateDTO;
 import kr.co.ictedu.back.group.service.GroupDetailService;
-import kr.co.ictedu.back.group.vo.GroupVO;
 
+
+@Tag(name = "스터디룹 상세 API", description = "스터디룸의 상세 정보 조회, 수정 API")
 @RestController
 @RequestMapping("/api/group/detail")
 public class GroupDetailController {
@@ -28,6 +32,9 @@ public class GroupDetailController {
 	@Autowired
 	private GroupDetailService service;
 	
+	@Operation(summary = "스터디룸 헤더 조회", description = "스터디룸의 헤더 영역의 데이터를 조회합니다.")
+	@ApiResponse(responseCode = "200", description = "헤더 데이터 조회 성공")
+	@ApiResponse(responseCode = "500", description = "헤더 데이터 조회 실패")
 	@GetMapping("/{groupNum}")
 	public ResponseEntity<GroupDetailHeaderDTO> getHeader(@PathVariable("groupNum") Long groupNum) {
 		Long memberNum = 1L;
@@ -35,6 +42,9 @@ public class GroupDetailController {
 		return ResponseEntity.ok(groupdetailheaderdto);
 	}
 	
+	@Operation(summary = "스터디룸 헤더 조회", description = "스터디룸의 헤더 영역의 데이터를 조회합니다.")
+	@ApiResponse(responseCode = "200", description = "헤더 데이터 조회 성공")
+	@ApiResponse(responseCode = "500", description = "헤더 데이터 조회 실패")
 	@GetMapping("/{groupNum}/edit") 
 	public ResponseEntity<GroupUpdateDTO> getUpdateData(@PathVariable("groupNum") Long groupNum) {
 		GroupUpdateDTO dto = service.getUpdateData(groupNum);

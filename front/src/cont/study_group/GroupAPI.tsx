@@ -1,3 +1,4 @@
+//작성자 : 오진석
 import axios from "axios";
 import { AppEdge, AppNode, DetailTab, Repeat_type, TDLStatus } from "./Type";
 /* 공개 스터디룸 컴포넌트 관련 API */
@@ -209,11 +210,11 @@ export interface GetIsleaderandGroupNum {
  * MemberData 조회 관련 API
  */
 export interface MemberData {
-    id: number;
+    memberNum: number;
     nickname: string;
     name: string;
     avatarUrl: string;
-    isLeader: boolean;
+    is_leader: number;
 }
 
 /* Memo 컴포넌트 군 관련 API */

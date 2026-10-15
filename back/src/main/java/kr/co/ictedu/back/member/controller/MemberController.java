@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,157 +28,207 @@ import kr.co.ictedu.back.member.vo.MemberVO;
 @RequestMapping("/api/member")
 public class MemberController {
 
-	@Autowired
-	private MemberService memberService;
+    @Autowired
+    private MemberService memberService;
 
-	// =========================================================
-	// 관리자 회원가입
-	// =========================================================
-	@PostMapping("/admin/signup")
-	public ResponseEntity<?> adminSignup(@RequestBody MemberVO vo) {
+    @Autowired
+    private PagingService pagingService;
 
-		vo.setAuthority("ADMIN");
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
-		memberService.create(vo);
+    // =========================================================
+    // 관리자 회원가입
+    // =========================================================
+    @PostMapping("/admin/signup")
+    public ResponseEntity<?> adminSignup(@RequestBody MemberVO vo) {
 
-		return ResponseEntity.ok("관리자 생성 완료");
-	}
+        vo.setAuthority("ADMIN");
 
-	// =========================================================
-	// 일반 회원가입
-	// =========================================================
-	@PostMapping("/signup")
-	public ResponseEntity<?> memberjoin(@RequestBody MemberVO memberDTO) {
+        memberService.create(vo);
 
-		System.out.println("회원가입 요청 들어옴");
+        return ResponseEntity.ok("관리자 생성 완료");
+    }
 
-		System.out.println("email = " + memberDTO.getMember_email());
+    // =========================================================
+    // 일반 회원가입
+    // =========================================================
+    @PostMapping("/signup")
+    public ResponseEntity<?> memberjoin(@RequestBody MemberVO memberDTO) {
 
-		System.out.println("nick = " + memberDTO.getMember_nick());
+        System.out.println("회원가입 요청 들어옴");
+        System.out.println("email = " + memberDTO.getMember_email());
+        System.out.println("nick = " + memberDTO.getMember_nick());
 
-		// 일반 회원 권한
-		memberDTO.setAuthority("MEMBER");
+        memberDTO.setAuthority("MEMBER");
 
-		memberService.create(memberDTO);
+        memberService.create(memberDTO);
 
-		return ResponseEntity.ok("회원가입이 완료되었습니다.");
-	}
+        return ResponseEntity.ok("회원가입이 완료되었습니다.");
+    }
 
-	// =========================================================
-	// 이메일 중복 확인
-	// =========================================================
-	@GetMapping("/emailCheck")
-	public int emailCheck(@RequestParam("email") String email) {
+    // =========================================================
+    // 이메일 중복 확인
+    // =========================================================
+    @GetMapping("/emailCheck")
+    public int emailCheck(@RequestParam("email") String email) {
 
-		System.out.println("이메일 중복 확인 : " + email);
+        System.out.println("이메일 중복 확인 : " + email);
 
-		return memberService.checkemail(email);
-	}
+        return memberService.checkemail(email);
+    }
 
-	// =========================================================
-	// 마이페이지
-	// =========================================================
-	@GetMapping("/mypage")
-	public MemberVO getMyInfo(HttpSession session) {
+    // =========================================================
+    // 닉네임 중복 확인 (추가)
+    // =========================================================
+    @GetMapping("/nickCheck")
+    public ResponseEntity<Integer> nickCheck(
+            @RequestParam("nick") String nick) {
 
-		MemberVO loginMember = (MemberVO) session.getAttribute("loginMember");
+        String trimmedNick = nick.trim();
 
-		if (loginMember == null) {
-			return null;
-		}
+        if (trimmedNick.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
 
-		MemberVO vo = memberService.getMemberByEmail(loginMember.getMember_email());
+        String sql =
+                "SELECT COUNT(*) FROM member WHERE member_nick = ?";
 
-		if (vo != null) {
-			vo.setMember_pwd(null);
-		}
+        Integer count = jdbcTemplate.queryForObject(
+                sql,
+                Integer.class,
+                trimmedNick
+        );
 
-		return vo;
-	}
+        System.out.println(
+                "닉네임 중복 확인 : " + trimmedNick
+                + " / 중복 개수 : " + count
+        );
 
-	// =========================================================
-	// 회원정보 수정
-	// =========================================================
-	@PostMapping("/update")
-	public int updateMyInfo(@RequestBody MemberVO vo) {
+        return ResponseEntity.ok(count == null ? 0 : count);
+    }
 
-		System.out.println("받은 nick = " + vo.getMember_nick());
+    // =========================================================
+    // 마이페이지
+    // =========================================================
+    @GetMapping("/mypage")
+    public MemberVO getMyInfo(HttpSession session) {
 
-		System.out.println("받은 email = " + vo.getMember_email());
+        MemberVO loginMember =
+                (MemberVO) session.getAttribute("loginMember");
 
-		return memberService.updateMember(vo);
-	}
+        if (loginMember == null) {
+            return null;
+        }
 
-	// =========================================================
-	// 회원 탈퇴
-	// =========================================================
-	@DeleteMapping("/withdraw")
-	public String memberWithdraw(@RequestParam("num") Long num, HttpSession session) {
+        MemberVO vo = memberService.getMemberByEmail(
+                loginMember.getMember_email()
+        );
 
-		System.out.println("탈퇴 요청 num = " + num);
+        if (vo != null) {
+            vo.setMember_pwd(null);
+        }
 
-		memberService.withdrawMember(num);
+        return vo;
+    }
 
-		session.invalidate();
+    // =========================================================
+    // 회원정보 수정
+    // =========================================================
+    @PostMapping("/update")
+    public int updateMyInfo(@RequestBody MemberVO vo) {
 
-		return "탈퇴 완료";
-	}
+        System.out.println(
+                "받은 nick = " + vo.getMember_nick()
+        );
 
-	@Autowired
-	private PagingService pagingService;
+        System.out.println(
+                "받은 email = " + vo.getMember_email()
+        );
 
-	// =========================================================
-	// 회원 전체 조회
-	// =========================================================
-	@RequestMapping("/memberList")
-	public Map<String, Object> memberList(@RequestParam Map<String, String> paramMap, HttpServletRequest request) {
+        return memberService.updateMember(vo);
+    }
 
-		String cPage = paramMap.get("cPage");
+    // =========================================================
+    // 회원 탈퇴
+    // =========================================================
+    @DeleteMapping("/withdraw")
+    public String memberWithdraw(
+            @RequestParam("num") Long num,
+            HttpSession session) {
 
-		int totalCnt = memberService.totalCount(paramMap);
+        System.out.println("탈퇴 요청 num = " + num);
 
-		PageVO pageVO = pagingService.makePage(totalCnt, cPage);
+        memberService.withdrawMember(num);
 
-		Map<String, String> map = new HashMap<>(paramMap);
+        session.invalidate();
 
-		map.put("begin", String.valueOf(pageVO.getBeginPerPage()));
+        return "탈퇴 완료";
+    }
 
-		map.put("end", String.valueOf(pageVO.getEndPerPage()));
+    // =========================================================
+    // 회원 전체 조회
+    // =========================================================
+    @RequestMapping("/memberList")
+    public Map<String, Object> memberList(
+            @RequestParam Map<String, String> paramMap,
+            HttpServletRequest request) {
 
-		List<MemberVO> list = memberService.list(map);
+        String cPage = paramMap.get("cPage");
 
-		Map<String, Object> response = new HashMap<>();
+        int totalCnt = memberService.totalCount(paramMap);
 
-		response.put("data", list);
+        PageVO pageVO = pagingService.makePage(totalCnt, cPage);
 
-		response.put("totalItems", pageVO.getTotalRecord());
+        Map<String, String> map = new HashMap<>(paramMap);
 
-		response.put("totalPages", pageVO.getTotalPage());
+        map.put(
+                "begin",
+                String.valueOf(pageVO.getBeginPerPage())
+        );
 
-		response.put("currentPage", pageVO.getNowPage());
+        map.put(
+                "end",
+                String.valueOf(pageVO.getEndPerPage())
+        );
 
-		response.put("startPage", pageVO.getStartPage());
+        List<MemberVO> list = memberService.list(map);
 
-		response.put("endPage", pageVO.getEndPage());
+        Map<String, Object> response = new HashMap<>();
 
-		return response;
-	}
+        response.put("data", list);
+        response.put("totalItems", pageVO.getTotalRecord());
+        response.put("totalPages", pageVO.getTotalPage());
+        response.put("currentPage", pageVO.getNowPage());
+        response.put("startPage", pageVO.getStartPage());
+        response.put("endPage", pageVO.getEndPage());
 
-	// swagger api 주석 제거 주의
-	// 담당인원 : 주용현
-	// 회원 코드로 회원 검색
-	@GetMapping("/memberCodeSearch")
-	public ResponseEntity<?> memberCodeSearch(@RequestParam("member_code") String member_code) {
-		try {
-			MemberVO vo = memberService.findByMemberCode(member_code);
+        return response;
+    }
 
-			if (vo == null) {
-				return ResponseEntity.notFound().build();
-			}
+    // =========================================================
+    // 회원 코드로 회원 검색
+    // 담당인원 : 주용현
+    // =========================================================
+    @GetMapping("/memberCodeSearch")
+    public ResponseEntity<?> memberCodeSearch(
+            @RequestParam("member_code") String member_code) {
 
-			return ResponseEntity.ok(vo);
-		} catch (IllegalArgumentException e) {
-			return ResponseEntity.badRequest().body(e.getMessage());
-		}
-	}
+        try {
+
+            MemberVO vo =
+                    memberService.findByMemberCode(member_code);
+
+            if (vo == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            return ResponseEntity.ok(vo);
+
+        } catch (IllegalArgumentException e) {
+
+            return ResponseEntity.badRequest()
+                    .body(e.getMessage());
+        }
+    }
 }
