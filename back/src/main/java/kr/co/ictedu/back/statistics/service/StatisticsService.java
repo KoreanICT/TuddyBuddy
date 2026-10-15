@@ -1,3 +1,4 @@
+//김진규
 package kr.co.ictedu.back.statistics.service;
 
 import java.util.ArrayList;
@@ -7,9 +8,13 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import io.swagger.v3.oas.models.PathItem.HttpMethod;
 import kr.co.ictedu.back.selfstudy.dao.SelfStudyDao;
 import kr.co.ictedu.back.selfstudy.vo.QuizResponseVO;
 import kr.co.ictedu.back.selfstudy.vo.QuizVO;
@@ -78,7 +83,7 @@ public class StatisticsService {
 		// (5) RestTemplate을 통해 FastAPI 서버로 POST 요청 전송
 		RestTemplate restTemplate = new RestTemplate();
 
-		return restTemplate.postForObject(fastapiUrl, requestPayload, Map.class);
+		return restTemplate.postForObject(fastapiUrl+"/requestPayload", requestPayload, Map.class);
 	}
 
 	/**
@@ -90,23 +95,31 @@ public class StatisticsService {
 		// DB에서 실제 history 데이터 조회
 		List<Map<String, Object>> historyList = statisticsDao.selectHistoryStatistics(memberNum);
 		chartData.put("history", historyList);
-
-		// prediction 데이터 구성 (최근 평균 계산 + 예측치 조합)
-		List<Map<String, Object>> categoryStats = statisticsDao.selectCategoryStatisticsList(memberNum);
-
-		List<Map<String, Object>> predictionList = new ArrayList<>();
-
-		// llm에 사용되어야함
-		/*
-		 * chartData.put("prediction", predictionList); prediction: [ { name: '최근 평균',
-		 * score: 63.7, type: 'actual' }, { name: '다음 시험 예측', score: 82.0, type:
-		 * 'predict' }, ],
-		 */
+		
+		Map<String, Object> prediction = prediction_llm(memberNum);
+		chartData.put("prediction", prediction);
+		
 		// (3) DB에서 실제 subjectShare 데이터 조회
 		List<Map<String, Object>> subjectShareList = statisticsDao.selectSubjectShareStatistics(memberNum);
 
 		chartData.put("subjectShare", subjectShareList);
 
 		return chartData;
+	}
+	
+	private Map<String, Object> prediction_llm(Long memberNum) {
+		// 카테고리별 통계점수
+		List<Map<String, Object>> categoryStatsList = statisticsDao.selectCategoryStatisticsList(memberNum);
+
+		// llm에 사용되어야함
+		/*
+			chartData.put("prediction", predictionList); 
+			prediction: [ 
+				{name: '최근 평균',score: 63.7, type: 'actual' }, 
+				{name: '다음 시험 예측', score: 82.0, type:'predict' }, 
+			]
+		 */
+		RestTemplate restTemplate = new RestTemplate();
+		return restTemplate.postForObject(fastapiUrl+"/prediction", categoryStatsList, Map.class);
 	}
 }
