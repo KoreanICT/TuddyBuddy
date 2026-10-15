@@ -4,7 +4,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 
 // 백엔드 서버 주소
-const API_URL = 'http://192.168.0.20:80/back';
+const API_URL = 'http://localhost:80/back';
 
 // React StrictMode 개발 환경에서
 // 같은 인가 코드로 중복 요청하지 않도록 관리

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
-
+<!--최솔-->
 <mapper namespace="kr.co.ictedu.back.selfstudy.dao.SelfStudyAdminDao">
 
     <!-- 관리자 전체 카테고리 조회 -->
