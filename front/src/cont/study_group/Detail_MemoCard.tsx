@@ -10,10 +10,13 @@ import styles from './memo.module.css';
 // ======================================================
 export interface MemoData {
     memo_num: number;
-    writer: string;
-    content: string;
+    group_num: number;
+    member_nick: string;
+    memo_content: string;
     created_at: string;
-    updated_at?: string;
+    updated_at: string | null;
+    can_manage: number;
+    isDraft?: boolean;
 }
 // ======================================================
 // Props
@@ -22,10 +25,10 @@ interface MemoCardProps {
     memo: MemoData;
     deleting: boolean;
     disableClick: boolean;
-    onUpdate: (
-        memoNum: number,
-        content: string
-    ) => Promise<void>;
+    onInsert: (tempMemoNum: number, content: string) => Promise<void>;
+    onUpdate: (memoNum: number, content: string) => Promise<void>;
+    onDelete: (memoNum: number) => Promise<void>;
+    onCancelDraft: (memoNum: number) => void;
     onCrumpleComplete: (
         memoNum: number
     ) => Promise<void>;
@@ -38,17 +41,20 @@ export const Detail_MemoCard: React.FC<MemoCardProps> = ({
     memo,
     deleting,
     disableClick,
+    onInsert,
     onUpdate,
+    onDelete,
+    onCancelDraft,
     onCrumpleComplete
 }) => {
 
     // 메모 확대 여부
     const [isExpanded, setIsExpanded] =
-        useState<boolean>(false);
+        useState<boolean>(memo.isDraft === true);
 
     // 수정 중인 내용
     const [editContent, setEditContent] =
-        useState<string>(memo.content);
+        useState<string>(memo.memo_content);
 
     // 저장 중 여부
     const [isSaving, setIsSaving] =
@@ -56,8 +62,8 @@ export const Detail_MemoCard: React.FC<MemoCardProps> = ({
     // 부모 데이터가 바뀌었을 때
     // textarea 내용도 동기화
     useEffect(() => {
-        setEditContent(memo.content);
-    }, [memo.content]);
+        setEditContent(memo.memo_content);
+    }, [memo.memo_content]);
 
     // ==================================================
     // dnd-kit
@@ -89,22 +95,30 @@ export const Detail_MemoCard: React.FC<MemoCardProps> = ({
         setIsExpanded(true);
     };
 
-    // ==================================================
-    // UPDATE
-    // ==================================================
-
     const handleSave = async (): Promise<void> => {
-        if (!editContent.trim()) {return;}
-        if (isSaving) {return;}
+        if (!editContent.trim()) {
+            return;
+        }
+        if (isSaving) {
+            return;
+        }
 
         try {
             setIsSaving(true);
-            await onUpdate(
-                memo.memo_num,
-                editContent
-            );
+            if (memo.isDraft) {
+                await onInsert(
+                    memo.memo_num,
+                    editContent
+                );
+            } else {
+                await onUpdate(
+                    memo.memo_num,
+                    editContent
+                )
+            }
+            setIsExpanded(false);
         } catch (error) {
-            console.error('메모 수정 실패',error);
+            console.error('메모 저장 실패',error);
         } finally {
             setIsSaving(false);
         }
@@ -161,8 +175,23 @@ export const Detail_MemoCard: React.FC<MemoCardProps> = ({
                     <div className={styles.memoCardHeader}>
                         <span className={styles.memoPin} />
                         <span className={styles.memoWriterName}>
-                            {memo.writer}
+                            {memo.member_nick}
                         </span>
+                        {memo.can_manage === 1 && !memo.isDraft && (
+                            <button
+                                type="button"
+                                className={styles.memoDeleteButton}
+                                onPointerDown={(e) => {
+                                    e.stopPropagation();
+                                }}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    void onDelete(memo.memo_num);
+                                }}
+                            >
+                                ×
+                            </button>
+                        )}
                     </div>
                     {/* =========================
                         내용
@@ -170,7 +199,7 @@ export const Detail_MemoCard: React.FC<MemoCardProps> = ({
 
                     {!isExpanded ? (
                         <p className={styles.memoContent}>
-                            {memo.content}
+                            {memo.memo_content}
                         </p>
                     ) : (
                         <textarea
@@ -218,21 +247,25 @@ export const Detail_MemoCard: React.FC<MemoCardProps> = ({
                         >
                             <button
                                 type="button"
-                                onClick={() => {
-                                    setEditContent(memo.content);
-                                    setIsExpanded(false);
-                                }}
-                            >
-                                닫기
-                            </button>
-
-                            <button
-                                type="button"
                                 disabled={isSaving}
                                 onClick={() => {void handleSave();}}
                             >
                                 {isSaving ? '저장 중...' : '저장'}
                             </button>
+
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    if (memo.isDraft) {
+                                        onCancelDraft(memo.memo_num);
+                                    } else{
+                                        setEditContent(memo.memo_content);
+                                        setIsExpanded(false);
+                                    }   
+                                }}
+                            >
+                                닫기
+                            </button> 
                         </div>
                     )}
                 </motion.article>
@@ -256,7 +289,7 @@ export const Detail_MemoCard: React.FC<MemoCardProps> = ({
                         }}
                         onClick={() => {
                             setEditContent(
-                                memo.content
+                                memo.memo_content
                             );
                             setIsExpanded(false);
                         }}

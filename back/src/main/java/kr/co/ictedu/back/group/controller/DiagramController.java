@@ -27,7 +27,7 @@ public class DiagramController {
 	
 	@PostMapping("/add/{group_num}")
 	public ResponseEntity<String> addDiagram(@RequestBody DiagramVO vo, @PathVariable("group_num") Long groupNum) {
-		System.out.println(groupNum);
+		//System.out.println(groupNum);
 		vo.setGroup_num(groupNum);
 		service.addDiagram(vo);
 		return ResponseEntity.ok("저장 완료.");
