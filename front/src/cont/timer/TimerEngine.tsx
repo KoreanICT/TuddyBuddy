@@ -1,3 +1,4 @@
+//최솔
 import { Interval, TimerStatus } from './types';
 /** React/API와 독립적인 클라이언트 시간 계산. now를 받아 테스트 가능. */
 export class TimerEngine {

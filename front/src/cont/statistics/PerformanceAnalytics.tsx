@@ -38,7 +38,7 @@ export default function PerformanceAnalytics() {
             setLoading(true);
             try {
                 // 1.  카테고리 수집
-                const savedResponse = await axios.post('/api/statistics/getCategories', {
+                const savedResponse = await axios.post('http://192.168.0.44/80/back/api/statistics/getCategories', {
                     memberNum: memberNum,
                 });
 
@@ -67,7 +67,7 @@ export default function PerformanceAnalytics() {
             setLoading(true);
             try {
                 // 스프링부트 API 호출: /api/v1/analytics/subjects/{subjectId}
-                const response = await axios.get(`/api/statistics/getStatistics`);
+                const response = await axios.get(`http://192.168.0.44/80/back/api/statistics/getStatistics`);
 
                 setChartData(response.data.chartData);
                 setLlmFeedback(response.data.llmFeedback);

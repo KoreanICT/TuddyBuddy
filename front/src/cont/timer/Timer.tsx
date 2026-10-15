@@ -1,3 +1,4 @@
+//최솔
 import { useId, useState } from 'react';
 import { UseTimer } from './UseTimer';
 import styles from './timer.module.css';

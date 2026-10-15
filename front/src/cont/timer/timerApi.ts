@@ -1,3 +1,4 @@
+//최솔
 import { Interval, TimerSession, TimerSummary } from './types';
 
 const BASE = (process.env.REACT_APP_BACK_END_URL || 'http://192.168.0.19/back').replace(/\/$/, '');
