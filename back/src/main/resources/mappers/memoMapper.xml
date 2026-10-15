@@ -4,9 +4,33 @@
 <mapper namespace="kr.co.ictedu.back.group.dao.MemoDao">
 
 	<insert id="addMemo" parameterType="memovo">
+		<selectKey keyProperty="memo_num" resultType="long" order="BEFORE">
+			SELECT memo_seq.nextVAL FROM dual
+		</selectKey>
 		INSERT INTO memo (memo_num, group_num, member_num, memo_content, created_at) 
-		VALUES (memo_seq.nextVAL, #{group_num}, #{member_num}, #{memo_content}, SYSDATE)
+		VALUES (#{memo_num}, #{group_num}, #{member_num}, #{memo_content}, SYSDATE)
 	</insert>
 	
-	<select id="getMemo"></select>
+	<select id="getMemoById" resultType="memolistdto">
+		SELECT m.memo_num, m.group_num, mb.member_nick, m.memo_content, m.created_at, m.updated_at,
+		FN_GROUP_RESOURCE_PERMISSION(m.group_num, m.member_num, #{member_num})
+		FROM memo m JOIN member mb ON m.member_num = mb.member_num
+		WHERE m.memo_num = #{memo_num}
+	</select>
+	
+	<select id="getMemos" resultType="memolistdto">
+		SELECT m.memo_num, m.group_num, mb.member_nick, m.memo_content, m.created_at, m.updated_at,
+		FN_GROUP_RESOURCE_PERMISSION(m.group_num, m.member_num, #{member_num}) AS can_manage
+		FROM memo m JOIN member mb ON m.member_num = mb.member_num
+		WHERE m.group_num = #{group_num}
+	</select>
+	
+	<update id="patchMemo" parameterType="memovo">
+		UPDATE memo SET memo_content = #{request.memo_content}, updated_at = SYSDATE
+		WHERE memo_num = #{memo_num}
+	</update>
+	
+	<delete id="deleteMemo" parameterType="long">
+		DELETE FROM memo WHERE memo_num = #{memo_num}
+	</delete>
 </mapper>

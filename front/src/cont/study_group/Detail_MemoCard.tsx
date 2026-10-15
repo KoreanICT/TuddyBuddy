@@ -11,7 +11,7 @@ import styles from './memo.module.css';
 export interface MemoData {
     memo_num: number;
     group_num: number;
-    writer: string;
+    member_nick: string;
     memo_content: string;
     created_at: string;
     updated_at: string | null;
@@ -175,7 +175,7 @@ export const Detail_MemoCard: React.FC<MemoCardProps> = ({
                     <div className={styles.memoCardHeader}>
                         <span className={styles.memoPin} />
                         <span className={styles.memoWriterName}>
-                            {memo.writer}
+                            {memo.member_nick}
                         </span>
                         {memo.can_manage === 1 && !memo.isDraft && (
                             <button

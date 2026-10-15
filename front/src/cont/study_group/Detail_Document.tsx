@@ -28,11 +28,9 @@ export const Detail_Document: React.FC<GetGroupNum> = ({ groupNum }) => {
     const [documents, setDocuments] = useState<DocumentData[]>([]);
     const [editingDocumentNum, setEditingDocumentNum] = useState<number | null>(null);
 
-    const handleUploadSuccess = async () => {
-        setIsModalOpen(false);
-
-        await getDocuments();
-    }
+    useEffect(() => {
+        getDocuments();
+    }, [groupNum])
 
     const handleDownload = async (documentNum: number, originalName: string, documentType: string) => {
         try {
@@ -90,9 +88,7 @@ export const Detail_Document: React.FC<GetGroupNum> = ({ groupNum }) => {
         }
     };
 
-    useEffect(() => {
-        getDocuments();
-    }, [groupNum])
+    
 
     return (
         <div className={styles.detail_content_wrapper}>

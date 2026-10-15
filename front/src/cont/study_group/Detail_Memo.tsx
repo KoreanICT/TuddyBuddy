@@ -1,13 +1,32 @@
 import React, { useEffect, useState } from 'react';
 import styles from './memo.module.css';
 import { Detail_MemoBoard } from './Detail_MemoBoard';
-import type { MemoData } from './Detail_MemoCard';
+import { MemoData } from './Detail_MemoCard';
 import { GetGroupNum } from './GroupAPI'
 import axios from 'axios';
 
+
+
 export const Detail_Memo: React.FC<GetGroupNum> = ({ groupNum }) => {
-    
+
     const [memos, setMemos] = useState<MemoData[]>([]);
+
+    useEffect(() => {
+        const getMemos = async () => {
+            try {
+                const response = await axios.get<MemoData[]>(`http://localhost/back/api/detail/memo/getMemos/${groupNum}`);
+
+                const responseData: MemoData[] = response.data;
+                setMemos(responseData);
+                console.log(responseData);
+                console.log("Memo 출력 성공.", responseData);
+
+            } catch (error) {
+                console.error("Memo 출력 실패. 원인:", error);
+            }
+        };
+        getMemos();
+    }, [groupNum])
 
     const handleCreateDraft = () => {
         const exists = memos.some((memo) => memo.isDraft);
@@ -21,11 +40,11 @@ export const Detail_Memo: React.FC<GetGroupNum> = ({ groupNum }) => {
         const draftMemo: MemoData = {
             memo_num: tempId,
             group_num: groupNum,
-            writer: '',
+            member_nick: '',
             memo_content: '',
             created_at: '',
             updated_at: null,
-            can_manage: 1, 
+            can_manage: 1,
             isDraft: true
         }
 
@@ -34,32 +53,32 @@ export const Detail_Memo: React.FC<GetGroupNum> = ({ groupNum }) => {
         ]);
     };
 
-    const handleInsertMemo = async (tempMemoNum: number, memo_content: string):Promise<void> => {
+    const handleInsertMemo = async (tempMemoNum: number, memo_content: string): Promise<void> => {
 
-        const response = await axios.post<MemoData> (
-            `http://back/api/detail/memo/addMemo/${groupNum}`,
-            {memo_content}
+        const response = await axios.post<MemoData>(
+            `http://localhost/back/api/detail/memo/addMemo/${groupNum}`,
+            { memo_content }
         );
 
         const savedMemo = response.data;
 
         setMemos((prev) =>
-            prev.map((memo) => 
+            prev.map((memo) =>
                 memo.memo_num === tempMemoNum ? savedMemo : memo
             )
         );
     };
 
-    const handleUpdateMemo = async (memoNum: number,memo_content: string): Promise<void> => {
+    const handleUpdateMemo = async (memoNum: number, memo_content: string): Promise<void> => {
 
-        const response = await axios.patch<MemoData> (
-            `http://back/api/detail/memo/patchMemo/${memoNum}`,
-            {memo_content}
+        const response = await axios.patch<MemoData>(
+            `http://localhost/back/api/detail/memo/patchMemo/${memoNum}`,
+            { memo_content }
         );
 
         setMemos((prev) =>
             prev.map((memo) =>
-                memo.memo_num === memoNum ? {...memo,memo_content} : memo
+                memo.memo_num === memoNum ? { ...memo, memo_content } : memo
             )
         );
     };
@@ -67,12 +86,12 @@ export const Detail_Memo: React.FC<GetGroupNum> = ({ groupNum }) => {
     const handleDeleteMemo = async (memoNum: number): Promise<void> => {
         const targetMemo = memos.find((memo) => memo.memo_num === memoNum);
 
-        if(!targetMemo) {
+        if (!targetMemo) {
             return;
         }
 
         if (targetMemo.isDraft) {
-            setMemos((prev) => prev. filter((memo) => memo.memo_num !== memoNum));
+            setMemos((prev) => prev.filter((memo) => memo.memo_num !== memoNum));
             return;
         };
 
@@ -88,7 +107,7 @@ export const Detail_Memo: React.FC<GetGroupNum> = ({ groupNum }) => {
         );
     };
 
-    const handleCancelDraft = (memoNum: number):void => {
+    const handleCancelDraft = (memoNum: number): void => {
         setMemos((prev) => prev.filter((memo) => memo.memo_num !== memoNum));
     };
 
@@ -112,7 +131,7 @@ export const Detail_Memo: React.FC<GetGroupNum> = ({ groupNum }) => {
                         + 메모 등록
                     </button>
                 </div>
-                
+
                 <Detail_MemoBoard
                     memos={memos}
                     onInsert={handleInsertMemo}
