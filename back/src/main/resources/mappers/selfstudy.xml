@@ -21,6 +21,7 @@
 		category_id,
 		category_name
 		FROM categories
+		WHERE category_status = 'Y'
 		ORDER BY category_id
 
 	</select>
@@ -35,14 +36,21 @@
 		resultType="subjectVO">
 
 		SELECT
-		subject_id,
-		category_id,
-		subject_name,
-		usage_count,
-		created_at
-		FROM subjects
-		WHERE category_id = #{categoryId}
-		ORDER BY subject_id
+        subject_id,
+        category_id,
+        subject_name,
+        subject_status,
+        usage_count,
+        created_at
+    FROM subjects
+    WHERE category_id = #{categoryId}
+      AND subject_status = 'Y'
+      AND category_id IN (
+          SELECT category_id
+          FROM categories
+          WHERE category_status = 'Y'
+      )
+    ORDER BY subject_id
 
 	</select>
 
