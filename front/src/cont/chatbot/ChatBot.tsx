@@ -36,12 +36,23 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
     const navigate = useNavigate();
 
     // Redux에서 로그인 정보 가져오기
-    const {token, member_num} = useSelector(
+    const { token, member_num } = useSelector(
         (state: RootState) => state.auth
     );
 
     // Redux 상태로 로그인 여부 판단
     const isLogin = Boolean(token && member_num !== null);
+
+    // Spring Boot 요청에 사용할 인증 해더
+    const getAuthHeaders = () => ({
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+    });
+
+    // 회원/비회원별 채팅 세션 저장 키
+    const chatStorageKey = isLogin && member_num != null
+        ? `memberChatNum_${member_num}`
+        : 'guestChatNum';
 
     // 비회원 대표 질문
     const guestQuestions = [
@@ -62,6 +73,12 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
 
     // 현재 채팅 세션 번호
     const [chatNum, setChatNum] = useState<number | null>(null);
+
+    // 현재 화면에 연결된 채팅 세션의 저장 키
+    const [activeChatKey, setActiveChatKey] = useState<string | null>(null);
+
+    // 현재 로그인 상태에 맞는 세션인지 확인
+    const isCurrentChat = activeChatKey === chatStorageKey;
 
     // 채팅 세션 생성 실패 여부
     const [sessionError, setSessionError] = useState(false);
@@ -86,7 +103,7 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
         let cancelled = false;
 
         // sessionStorage 사용 이유 => 기존 세션 번호 확인
-        const savedChatNum = sessionStorage.getItem('chatNum');
+        const savedChatNum = sessionStorage.getItem(chatStorageKey);
         if (savedChatNum) {
             setChatNum(Number(savedChatNum));
             return;
@@ -101,9 +118,7 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
                     'http://localhost:80/back/api/chatbot/session',
                     {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
+                        headers: getAuthHeaders(),
                         body: JSON.stringify({
                             // 비회원 테스트용
                             member_num: null
@@ -118,7 +133,7 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
                 if (!cancelled) {
                     // 발급받은 세션 번호 저장
                     setChatNum(data.chat_num);
-                    sessionStorage.setItem('chatNum', String(data.chat_num));
+                    sessionStorage.setItem(chatStorageKey, String(data.chat_num));
                 }
 
             } catch (error) {
@@ -154,7 +169,10 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
 
             try {
                 const response = await fetch(
-                    `http://localhost:80/back/api/chatbot/message/session/${chatNum}`
+                    `http://localhost:80/back/api/chatbot/message/session/${chatNum}`,
+                    {
+                        headers: getAuthHeaders(),
+                    }
                 );
 
                 if (!response.ok) {
@@ -231,7 +249,7 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
             ...prev,
             {
                 id: messageId,
-                sender:'user',
+                sender: 'user',
                 text: question,
                 status: 'sending'
             }
@@ -245,9 +263,7 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
                 'http://localhost:80/back/api/chatbot/ai',
                 {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: getAuthHeaders(),
                     body: JSON.stringify({
                         chat_num: chatNum,
                         question,
@@ -263,10 +279,10 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
             const data = await response.json();
 
             // 정상 응답 확인 후 전송 상태 변경
-            setMessages(prev => 
-                prev.map(message => 
+            setMessages(prev =>
+                prev.map(message =>
                     message.id === messageId
-                        ? {...message, status: 'sent'}
+                        ? { ...message, status: 'sent' }
                         : message
                 )
             );
@@ -285,10 +301,10 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
             console.error('챗봇 오류: ', error);
 
             // 서버 처리 여부를 확인할 수 없는 상태
-            setMessages(prev => 
-                prev.map(message => 
+            setMessages(prev =>
+                prev.map(message =>
                     message.id === messageId
-                        ? {...message, status: 'failed'}
+                        ? { ...message, status: 'failed' }
                         : message
                 )
             );
@@ -419,8 +435,8 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
                     <div
                         key={message.id}
                         className={
-                            message.sender === 'bot' 
-                                ? styles.botMessage 
+                            message.sender === 'bot'
+                                ? styles.botMessage
                                 : styles.userMessage
                         }
                     >
@@ -432,7 +448,7 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
                         ) : (
                             message.text
                         )}
-                        
+
                         {message.sender === 'user' && message.status === 'sending' && (
                             <div className={styles.messageStatus}>
                                 전송 중...
