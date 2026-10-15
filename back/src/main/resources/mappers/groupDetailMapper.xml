@@ -54,13 +54,31 @@
 		DELETE FROM group_tag WHERE group_num = #{group_num}
 	</delete>
 	
-	<!--<select id="getMembers" resultType="getmemberdto">
-		SELECT gm.member_num, gm.is_leader, m.member_name, m.member_nick
+	<select id="getMembers" resultType="memberdatadto">
+		SELECT gm.member_num, m.member_nick, m.member_name, gm.is_leader
 		FROM group_member gm JOIN member m ON gm.member_num = m.member_num
 		WHERE gm.group_num = #{group_num}
-	</select>-->
+	</select>
 	
-	<!--<select id="getCurrentData" resultType="getcurrentdatadto">
-		SELECT 
-	</select>-->
+	<select id="getIsMeLeader" resultType="int">
+		SELECT is_leader FROM group_member WHERE member_num = #{member_num} AND group_num = #{group_num}
+	</select>
+	
+	<update id="removeLeader">
+		UPDATE group_member SET is_leader = 0 WHERE group_num = #{group_num}
+		AND member_num = #{current_member_num} AND is_leader = 1
+	</update>
+	
+	<update id="grantLeader">
+		UPDATE group_member SET is_leader = 1 WHERE group_num = #{group_num}
+		AND member_num = #{target_member_num} AND is_leader = 0
+	</update>
+	
+	<delete id="kickMember">
+		DELETE FROM group_member WHERE group_num = #{group_num} AND member_num = #{target_member_num}
+		AND is_leader = 0 
+		AND EXISTS (SELECT 1 FROM group_member gm WHERE gm.group_num = #{group_num}
+			AND gm.member_num = #{current_member_num}
+			AND gm.is_leader = 1)
+	</delete>
 </mapper>

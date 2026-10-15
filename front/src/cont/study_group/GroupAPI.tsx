@@ -206,17 +206,6 @@ export interface GetIsleaderandGroupNum {
 }
 /* Member 컴포넌트 관련 API */
 
-/**
- * MemberData 조회 관련 API
- */
-export interface MemberData {
-    memberNum: number;
-    nickname: string;
-    name: string;
-    avatarUrl: string;
-    is_leader: number;
-}
-
 /* Memo 컴포넌트 군 관련 API */
 
 /**
