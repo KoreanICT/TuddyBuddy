@@ -1,3 +1,5 @@
+// 허승표
+
 package kr.co.ictedu.back.chatbot.dao;
 
 import java.util.List;
@@ -16,6 +18,6 @@ public interface ChatMessageDAO {
 	List<ChatMessageVO> list(int chat_num);
 	
 	// 특정 회원의 전체 대화 내용
-	List<ChatMessageVO> memberList(int member_num);
+	List<ChatMessageVO> memberList(Long member_num);
 
 }
