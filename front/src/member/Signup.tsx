@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './Signup.css';
@@ -25,6 +25,13 @@ const Signup: React.FC = () => {
   const [name, setName] = useState('');
   const [nick, setNick] = useState('');
   const [phone, setPhone] = useState('');
+
+  // 닉네임 중복확인 상태: 실제 확인된 닉네임만 인정
+  const [verifiedNick, setVerifiedNick] = useState('');
+  const [nickStatus, setNickStatus] = useState<'idle' | 'available' | 'duplicate' | 'error'>('idle');
+  const [checkingNick, setCheckingNick] = useState(false);
+  const nickRequestId = useRef(0);
+
 
   const [emailVerified, setEmailVerified] =
     useState(false);
@@ -214,6 +221,85 @@ const Signup: React.FC = () => {
 
 
   // =========================
+  // 닉네임 중복확인
+  // =========================
+
+  const handleNickCheck = async () => {
+    const nickname = nick.trim();
+
+    if (!nickname) {
+      alert('닉네임을 입력해주세요.');
+      return;
+    }
+// 닉네임 길이 검사 (2~12자)
+if (nickname.length < 2 || nickname.length > 12) {
+  alert('닉네임은 2자 이상 12자 이하로 입력해주세요.');
+  return;
+}
+
+// 완성형 한글, 영문, 숫자만 허용
+const nickRegex = /^[가-힣a-zA-Z0-9]+$/;
+
+if (!nickRegex.test(nickname)) {
+  alert('사용할 수 없는 닉네임입니다.');
+  return;
+}
+
+// 숫자로만 이루어진 닉네임 금지
+if (/^[0-9]+$/.test(nickname)) {
+  alert('숫자로만 이루어진 닉네임은 사용할 수 없습니다.');
+  return;
+}
+
+// 특정 닉네임 사용 금지
+const forbiddenNicks = [
+  '관리자',
+  '운영자',
+  'admin',
+  'administrator'
+];
+
+if (forbiddenNicks.includes(nickname.toLowerCase())) {
+  alert('사용할 수 없는 닉네임입니다.');
+  return;
+}
+    const requestId = ++nickRequestId.current;
+    setCheckingNick(true);
+    setVerifiedNick('');
+    setNickStatus('idle');
+
+    try {
+      // 서버가 사용 중인 닉네임 개수를 반환한다고 가정 (0 = 사용 가능)
+      const response = await axios.get(`${backendUrl}/api/member/nickCheck`, {
+        params: { nick: nickname },
+        withCredentials: true
+      });
+
+      // 요청 중 입력값이 변경됐다면 이전 결과를 무시
+      if (requestId !== nickRequestId.current) return;
+
+      const count = response.data;
+      if (count === 0) {
+        setVerifiedNick(nickname);
+        setNickStatus('available');
+      } else if (typeof count === 'number' && count > 0) {
+        setNickStatus('duplicate');
+      } else {
+        setNickStatus('error');
+        alert('닉네임 중복확인 응답 형식을 확인해주세요.');
+      }
+    } catch (error) {
+      if (requestId !== nickRequestId.current) return;
+      console.error('닉네임 중복확인 오류:', error);
+      setNickStatus('error');
+      alert('닉네임 중복확인 중 오류가 발생했습니다.');
+    } finally {
+      if (requestId === nickRequestId.current) setCheckingNick(false);
+    }
+  };
+  
+
+  // =========================
   // 회원가입
   // =========================
 
@@ -241,6 +327,11 @@ const Signup: React.FC = () => {
         '필수 정보를 모두 입력해주세요.'
       );
 
+      return;
+    }
+
+    if (verifiedNick !== nick.trim() || nickStatus !== 'available') {
+      alert('닉네임 중복확인을 완료해주세요.');
       return;
     }
 
@@ -624,22 +715,43 @@ TuddyBuddy(이하 "회사")는 회원가입, 원활한 고객 상담, 각종 서
           {/* 닉네임 */}
 
           <div className="signup-input-group">
+            <label>닉네임</label>
 
-            <label>
-              닉네임
-            </label>
+            <div className="signup-input-button">
+              <input
+                type="text"
+                placeholder="닉네임을 입력해주세요"
+                value={nick}
+                onChange={(e) => {
+                  nickRequestId.current += 1;
+                  setNick(e.target.value);
+                  setVerifiedNick('');
+                  setNickStatus('idle');
+                  setCheckingNick(false);
+                }}
+              />
+              <button
+                type="button"
+                onClick={handleNickCheck}
+                disabled={checkingNick}
+              >
+                {checkingNick ? '확인 중...' : '중복확인'}
+              </button>
+            </div>
 
-            <input
-              type="text"
-              placeholder="닉네임을 입력해주세요"
-              value={nick}
-              onChange={(e) =>
-                setNick(
-                  e.target.value
-                )
-              }
-            />
-
+            {nickStatus === 'available' && verifiedNick === nick.trim() && (
+              <p className="email-verified-text">사용 가능한 닉네임입니다.</p>
+            )}
+            {nickStatus === 'duplicate' && (
+              <p style={{ color: '#d32f2f', marginTop: '6px' }}>
+                이미 사용 중인 닉네임입니다.
+              </p>
+            )}
+            {nickStatus === 'error' && (
+              <p style={{ color: '#d32f2f', marginTop: '6px' }}>
+                중복확인에 실패했습니다. 다시 시도해주세요.
+              </p>
+            )}
           </div>
 
 
