@@ -5,6 +5,7 @@ import React, { useEffect, useState } from 'react';
 import { UserRound, Trash2, Users } from 'lucide-react';
 
 import styles from './friendList.module.css';
+import { useAuth } from '../../login/hooks/useAuth';
 
 interface FriendVO {
     num: number;
@@ -19,7 +20,7 @@ const FriendList: React.FC = () => {
     const [friends, setFriends] = useState<FriendVO[]>([]);
 
     // !!! 로그인 연결 후 실제 로그인 회원 번호 사용
-    const memberNum = 1;
+    const { memberNum } = useAuth();
 
     // 친구 목록 조회
     const fetchFriendList = async () => {

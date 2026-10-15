@@ -16,7 +16,7 @@ const Login: React.FC = () => {
   const [searchParams] = useSearchParams();
 
   // ==========================================
-  // 기존 일반 로그인
+  // 기존 일반 로그인 (수정 없음)
   // ==========================================
   const handleLogin = async () => {
     if (isLoading) return;
@@ -37,8 +37,8 @@ const Login: React.FC = () => {
 
         const destination =
           redirect &&
-          redirect.startsWith('/') &&
-          !redirect.startsWith('//')
+            redirect.startsWith('/') &&
+            !redirect.startsWith('//')
             ? redirect
             : '/';
 
@@ -58,7 +58,7 @@ const Login: React.FC = () => {
   };
 
   // ==========================================
-  // 추가: 카카오 로그인
+  // 카카오 로그인 (OAuth state 검증 기능 추가)
   // ==========================================
   const handleKakaoLogin = () => {
     const clientId = process.env.REACT_APP_KAKAO_REST_API_KEY;
@@ -71,14 +71,31 @@ const Login: React.FC = () => {
       return;
     }
 
+    // 추가: OAuth state 생성
+    const randomBytes = new Uint8Array(32);
+    window.crypto.getRandomValues(randomBytes);
+
+    const state = Array.from(randomBytes)
+      .map(byte => byte.toString(16).padStart(2, '0'))
+      .join('');
+
+    // 추가: 카카오 콜백에서 검증할 state 저장
+    sessionStorage.setItem('kakao_oauth_state', state);
+
     const kakaoAuthUrl =
       'https://kauth.kakao.com/oauth/authorize';
+
 
     const params = new URLSearchParams({
       client_id: clientId,
       redirect_uri: redirectUri,
       response_type: 'code',
+      state: state,
+
+      // 닉네임 정보 추가 동의 요청
+      scope: 'profile_nickname',
     });
+
 
     // 카카오 인증 화면으로 이동
     window.location.href = `${kakaoAuthUrl}?${params.toString()}`;
@@ -135,7 +152,7 @@ const Login: React.FC = () => {
           {isLoading ? '로그인 중...' : '로그인'}
         </button>
 
-        {/* 추가: 카카오 로그인 버튼 */}
+        {/* 카카오 로그인 버튼 */}
         <button
           type="button"
           onClick={handleKakaoLogin}

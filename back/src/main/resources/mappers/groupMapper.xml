@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="kr.co.ictedu.back.group.dao.GroupDao">
-	
+<!--작성자 : 오진석 -->
+<mapper namespace="kr.co.ictedu.back.group.dao.GroupDao">	
 	<insert id="addGroup" parameterType="groupvo">
         <selectKey
 			keyProperty="group_num" resultType="long" order="BEFORE">
@@ -87,7 +87,7 @@
 		SELECT count(*) FROM group_member WHERE group_num = #{group_num}
 	</select>
 	
-	<resultMap id="groupListMap" type="kr.co.ictedu.back.group.dto.GroupListDTO">
+	<resultMap id="groupListMap" type="grouplistdto">
 		<id property="group_num" column="group_num" />
 		<result property="group_title" column="group_title" />
 		<result property="group_desc" column="group_desc" />

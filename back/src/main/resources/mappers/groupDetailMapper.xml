@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--작성자 : 오진석 -->
 <mapper namespace="kr.co.ictedu.back.group.dao.GroupDetailDao">
 	
 	<insert id="addGroupTag">
@@ -23,7 +24,7 @@
 		WHERE LOWER(tag_name) = LOWER(#{tag_name})
 	</select>
 	
-	<select id="getHeader" parameterType="long" resultType="kr.co.ictedu.back.group.dto.GroupDetailHeaderDTO">
+	<select id="getHeader" parameterType="long" resultType="groupdetailheaderdto">
 		SELECT g.group_title, g.group_desc, g.group_thumbnail, gm.is_leader
 		FROM studygroup g  JOIN group_member gm ON g.group_num = gm.group_num 
 		WHERE g.group_num = #{group_num} AND gm.member_num = #{member_num}
@@ -52,4 +53,14 @@
 	<delete id="deleteGroupTags">
 		DELETE FROM group_tag WHERE group_num = #{group_num}
 	</delete>
+	
+	<!--<select id="getMembers" resultType="getmemberdto">
+		SELECT gm.member_num, gm.is_leader, m.member_name, m.member_nick
+		FROM group_member gm JOIN member m ON gm.member_num = m.member_num
+		WHERE gm.group_num = #{group_num}
+	</select>-->
+	
+	<!--<select id="getCurrentData" resultType="getcurrentdatadto">
+		SELECT 
+	</select>-->
 </mapper>

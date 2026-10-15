@@ -5,6 +5,7 @@ import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Save, ImagePlus, X } from 'lucide-react';
 import styles from './adminNoticeForm.module.css';
+import { useAuth } from '../../../login/hooks/useAuth';
 
 interface NoticeVO {
     num: number;
@@ -23,6 +24,7 @@ const AdminNoticeForm: React.FC = () => {
     const navigate = useNavigate();
     const { num } = useParams<{ num: string }>();
     const isEdit = !!num;
+    const { memberNum } = useAuth();
 
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
@@ -32,8 +34,8 @@ const AdminNoticeForm: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
 
-    // TODO: 로그인 연동 후 실제 관리자 번호 사용
-    const adminNum = 1;
+
+    const adminNum = memberNum;
 
     // 공지사항 수정 시 기존 데이터 조회
     useEffect(() => {
@@ -113,6 +115,7 @@ const AdminNoticeForm: React.FC = () => {
         formData.append('title', title.trim());
         formData.append('content', content.trim());
         formData.append('member_num', String(adminNum));
+        console.log(adminNum);
 
         if (image) formData.append('mfile', image);
 

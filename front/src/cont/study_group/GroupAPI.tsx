@@ -1,3 +1,4 @@
+//작성자 : 오진석
 import axios from "axios";
 import { AppEdge, AppNode, DetailTab, Repeat_type, TDLStatus } from "./Type";
 /* 공개 스터디룸 컴포넌트 관련 API */
@@ -79,7 +80,7 @@ export const searchGroupTags = async (
 /**
  * 스터디 그룹 생성
  */
-export const createGroup = async (requestData: GroupCreateRequest,thumbnail: File | null) => {
+export const createGroup = async (requestData: GroupCreateRequest, thumbnail: File | null) => {
     const formData = new FormData();
 
     formData.append(
@@ -90,7 +91,7 @@ export const createGroup = async (requestData: GroupCreateRequest,thumbnail: Fil
         )
     );
     if (thumbnail) {
-        formData.append('thumbnail',thumbnail);
+        formData.append('thumbnail', thumbnail);
     }
     const response = await axios.post(
         `http://localhost/back/api/group/add`,
@@ -151,16 +152,16 @@ export interface GroupSidebarProps {
  */
 
 export const joinGroupByInviteCode = async (
-        inviteCode: string
-    ) => {
-        const response = await axios.post(
-            `http://localhost/back/api/group/join/invite`,
-            {
-                inviteCode
-            }
-        );
-        return response.data;
-    };
+    inviteCode: string
+) => {
+    const response = await axios.post(
+        `http://localhost/back/api/group/join/invite`,
+        {
+            inviteCode
+        }
+    );
+    return response.data;
+};
 /* 스터디룸 상세 탭 사이드바 관련 API */
 
 /**
@@ -209,11 +210,11 @@ export interface GetIsleaderandGroupNum {
  * MemberData 조회 관련 API
  */
 export interface MemberData {
-    id: number;
+    memberNum: number;
     nickname: string;
     name: string;
     avatarUrl: string;
-    isLeader: boolean;
+    is_leader: number;
 }
 
 /* Memo 컴포넌트 군 관련 API */
@@ -295,3 +296,29 @@ export const getDiagram = async (
     return response.data;
 };
 
+/**
+ * 참조 문서 관련 API
+ */
+export const formatFileSize = (size: number) => {
+    if (size < 1024) {
+        return `${size} B`;
+    }
+
+    if (size < 1024 * 1024) {
+        return `${(size / 1024).toFixed(1)} KB`
+    }
+
+    return `${(size / (1024 * 1024)).toFixed(1)} MB`
+};
+
+/**
+ * 날짜 포맷 관련 API
+ * yyyy-MM-dd
+ */
+export const formatDate = (date: Date): string => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
+};

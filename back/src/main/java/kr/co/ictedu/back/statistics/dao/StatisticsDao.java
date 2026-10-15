@@ -1,3 +1,4 @@
+//김진규
 package kr.co.ictedu.back.statistics.dao;
 
 import java.util.List;
@@ -5,6 +6,8 @@ import java.util.Map;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+
+import kr.co.ictedu.back.selfstudy.vo.SelfStudyResultVO;
 
 @Mapper
 public interface StatisticsDao {
@@ -25,11 +28,15 @@ public interface StatisticsDao {
     List<Map<String, Object>> selectHistoryStatistics(
     		@Param("memberNum") Long memberNum);
 
-    //  최근 카테고리별 평균 점수 조회
+    //  최근 카테고리별 통계 점수 조회
     List<Map<String, Object>> selectCategoryStatisticsList(
     		@Param("memberNum") Long memberNum);
 
     // 과목별 비중/분포 데이터 조회
     List<Map<String, Object>> selectSubjectShareStatistics(
     		@Param("memberNum") Long memberNum);
+    
+    // 결과 1개만 조회
+    SelfStudyResultVO selectResult(
+            @Param("resultId") Long resultId);
 }

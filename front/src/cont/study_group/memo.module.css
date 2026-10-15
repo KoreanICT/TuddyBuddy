@@ -1,3 +1,4 @@
+/* 작성자 : 오진석 */
 .detail_content_wrapper {
     display: flex;
     flex-direction: column;
@@ -298,6 +299,23 @@
     color: #fff;
 }
 
+/* 삭제 버튼 */
+.memoDeleteButton {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+
+    border: none;
+    background: transparent;
+
+    font-size: 18px;
+    font-weight: 700;
+
+    color: #d32f2f;
+
+    cursor: pointer;
+}
+
 /* 휴지통 */
 
 .trashArea {
@@ -341,6 +359,7 @@
     }
 
     .memoCard {
+        position: relative;
         width: 180px;
         height: 190px;
     }

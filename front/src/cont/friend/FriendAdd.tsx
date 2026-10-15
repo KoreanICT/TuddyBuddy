@@ -7,6 +7,7 @@ import { Search, UserRound, UserPlus, IdCard } from 'lucide-react';
 import styles from './friendAdd.module.css';
 import StudentCodeModal from './StudentCodeModal';
 import PublicAccount from './PublicAccount';
+import { useAuth } from '../../login/hooks/useAuth';
 
 interface MemberVO {
     member_num: number;
@@ -24,8 +25,7 @@ const FriendAdd: React.FC = () => {
     const [adding, setAdding] = useState(false);
     const [requestSent, setRequestSent] = useState(false);
 
-    // TODO: 로그인 연결 후 실제 회원 정보 사용
-    const memberNum = 1;
+    const { memberNum } = useAuth();
     const myMemberCode = '8f3a2b7c-91d4-4e6a-b528-73c9d1f04a82';
 
     // 회원 코드 검색
@@ -222,7 +222,6 @@ const FriendAdd: React.FC = () => {
                 )}
             </div>
 
-            <PublicAccount />
 
             <StudentCodeModal
                 isOpen={isCodeOpen}

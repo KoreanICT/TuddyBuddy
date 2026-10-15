@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import styles from './report.module.css';
+import { useAuth } from '../../login/hooks/useAuth';
 
 type ReportType = 'POST' | 'COMMENT' | 'USER' | 'STUDY';
 
@@ -16,6 +17,8 @@ interface ReportForm {
 
 const ReportCreate: React.FC = () => {
     const navigate = useNavigate();
+    const { memberNum } = useAuth();
+
 
     const [form, setForm] = useState<ReportForm>({
         type: 'POST',
@@ -26,18 +29,14 @@ const ReportCreate: React.FC = () => {
 
     const [submitting, setSubmitting] = useState(false);
 
-    // =========================
     // 입력값 변경
-    // =========================
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setForm(prev => ({ ...prev, [name]: value }));
     };
 
-    // =========================
     // 신고 등록
-    // =========================
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.SubmitEvent) => {
         e.preventDefault();
 
         if (submitting) return;
@@ -64,8 +63,7 @@ const ReportCreate: React.FC = () => {
 
             const formData = new FormData();
 
-            // TODO: 로그인 기능 연결 후 실제 회원 번호로 변경
-            formData.append('member_num', '1');
+            formData.append('member_num', String(memberNum));
             formData.append('type', form.type);
             formData.append('target_num', String(targetNum));
             formData.append('category', form.reason.trim());

@@ -1,3 +1,4 @@
+//김진규
 package kr.co.ictedu.back.point.vo;
 
 import java.sql.Date;

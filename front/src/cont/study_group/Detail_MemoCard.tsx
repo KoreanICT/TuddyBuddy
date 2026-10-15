@@ -1,3 +1,4 @@
+//작성자 : 오진석
 import React, { useEffect, useState } from 'react';
 import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
@@ -10,10 +11,13 @@ import styles from './memo.module.css';
 // ======================================================
 export interface MemoData {
     memo_num: number;
-    writer: string;
-    content: string;
+    group_num: number;
+    member_nick: string;
+    memo_content: string;
     created_at: string;
-    updated_at?: string;
+    updated_at: string | null;
+    can_manage: number;
+    isDraft?: boolean;
 }
 // ======================================================
 // Props
@@ -22,10 +26,9 @@ interface MemoCardProps {
     memo: MemoData;
     deleting: boolean;
     disableClick: boolean;
-    onUpdate: (
-        memoNum: number,
-        content: string
-    ) => Promise<void>;
+    onInsert: (tempMemoNum: number, content: string) => Promise<void>;
+    onUpdate: (memoNum: number, content: string) => Promise<void>;
+    onCancelDraft: (memoNum: number) => void;
     onCrumpleComplete: (
         memoNum: number
     ) => Promise<void>;
@@ -38,17 +41,19 @@ export const Detail_MemoCard: React.FC<MemoCardProps> = ({
     memo,
     deleting,
     disableClick,
+    onInsert,
     onUpdate,
+    onCancelDraft,
     onCrumpleComplete
 }) => {
 
     // 메모 확대 여부
     const [isExpanded, setIsExpanded] =
-        useState<boolean>(false);
+        useState<boolean>(memo.isDraft === true);
 
     // 수정 중인 내용
     const [editContent, setEditContent] =
-        useState<string>(memo.content);
+        useState<string>(memo.memo_content);
 
     // 저장 중 여부
     const [isSaving, setIsSaving] =
@@ -56,14 +61,14 @@ export const Detail_MemoCard: React.FC<MemoCardProps> = ({
     // 부모 데이터가 바뀌었을 때
     // textarea 내용도 동기화
     useEffect(() => {
-        setEditContent(memo.content);
-    }, [memo.content]);
+        setEditContent(memo.memo_content);
+    }, [memo.memo_content]);
 
     // ==================================================
     // dnd-kit
     // ==================================================
 
-    const {attributes,listeners,setNodeRef,transform,isDragging} = useDraggable({
+    const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
         id: memo.memo_num,
         // 확대해서 수정하는 동안에는
         // Drag 비활성화
@@ -85,26 +90,34 @@ export const Detail_MemoCard: React.FC<MemoCardProps> = ({
     // ==================================================
     const handleClick = (): void => {
         // Drag 직후 click이 발생하는 것 방지
-        if (disableClick ||isDragging ||deleting) {return;}
+        if (disableClick || isDragging || deleting) { return; }
         setIsExpanded(true);
     };
 
-    // ==================================================
-    // UPDATE
-    // ==================================================
-
     const handleSave = async (): Promise<void> => {
-        if (!editContent.trim()) {return;}
-        if (isSaving) {return;}
+        if (!editContent.trim()) {
+            return;
+        }
+        if (isSaving) {
+            return;
+        }
 
         try {
             setIsSaving(true);
-            await onUpdate(
-                memo.memo_num,
-                editContent
-            );
+            if (memo.isDraft) {
+                await onInsert(
+                    memo.memo_num,
+                    editContent
+                );
+            } else {
+                await onUpdate(
+                    memo.memo_num,
+                    editContent
+                )
+            }
+            setIsExpanded(false);
         } catch (error) {
-            console.error('메모 수정 실패',error);
+            console.error('메모 저장 실패', error);
         } finally {
             setIsSaving(false);
         }
@@ -115,7 +128,7 @@ export const Detail_MemoCard: React.FC<MemoCardProps> = ({
     // ==================================================
 
     const handleAnimationComplete = (): void => {
-        if (!deleting) {return;}
+        if (!deleting) { return; }
         void onCrumpleComplete(memo.memo_num);
     };
     return (
@@ -136,23 +149,23 @@ export const Detail_MemoCard: React.FC<MemoCardProps> = ({
                     className={`${styles.memoCard} ${isExpanded ? styles.memoCardExpanded : ''}`}
                     onClick={handleClick}
                     animate={deleting ? {
-                                scale: [1,0.88,0.65,0.4,0.15],
-                                rotate: [defaultRotation,10,-18,45,125],
-                                skewX: [0, 5,-12,14,0],
-                                skewY: [0,-5,10,-15,0],
-                                borderRadius: ['2%','8%','18%','35%','50%'],
-                                y: [0,10,25,55,100],
-                                opacity: [1,1,0.9,0.6,0]
-                            }
-                            : {
-                                scale: 1,
-                                rotate: isExpanded ? 0 : defaultRotation,
-                                skewX: 0,
-                                skewY: 0,
-                                opacity: 1
-                            }
+                        scale: [1, 0.88, 0.65, 0.4, 0.15],
+                        rotate: [defaultRotation, 10, -18, 45, 125],
+                        skewX: [0, 5, -12, 14, 0],
+                        skewY: [0, -5, 10, -15, 0],
+                        borderRadius: ['2%', '8%', '18%', '35%', '50%'],
+                        y: [0, 10, 25, 55, 100],
+                        opacity: [1, 1, 0.9, 0.6, 0]
                     }
-                    transition={deleting ? {duration: 0.65, ease: 'easeIn'} : {layout: { duration: 0.25}}}
+                        : {
+                            scale: 1,
+                            rotate: isExpanded ? 0 : defaultRotation,
+                            skewX: 0,
+                            skewY: 0,
+                            opacity: 1
+                        }
+                    }
+                    transition={deleting ? { duration: 0.65, ease: 'easeIn' } : { layout: { duration: 0.25 } }}
                     onAnimationComplete={handleAnimationComplete}
                 >
                     {/* =========================
@@ -161,7 +174,7 @@ export const Detail_MemoCard: React.FC<MemoCardProps> = ({
                     <div className={styles.memoCardHeader}>
                         <span className={styles.memoPin} />
                         <span className={styles.memoWriterName}>
-                            {memo.writer}
+                            {memo.member_nick}
                         </span>
                     </div>
                     {/* =========================
@@ -170,7 +183,7 @@ export const Detail_MemoCard: React.FC<MemoCardProps> = ({
 
                     {!isExpanded ? (
                         <p className={styles.memoContent}>
-                            {memo.content}
+                            {memo.memo_content}
                         </p>
                     ) : (
                         <textarea
@@ -195,16 +208,12 @@ export const Detail_MemoCard: React.FC<MemoCardProps> = ({
                     ========================= */}
 
                     <div className={styles.memoDate}>
-
-                        <span>
-                            작성 {memo.created_at}
-                        </span>
-
-                        {memo.updated_at && (
+                        {!memo.updated_at ? (
                             <span>
+                                작성 {memo.created_at}
+                            </span>) : (<span>
                                 수정 {memo.updated_at}
-                            </span>
-                        )}
+                            </span>)}
                     </div>
 
                     {/* =========================
@@ -213,25 +222,29 @@ export const Detail_MemoCard: React.FC<MemoCardProps> = ({
                     {isExpanded && (
                         <div
                             className={styles.memoEditButtons}
-                            onPointerDown={(e) =>e.stopPropagation()}
-                            onClick={(e) =>e.stopPropagation()}
+                            onPointerDown={(e) => e.stopPropagation()}
+                            onClick={(e) => e.stopPropagation()}
                         >
                             <button
                                 type="button"
-                                onClick={() => {
-                                    setEditContent(memo.content);
-                                    setIsExpanded(false);
-                                }}
+                                disabled={isSaving}
+                                onClick={() => { void handleSave(); }}
                             >
-                                닫기
+                                {isSaving ? '저장 중...' : '저장'}
                             </button>
 
                             <button
                                 type="button"
-                                disabled={isSaving}
-                                onClick={() => {void handleSave();}}
+                                onClick={() => {
+                                    if (memo.isDraft) {
+                                        onCancelDraft(memo.memo_num);
+                                    } else {
+                                        setEditContent(memo.memo_content);
+                                        setIsExpanded(false);
+                                    }
+                                }}
                             >
-                                {isSaving ? '저장 중...' : '저장'}
+                                닫기
                             </button>
                         </div>
                     )}
@@ -256,7 +269,7 @@ export const Detail_MemoCard: React.FC<MemoCardProps> = ({
                         }}
                         onClick={() => {
                             setEditContent(
-                                memo.content
+                                memo.memo_content
                             );
                             setIsExpanded(false);
                         }}

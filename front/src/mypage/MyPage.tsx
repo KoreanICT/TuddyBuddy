@@ -80,16 +80,6 @@ const MyPage: React.FC = () => {
             나의 스터디 그룹 - 중령오진석
           </button>
 
-          <button
-            className={
-              activeMenu === 'example4'
-                ? 'sidebar-menu active'
-                : 'sidebar-menu'
-            }
-            onClick={() => setActiveMenu('example4')}
-          >
-            학습 분석 ??? 
-          </button>
         </aside>
 
         {/* 오른쪽 본문 */}
@@ -156,17 +146,11 @@ const MyPage: React.FC = () => {
               <div className="form-group">
                 <label>닉네임</label>
 
-                <div className="nickname-row">
-                  <input
-                    type="text"
-                    value="길동이"
-                    readOnly
-                  />
-
-                  <button>
-                    중복확인
-                  </button>
-                </div>
+                <input
+                  type="text"
+                  value="길동이"
+                  readOnly
+                />
               </div>
 
               <div className="form-group">

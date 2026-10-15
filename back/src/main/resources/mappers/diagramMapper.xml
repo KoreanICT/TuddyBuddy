@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
-
+<!--작성자 : 오진석 -->
 <mapper namespace="kr.co.ictedu.back.group.dao.DiagramDao">
 	
 	<update id="mergeDiagram" parameterType="diagramvo">
@@ -14,7 +14,7 @@
 			VALUES (diagram_seq.nextVAL, s.group_num, s.title, s.diagram_data, sysdate)
 	</update>
 	
-	<select id="getDiagram" parameterType="long" resultType="kr.co.ictedu.back.group.dto.DiagramDTO">
+	<select id="getDiagram" parameterType="long" resultType="diagramdto">
 		SELECT g.group_num, d.title, d.diagram_data, d.created_at, d.updated_at
 		FROM diagram d JOIN studygroup g ON d.group_num = g.group_num
 		WHERE g.group_num = #{group_num}
