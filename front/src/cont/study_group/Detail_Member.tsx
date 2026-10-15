@@ -1,62 +1,39 @@
-import React from 'react';
+//작성자 : 오진석
+import React, { useState } from 'react';
 import styles from './detail.module.css';
 import { MemberData } from './GroupAPI';
 import { GetGroupNum } from './GroupAPI'
+import axios from 'axios';
 
-export const Detail_Member: React.FC<GetGroupNum> = (groupNum) => {
+export const Detail_Member: React.FC<GetGroupNum> = ({ groupNum }) => {
     // 샘플 멤버 데이터 (실제 연동 시 props 또는 API 데이터로 대체)
-    const members: MemberData[] = [
+    const [members, setMembers] = useState<MemberData[]>([
         {
-            id: 1,
+            memberNum: 1,
             nickname: '물리충',
             name: '진석',
             avatarUrl: 'https://picsum.photos/100?random=1',
-            isLeader: true,
-        },
-        {
-            id: 2,
-            nickname: 'ai탑재인간',
-            name: '진규',
-            avatarUrl: '/images/보노보노.png',
-            isLeader: false,
-        },
-        {
-            id: 3,
-            nickname: '통계장인',
-            name: '승표',
-            avatarUrl: 'https://picsum.photos/100?random=3',
-            isLeader: false,
-        },
-        {
-            id: 4,
-            nickname: '죽순먹는판다',
-            name: '용현',
-            avatarUrl: '/images/죽순먹는판다.png',
-            isLeader: false,
-        },
-        {
-            id: 5,
-            nickname: '간호순',
-            name: '솔',
-            avatarUrl: 'https://picsum.photos/100?random=5',
-            isLeader: false,
-        },
-        {
-            id: 6,
-            nickname: '힘드렁',
-            name: '원철',
-            avatarUrl: 'https://picsum.photos/100?random=6',
-            isLeader: false,
-        },
-        {
-            id: 7,
-            nickname: '프론트총괄',
-            name: '주화',
-            avatarUrl: 'https://picsum.photos/100?random=7',
-            isLeader: false,
-        },
-        
-    ];
+            is_leader: 1,
+        }
+    ]);
+    const [isLeader, setIsLeader] = useState<boolean>(true);
+    const [meLeader, setMeLeader] = useState<number>(0);
+
+
+    // useState(() => {
+    //     const getMembers = async () => {
+    //         try {
+    //             const response = await axios.get<MemberData[]>(
+    //                 `http://localhost/back/api/getMembers/${groupNum}`
+    //             )
+    //             const responseData: MemberData[] = response.data; 
+    //             setMembers(responseData);
+    //             //setMeLeader(responseData.meLeader);
+    //         } catch (error) {
+    //             console.error('멤버 정보 조회 실패 :', error)
+    //         }
+    //     }
+    // }, [])
 
     const handleKick = (id: number, nickname: string) => {
         if (window.confirm(`${nickname} 님을 강퇴하시겠습니까?`)) {
@@ -65,17 +42,32 @@ export const Detail_Member: React.FC<GetGroupNum> = (groupNum) => {
         }
     };
 
+    const handleQuit = async () => {
+        if (meLeader === 1) {
+            return;
+        }
+
+        await axios.delete(
+            `http://localhost/back/api/detail/groupQuit/${groupNum}`
+        )
+    }
+
     return (
         <div className={styles.detail_content_wrapper}>
             <div className={styles.detail_section_card}>
                 <h3 className={styles.section_title}>멤버 목록 ({members.length})</h3>
-                
+                <button
+                    type="button"
+                    
+                >
+                    스터디룸 탈퇴
+                </button>
                 {/* 멤버 카드 횡방향 목록 컨테이너 */}
                 <div className={styles.member_grid}>
                     {members.map((member) => (
-                        <div key={member.id} className={styles.member_card}>
+                        <div className={styles.member_card}>
                             {/* 우상단 강퇴 버튼 (x) */}
-                            {!member.isLeader && (
+                            {/* {!member.isLeader && (
                                 <button
                                     type="button"
                                     className={styles.kick_btn}
@@ -85,7 +77,7 @@ export const Detail_Member: React.FC<GetGroupNum> = (groupNum) => {
                                 >
                                     ✕
                                 </button>
-                            )}
+                            )} */}
 
                             {/* 동그란 썸네일 */}
                             <div className={styles.avatar_wrapper}>
@@ -103,9 +95,9 @@ export const Detail_Member: React.FC<GetGroupNum> = (groupNum) => {
                             </div>
 
                             {/* 방장 라벨 */}
-                            {member.isLeader && (
+                            {/* {member.isLeader && (
                                 <span className={styles.leader_badge}>방장</span>
-                            )}
+                            )} */}
                         </div>
                     ))}
                 </div>

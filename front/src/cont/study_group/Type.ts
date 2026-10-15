@@ -1,3 +1,4 @@
+/* 작성자 : 오진석 */
 import { Edge, Node } from "@xyflow/react";
 import { CustomNodeData } from "./GroupAPI";
 

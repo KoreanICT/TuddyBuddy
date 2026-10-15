@@ -1,3 +1,4 @@
+//작성자 : 오진석
 import React, { useState } from 'react';
 import { joinGroupByInviteCode } from './GroupAPI';
 import styles from './group.module.css';

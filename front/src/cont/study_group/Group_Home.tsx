@@ -1,3 +1,4 @@
+//작성자 : 오진석
 import React, { useState } from 'react';
 import { Group_Sidebar } from './Group_Sidebar';
 import { Group_List } from './Group_List';
