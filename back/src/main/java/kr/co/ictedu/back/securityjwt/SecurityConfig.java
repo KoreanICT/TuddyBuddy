@@ -79,7 +79,7 @@ public class SecurityConfig {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
         corsConfiguration.setAllowCredentials(true);
         corsConfiguration.setAllowedOrigins(// React 그러니까 개발 클라이언트 접속만 허용 
-        		List.of("http://192.168.0.19:3000", "http://localhost:3000" , "http://192.168.0.19:80")
+        		List.of("http://192.168.0.45:3000", "http://localhost:3000" , "http://192.168.0.45:80")
         		);
         corsConfiguration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         corsConfiguration.setAllowedHeaders(List.of("*"));

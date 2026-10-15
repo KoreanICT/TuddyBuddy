@@ -1,125 +1,180 @@
-
 import React, { useState } from 'react';
-import { Link, NavLink } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+
 import { useAppDispatch, RootState } from '../login/reducers/store';
 import { logoutAction } from '../login/authActions/authActions';
+
+
 import styles from './userMenu.module.css';
+import AuthModal from '../login/AuthModal';
 
 const UserMenu: React.FC = () => {
 
-    // Redux에 저장된 JWT로 로그인 상태 확인
-    const isLogin = useSelector(
-        (state: RootState) => Boolean(state.auth.token)
+  // Redux JWT 로그인 상태
+  const isLogin = useSelector(
+    (state: RootState) => Boolean(state.auth.token)
+  );
+
+  const dispatch = useAppDispatch();
+
+  // 내 계정 사이드 메뉴
+  const [isOpen, setIsOpen] = useState(false);
+
+  // 로그인/회원가입 팝업
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+
+  const closeMenu = () => {
+    setIsOpen(false);
+  };
+
+  const openAuthModal = () => {
+    setIsAuthModalOpen(true);
+  };
+
+  const closeAuthModal = () => {
+    setIsAuthModalOpen(false);
+  };
+
+  // 로그아웃 처리
+  const handleLogout = async () => {
+    await dispatch(logoutAction());
+    closeMenu();
+  };
+
+  // ================================
+  // 로그인하지 않은 사용자
+  // ================================
+  if (!isLogin) {
+    return (
+      <>
+        <div className={styles.userMenu}>
+          <button
+            type="button"
+            className={styles.authButton}
+            onClick={openAuthModal}
+          >
+            로그인/회원가입
+          </button>
+        </div>
+
+        {isAuthModalOpen && (
+          <AuthModal onClose={closeAuthModal} />
+        )}
+      </>
     );
+  }
 
-    const dispatch = useAppDispatch();
+  // ================================
+  // 로그인한 사용자
+  // ================================
+  return (
+    <>
+      {/* 프로필 버튼 */}
+      <div className={styles.userMenu}>
+        <button
+          type="button"
+          className={styles.profileButton}
+          onClick={() => setIsOpen(true)}
+          aria-label="개인 메뉴 열기"
+        >
+          <span className={styles.profileIcon}>
+            👤
+          </span>
 
-    const [isOpen, setIsOpen] = useState(false);
+          <span>내 계정</span>
+        </button>
+      </div>
 
-    const closeMenu = () => {
-        setIsOpen(false);
-    };
+      {/* Overlay */}
+      <div
+        className={`${styles.overlay} ${
+          isOpen ? styles.open : ''
+        }`}
+        onClick={closeMenu}
+      />
 
-    // 로그아웃 처리
-    const handleLogout = async () => {
-        await dispatch(logoutAction());
-        closeMenu();
-    };
+      {/* Side Menu */}
+      <aside
+        className={`${styles.drawer} ${
+          isOpen ? styles.open : ''
+        }`}
+      >
+        {/* Drawer Header */}
+        <div className={styles.drawerHeader}>
+          <div>
+            <span className={styles.drawerTitle}>
+              내 계정
+            </span>
+          </div>
 
-    // 로그인하지 않은 경우
-    if (!isLogin) {
-        return (
-            <div className={styles.userMenu}>
-                <Link to="/auth/member" className={styles.authButton}>
-                    로그인
-                </Link>
+          <button
+            type="button"
+            className={styles.closeButton}
+            onClick={closeMenu}
+            aria-label="개인 메뉴 닫기"
+          >
+            ×
+          </button>
+        </div>
 
-                <Link to="/auth/signup" className={styles.authButton}>
-                    회원가입
-                </Link>
-            </div>
-        );
-    }
+        {/* Menu */}
+        <nav className={styles.drawerMenu}>
+          <NavLink
+            to="/auth/mypage"
+            onClick={closeMenu}
+          >
+            내정보
+          </NavLink>
 
-    else return (
-        <>
-            {/* 프로필 버튼 */}
-            <div className={styles.userMenu}>
-                <button
-                    className={styles.profileButton}
-                    onClick={() => setIsOpen(true)}
-                    aria-label="개인 메뉴 열기"
-                >
-                    <span className={styles.profileIcon}>👤</span>
-                    <span>내 계정</span>
-                </button>
-            </div>
+          <NavLink
+            to="/homeGroup"
+            onClick={closeMenu}
+          >
+            학습현황
+          </NavLink>
 
-            {/* Overlay */}
-            <div
-                className={`${styles.overlay} ${isOpen ? styles.open : ''}`}
-                onClick={closeMenu}
-            />
+          <NavLink
+            to="/homeGroup"
+            onClick={closeMenu}
+          >
+            스터디 생성
+          </NavLink>
 
-            {/* Side Menu */}
-            <aside
-                className={`${styles.drawer} ${isOpen ? styles.open : ''}`}
-            >
-                {/* Drawer Header */}
-                <div className={styles.drawerHeader}>
-                    <div>
-                        <span className={styles.drawerTitle}>
-                            내 계정
-                        </span>
-                    </div>
+          <NavLink
+            to="/point"
+            onClick={closeMenu}
+          >
+            포인트 구매
+          </NavLink>
 
-                    <button
-                        className={styles.closeButton}
-                        onClick={closeMenu}
-                        aria-label="개인 메뉴 닫기"
-                    >
-                        ×
-                    </button>
-                </div>
+          <NavLink
+            to="/admin"
+            onClick={closeMenu}
+          >
+            관리자 메뉴
+          </NavLink>
 
-                {/* Menu */}
-                <nav className={styles.drawerMenu}>
-                    <NavLink to="/auth/mypage" onClick={closeMenu}>
-                        내정보
-                    </NavLink>
+          <NavLink
+            to="/friend/list"
+            onClick={closeMenu}
+          >
+            내 친구
+          </NavLink>
+        </nav>
 
-                    <NavLink to="/homeGroup" onClick={closeMenu}>
-                        학습현황
-                    </NavLink>
-
-                    <NavLink to="/homeGroup" onClick={closeMenu}>
-                        스터디 생성
-                    </NavLink>
-
-                    <NavLink to="/point" onClick={closeMenu}>
-                        포인트 구매
-                    </NavLink>
-
-                    {/* 기존 관리자 메뉴 표시 방식 유지 */}
-                    <NavLink to="/admin" onClick={closeMenu}>
-                        관리자 메뉴
-                    </NavLink>
-
-                    <NavLink to="/friend/list" onClick={closeMenu}>
-                        내 친구
-                    </NavLink>
-                </nav>
-
-                {/* Logout */}
-                <div className={styles.drawerFooter}>
-                    <button onClick={handleLogout}>
-                        로그아웃
-                    </button>
-                </div>
-            </aside>
-        </>
-    );
+        {/* Logout */}
+        <div className={styles.drawerFooter}>
+          <button
+            type="button"
+            onClick={handleLogout}
+          >
+            로그아웃
+          </button>
+        </div>
+      </aside>
+    </>
+  );
 };
 
 export default UserMenu;

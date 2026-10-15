@@ -39,8 +39,8 @@ export default function PerformanceAnalytics() {
             setLoading(true);
             try {
                 // 1.  카테고리 수집
-                const savedResponse = await axios.post('http://localhost/back/api/statistics/getCategories', {
-                    memberNum: 1,
+                const savedResponse = await axios.post('http://localhost:80/back/api/statistics/getCategories', {
+                    memberNum: memberNum,
                 });
 
                 if (!savedResponse.data) return;
@@ -68,9 +68,7 @@ export default function PerformanceAnalytics() {
             setLoading(true);
             try {
                 // 스프링부트 API 호출: /api/v1/analytics/subjects/{subjectId}
-                const response = await axios.post(`http://localhost/back/api/statistics/getStatistics`,{
-                    memberNum: 1,
-                });
+                const response = await axios.post(`http://localhost:80/back/api/statistics/getStatistics`);
 
                 setChartData(response.data.chartData);
                 setLlmFeedback(response.data.llmFeedback);
