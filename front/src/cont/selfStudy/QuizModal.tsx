@@ -1,3 +1,4 @@
+//최솔
 import React, { useRef } from 'react';
 import { Category, Subject } from './types';
 import styles from './selfstudy.module.css';
