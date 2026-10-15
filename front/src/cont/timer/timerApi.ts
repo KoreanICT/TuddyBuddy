@@ -1,6 +1,8 @@
 import { Interval, TimerSession, TimerSummary } from './types';
-const BASE=(process.env.REACT_APP_BACK_END_URL || 'http://localhost/back').replace(/\/$/,'');
+
+const BASE = (process.env.REACT_APP_BACK_END_URL || 'http://192.168.0.19/back').replace(/\/$/, '');
 const URL=`${BASE}/api/timer-sessions`;
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response=await fetch(`${URL}${path}`,{...init,credentials:'include',headers:{'Content-Type':'application/json',...init?.headers}});
   const data=await response.json().catch(()=>({}));
