@@ -225,44 +225,66 @@ const KakaoSignup: React.FC = () => {
   // 7. 카카오 회원가입 입력값 검사
   // 실제 Oracle 저장 API는 다음 단계에서 연결
   // ==========================================
-  const handleKakaoSignup = (e: React.FormEvent) => {
-    e.preventDefault();
-    setMessage('');
+  const handleKakaoSignup = async (
+  e: React.FormEvent
+) => {
+  e.preventDefault();
+  setMessage('');
 
-    const signupToken = getSignupToken();
+  const signupToken = getSignupToken();
 
-    if (!signupToken) {
-      setMessage(
-        '카카오 가입 인증정보가 없습니다. 다시 로그인해주세요.'
-      );
-      return;
-    }
+  if (!signupToken) {
+    setMessage('카카오 로그인을 다시 진행해주세요.');
+    return;
+  }
 
-    if (!emailVerified || !verificationToken) {
-      setMessage('이메일 인증을 먼저 완료해주세요.');
-      return;
-    }
+  if (!emailVerified || !verificationToken) {
+    setMessage('이메일 인증을 먼저 완료해주세요.');
+    return;
+  }
 
-    if (
-      !email.trim() ||
-      !name.trim() ||
-      !nick.trim() ||
-      !phone.trim()
-    ) {
-      setMessage('필수 정보를 모두 입력해주세요.');
-      return;
-    }
+  if (!termsAgree || !privacyAgree) {
+    setMessage('필수 약관에 동의해주세요.');
+    return;
+  }
 
-    if (!termsAgree || !privacyAgree) {
-      setMessage('필수 약관에 동의해주세요.');
-      return;
-    }
-
-    // 아직 DB 저장 API는 연결하지 않음
-    setMessage(
-      '입력 정보 확인 완료! 카카오 회원가입 API 연결이 필요합니다.'
+  try {
+    const response = await axios.post(
+      `${API_URL}/api/auth/kakao/signup`,
+      {
+        signupToken,
+        verificationToken,
+        email,
+        name,
+        nick,
+        phone,
+        termsAgree,
+        privacyAgree,
+        marketingAgree
+      }
     );
-  };
+
+    if (response.data.success === true) {
+      setMessage('카카오 회원가입이 완료되었습니다.');
+
+      // 여기서 JWT 저장 및 Redux 로그인 처리 연결
+    } else {
+      setMessage(
+        response.data.message || '회원가입에 실패했습니다.'
+      );
+    }
+
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      setMessage(
+        error.response?.data?.message ||
+        '회원가입 중 오류가 발생했습니다.'
+      );
+    } else {
+      setMessage('회원가입 중 오류가 발생했습니다.');
+    }
+  }
+};
 
   // ==========================================
   // 8. 약관 모달 내용

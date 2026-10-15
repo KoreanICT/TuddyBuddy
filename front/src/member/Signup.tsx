@@ -231,38 +231,38 @@ const Signup: React.FC = () => {
       alert('닉네임을 입력해주세요.');
       return;
     }
-// 닉네임 길이 검사 (2~12자)
-if (nickname.length < 2 || nickname.length > 12) {
-  alert('닉네임은 2자 이상 12자 이하로 입력해주세요.');
-  return;
-}
+    // 닉네임 길이 검사 (2~12자)
+    if (nickname.length < 2 || nickname.length > 12) {
+      alert('닉네임은 2자 이상 12자 이하로 입력해주세요.');
+      return;
+    }
 
-// 완성형 한글, 영문, 숫자만 허용
-const nickRegex = /^[가-힣a-zA-Z0-9]+$/;
+    // 완성형 한글, 영문, 숫자만 허용
+    const nickRegex = /^[가-힣a-zA-Z0-9]+$/;
 
-if (!nickRegex.test(nickname)) {
-  alert('사용할 수 없는 닉네임입니다.');
-  return;
-}
+    if (!nickRegex.test(nickname)) {
+      alert('사용할 수 없는 닉네임입니다.');
+      return;
+    }
 
-// 숫자로만 이루어진 닉네임 금지
-if (/^[0-9]+$/.test(nickname)) {
-  alert('숫자로만 이루어진 닉네임은 사용할 수 없습니다.');
-  return;
-}
+    // 숫자로만 이루어진 닉네임 금지
+    if (/^[0-9]+$/.test(nickname)) {
+      alert('숫자로만 이루어진 닉네임은 사용할 수 없습니다.');
+      return;
+    }
 
-// 특정 닉네임 사용 금지
-const forbiddenNicks = [
-  '관리자',
-  '운영자',
-  'admin',
-  'administrator'
-];
+    // 특정 닉네임 사용 금지
+    const forbiddenNicks = [
+      '관리자',
+      '운영자',
+      'admin',
+      'administrator'
+    ];
 
-if (forbiddenNicks.includes(nickname.toLowerCase())) {
-  alert('사용할 수 없는 닉네임입니다.');
-  return;
-}
+    if (forbiddenNicks.includes(nickname.toLowerCase())) {
+      alert('사용할 수 없는 닉네임입니다.');
+      return;
+    }
     const requestId = ++nickRequestId.current;
     setCheckingNick(true);
     setVerifiedNick('');
@@ -297,7 +297,7 @@ if (forbiddenNicks.includes(nickname.toLowerCase())) {
       if (requestId === nickRequestId.current) setCheckingNick(false);
     }
   };
-  
+
 
   // =========================
   // 회원가입
@@ -791,7 +791,7 @@ TuddyBuddy(이하 "회사")는 회원가입, 원활한 고객 상담, 각종 서
             />
 
           </div>
-          
+
           {/* 약관 */}
 
           <div className="signup-agreement">
