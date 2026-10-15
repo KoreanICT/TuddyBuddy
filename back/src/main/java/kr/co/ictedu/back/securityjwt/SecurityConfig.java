@@ -92,5 +92,10 @@ public class SecurityConfig {
         return urlBasedCorsConfigurationSource;
 
     }// corsConfigurationSource
+    
+    public static void main(String[] args) {
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+        System.out.println(encoder.encode("1122"));
+    }
 
 }
