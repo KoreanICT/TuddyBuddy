@@ -44,6 +44,15 @@ public interface MemberDAO {
     // 회원 전체 수
     int totalCount(Map<String, String> map);
 
+    // ==========================================
+    // 카카오 소셜 로그인 회원 조회
+    // ==========================================
+    MemberVO findBySocialLogin(
+            @Param("loginType") String loginType,
+            @Param("socialId") String socialId
+    );
+
+
 
     // =========================
     // 체크된 회원 등급 변경

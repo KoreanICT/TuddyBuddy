@@ -6,12 +6,14 @@ import { Detail_MemoCard, type MemoData } from './Detail_MemoCard';
 
 interface MemoBoardProps {
     memos: MemoData[];
+    onInsert: (memoNum: number, content: string) => Promise<void>;
     onUpdate: (memoNum: number, content: string) => Promise<void>;
     onDelete: (memoNum: number) => Promise<void>;
+    onCancelDraft: (memoNum: number) => void;
 }
 
 const TRASH_ID = 'memo-trash';
-export const Detail_MemoBoard: React.FC<MemoBoardProps> = ({ memos, onUpdate, onDelete }) => {
+export const Detail_MemoBoard: React.FC<MemoBoardProps> = ({ memos, onInsert, onUpdate, onDelete, onCancelDraft }) => {
 
     const corkboardImage = `${process.env.PUBLIC_URL}/images/corkboard.jpg`;
     // 현재 Drag 중인 메모
@@ -68,6 +70,16 @@ export const Detail_MemoBoard: React.FC<MemoBoardProps> = ({ memos, onUpdate, on
             // 먼저 구겨지는 애니메이션 실행
             setDeletingId(memoNum);
         }
+        const targetMemo = memos.find((memo) => memo.memo_num === memoNum);
+        if (!targetMemo) {
+            return;
+        }
+
+        if (!targetMemo.isDraft && targetMemo.can_manage !== 1) {
+            return;
+        }
+
+        setDeletingId(memoNum);
     };
     // ==========================
     // 구김 애니메이션 완료 후
@@ -102,7 +114,10 @@ export const Detail_MemoBoard: React.FC<MemoBoardProps> = ({ memos, onUpdate, on
                             disableClick={
                                 draggingId === memo.memo_num || recentlyDraggedId === memo.memo_num
                             }
+                            onInsert={onInsert}
                             onUpdate={onUpdate}
+                            onDelete={onDelete}
+                            onCancelDraft={onCancelDraft}
                             onCrumpleComplete={handleCrumpleComplete}
                         />
                     ))}
