@@ -1,235 +1,275 @@
+
 //최솔
-import { useId, useState } from 'react';
+import { useState } from 'react';
 import { UseTimer } from './UseTimer';
 import styles from './timer.module.css';
-
-const formatTime = (seconds: number): string => {
-  const value = Math.max(0, Math.floor(seconds));
-
-  return [
-    Math.floor(value / 3600),
-    Math.floor((value % 3600) / 60),
-    value % 60,
-  ]
-    .map(part => String(part).padStart(2, '0'))
-    .join(':');
-};
 
 export default function Timer() {
   const [minutes, setMinutes] = useState(25);
   const [collapsed, setCollapsed] = useState(false);
-  const contentId = useId();
 
-  // 접어도 훅과 타이머 상태는 유지됩니다.
-  const timer = UseTimer();
+  const {
+    status,
+    elapsedSeconds,
+    remainingSeconds,
+    summary,
+    busy,
+    error,
+    start,
+    pause,
+    resume,
+    finish,
+    refresh,
+  } = UseTimer();
 
-  const ready =
-    timer.status === 'idle' || timer.status === 'saved';
+  const formatTime = (seconds: number) => {
+    const safeSeconds = Math.max(0, Math.floor(seconds));
 
-  const validMinutes =
-    Number.isInteger(minutes) && minutes >= 1 && minutes <= 240;
+    const hours = Math.floor(safeSeconds / 3600);
+    const mins = Math.floor((safeSeconds % 3600) / 60);
+    const secs = safeSeconds % 60;
 
-  const targetSeconds =
-    (timer.session?.setTimeMinutes ?? minutes) * 60;
+    return [hours, mins, secs]
+      .map((value) => String(value).padStart(2, '0'))
+      .join(':');
+  };
 
-  const remainingSeconds = ready
-    ? minutes * 60
-    : timer.remainingSeconds;
+  const isActive =
+    status === 'running' ||
+    status === 'paused' ||
+    status === 'pending';
+
+  const canStart =
+    status === 'idle' || status === 'saved';
+
+  const isValidMinutes =
+    Number.isInteger(minutes) &&
+    minutes >= 1 &&
+    minutes <= 240;
+
+  const totalSeconds = minutes * 60;
 
   const progress =
-    ready || targetSeconds <= 0
-      ? 0
-      : Math.min(100, (timer.elapsedSeconds / targetSeconds) * 100);
+    totalSeconds > 0
+      ? Math.min(
+          100,
+          Math.max(0, (elapsedSeconds / totalSeconds) * 100)
+        )
+      : 0;
 
-  const statusText = {
-    idle: '시작 대기',
-    running: '집중 중',
-    paused:
-      timer.remainingSeconds === 0 ? '목표 완료' : '일시정지',
+  const statusText: Record<string, string> = {
+    idle: '대기 중',
+    running: '학습 중',
+    paused: '일시정지',
     pending: '저장 대기',
     saved: '저장 완료',
-  }[timer.status];
+  };
 
   return (
-    <section className={styles.card} aria-label="개인 공부 타이머">
-      <header className={styles.header}>
+    <section className={styles.card}>
+      <div className={styles.header}>
         <div className={styles.heading}>
-          <span className={styles.title}>Timer</span>
-          <span className={styles.badge}>{statusText}</span>
+          <span className={styles.title}>
+            학습 타이머
+          </span>
+
+          <span className={styles.badge}>
+            {statusText[status] ?? status}
+          </span>
         </div>
 
         <button
           type="button"
           className={styles.toggleButton}
+          onClick={() => setCollapsed((prev) => !prev)}
           aria-expanded={!collapsed}
-          aria-controls={contentId}
-          onClick={() => setCollapsed(value => !value)}
         >
           {collapsed ? '펼치기' : '접기'}
         </button>
-      </header>
+      </div>
 
-      {collapsed && (
+      {collapsed ? (
         <div className={styles.compact}>
-          <span>남은 시간</span>
-          <strong role="timer">
-            {formatTime(remainingSeconds)}
-          </strong>
-        </div>
-      )}
-
-      <div id={contentId} hidden={collapsed}>
-        <div className={styles.clock}>
-          <span className={styles.caption}>남은 시간</span>
-
-          <strong className={styles.time} role="timer">
-            {formatTime(remainingSeconds)}
-          </strong>
-
-          <span className={styles.elapsed}>
-            이번 공부 {formatTime(timer.elapsedSeconds)}
+          <span>
+            {isActive ? '남은 시간' : '누적 학습 시간'}
           </span>
-        </div>
 
-        <div
-          className={styles.progressTrack}
-          role="progressbar"
-          aria-label="목표 시간 진행률"
-          aria-valuemin={0}
-          aria-valuemax={100}
-          aria-valuenow={Math.floor(progress)}
-        >
+          <strong>
+            {formatTime(
+              isActive
+                ? remainingSeconds
+                : summary.totalTimeSeconds
+            )}
+          </strong>
+        </div>
+      ) : (
+        <>
+          <div className={styles.clock}>
+            <span className={styles.caption}>
+              남은 학습 시간
+            </span>
+
+            <strong className={styles.time}>
+              {formatTime(remainingSeconds)}
+            </strong>
+
+            <span className={styles.elapsed}>
+              현재 학습 시간{' '}
+              {formatTime(elapsedSeconds)}
+            </span>
+          </div>
+
           <div
-            className={styles.progressFill}
-            style={{ width: `${progress}%` }}
-          />
-        </div>
-
-        <label className={styles.setting}>
-          <span>목표 시간</span>
-
-          <span className={styles.inputGroup}>
-            <input
-              className={styles.input}
-              type="number"
-              min={1}
-              max={240}
-              step={1}
-              value={minutes}
-              disabled={!ready || timer.busy}
-              onChange={event =>
-                setMinutes(Number(event.target.value))
-              }
+            className={styles.progressTrack}
+            role="progressbar"
+            aria-label="학습 진행률"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={Math.round(progress)}
+          >
+            <div
+              className={styles.progressFill}
+              style={{ width: `${progress}%` }}
             />
-            <span>분</span>
-          </span>
-        </label>
+          </div>
 
-        {ready && !validMinutes && (
-          <p className={styles.validation}>
-            1~240 사이의 정수를 입력해주세요.
-          </p>
-        )}
+          <div className={styles.setting}>
+            <span>학습 시간 설정</span>
 
-        <div className={styles.buttons}>
-          {ready && (
-            <button
-              type="button"
-              className={styles.primaryButton}
-              disabled={timer.busy || !validMinutes}
-              onClick={() => void timer.start(minutes)}
-            >
-              {timer.busy ? '시작 중…' : '공부 시작'}
-            </button>
+            <div className={styles.inputGroup}>
+              <input
+                className={styles.input}
+                type="number"
+                min={1}
+                max={240}
+                step={1}
+                value={minutes}
+                disabled={!canStart || busy}
+                onChange={(e) =>
+                  setMinutes(Number(e.target.value))
+                }
+                aria-label="학습 시간(분)"
+              />
+
+              <span>분</span>
+            </div>
+          </div>
+
+          {!isValidMinutes && canStart && (
+            <p className={styles.validation}>
+              학습 시간은 1분부터 240분까지 설정할 수 있습니다.
+            </p>
           )}
 
-          {timer.status === 'running' && (
-            <button
-              type="button"
-              className={styles.primaryButton}
-              disabled={timer.busy}
-              onClick={timer.pause}
-            >
-              일시정지
-            </button>
-          )}
-
-          {timer.status === 'paused' &&
-            timer.remainingSeconds > 0 && (
+          <div className={styles.buttons}>
+            {canStart && (
               <button
                 type="button"
                 className={styles.primaryButton}
-                disabled={timer.busy}
-                onClick={timer.resume}
+                onClick={() => void start(minutes)}
+                disabled={busy || !isValidMinutes}
               >
-                계속 공부
+                시작
               </button>
             )}
 
-          {!ready && (
-            <button
-              type="button"
-              className={styles.secondaryButton}
-              disabled={timer.busy}
-              onClick={() => void timer.finish()}
-            >
-              {timer.busy
-                ? '저장 중…'
-                : timer.status === 'pending'
-                  ? '저장 다시 시도'
+            {status === 'running' && (
+              <button
+                type="button"
+                className={styles.secondaryButton}
+                onClick={pause}
+                disabled={busy}
+              >
+                일시정지
+              </button>
+            )}
+
+            {status === 'paused' &&
+              remainingSeconds > 0 && (
+                <button
+                  type="button"
+                  className={styles.primaryButton}
+                  onClick={resume}
+                  disabled={busy}
+                >
+                  재개
+                </button>
+              )}
+
+            {isActive && (
+              <button
+                type="button"
+                className={styles.secondaryButton}
+                onClick={() => void finish()}
+                disabled={busy}
+              >
+                {status === 'pending'
+                  ? '저장 재시도'
                   : '종료 및 저장'}
-            </button>
-          )}
-        </div>
+              </button>
+            )}
+          </div>
 
-        <p className={styles.help}>
-          접어도 계속 측정됩니다.
-          <br />
-          기록은 종료 및 저장을 눌러야 반영됩니다.
-        </p>
+          <p className={styles.help}>
+            학습 중에는 타이머를 일시정지하거나
+            종료할 수 있습니다.
+          </p>
 
-        <div className={styles.total}>
-          <span>누적 공부</span>
-          <strong>
-            {formatTime(timer.summary.totalTimeSeconds)}
-          </strong>
-        </div>
+          <div className={styles.total}>
+            <span>누적 학습 시간</span>
 
-        <details className={styles.history}>
-          <summary>최근 공부 기록</summary>
+            <strong>
+              {formatTime(summary.totalTimeSeconds)}
+            </strong>
+          </div>
 
-          <button
-            type="button"
-            className={styles.refreshButton}
-            disabled={timer.busy}
-            onClick={timer.refresh}
-          >
-            기록 새로고침
-          </button>
+          <div className={styles.history}>
+            <details>
+              <summary>학습 기록 보기</summary>
 
-          {timer.summary.sessions.length === 0 ? (
-            <p className={styles.empty}>
-              저장한 기록이 없습니다.
+              {summary.sessions.length === 0 ? (
+                <p className={styles.empty}>
+                  저장된 학습 기록이 없습니다.
+                </p>
+              ) : (
+                <ul className={styles.historyList}>
+                  {[...summary.sessions]
+                    .reverse()
+                    .map((session, index) => (
+                      <li
+                        key={`${session.timerSessionId}-${index}`}
+                      >
+                        <span>
+                          {session.setTimeMinutes}분 설정
+                        </span>
+
+                        <strong>
+                          {formatTime(
+                            session.totalTimeSeconds
+                          )}
+                        </strong>
+                      </li>
+                    ))}
+                </ul>
+              )}
+
+              <button
+                type="button"
+                className={styles.refreshButton}
+                onClick={refresh}
+                disabled={busy}
+              >
+                기록 새로고침
+              </button>
+            </details>
+          </div>
+
+          {error && (
+            <p className={styles.error} role="alert">
+              {error}
             </p>
-          ) : (
-            <ul className={styles.historyList}>
-              {timer.summary.sessions.map(session => (
-                <li key={session.timerSessionId}>
-                  <span>목표 {session.setTimeMinutes}분</span>
-                  <strong>
-                    {formatTime(session.totalTimeSeconds)}
-                  </strong>
-                </li>
-              ))}
-            </ul>
           )}
-        </details>
-      </div>
-
-      {timer.error && (
-        <p className={styles.error} role="alert">
-          {timer.error}
-        </p>
+        </>
       )}
     </section>
   );

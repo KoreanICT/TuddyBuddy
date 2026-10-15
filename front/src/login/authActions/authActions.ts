@@ -8,8 +8,10 @@ import {
 
 import { AppDispatch } from '../reducers/store';
 
-// 백엔드 서버 주소
-const API_URL = 'http://localhost:80/back/api/auth';
+// 백엔드 서버 주소 
+const API_URL = `${
+  process.env.REACT_APP_BACK_END_URL || 'http://192.168.0.19/back'
+}/api/auth`;
 
 // ======================================================
 // 로그인
