@@ -8,6 +8,7 @@ import org.apache.ibatis.annotations.Param;
 
 import kr.co.ictedu.back.group.dto.GroupDetailHeaderDTO;
 import kr.co.ictedu.back.group.dto.GroupUpdateDTO;
+import kr.co.ictedu.back.group.dto.MemberDataDTO;
 import kr.co.ictedu.back.group.vo.GroupVO;
 import kr.co.ictedu.back.group.vo.TagVO;
 
@@ -21,4 +22,9 @@ public interface GroupDetailDao {
 	TagVO findTagByName(@Param("tag_name") String tagName);
 	void updateGroup(@Param("group_num") Long groupNum, @Param("request") GroupUpdateDTO request);
 	void deleteGroupTags(@Param("group_num") Long groupNum);
+	List<MemberDataDTO> getMembers(@Param("group_num") Long groupNum);
+	int getIsMeLeader (@Param("group_num") Long groupNum, @Param("member_num") Long member_num);
+	int kickMember(@Param("group_num") Long groupNum, @Param("current_member_num") Long currentMemberNum, @Param("target_member_num") Long targetMemberNum);
+	int removeLeader(@Param("group_num") Long groupNum, @Param("current_member_num") Long currentMemberNum);
+	int grantLeader(@Param("group_num") Long groupNum, @Param("target_member_num") Long targetMemberNum);
 }

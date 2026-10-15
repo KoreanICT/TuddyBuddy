@@ -4,7 +4,9 @@ package kr.co.ictedu.back.group.service;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 import kr.co.ictedu.back.group.dao.GroupDetailDao;
 import kr.co.ictedu.back.group.dto.GroupDetailHeaderDTO;
 import kr.co.ictedu.back.group.dto.GroupUpdateDTO;
+import kr.co.ictedu.back.group.dto.MemberDataDTO;
 import kr.co.ictedu.back.group.vo.GroupVO;
 import kr.co.ictedu.back.group.vo.TagVO;
 
@@ -73,6 +76,41 @@ public class GroupDetailService {
 				}
 				dao.addGroupTag(groupNum, targetTag.getTag_num());
 			}
+		}
+	}
+	public Map<String,Object> getMembers(Long groupNum, Long memberNum) {
+		boolean isMeLeader = false;
+		
+		int isMeLeaderNum = dao.getIsMeLeader(groupNum, memberNum);
+		if (isMeLeaderNum == 1) {
+			isMeLeader = true;
+		}
+		
+		List<MemberDataDTO> list = dao.getMembers(groupNum);
+		Map<String, Object> memberMap = new HashMap<>();
+		memberMap.put("isMeLeader", isMeLeader);
+		memberMap.put("members", list);
+		
+		return memberMap;
+	}
+	
+	@Transactional
+	public void kickMember(Long groupNum, Long currentMemberNum, Long targetMemberNum) {
+		int result = dao.kickMember(groupNum, currentMemberNum, targetMemberNum);
+		if (result == 0) {
+			throw new IllegalStateException("대상을 강퇴할 권한이 없습니다.");
+		}
+	}
+	
+	@Transactional
+	public void transferLeader(Long groupNum, Long currentMemberNum, Long targetMemberNum) {
+		int removed = dao.removeLeader(groupNum, currentMemberNum);
+		if (removed == 0) {
+			throw new IllegalStateException("방장 권한이 없습니다.");
+		}
+		int granted = dao.grantLeader(groupNum, targetMemberNum);
+		if (granted == 0) {
+			throw new IllegalStateException("위임 대상이 유효하지 않습니다.");
 		}
 	}
 	
