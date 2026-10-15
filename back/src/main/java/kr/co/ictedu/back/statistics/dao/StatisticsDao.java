@@ -1,3 +1,4 @@
+//김진규
 package kr.co.ictedu.back.statistics.dao;
 
 import java.util.List;
@@ -25,7 +26,7 @@ public interface StatisticsDao {
     List<Map<String, Object>> selectHistoryStatistics(
     		@Param("memberNum") Long memberNum);
 
-    //  최근 카테고리별 평균 점수 조회
+    //  최근 카테고리별 통계 점수 조회
     List<Map<String, Object>> selectCategoryStatisticsList(
     		@Param("memberNum") Long memberNum);
 

@@ -1,3 +1,4 @@
+//김진규
 package kr.co.ictedu.back.point.controller;
 
 import java.sql.Date;
@@ -7,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.co.ictedu.back.point.service.PointService;
 import kr.co.ictedu.back.point.vo.PointVO;
 
@@ -14,7 +16,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-
+@Tag(name = "포인트 API", description = "포인트 결제 API")
 @RestController
 @RequestMapping("/api/point")
 @CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
