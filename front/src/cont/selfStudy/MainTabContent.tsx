@@ -1,6 +1,7 @@
 import React from 'react';
 import { Quiz, MainTabType } from './types';
 import styles from './selfstudy.module.css';
+import FocusButton from '../focusButton/FocusButton';
 
 interface Props {
   onSubmit: () => void;
@@ -41,6 +42,7 @@ export const MainTabContent: React.FC<Props> = ({
           >
             오답노트 {wrongNotes.length > 0 && <span className={styles.badgeCount}>{wrongNotes.length}</span>}
           </button>
+          <FocusButton />
         </div>
 
         <button 
