@@ -213,7 +213,7 @@ export interface MemberData {
     nickname: string;
     name: string;
     avatarUrl: string;
-    isLeader: boolean;
+    is_leader: number;
 }
 
 /* Memo 컴포넌트 군 관련 API */

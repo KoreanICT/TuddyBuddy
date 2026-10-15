@@ -116,7 +116,6 @@ export const Detail_MemoBoard: React.FC<MemoBoardProps> = ({ memos, onInsert, on
                             }
                             onInsert={onInsert}
                             onUpdate={onUpdate}
-                            onDelete={onDelete}
                             onCancelDraft={onCancelDraft}
                             onCrumpleComplete={handleCrumpleComplete}
                         />
