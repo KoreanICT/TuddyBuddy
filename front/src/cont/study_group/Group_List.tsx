@@ -5,6 +5,7 @@ import { TagItem } from './GroupAPI';
 import axios from 'axios';
 import { NavLink } from 'react-router-dom';
 import { getFirstLetter } from './GroupAPI';
+import { useAuth } from '../../login/hooks/useAuth';
 interface GroupPublicProps {
     mode: 'my' | 'public';
     searchType: 'name' | 'tag';
@@ -50,22 +51,57 @@ export interface PublicGroupListItem {
 
 export const Group_List: React.FC<GroupPublicProps> = ({ mode, searchType, searchTerm, onEnterGroup }) => {
     const [groups, setGroups] = useState<GroupListItem[]>([]);
+    const [mygroups, setMygroups] = useState<GroupListItem[]>([]);
     const [loading, setLoading] = useState(false);
+
+    const { memberNum } = useAuth();
 
     useEffect(() => {
         const loadGroups = async () => {
-            try {
-                setLoading(true);
-                const data = mode === 'my' ? await getMyGroups() : await getPublicGroups();
-                setGroups(data);
-            } catch (error) {
-                console.error('스터디룸 조회 실패', error)
-            } finally {
-                setLoading(false);
+
+            if (mode==='my') {
+                try {
+                    setLoading(true);
+                    const data = await getMyGroups();
+                    setMygroups(data);
+                } catch (error) {
+                    console.error('스터디룸 조회 실패', error)
+                } finally {
+                    setLoading(false);
+                }
+            } else if (mode === 'public') {
+                try {
+                    setLoading(true);
+                    const data = await getPublicGroups();
+                    setGroups(data);
+                } catch (error) {
+                    console.error('스터디룸 조회 실패', error)
+                } finally {
+                    setLoading(false);
+                }
             }
+            // try {
+            //     setLoading(true);
+                
+                
+            // } catch (error) {
+            //     console.error('스터디룸 조회 실패', error)
+            // } finally {
+            //     setLoading(false);
+            // }
         };
         loadGroups();
     }, [mode]);
+
+
+    // const data = mode === 'my' ? (
+                    
+    //                 setMygroups(data);
+    //             ) : (
+    //                 await getPublicGroups();
+    //                 setGroups(data);
+    //             )
+
 
     const filteredGroups = groups.filter(group => {
         if (!searchTerm.trim()) {
@@ -82,7 +118,7 @@ export const Group_List: React.FC<GroupPublicProps> = ({ mode, searchType, searc
     // 내 스터디룸
     const getMyGroups = async (): Promise<GroupListItem[]> => {
         const response = await axios.get(
-            `http://localhost/back/api/group/getmyrooms`
+            `http://localhost/back/api/group/getmyrooms/${memberNum}`
         );
 
         return response.data;
@@ -90,7 +126,7 @@ export const Group_List: React.FC<GroupPublicProps> = ({ mode, searchType, searc
     // 공개 스터디룸
     const getPublicGroups = async (): Promise<GroupListItem[]> => {
         const response = await axios.get(
-            `http://localhost/back/api/group/getpublicrooms`
+            `http://localhost/back/api/group/getpublicrooms/${memberNum}`
         );
 
         return response.data;

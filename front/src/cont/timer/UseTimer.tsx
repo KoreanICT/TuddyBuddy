@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { TimerEngine } from './TimerEngine';
 import { TimerSession, TimerSummary } from './types';
+import { timerApi } from './timerApi';
 
 const STORAGE_KEY = 'selfstudy_timer_sessions';
 
@@ -30,37 +31,10 @@ export function UseTimer() {
     setSnapshot(engine.current.snapshot(Date.now()));
   }, []);
 
-  // 브라우저에 저장된 학습 기록 조회
-  const readSessions = useCallback((): TimerSession[] => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-
-    if (!stored) {
-      return [];
-    }
-
-    const parsed: unknown = JSON.parse(stored);
-
-    if (!Array.isArray(parsed)) {
-      throw new Error('저장된 타이머 기록 형식이 올바르지 않습니다.');
-    }
-
-    return parsed as TimerSession[];
-  }, []);
-
-  // 누적 학습 시간 계산
+  // DB에 저장된 누적 학습 기록 조회
   const refresh = useCallback(async () => {
-    const sessions = readSessions();
-
-    const totalTimeSeconds = sessions.reduce(
-      (sum, item) => sum + item.totalTimeSeconds,
-      0
-    );
-
-    setSummary({
-      totalTimeSeconds,
-      sessions,
-    });
-  }, [readSessions]);
+    setSummary(await timerApi.summary());
+  }, []);
 
   // 최초 실행 시 저장된 기록 조회
   useEffect(() => {
@@ -117,47 +91,51 @@ export function UseTimer() {
     };
   }, []);
 
-  // 타이머 시작
-  const start = async (minutes: number) => {
-    if (lock.current) return;
+ // 타이머 시작
+const start = async (minutes: number) => {
+  if (lock.current) return;
 
-    lock.current = true;
-    setBusy(true);
-    setError('');
+  lock.current = true;
+  setBusy(true);
+  setError('');
 
-    try {
-      if (
-        !Number.isInteger(minutes) ||
-        minutes < 1 ||
-        minutes > 240
-      ) {
-        throw new Error('목표 시간은 1~240분입니다.');
-      }
-
-      const state = engine.current.snapshot(Date.now()).status;
-
-      if (state !== 'idle' && state !== 'saved') {
-        throw new Error('현재 기록을 먼저 저장해주세요.');
-      }
-
-      engine.current.start(minutes, Date.now());
-
-      minutesRef.current = minutes;
-
-      // 서버 세션 생성 없이 클라이언트에서 시작
-      setSession(null);
-      update();
-
-    } catch (e) {
-      setError(
-        e instanceof Error ? e.message : '시작 실패'
-      );
-
-    } finally {
-      lock.current = false;
-      setBusy(false);
+  try {
+    if (
+      !Number.isInteger(minutes) ||
+      minutes < 1 ||
+      minutes > 240
+    ) {
+      throw new Error('목표 시간은 1~240분입니다.');
     }
-  };
+
+    const state = engine.current.snapshot(Date.now()).status;
+
+    if (state !== 'idle' && state !== 'saved') {
+      throw new Error('현재 기록을 먼저 저장해주세요.');
+    }
+
+    // 서버에 타이머 세션 생성
+    const createdSession = await timerApi.create(minutes);
+
+    // 서버에서 생성한 세션 ID 보관
+    setSession(createdSession);
+
+    // 타이머 시간은 클라이언트에서 관리
+    engine.current.start(minutes, Date.now());
+
+    minutesRef.current = minutes;
+    update();
+
+  } catch (e) {
+    setError(
+      e instanceof Error ? e.message : '시작 실패'
+    );
+
+  } finally {
+    lock.current = false;
+    setBusy(false);
+  }
+};
 
   // 일시정지
   const pause = () => {
@@ -191,7 +169,7 @@ export function UseTimer() {
     }
   };
 
-  // 종료 후 localStorage에 학습 기록 저장
+  // 종료 후 DB에 학습 기록 저장
   const finish = async () => {
     if (lock.current) return;
 
@@ -214,36 +192,10 @@ export function UseTimer() {
 
       update();
 
-      // 모든 학습 구간의 밀리초를 합산한 뒤 초 단위로 변환
-      const totalTimeSeconds = Math.floor(
-        intervals.reduce((sum, interval) => {
-          const startedAt = Date.parse(interval.startedAt);
-          const endedAt = Date.parse(interval.endedAt);
-
-          if (
-            !Number.isFinite(startedAt) ||
-            !Number.isFinite(endedAt)
-          ) {
-            throw new Error('학습 시간 데이터가 올바르지 않습니다.');
-          }
-
-          return sum + Math.max(0, endedAt - startedAt);
-        }, 0) / 1000
-      );
-
-      const sessions = readSessions();
-
-      const savedSession: TimerSession = {
-        timerSessionId: Date.now(),
-        setTimeMinutes: minutesRef.current,
-        totalTimeSeconds,
-      };
-
-      // 저장에 성공해야 엔진 상태를 saved로 변경
-      localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify([...sessions, savedSession])
-      );
+      if (!session) {
+        throw new Error('서버 타이머 세션이 없습니다. 새 타이머를 시작해주세요.');
+      }
+      const savedSession = await timerApi.save(session.timerSessionId, intervals);
 
       engine.current.saved();
       setSession(savedSession);

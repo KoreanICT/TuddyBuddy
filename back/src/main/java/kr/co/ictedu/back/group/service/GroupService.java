@@ -149,10 +149,7 @@ public class GroupService {
 		
 		return groupNum;
 	}
-	public List<GroupListDTO> getGroups(Long memberNum) {
-		List<GroupListDTO> list = dao.getGroups(memberNum);
-		return list;
-	}
+
 
 	public List<GroupListDTO> getMyGroups(Long memberNum) {
 		Map<String, Object> params = new HashMap<>();

@@ -62,17 +62,6 @@
 		(#{group_num}, #{member_num}, #{is_leader})
 	</insert>
 
-	<select id="getGroups" parameterType="Long" resultType="grouplistdto">
-		SELECT g.group_num, g.group_title, g.group_desc, g.group_isPrivate,
-		g.group_maxMembers, g.group_thumbnail, g.group_invitecode, g.created_at,
-		gm.is_leader,
-		(SELECT count(*) FROM group_member gm2 WHERE gm2.group_num =
-		g.group_num) AS current_members
-		FROM studygroup g JOIN group_member gm ON g.group_num = gm.group_num
-		where gm.member_num = #{member_num}
-		ORDER BY created_at desc
-	</select>
-
 	<select id="findGroupByInviteCode" resultType="groupvo">
 		SELECT group_num, group_title, group_desc, group_isPrivate, group_maxMembers, group_thumbnail,group_invitecode, created_at 
 		FROM studygroup

@@ -1,7 +1,8 @@
 // 주용현
 
 import axios from 'axios';
-import React, { useEffect, useState } from 'react';
+import { useAuth } from '../../../login/hooks/useAuth';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import styles from './report.module.css';
 
@@ -22,6 +23,11 @@ interface ReportVO {
 const ReportDetail: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
+    const { token } = useAuth();
+
+    const getAuthHeaders = useCallback(() => ({
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+    }), [token]);
 
     const [report, setReport] = useState<ReportVO | null>(null);
     const [status, setStatus] = useState<ReportStatus>('PENDING');
@@ -46,7 +52,7 @@ const ReportDetail: React.FC = () => {
 
                 const response = await axios.get<ReportVO>(
                     'http://localhost:80/back/api/report/reportDetail',
-                    { params: { num: id } }
+                    { headers: getAuthHeaders(), params: { num: id } }
                 );
 
                 if (!active) return;
@@ -69,7 +75,7 @@ const ReportDetail: React.FC = () => {
         return () => {
             active = false;
         };
-    }, [id]);
+    }, [id, getAuthHeaders]);
 
     // =========================
     // 신고 상태 출력
@@ -112,7 +118,8 @@ const ReportDetail: React.FC = () => {
 
             const response = await axios.put(
                 'http://localhost:80/back/api/report/reportStatusUpdate',
-                formData
+                formData,
+                { headers: getAuthHeaders() }
             );
 
             console.log('신고 상태 수정:', response.data);

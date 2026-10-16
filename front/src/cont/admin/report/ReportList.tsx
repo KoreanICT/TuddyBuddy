@@ -2,7 +2,8 @@
 // 주용현, 이주화
 
 import axios from 'axios';
-import React, { useEffect, useMemo, useState } from 'react';
+import { useAuth } from '../../../login/hooks/useAuth';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import styles from './report.module.css';
@@ -34,6 +35,11 @@ const COLORS = ['#0d6efd', '#198754', '#ffc107', '#dc3545', '#6c757d', '#6610f2'
 
 const ReportList: React.FC = () => {
     const navigate = useNavigate();
+    const { token } = useAuth();
+
+    const getAuthHeaders = useCallback(() => ({
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+    }), [token]);
 
     const [reportList, setReportList] = useState<ReportVO[]>([]);
     const [totalItems, setTotalItems] = useState(0);
@@ -67,7 +73,7 @@ const ReportList: React.FC = () => {
 
                 const response = await axios.get<ReportListResponse>(
                     'http://localhost:80/back/api/report/reportList',
-                    { params }
+                    { headers: getAuthHeaders(), params }
                 );
 
                 if (!active) return;
@@ -102,7 +108,7 @@ const ReportList: React.FC = () => {
         return () => {
             active = false;
         };
-    }, [currentPage, statusFilter]);
+    }, [currentPage, statusFilter, getAuthHeaders]);
 
     // =========================
     // 신고 유형별 시각화

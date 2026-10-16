@@ -143,4 +143,17 @@ public class GroupDetailService {
 			throw new RuntimeException("썸네일 저장에 실패했습니다.", e);
 		}
 	}
+	
+	public void groupQuit(Long groupNum, Long memberNum) {
+		dao.groupQuit(groupNum, memberNum);
+	}
+	
+	public void deleteGroup(Long groupNum, Long memberNum) {
+		int isMeLeader = dao.getIsMeLeader(groupNum, memberNum);
+		if (isMeLeader == 1) {
+			dao.deleteGroup(groupNum);
+		} else {
+			throw new IllegalStateException("방장 권한이 없습니다.");
+		}
+	}
 }

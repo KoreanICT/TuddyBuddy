@@ -81,4 +81,12 @@
 			AND gm.member_num = #{current_member_num}
 			AND gm.is_leader = 1)
 	</delete>
+	
+	<delete id="groupQuit">
+		DELETE FROM group_member WHERE member_num = #{member_num} AND group_num = #{group_num}
+	</delete>
+	
+	<delete id="deleteGroup">
+		DELETE FROM studygroup WHERE group_num = #{group_num}
+	</delete>
 </mapper>

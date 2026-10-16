@@ -17,20 +17,21 @@ export const Group_Sidebar: React.FC<GroupSidebarProps> = ({
         <aside className={styles.study_sidebar_container}>
             {/* 1. 메뉴 둥근 사각형 박스 (3가지 메뉴만 포함) */}
             <nav className={styles.study_menu_box}>
-                <button
-                    className={`${styles.study_menu_button} ${currentTab === 'my' ? `${styles.active}` : ''}`}
-                    onClick={() => onTabChange('my')}
-                >
-                    내 스터디룸
-                </button>
-
-                <div className={styles.study_menu_divider} />
 
                 <button
                     className={`${styles.study_menu_button} ${currentTab === 'public' ? `${styles.active}` : ''}`}
                     onClick={() => onTabChange('public')}
                 >
                     공개된 스터디룸
+                </button>
+
+                <div className={styles.study_menu_divider} />
+
+                <button
+                    className={`${styles.study_menu_button} ${currentTab === 'my' ? `${styles.active}` : ''}`}
+                    onClick={() => onTabChange('my')}
+                >
+                    내 스터디룸
                 </button>
 
                 <div className={styles.study_menu_divider} />

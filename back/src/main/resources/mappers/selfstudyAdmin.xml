@@ -1,79 +1,84 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-    "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <!--최솔-->
 <mapper namespace="kr.co.ictedu.back.selfstudy.dao.SelfStudyAdminDao">
 
-    <!-- 관리자 전체 카테고리 조회 -->
-    <select id="selectAllCategories" resultType="categoryVO">
-        SELECT category_id, category_name, category_status
-        FROM categories
-        ORDER BY category_id
-    </select>
+	<!-- 관리자 전체 카테고리 조회 -->
+	<select id="selectAllCategories" resultType="categoryVO">
+		SELECT category_id, category_name, category_status
+		FROM categories
+		ORDER BY category_id
+	</select>
 
-    <!-- 카테고리 등록 -->
-    <insert id="insertCategory" parameterType="categoryVO">
-        INSERT INTO categories (category_name, category_status)
-        VALUES (#{category_name}, 'Y')
-    </insert>
+	<!-- 카테고리 등록_admin -->
+	<insert id="insertCategory" parameterType="categoryVO">
+		INSERT INTO categories (
+		category_id,
+		category_name,
+		category_status
+		)
+		VALUES (
+		seq_categories.NEXTVAL,
+		#{category_name},
+		'Y'
+		)
+	</insert>
 
-    <!-- 카테고리 이름 수정 -->
-    <update id="updateCategoryName" parameterType="categoryVO">
-        UPDATE categories
-        SET category_name = #{category_name}
-        WHERE category_id = #{category_id}
-    </update>
+	<!-- 카테고리 이름 수정 -->
+	<update id="updateCategoryName" parameterType="categoryVO">
+		UPDATE categories
+		SET category_name = #{category_name}
+		WHERE category_id = #{category_id}
+	</update>
 
-    <!-- 카테고리 상태 변경 -->
-    <update id="updateCategoryStatus">
-        UPDATE categories
-        SET category_status = #{status}
-        WHERE category_id = #{categoryId}
-    </update>
+	<!-- 카테고리 상태 변경 -->
+	<update id="updateCategoryStatus">
+		UPDATE categories
+		SET category_status = #{status}
+		WHERE category_id = #{categoryId}
+	</update>
 
-    <!-- 관리자 전체 과목 조회 -->
-    <select id="selectAllSubjects" resultType="subjectVO">
-        SELECT
-            subject_id,
-            category_id,
-            subject_name,
-            subject_status,
-            usage_count,
-            created_at
-        FROM subjects
-        ORDER BY category_id, subject_id
-    </select>
+	<!-- 관리자 전체 과목 조회 -->
+	<select id="selectAllSubjects" resultType="subjectVO">
+		SELECT
+		subject_id,
+		category_id,
+		subject_name,
+		subject_status,
+		usage_count,
+		created_at
+		FROM subjects
+		ORDER BY category_id, subject_id
+	</select>
 
-    <!-- 과목 등록 -->
-    <insert id="insertSubject" parameterType="subjectVO">
-        INSERT INTO subjects (
-            category_id,
-            subject_name,
-            subject_status,
-            usage_count,
-            created_at
-        )
-        VALUES (
-            #{category_id},
-            #{subject_name},
-            'Y',
-            0,
-            SYSDATE
-        )
-    </insert>
+	<!-- 과목 등록 -->
+	<insert id="insertSubject" parameterType="subjectVO">
+		INSERT INTO subjects (
+		subject_id,
+		category_id,
+		subject_name,
+		subject_status
+		)
+		VALUES (
+		seq_subjects.NEXTVAL,
+		#{category_id},
+		#{subject_name},
+		'Y'
+		)
+	</insert>                                
 
-    <!-- 과목 이름 수정 -->
-    <update id="updateSubjectName" parameterType="subjectVO">
-        UPDATE subjects
-        SET subject_name = #{subject_name}
-        WHERE subject_id = #{subject_id}
-    </update>
+	<!-- 과목 이름 수정 -->
+	<update id="updateSubjectName" parameterType="subjectVO">
+		UPDATE subjects
+		SET subject_name = #{subject_name}
+		WHERE subject_id = #{subject_id}
+	</update>
 
-    <!-- 과목 상태 변경 -->
-    <update id="updateSubjectStatus">
-        UPDATE subjects
-        SET subject_status = #{status}
-        WHERE subject_id = #{subjectId}
-    </update>
+	<!-- 과목 상태 변경 -->
+	<update id="updateSubjectStatus">
+		UPDATE subjects
+		SET subject_status = #{status}
+		WHERE subject_id = #{subjectId}
+	</update>
 
 </mapper>

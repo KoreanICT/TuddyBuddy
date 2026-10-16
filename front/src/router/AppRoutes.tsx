@@ -54,6 +54,8 @@ const AppRoutes: React.FC = () => {
     const isAuth = pathname.startsWith("/auth");
 
     const routeList: RouteItem[] = [
+
+        // contents
         { path: '/community', element: <Community /> },
 
         { path: '/group', element: <Group_Home /> },
@@ -77,6 +79,7 @@ const AppRoutes: React.FC = () => {
         { path: "/notice", element: <NoticeList /> },
         { path: "/notice/:num", element: <NoticeDetail /> },
 
+        // admin
         { path: "/admin", element: <AdminHome /> },
         { path: "/admin/memberManagement", element: <MemberManagement /> },
         { path: "/admin/boardManagement", element: <BoardManagement /> },
@@ -94,6 +97,7 @@ const AppRoutes: React.FC = () => {
         { path: '/auth/signup', element: <Signup /> },
         { path: '/auth/kakao/callback', element: <KakaoCallback /> },
         { path: '/auth/mypage', element: <MyPage /> },
+        
         { path: '/point_history', element: <PointHistory /> },
         { path: '/member_edit', element: <Member_Edit /> },
         { path: '/auth/kakao/signup', element: <KakaoSignup /> },

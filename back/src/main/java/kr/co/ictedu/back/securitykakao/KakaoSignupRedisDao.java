@@ -16,6 +16,7 @@ public class KakaoSignupRedisDao {
 
     private static final String KEY_PREFIX = "kakao:signup:";
     private static final Duration EXPIRE_TIME = Duration.ofMinutes(10);
+    private static final String DATA_PREFIX = "v2:";
 
     private final StringRedisTemplate redisTemplate;
     private final SecureRandom secureRandom = new SecureRandom();
@@ -24,10 +25,18 @@ public class KakaoSignupRedisDao {
         this.redisTemplate = redisTemplate;
     }
 
+    // 카카오 가입정보
+    public record SignupInfo(String kakaoId, String email) {
+    }
+
     // ==========================================
     // 1. 가입용 임시 토큰 생성 및 저장
     // ==========================================
-    public String createSignupToken(String kakaoId) {
+    public String createSignupToken(String kakaoId, String email) {
+
+        if (kakaoId == null || kakaoId.isBlank()) {
+            throw new IllegalArgumentException("카카오 ID가 없습니다.");
+        }
 
         byte[] randomBytes = new byte[32];
         secureRandom.nextBytes(randomBytes);
@@ -38,10 +47,19 @@ public class KakaoSignupRedisDao {
 
         String key = createRedisKey(token);
 
-        // 토큰 자체는 저장하지 않고 해시값을 키로 사용
+        String normalizedEmail = email == null
+                ? ""
+                : email.trim().toLowerCase(java.util.Locale.ROOT);
+
+        // 카카오 ID와 카카오 제공 이메일을 함께 저장
+        String data = DATA_PREFIX
+                + encode(kakaoId)
+                + ":"
+                + encode(normalizedEmail);
+
         redisTemplate.opsForValue().set(
                 key,
-                kakaoId,
+                data,
                 EXPIRE_TIME
         );
 
@@ -49,36 +67,119 @@ public class KakaoSignupRedisDao {
     }
 
     // ==========================================
-    // 2. 토큰에 연결된 카카오 ID 조회
+    // 2. 가입정보 조회
+    // ==========================================
+    public SignupInfo getSignupInfo(String token) {
+
+        if (token == null || token.isBlank()) {
+            return null;
+        }
+
+        String data = redisTemplate.opsForValue().get(
+                createRedisKey(token)
+        );
+
+        return parseSignupInfo(data);
+    }
+
+    // ==========================================
+    // 3. 기존 카카오 ID 조회 기능 유지
     // ==========================================
     public String getKakaoId(String token) {
 
+        SignupInfo info = getSignupInfo(token);
+
+        return info == null ? null : info.kakaoId();
+    }
+
+    // ==========================================
+    // 4. 카카오 이메일 조회
+    // ==========================================
+    public String getKakaoEmail(String token) {
+
+        SignupInfo info = getSignupInfo(token);
+
+        return info == null ? null : info.email();
+    }
+
+    // ==========================================
+    // 5. 가입정보 일회성 소비
+    // ==========================================
+    public SignupInfo consumeSignupInfo(String token) {
+
         if (token == null || token.isBlank()) {
             return null;
         }
 
-        return redisTemplate.opsForValue().get(
-                createRedisKey(token)
-        );
+        // 읽기와 삭제를 원자적으로 수행
+        String data = redisTemplate.opsForValue()
+                .getAndDelete(createRedisKey(token));
+
+        return parseSignupInfo(data);
     }
 
     // ==========================================
-    // 3. 토큰을 한 번만 사용하도록 소비
+    // 6. 기존 토큰 소비 기능 유지
     // ==========================================
     public String consumeSignupToken(String token) {
 
-        if (token == null || token.isBlank()) {
+        SignupInfo info = consumeSignupInfo(token);
+
+        return info == null ? null : info.kakaoId();
+    }
+
+    // ==========================================
+    // 7. Redis 데이터 해석
+    // ==========================================
+    private SignupInfo parseSignupInfo(String data) {
+
+        if (data == null || data.isBlank()) {
             return null;
         }
 
-        // Redis GETDEL: 읽으면서 삭제하는 원자적 연산
-        return redisTemplate.opsForValue().getAndDelete(
-                createRedisKey(token)
+        // 이전 방식으로 저장된 토큰도 지원
+        if (!data.startsWith(DATA_PREFIX)) {
+            return new SignupInfo(data, "");
+        }
+
+        String[] parts = data.substring(
+                DATA_PREFIX.length()
+        ).split(":", -1);
+
+        if (parts.length != 2) {
+            throw new IllegalStateException(
+                    "카카오 가입정보 형식이 올바르지 않습니다."
+            );
+        }
+
+        return new SignupInfo(
+                decode(parts[0]),
+                decode(parts[1])
         );
     }
 
     // ==========================================
-    // 4. 토큰 해시를 Redis 키로 변환
+    // 8. 가입정보 인코딩
+    // ==========================================
+    private String encode(String value) {
+
+        return Base64.getUrlEncoder()
+                .withoutPadding()
+                .encodeToString(
+                        value.getBytes(StandardCharsets.UTF_8)
+                );
+    }
+
+    private String decode(String value) {
+
+        return new String(
+                Base64.getUrlDecoder().decode(value),
+                StandardCharsets.UTF_8
+        );
+    }
+
+    // ==========================================
+    // 9. 토큰 해시를 Redis 키로 변환
     // ==========================================
     private String createRedisKey(String token) {
 
