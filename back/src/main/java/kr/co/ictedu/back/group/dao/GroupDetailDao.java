@@ -27,4 +27,6 @@ public interface GroupDetailDao {
 	int kickMember(@Param("group_num") Long groupNum, @Param("current_member_num") Long currentMemberNum, @Param("target_member_num") Long targetMemberNum);
 	int removeLeader(@Param("group_num") Long groupNum, @Param("current_member_num") Long currentMemberNum);
 	int grantLeader(@Param("group_num") Long groupNum, @Param("target_member_num") Long targetMemberNum);
+	void groupQuit(@Param("group_num") Long groupNum, @Param("member_num") Long memberNum);
+	void deleteGroup(@Param("group_num") Long groupNum);
 }
