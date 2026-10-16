@@ -1,7 +1,7 @@
 //작성자 : 오진석
 import React, { useEffect, useRef, useState } from 'react'
 import styles from './detail.module.css';
-import { TagItem, searchGroupTags, patchGroup, GroupUpdateRequest } from './GroupAPI';
+import api, { TagItem, searchGroupTags, patchGroup, GroupUpdateRequest } from './GroupAPI';
 import axios from 'axios';
 
 const PRESET_COLORS = ['#e2e8f0', '#fef08a', '#bbf7d0', '#c0f2ff', '#bfdbfe', '#fbcfe8', '#fed7aa'];
@@ -56,8 +56,8 @@ export const Group_EditModal: React.FC<GroupEditProps> = ({ groupNum, isOpen, on
 
         const loadEditData = async () => {
             try {
-                const response = await axios.get(
-                    `http://localhost/back/api/group/detail/${groupNum}/edit`
+                const response = await api.get(
+                    `/group/detail/${groupNum}/edit`
                 )
                 const data = response.data;
 
