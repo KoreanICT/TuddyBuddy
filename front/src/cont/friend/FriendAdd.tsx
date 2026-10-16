@@ -1,4 +1,5 @@
-// 주용현
+
+ // 주용현
 
 import axios from 'axios';
 import React, { useState } from 'react';
@@ -6,8 +7,8 @@ import { Search, UserRound, UserPlus, IdCard } from 'lucide-react';
 
 import styles from './friendAdd.module.css';
 import StudentCodeModal from './StudentCodeModal';
-import PublicAccount from './PublicAccount';
 import { useAuth } from '../../login/hooks/useAuth';
+import { useMyProfileInfo } from '../../login/hooks/myProfileInfo';
 
 interface MemberVO {
     member_num: number;
@@ -26,7 +27,8 @@ const FriendAdd: React.FC = () => {
     const [requestSent, setRequestSent] = useState(false);
 
     const { memberNum } = useAuth();
-    const myMemberCode = '8f3a2b7c-91d4-4e6a-b528-73c9d1f04a82';
+    const { profile, loading } = useMyProfileInfo();
+    const myMemberCode = profile?.member_code ?? '';
 
     // 회원 코드 검색
     const handleSearch = async () => {
@@ -74,6 +76,11 @@ const FriendAdd: React.FC = () => {
     // 친구 요청
     const handleAddFriend = async () => {
         if (!searchedMember || adding || requestSent) return;
+
+        if (memberNum == null) {
+            alert('로그인 정보가 없습니다.');
+            return;
+        }
 
         if (searchedMember.member_num === memberNum) {
             alert('자기 자신에게는 친구 요청을 보낼 수 없습니다.');
@@ -125,9 +132,15 @@ const FriendAdd: React.FC = () => {
                         <p>스터던트 코드로 친구를 찾아보세요.</p>
                     </div>
 
-                    <button type="button" className={styles.codeButton} onClick={() => setIsCodeOpen(true)}>
+                    {/* 내 회원 코드 */}
+                    <button
+                        type="button"
+                        className={styles.codeButton}
+                        onClick={() => setIsCodeOpen(true)}
+                        disabled={loading || !myMemberCode}
+                    >
                         <IdCard size={17} />
-                        내 코드
+                        {loading ? '조회 중...' : '내 코드'}
                     </button>
                 </div>
 
@@ -221,7 +234,6 @@ const FriendAdd: React.FC = () => {
                     </div>
                 )}
             </div>
-
 
             <StudentCodeModal
                 isOpen={isCodeOpen}
