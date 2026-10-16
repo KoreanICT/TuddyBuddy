@@ -90,10 +90,7 @@ const Login: React.FC = () => {
       client_id: clientId,
       redirect_uri: redirectUri,
       response_type: 'code',
-      state: state,
-
-      // 닉네임 정보 추가 동의 요청
-      scope: 'profile_nickname',
+      state: state
     });
 
 

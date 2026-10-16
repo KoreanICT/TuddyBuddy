@@ -16,281 +16,222 @@ import kr.co.ictedu.back.member.vo.MemberVO;
 @Service
 public class MemberService {
 
-    @Autowired
-    private MemberDAO memberDao;
+	@Autowired
+	private MemberDAO memberDao;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+	@Autowired
+	private PasswordEncoder passwordEncoder;
 
-    // ==========================================
-    // 일반 회원가입 (기존 기능)
-    // ==========================================
-    public void create(MemberVO vo) {
+	// ==========================================
+	// 일반 회원가입 (기존 기능)
+	// ==========================================
+	public void create(MemberVO vo) {
 
-        System.out.println("1");
+		System.out.println("1");
 
-        if (memberDao.countByEmail(vo.getMember_email()) > 0) {
-            throw new RuntimeException("이미 사용 중인 이메일입니다.");
-        }
+		if (memberDao.countByEmail(vo.getMember_email()) > 0) {
+			throw new RuntimeException("이미 사용 중인 이메일입니다.");
+		}
 
-        if (memberDao.countByNick(vo.getMember_nick()) > 0) {
-            throw new RuntimeException("이미 사용 중인 닉네임입니다.");
-        }
+		if (memberDao.countByNick(vo.getMember_nick()) > 0) {
+			throw new RuntimeException("이미 사용 중인 닉네임입니다.");
+		}
 
-        System.out.println("4");
+		System.out.println("4");
 
-        vo.setMember_pwd(
-            passwordEncoder.encode(vo.getMember_pwd())
-        );
+		vo.setMember_pwd(passwordEncoder.encode(vo.getMember_pwd()));
 
-        String memberCode = UUID.randomUUID().toString();
-        vo.setMember_code(memberCode);
+		String memberCode = UUID.randomUUID().toString();
+		vo.setMember_code(memberCode);
 
-        System.out.println("생성된 회원코드 : " + memberCode);
+		System.out.println("생성된 회원코드 : " + memberCode);
 
-        memberDao.insertMember(vo);
+		memberDao.insertMember(vo);
 
-        System.out.println("5");
-    }
+		System.out.println("5");
+	}
 
-    // ==========================================
-    // 카카오 회원가입 (추가)
-    // ==========================================
-    @Transactional
-    public MemberVO createKakaoMember(
-            String kakaoId,
-            String email,
-            String name,
-            String nick,
-            String phone) {
+	// ==========================================
+	// 카카오 회원가입 (추가)
+	// ==========================================
+	@Transactional
+	public MemberVO createKakaoMember(String kakaoId, String email, String name, String nick, String phone) {
 
-        // 1. 필수 정보 검사
-        if (kakaoId == null || kakaoId.isBlank()) {
-            throw new IllegalArgumentException(
-                "카카오 사용자 인증정보가 없습니다."
-            );
-        }
+		// 1. 필수 정보 검사
+		if (kakaoId == null || kakaoId.isBlank()) {
+			throw new IllegalArgumentException("카카오 사용자 인증정보가 없습니다.");
+		}
 
-        if (email == null || email.isBlank()
-                || name == null || name.isBlank()
-                || nick == null || nick.isBlank()
-                || phone == null || phone.isBlank()) {
+		if (email == null || email.isBlank() || name == null || name.isBlank() || nick == null || nick.isBlank()
+				|| phone == null || phone.isBlank()) {
 
-            throw new IllegalArgumentException(
-                "필수 정보를 모두 입력해주세요."
-            );
-        }
+			throw new IllegalArgumentException("필수 정보를 모두 입력해주세요.");
+		}
 
-        String normalizedEmail = email.trim().toLowerCase();
-        String normalizedName = name.trim();
-        String normalizedNick = nick.trim();
-        String normalizedPhone = phone.trim();
+		String normalizedEmail = email.trim().toLowerCase();
+		String normalizedName = name.trim();
+		String normalizedNick = nick.trim();
+		String normalizedPhone = phone.trim();
 
-        if (!Pattern.matches(
-                "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$",
-                normalizedEmail)) {
-            throw new IllegalArgumentException(
-                "올바른 이메일을 입력해주세요."
-            );
-        }
+		if (!Pattern.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$", normalizedEmail)) {
+			throw new IllegalArgumentException("올바른 이메일을 입력해주세요.");
+		}
 
-        // 2. 닉네임 유효성 검사
-        if (normalizedNick.length() < 2
-                || normalizedNick.length() > 12) {
+		// 2. 닉네임 유효성 검사
+		if (normalizedNick.length() < 2 || normalizedNick.length() > 12) {
 
-            throw new IllegalArgumentException(
-                "닉네임은 2~12자로 입력해주세요."
-            );
-        }
+			throw new IllegalArgumentException("닉네임은 2~12자로 입력해주세요.");
+		}
 
-        if (!Pattern.matches(
-                "^[가-힣a-zA-Z0-9]+$",
-                normalizedNick)) {
+		if (!Pattern.matches("^[가-힣a-zA-Z0-9]+$", normalizedNick)) {
 
-            throw new IllegalArgumentException(
-                "닉네임은 완성형 한글, 영문, 숫자만 사용할 수 있습니다."
-            );
-        }
+			throw new IllegalArgumentException("닉네임은 완성형 한글, 영문, 숫자만 사용할 수 있습니다.");
+		}
 
-        if (Pattern.matches("^[0-9]+$", normalizedNick)) {
-            throw new IllegalArgumentException(
-                "숫자로만 이루어진 닉네임은 사용할 수 없습니다."
-            );
-        }
+		if (Pattern.matches("^[0-9]+$", normalizedNick)) {
+			throw new IllegalArgumentException("숫자로만 이루어진 닉네임은 사용할 수 없습니다.");
+		}
 
-        String lowerNick = normalizedNick.toLowerCase();
+		String lowerNick = normalizedNick.toLowerCase();
 
-        if (List.of(
-                "관리자",
-                "운영자",
-                "admin",
-                "administrator"
-            ).contains(lowerNick)) {
+		if (List.of("관리자", "운영자", "admin", "administrator").contains(lowerNick)) {
 
-            throw new IllegalArgumentException(
-                "사용할 수 없는 닉네임입니다."
-            );
-        }
+			throw new IllegalArgumentException("사용할 수 없는 닉네임입니다.");
+		}
 
-        // 3. 기존 카카오 계정 확인
-        MemberVO existingMember =
-                memberDao.findBySocialLogin(
-                    "KAKAO",
-                    kakaoId
-                );
+		// 3. 기존 카카오 계정 확인
+		MemberVO existingMember = memberDao.findBySocialLogin("KAKAO", kakaoId);
 
-        if (existingMember != null) {
-            throw new IllegalArgumentException(
-                "이미 가입된 카카오 계정입니다."
-            );
-        }
+		if (existingMember != null) {
+			throw new IllegalArgumentException("이미 가입된 카카오 계정입니다.");
+		}
 
-        // 4. 이메일 중복 확인
-        if (memberDao.countByEmail(normalizedEmail) > 0) {
-            throw new IllegalArgumentException(
-                "이미 사용 중인 이메일입니다."
-            );
-        }
+		// 4. 이메일 중복 확인
+		if (memberDao.countByEmail(normalizedEmail) > 0) {
+			throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
+		}
 
-        // 5. 닉네임 중복 확인
-        if (memberDao.countByNick(normalizedNick) > 0) {
-            throw new IllegalArgumentException(
-                "이미 사용 중인 닉네임입니다."
-            );
-        }
+		// 5. 닉네임 중복 확인
+		if (memberDao.countByNick(normalizedNick) > 0) {
+			throw new IllegalArgumentException("이미 사용 중인 닉네임입니다.");
+		}
 
-        // 6. 카카오 회원 정보 생성
-        MemberVO vo = new MemberVO();
+		// 6. 카카오 회원 정보 생성
+		MemberVO vo = new MemberVO();
 
-        vo.setMember_email(normalizedEmail);
-        vo.setMember_name(normalizedName);
-        vo.setMember_nick(normalizedNick);
-        vo.setMember_phone(normalizedPhone);
+		vo.setMember_email(normalizedEmail);
+		vo.setMember_name(normalizedName);
+		vo.setMember_nick(normalizedNick);
+		vo.setMember_phone(normalizedPhone);
 
-        vo.setAuthority("MEMBER");
+		vo.setAuthority("MEMBER");
 
-        vo.setMember_login_type("KAKAO");
-        vo.setMember_social_id(kakaoId);
+		vo.setMember_login_type("KAKAO");
+		vo.setMember_social_id(kakaoId);
 
-        vo.setPoint(0);
+		vo.setPoint(0);
 
-        // 카카오 회원은 일반 로그인용 비밀번호가 없으므로
-        // 추측할 수 없는 임의 비밀번호를 BCrypt로 저장
-        vo.setMember_pwd(
-            passwordEncoder.encode(
-                UUID.randomUUID().toString()
-                + UUID.randomUUID().toString()
-            )
-        );
+		// 카카오 회원은 일반 로그인용 비밀번호가 없으므로
+		// 추측할 수 없는 임의 비밀번호를 BCrypt로 저장
+		vo.setMember_pwd(passwordEncoder.encode(UUID.randomUUID().toString() + UUID.randomUUID().toString()));
 
-        vo.setMember_code(
-            UUID.randomUUID().toString()
-        );
+		vo.setMember_code(UUID.randomUUID().toString());
 
-        // 7. Oracle DB 저장
-        memberDao.insertKakaoMember(vo);
+		// 7. Oracle DB 저장
+		memberDao.insertKakaoMember(vo);
 
-        // 8. 저장된 회원 조회
-        MemberVO savedMember =
-                memberDao.findBySocialLogin(
-                    "KAKAO",
-                    kakaoId
-                );
+		// 8. 저장된 회원 조회
+		MemberVO savedMember = memberDao.findBySocialLogin("KAKAO", kakaoId);
 
-        if (savedMember == null) {
-            throw new IllegalStateException(
-                "카카오 회원정보 저장 후 조회에 실패했습니다."
-            );
-        }
+		if (savedMember == null) {
+			throw new IllegalStateException("카카오 회원정보 저장 후 조회에 실패했습니다.");
+		}
 
-        System.out.println(
-            "===== 카카오 회원가입 완료 ====="
-        );
+		System.out.println("===== 카카오 회원가입 완료 =====");
 
-        System.out.println(
-            "회원번호: " + savedMember.getMember_num()
-        );
+		System.out.println("회원번호: " + savedMember.getMember_num());
 
-        return savedMember;
-    }
+		return savedMember;
+	}
 
-    // ==========================================
-    // 닉네임 중복 확인
-    // ==========================================
-    public int checkNick(String nick) {
-        return memberDao.countByNick(nick);
-    }
+	// ==========================================
+	// 닉네임 중복 확인
+	// ==========================================
+	public int checkNick(String nick) {
+		return memberDao.countByNick(nick);
+	}
 
-    // ==========================================
-    // 이메일로 회원 조회
-    // ==========================================
-    public MemberVO getMemberByEmail(String email) {
-        return memberDao.getMemberByEmail(email);
-    }
+	// ==========================================
+	// 이메일로 회원 조회
+	// ==========================================
+	public MemberVO getMemberByEmail(String email) {
+		return memberDao.getMemberByEmail(email);
+	}
 
-    // ==========================================
-    // 회원 정보 수정
-    // ==========================================
-    public int updateMember(MemberVO vo) {
-        return memberDao.updateMember(vo);
-    }
+	// ==========================================
+	// 회원 정보 수정
+	// ==========================================
+	public int updateMember(MemberVO vo) {
+		return memberDao.updateMember(vo);
+	}
 
-    // ==========================================
-    // 회원 탈퇴
-    // ==========================================
-    @Transactional
-    public boolean withdrawMember(Long mnum) {
+	// ==========================================
+	// 회원 탈퇴
+	// ==========================================
+	@Transactional
+	public boolean withdrawMember(Long mnum) {
 
-        int result = memberDao.deleteMember(mnum);
+		int result = memberDao.deleteMember(mnum);
 
-        System.out.println(
-            "deleteMember result = " + result
-        );
+		System.out.println("deleteMember result = " + result);
 
-        return result > 0;
-    }
+		return result > 0;
+	}
 
-    // ==========================================
-    // 회원 전체 조회
-    // ==========================================
-    public List<MemberVO> list(Map<String, String> map) {
-        return memberDao.memberList(map);
-    }
+	// ==========================================
+	// 회원 전체 조회
+	// ==========================================
+	public List<MemberVO> list(Map<String, String> map) {
+		return memberDao.memberList(map);
+	}
 
-    // ==========================================
-    // 회원 전체 수
-    // ==========================================
-    public int totalCount(Map<String, String> map) {
-        return memberDao.totalCount(map);
-    }
+	// ==========================================
+	// 회원 전체 수
+	// ==========================================
+	public int totalCount(Map<String, String> map) {
+		return memberDao.totalCount(map);
+	}
 
-    // ==========================================
-    // 선택된 회원 등급 변경
-    // ==========================================
-    public int updateGrade(Map<String, Object> param) {
-        return memberDao.updateGrade(param);
-    }
+	// ==========================================
+	// 선택된 회원 등급 변경
+	// ==========================================
+	public int updateGrade(Map<String, Object> param) {
+		return memberDao.updateGrade(param);
+	}
 
-    // ==========================================
-    // 이메일 중복 확인
-    // ==========================================
-    public int checkemail(String email) {
-        return memberDao.countByEmail(email);
-    }
+	// ==========================================
+	// 이메일 중복 확인
+	// ==========================================
+	public int checkemail(String email) {
+		return memberDao.countByEmail(email);
+	}
 
-    // ==========================================
-    // 회원 코드로 회원 검색
-    // ==========================================
-    public MemberVO findByMemberCode(String member_code) {
+	// 회원 코드로 회원 검색
+	public MemberVO findByMemberCode(String member_code) {
 
-        if (member_code == null || member_code.isBlank()) {
-            throw new IllegalArgumentException(
-                "회원 코드를 입력해주세요."
-            );
-        }
+		if (member_code == null || member_code.isBlank()) {
+			throw new IllegalArgumentException("회원 코드를 입력해주세요.");
+		}
 
-        return memberDao.findByMemberCode(
-            member_code.trim()
-        );
-    }
+		return memberDao.findByMemberCode(member_code.trim());
+	}
+
+	// 회원 번호로 회원 정보 상세 조회
+	public Map<String, Object> getMemberProfile(Long member_num) {
+		if (member_num == null || member_num <= 0) {
+			throw new IllegalArgumentException("회원 번호가 올바르지 않습니다.");
+		}
+
+		return memberDao.getMemberProfile(member_num);
+	}
 }
