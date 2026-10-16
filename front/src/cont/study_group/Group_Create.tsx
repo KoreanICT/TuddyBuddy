@@ -3,7 +3,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import styles from './detail.module.css';
 import { TagItem, searchGroupTags, GroupData } from './GroupAPI';
 import axios from 'axios';
-import { useAuth } from '../../login/hooks/useAuth';
 const PRESET_COLORS = ['#e2e8f0', '#fef08a', '#bbf7d0', '#c0f2ff', '#bfdbfe', '#fbcfe8', '#fed7aa'];
 
 interface GroupCreateModalProps {
@@ -36,7 +35,6 @@ export const Group_Create: React.FC<GroupCreateModalProps> = ({ isOpen, onClose,
 
     const [submitting, setSubmitting] = useState(false);
 
-    const { memberNum } = useAuth();
     
     useEffect(() => {
         const keyword = tagInput.trim();
@@ -74,7 +72,7 @@ export const Group_Create: React.FC<GroupCreateModalProps> = ({ isOpen, onClose,
             formData.append('thumbnail', thumbnail);
         }
         const response = await axios.post(
-            `http://localhost/back/group/add/${memberNum}`,
+            `http://localhost/back/api/group/add`,
             formData
         );
         return response.data.group_num;

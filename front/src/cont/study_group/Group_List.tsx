@@ -5,7 +5,6 @@ import { TagItem } from './GroupAPI';
 import axios from 'axios';
 import { NavLink } from 'react-router-dom';
 import { getFirstLetter } from './GroupAPI';
-import { useAuth } from '../../login/hooks/useAuth';
 interface GroupPublicProps {
     mode: 'my' | 'public';
     searchType: 'name' | 'tag';
@@ -54,7 +53,6 @@ export const Group_List: React.FC<GroupPublicProps> = ({ mode, searchType, searc
     const [mygroups, setMygroups] = useState<GroupListItem[]>([]);
     const [loading, setLoading] = useState(false);
 
-    const { memberNum } = useAuth();
 
     useEffect(() => {
         const loadGroups = async () => {
@@ -103,7 +101,7 @@ export const Group_List: React.FC<GroupPublicProps> = ({ mode, searchType, searc
     //             )
 
 
-    const filteredGroups = groups.filter(group => {
+    const filteredGroups = (mode === 'my' ? mygroups : groups).filter(group => {
         if (!searchTerm.trim()) {
             return true;
         }
@@ -118,7 +116,7 @@ export const Group_List: React.FC<GroupPublicProps> = ({ mode, searchType, searc
     // 내 스터디룸
     const getMyGroups = async (): Promise<GroupListItem[]> => {
         const response = await axios.get(
-            `http://localhost/back/api/group/getmyrooms/${memberNum}`
+            `http://localhost/back/api/group/getmyrooms`
         );
 
         return response.data;
@@ -126,7 +124,7 @@ export const Group_List: React.FC<GroupPublicProps> = ({ mode, searchType, searc
     // 공개 스터디룸
     const getPublicGroups = async (): Promise<GroupListItem[]> => {
         const response = await axios.get(
-            `http://localhost/back/api/group/getpublicrooms/${memberNum}`
+            `http://localhost/back/api/group/getpublicrooms`
         );
 
         return response.data;
