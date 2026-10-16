@@ -315,5 +315,42 @@
           AND member_social_id = #{socialId}
 
     </select>
+    
+        <!-- ===================================================== -->
+    <!-- 카카오 회원가입 -->
+    <!-- ===================================================== -->
+    <insert id="insertKakaoMember"
+            parameterType="mvo">
+
+        INSERT INTO member (
+            member_num,
+            member_email,
+            member_pwd,
+            member_name,
+            member_nick,
+            member_phone,
+            authority,
+            regdate,
+            member_code,
+            point,
+            member_login_type,
+            member_social_id
+        )
+        VALUES (
+            member_seq.NEXTVAL,
+            #{member_email, jdbcType=VARCHAR},
+            #{member_pwd, jdbcType=VARCHAR},
+            #{member_name, jdbcType=VARCHAR},
+            #{member_nick, jdbcType=VARCHAR},
+            #{member_phone, jdbcType=VARCHAR},
+            'MEMBER',
+            SYSDATE,
+            #{member_code, jdbcType=VARCHAR},
+            0,
+            'KAKAO',
+            #{member_social_id, jdbcType=VARCHAR}
+        )
+
+    </insert>
 
 </mapper>

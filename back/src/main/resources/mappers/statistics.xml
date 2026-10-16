@@ -8,18 +8,18 @@
 		SELECT c.CATEGORY_NAME FROM
 		CATEGORIES c, QUIZ_SESSIONS qs,SUBJECTS s,MEMBER m
 		WHERE c.CATEGORY_ID = s.CATEGORY_ID AND qs.SUBJECT_ID = s.SUBJECT_ID AND
-		qs.MEMBER_NUM = #{num}
+		qs.MEMBER_NUM = #{memberNum}
 	</select>
 
 	<!-- 세션id 조회 -->
 	<select id="selectSessionId_Statistics" resultType="long">
-		SELECT qs.SUBJECT_ID FROM
-		QUIZ_SESSIONS qs,MEMBER M
-		WHERE qs.MEMBER_NUM = #{num}
+		SELECT qs.QUIZ_SESSION_ID FROM
+	    QUIZ_SESSIONS qs, MEMBER M
+	    WHERE qs.MEMBER_NUM = #{memberNum}
 	</select>
 
 	<!-- 정답을 맞춘 문제 목록 조회 -->
-	<select id="selectIncorrectQuizzesByResultId" resultType="map">
+	<select id="selectIncorrectQuizzesByResultId_Statistics" resultType="map">
 		SELECT
 		q.quiz_id AS "quiz_id",
 		q.quiz_question AS "question",
@@ -68,7 +68,7 @@
 	</select>
 
 	<!-- 과목별 오답/학습 비중 조회 -->
-	<select id="selectSubjectShareStatistics" resultType="map"> SELECT
+	<select id="selectSubjectShareStatistics" resultType="map"> 
 			SELECT 
 			    s.SUBJECT_ID AS "subjectId",
 			    s.SUBJECT_NAME AS "name",
@@ -82,9 +82,23 @@
 			    ON qs.SUBJECT_ID = s.SUBJECT_ID
 			JOIN CATEGORIES c 
 			    ON s.CATEGORY_ID = c.CATEGORY_ID
-			WHERE qs.MEMBER_NUM = 1 
+			WHERE qs.MEMBER_NUM = #{memberNum} 
 			  AND qr.QUIZ_CORRECT = 'N'
-			GROUP BY s.SUBJECT_ID, s.SUBJECT_NAME;
+			GROUP BY s.SUBJECT_ID, s.SUBJECT_NAME
+	</select>
+	
+	<select id="selectResult"
+		resultType="selfStudyResultVO">
+
+		SELECT
+		selfstudy_results_id,
+		quiz_session_id,
+		member_num,
+		selfstudy_total_score,
+		submitted_at
+		FROM selfstudy_results
+		WHERE quiz_session_id = #{resultId}
+
 	</select>
 
 </mapper>

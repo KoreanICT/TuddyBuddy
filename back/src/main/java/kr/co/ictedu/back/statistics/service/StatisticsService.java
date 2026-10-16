@@ -20,6 +20,7 @@ import kr.co.ictedu.back.selfstudy.vo.QuizResponseVO;
 import kr.co.ictedu.back.selfstudy.vo.QuizVO;
 import kr.co.ictedu.back.selfstudy.vo.SelfStudyResultVO;
 import kr.co.ictedu.back.statistics.dao.StatisticsDao;
+import kr.co.ictedu.back.statistics.dto.LlmFeedbackResponseDTO;
 
 @Service
 public class StatisticsService {
@@ -44,28 +45,27 @@ public class StatisticsService {
 	 */
 	public Map<String, Object> selectStatistics(Long memberNum) {
 		// (1) LLM 데이터(피드백) 추출 메서드 호출
-		Map<String, Object> llmFeedback = getLlmFeedbackData(memberNum);
-
+		LlmFeedbackResponseDTO llmFeedback = getLlmFeedbackData(memberNum);
 		// (2) 차트 데이터 추출 메서드 호출
 		Map<String, Object> chartData = getChartData(memberNum);
-
+		System.out.println("chart데이터: " + chartData);
 		// (3) 두 데이터를 하나의 맵으로 묶어서 리액트로 반환
 		Map<String, Object> finalResult = new HashMap<>();
 		finalResult.put("chartData", chartData);
 		finalResult.put("llmFeedback", llmFeedback);
-
+		System.out.println("통합데이터: " + finalResult);
 		return finalResult;
 	}
 
 	/**
 	 * 2. DB 조인 쿼리를 활용한 LLM 피드백 데이터 추출 및 FastAPI 통신 메서드
 	 */
-	private Map<String, Object> getLlmFeedbackData(Long memberNum) {
+	private LlmFeedbackResponseDTO getLlmFeedbackData(Long memberNum) {
 		// (1) 세션 ID 추출
 		Long sessionId = statisticsDao.selectSessionId_Statistics(memberNum);
 
 		// (2) 학습 결과 단건 조회 (결과 존재 여부 검증 및 selfstudy_results_id 확보용)
-		SelfStudyResultVO result = selfStudyDao.selectResult(sessionId);
+		SelfStudyResultVO result = statisticsDao.selectResult(sessionId);
 		if (result == null) {
 			throw new IllegalArgumentException("존재하지 않는 학습 결과입니다.");
 		}
@@ -82,8 +82,12 @@ public class StatisticsService {
 
 		// (5) RestTemplate을 통해 FastAPI 서버로 POST 요청 전송
 		RestTemplate restTemplate = new RestTemplate();
+		LlmFeedbackResponseDTO llmFeedback = restTemplate.postForObject(fastapiUrl + "/requestPayload", requestPayload,
+				LlmFeedbackResponseDTO.class 
+		);
 
-		return restTemplate.postForObject(fastapiUrl+"/requestPayload", requestPayload, Map.class);
+		System.out.println("llm데이터 수신 성공: " + llmFeedback.getMentorComment());
+		return llmFeedback;
 	}
 
 	/**
@@ -94,32 +98,33 @@ public class StatisticsService {
 
 		// DB에서 실제 history 데이터 조회
 		List<Map<String, Object>> historyList = statisticsDao.selectHistoryStatistics(memberNum);
+		System.out.println("historyList : " + historyList);
 		chartData.put("history", historyList);
-		
+
 		Map<String, Object> prediction = prediction_llm(memberNum);
+		System.out.println("prediction : " + prediction);
 		chartData.put("prediction", prediction);
-		
+
 		// (3) DB에서 실제 subjectShare 데이터 조회
 		List<Map<String, Object>> subjectShareList = statisticsDao.selectSubjectShareStatistics(memberNum);
-
+		System.out.println("subjectShareList : " + subjectShareList);
 		chartData.put("subjectShare", subjectShareList);
 
 		return chartData;
 	}
-	
+
 	private Map<String, Object> prediction_llm(Long memberNum) {
 		// 카테고리별 통계점수
 		List<Map<String, Object>> categoryStatsList = statisticsDao.selectCategoryStatisticsList(memberNum);
 
 		// llm에 사용되어야함
 		/*
-			chartData.put("prediction", predictionList); 
-			prediction: [ 
-				{name: '최근 평균',score: 63.7, type: 'actual' }, 
-				{name: '다음 시험 예측', score: 82.0, type:'predict' }, 
-			]
+		 * chartData.put("prediction", predictionList); prediction: [ {name: '최근
+		 * 평균',score: 63.7, type: 'actual' }, {name: '다음 시험 예측', score: 82.0,
+		 * type:'predict' }, ]
 		 */
 		RestTemplate restTemplate = new RestTemplate();
-		return restTemplate.postForObject(fastapiUrl+"/prediction", categoryStatsList, Map.class);
+		return restTemplate.postForObject(fastapiUrl + "/prediction", categoryStatsList, Map.class);
 	}
+	
 }

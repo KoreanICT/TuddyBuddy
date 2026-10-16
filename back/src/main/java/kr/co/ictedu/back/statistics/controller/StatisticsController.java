@@ -23,6 +23,7 @@ public class StatisticsController {
 	
 	@PostMapping("/getCategories")
 	public List<String> getCategories(@RequestBody Map<String, Object> request) {		
+		System.out.println("카테고리 테스트"+(Number) request.get("memberNum"));
 	    Long memberNum = ((Number) request.get("memberNum")).longValue();
 	    List<String> categorieslist = statisticsService.selectCategories(memberNum);
 		return categorieslist;
@@ -30,8 +31,10 @@ public class StatisticsController {
 	
 	@PostMapping("/getStatistics")
 	public Map<String, Object> getStatistics(@RequestBody Map<String, Object> request) {
+		System.out.println("평가분석 테스트");
 		Long memberNum = ((Number) request.get("memberNum")).longValue();
 		Map<String, Object> statisticsMap = statisticsService.selectStatistics(memberNum);
+		System.out.println("statisticsMap: " + statisticsMap);
 		return statisticsMap;
 	}
 	

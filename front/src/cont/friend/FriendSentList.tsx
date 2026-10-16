@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 
 import styles from './friendSentList.module.css';
+import { useAuth } from '../../login/hooks/useAuth';
 
 interface FriendVO {
     num: number;
@@ -26,7 +27,7 @@ const FriendSentList: React.FC = () => {
     const [sentList, setSentList] = useState<FriendVO[]>([]);
 
     // TODO: 로그인 연결 후 실제 로그인 회원 번호 사용
-    const memberNum = 1;
+    const { memberNum } = useAuth();
 
     // 보낸 친구 요청 목록 조회
     const fetchSentList = async () => {

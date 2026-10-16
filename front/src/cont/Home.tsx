@@ -123,45 +123,6 @@ const Home: React.FC = () => {
           </div>
         </section>
 
-
-        {/* Section 3 : 교육 이슈 */}
-        <section className="section">
-          <div className={styles.sectionInner}>
-
-            <div className={styles.content}>
-
-              <span className={styles.eyebrow}>
-                교육 이야기
-              </span>
-
-              <h2 className={styles.title}>
-                지금 주목해야 할<br />
-                교육 이슈를 만나보세요.
-              </h2>
-
-              <p className={styles.description}>
-                교육과 학습에 관한 다양한 소식을
-                한곳에서 확인할 수 있어요.
-              </p>
-
-              <button className={styles.secondaryButton}>
-                교육 이슈 확인하기
-              </button>
-
-            </div>
-
-
-            <div className={styles.issueImage}>
-              <img
-                src="/images/eduIssue.png"
-                alt="교육 이슈와 관련된 정보"
-                className={styles.sectionImage}
-              />
-            </div>
-
-          </div>
-        </section>
-
         <footer className="section fp-auto-height">
           <div className={styles.footer}>
             <div className={styles.footerInner}>
