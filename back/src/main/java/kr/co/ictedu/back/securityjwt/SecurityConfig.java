@@ -1,6 +1,7 @@
 package kr.co.ictedu.back.securityjwt;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -21,6 +22,10 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @EnableWebSecurity
 @Configuration
 public class SecurityConfig {
+	
+	@Value("${security.value}")
+	private String myip;
+	
 	// JWT 토큰을 검증하는 필터
 	@Autowired
 	private JwtTokenFilter jwtTokenFilter;
@@ -79,7 +84,7 @@ public class SecurityConfig {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
         corsConfiguration.setAllowCredentials(true);
         corsConfiguration.setAllowedOrigins(// React 그러니까 개발 클라이언트 접속만 허용 
-        		List.of("http://192.168.0.45:3000", "http://localhost:3000" , "http://192.168.0.45:80")
+        		List.of("http://" +myip+ ":3000", "http://localhost:3000" , "http://"+myip+":80")
         		);
         corsConfiguration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         corsConfiguration.setAllowedHeaders(List.of("*"));

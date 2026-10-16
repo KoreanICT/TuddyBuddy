@@ -1,4 +1,3 @@
-
 package kr.co.ictedu.back.securityjwt;
 
 import java.security.Key;
@@ -66,12 +65,7 @@ public class JwtTokenProvider {
                 request.getHeader("Authorization");
 
         System.out.println(
-                "bearerToken 값 : " +
-                (StringUtils.hasText(bearerToken)
-                    ? "[Authorization 헤더 존재]"
-                    : "null")
-        );
-
+                "bearerToken 값 : " + (StringUtils.hasText(bearerToken) ? "[Authorization 헤더 존재]" : "null"));
         if (StringUtils.hasText(bearerToken)
                 && bearerToken.startsWith("Bearer ")) {
 
