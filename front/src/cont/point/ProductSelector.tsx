@@ -62,7 +62,7 @@ export const ProductSelector: React.FC<ProductSelectorProps> = ({ onSelectOrder 
       }
 
       // 3. 백엔드 사후 검증 호출
-      const verifyResponse = await fetch(`http://192.168.0.44/back/api/point/pointAdd`, {
+      const verifyResponse = await fetch(`http:// /back/api/point/pointAdd`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 

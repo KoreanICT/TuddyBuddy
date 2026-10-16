@@ -3,7 +3,12 @@ package kr.co.ictedu.back.statistics.dto;
 
 import java.util.List;
 
-public class LlmFeedbackResponseDTO {
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
+public class StatisticsDTO {
     private String mentorComment;
     private List<String> weaknesses;
     private List<String> consultingPath;
