@@ -97,6 +97,7 @@ public class KakaoAuthController {
 			// 3. 카카오 프로필 정보 추출
 			// ==========================================
 
+			// 컴파일 경고를 사용하지 않도록 설정해주는 것
 			@SuppressWarnings("unchecked")
 			Map<String, Object> kakaoAccount = kakaoUser.get("kakao_account") instanceof Map<?, ?>
 					? (Map<String, Object>) kakaoUser.get("kakao_account")
@@ -107,15 +108,46 @@ public class KakaoAuthController {
 					? (Map<String, Object>) kakaoAccount.get("profile")
 					: Map.of();
 
-			Map<String, String> kakaoProfile = Map.of(
+			// 카카오 이메일 추출
+			Object emailValue = kakaoAccount.get("email");
+			System.out.println("===== 카카오 이메일 제공 상태 =====");
 
-					"email", String.valueOf(kakaoAccount.getOrDefault("email", "")),
+			System.out.println(
+			    "이메일 동의 필요: "
+			    + kakaoAccount.get("account_email_needs_agreement")
+			);
 
-					"name", String.valueOf(kakaoAccount.getOrDefault("name", "")),
+			System.out.println(
+			    "이메일 제공 가능: "
+			    + kakaoAccount.get("is_email_valid")
+			);
 
-					"nickname", String.valueOf(profile.getOrDefault("nickname", "")),
+			System.out.println(
+			    "이메일 인증 여부: "
+			    + kakaoAccount.get("is_email_verified")
+			);
 
-					"phone", String.valueOf(kakaoAccount.getOrDefault("phone_number", "")));
+			System.out.println(
+			    "이메일 필드 존재: "
+			    + kakaoAccount.containsKey("email")
+			);
+
+			String kakaoEmail = emailValue instanceof String ? ((String) emailValue).trim() : "";
+
+			// 이름
+			String kakaoName = kakaoAccount.get("name") instanceof String ? (String) kakaoAccount.get("name") : "";
+
+			// 닉네임
+			String kakaoNickname = profile.get("nickname") instanceof String ? (String) profile.get("nickname") : "";
+
+			// 전화번호
+			String kakaoPhone = kakaoAccount.get("phone_number") instanceof String
+					? (String) kakaoAccount.get("phone_number")
+					: "";
+
+			// 프론트엔드에 전달할 정보
+			Map<String, String> kakaoProfile = Map.of("email", kakaoEmail, "name", kakaoName, "nickname", kakaoNickname,
+					"phone", kakaoPhone);
 
 			// ==========================================
 			// 4. 카카오 사용자 고유 ID 추출
@@ -161,7 +193,7 @@ public class KakaoAuthController {
 
 				// Redis에 가입용 임시 토큰 저장
 				// 유효기간 10분
-				String signupToken = kakaoSignupRedisDao.createSignupToken(kakaoId);
+				String signupToken = kakaoSignupRedisDao.createSignupToken(kakaoId,kakaoProfile.get("email"));
 
 				System.out.println("===== 카카오 가입용 임시 토큰 발급 성공 =====");
 

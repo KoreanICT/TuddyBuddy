@@ -397,3 +397,47 @@
   overflow-y: auto;
   padding: 20px;
 }
+/* 카카오 이메일 읽기 전용 input */
+.kakao-readonly-input {
+  background-color: #f3f4f6 !important;
+  border: 1px solid #d1d5db !important;
+  color: #374151 !important;
+  cursor: not-allowed;
+  font-weight: 500;
+  letter-spacing: 0.2px;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+/* 읽기 전용 느낌을 좀 더 강조 */
+.kakao-readonly-input:focus {
+  outline: none;
+  border-color: #cbd5e1 !important;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+/* 카카오 이메일 안내문 */
+.kakao-email-notice {
+  margin-top: 10px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #475569;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 작은 배지 */
+.kakao-email-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #fff7d6;
+  color: #7c5a00;
+  font-size: 11px;
+  font-weight: 700;
+  border: 1px solid #f6d365;
+  white-space: nowrap;
+}
