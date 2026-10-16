@@ -1,3 +1,4 @@
+
 // 주용현
 
 import axios from 'axios';
@@ -6,6 +7,7 @@ import { UserRound, Trash2, Users } from 'lucide-react';
 
 import styles from './friendList.module.css';
 import { useAuth } from '../../login/hooks/useAuth';
+import FriendMenu from './FriendMenu';
 
 interface FriendVO {
     num: number;
@@ -14,23 +16,64 @@ interface FriendVO {
     responsed_date: string;
     request_num: number;
     response_num: number;
+    member_nick?: string;
+}
+
+interface MemberProfile {
+    MEMBER_NICK: string;
+    MEMBER_CODE: string;
 }
 
 const FriendList: React.FC = () => {
     const [friends, setFriends] = useState<FriendVO[]>([]);
 
-    // !!! 로그인 연결 후 실제 로그인 회원 번호 사용
+    // 커스텀 훅에서 member_num 가져오기
     const { memberNum } = useAuth();
+
+
+    
+    // 상대방 회원 번호
+    const getFriendMemberNum = (friend: FriendVO) => {
+        const loginNum = Number(memberNum);
+        const requestNum = Number(friend.request_num);
+        const responseNum = Number(friend.response_num);
+
+        const friendNum = requestNum === loginNum ? responseNum : requestNum;
+
+        console.log('로그인 회원번호:', loginNum);
+        console.log('요청 회원번호:', requestNum);
+        console.log('응답 회원번호:', responseNum);
+        console.log('조회할 친구 회원번호:', friendNum);
+
+        return friendNum;
+    };
 
     // 친구 목록 조회
     const fetchFriendList = async () => {
+        if (memberNum == null) return;
+
         try {
             const urls = "http://localhost:80/back/api/friend/friendList";
-            const response = await axios.get(urls, {
+            const response = await axios.get<FriendVO[]>(urls, {
                 params: { member_num: memberNum }
             });
 
-            setFriends(response.data);
+            // 친구 회원 번호로 닉네임 조회
+            const friendProfiles = await Promise.all(response.data.map(async friend => {
+                try {
+                    const profileUrl = "http://localhost:80/back/api/member/memberProfile";
+                    const profile = await axios.get<MemberProfile>(profileUrl, {
+                        params: { member_num: getFriendMemberNum(friend) }
+                    });
+
+                    return { ...friend, member_nick: profile.data.MEMBER_NICK };
+                } catch (error) {
+                    console.error('친구 닉네임 조회 실패:', error);
+                    return { ...friend, member_nick: '알 수 없는 회원' };
+                }
+            }));
+
+            setFriends(friendProfiles);
         } catch (error) {
             console.error('친구 목록 조회 실패:', error);
             setFriends([]);
@@ -38,16 +81,20 @@ const FriendList: React.FC = () => {
     };
 
     useEffect(() => {
+        if (memberNum == null) {
+            setFriends([]);
+            return;
+        }
         fetchFriendList();
-    }, []);
-
-    // 상대방 회원 번호
-    const getFriendMemberNum = (friend: FriendVO) => {
-        return friend.request_num === memberNum ? friend.response_num : friend.request_num;
-    };
+    }, [memberNum]);
 
     // 친구 삭제
     const handleDeleteFriend = async (friendNum: number) => {
+        if (memberNum == null) {
+            alert('로그인 정보가 없습니다.');
+            return;
+        }
+
         const confirmed = window.confirm('친구를 삭제하시겠습니까?');
         if (!confirmed) return;
 
@@ -81,6 +128,9 @@ const FriendList: React.FC = () => {
                     </div>
                 </div>
 
+                {/* 친구 관리 메뉴 */}
+                <FriendMenu />
+
                 {/* Summary */}
                 <div className={styles.summary}>
                     <div className={styles.summaryItem}>
@@ -106,10 +156,8 @@ const FriendList: React.FC = () => {
                                     </div>
 
                                     <div className={styles.info}>
-                                        {/* TODO: 회원 정보 API 연결 후 loginId 출력 */}
-                                        <strong>회원 #{getFriendMemberNum(friend)}</strong>
-
-                                        {/* TODO: 회원 정보 API 연결 후 name 출력 */}
+                                        {/* 친구 닉네임 출력 */}
+                                        <strong>{friend.member_nick || '알 수 없는 회원'}</strong>
                                         <span>친구</span>
                                     </div>
                                 </div>

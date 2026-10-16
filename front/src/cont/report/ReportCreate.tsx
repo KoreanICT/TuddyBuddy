@@ -1,6 +1,6 @@
 // 주용현
 
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import styles from './report.module.css';
@@ -17,7 +17,11 @@ interface ReportForm {
 
 const ReportCreate: React.FC = () => {
     const navigate = useNavigate();
-    const { memberNum } = useAuth();
+    const { memberNum, token } = useAuth();
+
+    const getAuthHeaders = useCallback(() => ({
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+    }), [token]);
 
 
     const [form, setForm] = useState<ReportForm>({
@@ -71,7 +75,8 @@ const ReportCreate: React.FC = () => {
 
             const response = await axios.post(
                 'http://localhost:80/back/api/report/reportAdd',
-                formData
+                formData,
+                { headers: getAuthHeaders() }
             );
 
             console.log('신고 등록 결과:', response.data);

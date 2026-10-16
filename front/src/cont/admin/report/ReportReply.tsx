@@ -1,7 +1,7 @@
 // 주용현
 
 import axios from 'axios';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import styles from './report.module.css';
 import { useAuth } from '../../../login/hooks/useAuth';
@@ -30,7 +30,11 @@ const ReportReply: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
 
-    const { memberNum } = useAuth();
+    const { memberNum, token } = useAuth();
+
+    const getAuthHeaders = useCallback(() => ({
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+    }), [token]);
 
     // 신고 상세 조회
     useEffect(() => {
@@ -48,7 +52,7 @@ const ReportReply: React.FC = () => {
 
                 const response = await axios.get<ReportVO>(
                     'http://localhost:80/back/api/report/reportDetail',
-                    { params: { num: id } }
+                    { headers: getAuthHeaders(), params: { num: id } }
                 );
 
                 if (!active) return;
@@ -69,7 +73,7 @@ const ReportReply: React.FC = () => {
         return () => {
             active = false;
         };
-    }, [id]);
+    }, [id, getAuthHeaders]);
 
     // =========================
     // 신고 유형 출력
@@ -116,12 +120,12 @@ const ReportReply: React.FC = () => {
             replyFormData.append('content', reply.trim());
             replyFormData.append('report_num', String(report.num));
 
-            // TODO: 로그인 연결 후 실제 관리자 번호 사용
-            replyFormData.append('admin_num', '1');
+            replyFormData.append('admin_num', String(memberNum));
 
             await axios.post(
                 'http://localhost:80/back/api/report/reportReplyAdd',
-                replyFormData
+                replyFormData,
+                { headers: getAuthHeaders() }
             );
 
             // 신고 상태 변경
@@ -131,7 +135,8 @@ const ReportReply: React.FC = () => {
 
             const response = await axios.put<number>(
                 'http://localhost:80/back/api/report/reportStatusUpdate',
-                statusFormData
+                statusFormData,
+                { headers: getAuthHeaders() }
             );
 
             if (response.data < 1) {
