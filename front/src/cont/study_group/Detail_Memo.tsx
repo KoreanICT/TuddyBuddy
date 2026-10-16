@@ -19,8 +19,8 @@ export const Detail_Memo: React.FC<GetGroupNum> = ({ groupNum }) => {
 
                 const responseData: MemoData[] = response.data;
                 setMemos(responseData);
-                console.log(responseData);
-                console.log("Memo 출력 성공.", responseData);
+                // console.log(responseData);
+                // console.log("Memo 출력 성공.", responseData);
 
             } catch (error) {
                 console.error("Memo 출력 실패. 원인:", error);

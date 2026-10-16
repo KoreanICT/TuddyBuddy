@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import styles from './detail.module.css';
 import { GetGroupNum } from './GroupAPI'
 import axios from 'axios';
+import { NavLink, useNavigate } from 'react-router-dom';
 
 interface MemberData {
     member_num: number;
@@ -37,6 +38,8 @@ export const Detail_Member: React.FC<GetGroupNum> = ({ groupNum }) => {
         getMembers();
     }, [groupNum])
 
+    const navigate = useNavigate();
+
     const canLeaderQuit = isMeLeader && members.length === 1;
     const canNormalMemberQuit = !isMeLeader;
     const canQuit = canLeaderQuit || canNormalMemberQuit;
@@ -56,13 +59,34 @@ export const Detail_Member: React.FC<GetGroupNum> = ({ groupNum }) => {
     };
 
     const handleQuit = async () => {
-        try {
-            await axios.delete(
-                `http://localhost/back/api/detail/groupQuit/${groupNum}`
-            )
-        } catch (error) {
-            console.error("탈퇴하는데 실패했습니다. 잠시후 다시 시도해주세요.");
+        if (isMeLeader && canQuit) {
+            if (window.confirm("지금 탈퇴하시면 이 스터디룸의 데이터는 모두 삭제됩니다. 정말 탈퇴하시겠습니까?")) {
+                if (window.confirm("정말로 탈퇴하시겠습니까?")) {
+                    try {
+                        await axios.delete(
+                            `http://localhost/back/api/detail/deletegroup/${groupNum}`
+                        )
+                    } catch (error) {
+                        console.error("탈퇴하는데 실패했습니다.")
+                    }
+                }
+            } else {
+                return;
+            }
+        } else if (!isMeLeader) {
+            if (window.confirm("정말로 이 스터디룸을 탈퇴하시겠습니까?")) {
+                try {
+                    await axios.delete(
+                        `http://localhost/back/api/detail/groupQuit/${groupNum}`
+                    )
+                } catch (error) {
+                    console.error("탈퇴하는데 실패했습니다. 잠시후 다시 시도해주세요.");
+                }
+            } else {
+                return;
+            }
         }
+        navigate("/group");
     }
 
     const handleTransferLeader = async (memberNum: number, member_nick: string) => {
@@ -77,6 +101,7 @@ export const Detail_Member: React.FC<GetGroupNum> = ({ groupNum }) => {
         }
         await getMembers();
     }
+
     return (
         <div className={styles.detail_content_wrapper}>
             <div className={styles.detail_section_card}>

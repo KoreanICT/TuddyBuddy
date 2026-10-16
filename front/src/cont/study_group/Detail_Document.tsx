@@ -81,7 +81,7 @@ export const Detail_Document: React.FC<GetGroupNum> = ({ groupNum }) => {
 
             const responseData: DocumentData[] = response.data;
             setDocuments(responseData)
-            console.log("Documentlist 출력 성공.", responseData);
+            // console.log("Documentlist 출력 성공.", responseData);
 
         } catch (error) {
             console.error("Documentlist 출력 실패. 원인:", error);
