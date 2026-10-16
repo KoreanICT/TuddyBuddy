@@ -38,9 +38,14 @@ export default function PerformanceAnalytics() {
         const fetchAnalytics = async () => {
             setLoading(true);
             try {
+                const token = localStorage.getItem('token');
+                if (typeof token !== 'string' || token.trim() === '') return;
+
                 // 1.  카테고리 수집
                 const savedResponse = await axios.post('http://localhost/back/api/statistics/getCategories', {
                     memberNum: 1,
+                }, {
+                    headers: { Authorization: `Bearer ${token}` },
                 });
 
                 if (!savedResponse.data) return;
@@ -67,9 +72,14 @@ export default function PerformanceAnalytics() {
         const fetchAnalyticsData = async () => {
             setLoading(true);
             try {
+                const token = localStorage.getItem('token');
+                if (typeof token !== 'string' || token.trim() === '') return;
+
                 // 스프링부트 API 호출: /api/v1/analytics/subjects/{subjectId}
                 const response = await axios.post(`http://localhost:80/back/api/statistics/getStatistics`, {
                     memberNum: 1,
+                }, {
+                    headers: { Authorization: `Bearer ${token}` },
                 });
 
                 setChartData(response.data.chartData);
