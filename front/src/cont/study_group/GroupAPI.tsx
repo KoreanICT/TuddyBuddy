@@ -1,9 +1,7 @@
 //작성자 : 오진석
 import axios from "axios";
 import { AppEdge, AppNode, DetailTab, Repeat_type, TDLStatus } from "./Type";
-import { useAuth } from "../../login/hooks/useAuth";
-
-const { memberNum } = useAuth ();
+export { default } from './api';
 
 /* 공개 스터디룸 컴포넌트 관련 API */
 
@@ -137,7 +135,7 @@ export const joinGroupByInviteCode = async (
     inviteCode: string
 ) => {
     const response = await axios.post(
-        `http://localhost/back/api/group/join/invite/${memberNum}`,
+        `http://localhost/back/api/group/join/invite`,
         {
             inviteCode
         }

@@ -47,150 +47,6 @@ const MyPage: React.FC = () => {
                 setLoading(false);
                 return;
             }
-          <button
-            className={activeMenu === 'friend' ? 'sidebar-menu active' : 'sidebar-menu'}
-            onClick={() => setActiveMenu('friend')}
-          >
-            내 친구 목록
-          </button>
-
-          <button
-            className={
-              activeMenu === 'example3'
-                ? 'sidebar-menu active'
-                : 'sidebar-menu'
-            }
-            onClick={() => setActiveMenu('example3')}
-          >
-            나의 스터디 그룹 - 중령오진석
-          </button>
-
-        </aside>
-
-        {/* 오른쪽 본문 */}
-        <main className="mypage-content">
-
-          {/* 회원정보 */}
-          {activeMenu === 'info' && (
-            <div className="mypage-container">
-              <h2 className="mypage-title">마이페이지</h2>
-
-              <p className="mypage-subtitle">
-                회원님의 정보를 확인하고 수정할 수 있습니다.
-              </p>
-
-              <div className="profile-card">
-                <div className="profile-avatar">
-                  홍
-                </div>
-
-                <div className="profile-info">
-                  <h3>길동이 님</h3>
-
-                  <p>
-                    user@example.com
-                    <span className="badge">
-                      학생
-                    </span>
-                  </p>
-                </div>
-              </div>
-
-              <div className="point-box">
-                <p>잔여 포인트</p>
-                <strong>12,500P</strong>
-
-                <button
-                  className="point-link"
-                  onClick={() => setActiveMenu('point')}
-                >
-                  포인트 내역 &gt;
-                </button>
-              </div>
-
-              <div className="form-group">
-                <label>이메일</label>
-
-                <input
-                  type="text"
-                  value="user@example.com"
-                  readOnly
-                />
-              </div>
-
-              <div className="form-group">
-                <label>이름</label>
-
-                <input
-                  type="text"
-                  value="홍길동"
-                  readOnly
-                />
-              </div>
-
-              <div className="form-group">
-                <label>닉네임</label>
-
-                <input
-                  type="text"
-                  value="길동이"
-                  readOnly
-                />
-              </div>
-
-              <div className="form-group">
-                <label>전화번호</label>
-
-                <input
-                  type="text"
-                  value="010-1234-5678"
-                  readOnly
-                />
-              </div>
-
-              <div className="form-group">
-                <label>가입 유형</label>
-
-                <input
-                  type="text"
-                  value="학생"
-                  readOnly
-                />
-              </div>
-            </div>
-          )}
-
-          {/* 포인트 내역 */}
-          {activeMenu === 'point' && (
-            <div className="menu-panel">
-              <h2>포인트 내역</h2>
-
-              <p>
-                여기에 포인트 내역 내용을 넣으면 됩니다.
-              </p>
-            </div>
-          )}
-          {/* 나의 신고내역 */}
-          {activeMenu === 'report' && <MyReportList />}
-
-          {/* 나의 게시글 */}
-          {activeMenu === 'example1' && (
-            <div className="menu-panel">
-              <h2>나의 게시글</h2>
-
-              <p>
-                나의 게시글을 눌렀을 때 보여줄 내용입니다.
-              </p>
-            </div>
-          )}
-
-          {/* 친구 목록 */}
-          {activeMenu === 'friend' && <MyFriend />}
-
-          {/* 나의 스터디 그룹 */}
-          {activeMenu === 'example3' && (
-            <div className="menu-panel">
-              <h2>나의 스터디 그룹</h2>
 
             setLoading(true);
             setError('');
@@ -341,11 +197,11 @@ const MyPage: React.FC = () => {
 
                     <button
                         className={
-                            activeMenu === 'example2'
+                            activeMenu === 'friend'
                                 ? 'sidebar-menu active'
                                 : 'sidebar-menu'
                         }
-                        onClick={() => setActiveMenu('example2')}
+                        onClick={() => setActiveMenu('friend')}
                     >
                         친구 목록 - 용센
                     </button>
@@ -530,15 +386,7 @@ const MyPage: React.FC = () => {
                     )}
 
                     {/* 친구 목록 */}
-                    {activeMenu === 'example2' && (
-                        <div className="menu-panel">
-                            <h2>친구 목록</h2>
-
-                            <p>
-                                친구 목록 메뉴를 눌렀을 때 보여줄 내용입니다.
-                            </p>
-                        </div>
-                    )}
+                    {activeMenu === 'friend' && <MyFriend />}
 
                     {/* 나의 스터디 그룹 */}
                     {activeMenu === 'example3' && (

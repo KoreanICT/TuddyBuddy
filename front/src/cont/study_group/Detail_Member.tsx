@@ -48,7 +48,7 @@ export const Detail_Member: React.FC<GetGroupNum> = ({ groupNum }) => {
         if (window.confirm(`${nickname} 님을 강퇴하시겠습니까?`)) {
             try {
                 await axios.delete(
-                    `/group/detail/kickMember/${groupNum}/${memberNum}`
+                    `http://localhost/back/api/group/detail/kickMember/${groupNum}/${memberNum}`
                 )
             } catch (error) {
                 console.error("강퇴하는데 실패했습니다. ", error);
