@@ -1,6 +1,10 @@
 //작성자 : 오진석
 import axios from "axios";
 import { AppEdge, AppNode, DetailTab, Repeat_type, TDLStatus } from "./Type";
+import { useAuth } from "../../login/hooks/useAuth";
+
+const { memberNum } = useAuth ();
+
 /* 공개 스터디룸 컴포넌트 관련 API */
 
 /**
@@ -80,29 +84,7 @@ export const searchGroupTags = async (
 /**
  * 스터디 그룹 생성
  */
-export const createGroup = async (requestData: GroupCreateRequest, thumbnail: File | null) => {
-    const formData = new FormData();
 
-    formData.append(
-        'groupData',
-        new Blob(
-            [JSON.stringify(requestData)],
-            { type: 'application/json' }
-        )
-    );
-    if (thumbnail) {
-        formData.append('thumbnail', thumbnail);
-    }
-    const response = await axios.post(
-        `http://localhost/back/api/group/add`,
-        formData
-    );
-    return response.data.group_num;
-};
-export interface GroupCreateRequest {
-    group: GroupData;
-    tags: TagItem[];
-}
 
 /**
  * 스터디 그룹 변경
@@ -155,7 +137,7 @@ export const joinGroupByInviteCode = async (
     inviteCode: string
 ) => {
     const response = await axios.post(
-        `http://localhost/back/api/group/join/invite`,
+        `http://localhost/back/api/group/join/invite/${memberNum}`,
         {
             inviteCode
         }

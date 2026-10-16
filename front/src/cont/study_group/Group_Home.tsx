@@ -7,7 +7,7 @@ import { Group_Create } from './Group_Create';
 import { Group_InviteModal } from './Group_InviteModal';
 
 export const Group_Home: React.FC = () => {
-    const [currentTab, setCurrentTab] = useState<'public' | 'my'>('my');
+    const [currentTab, setCurrentTab] = useState<'public' | 'my'>('public');
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
     // 사이드바 공통 검색 상태

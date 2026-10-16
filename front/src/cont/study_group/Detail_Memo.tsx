@@ -5,6 +5,7 @@ import { Detail_MemoBoard } from './Detail_MemoBoard';
 import { MemoData } from './Detail_MemoCard';
 import { GetGroupNum } from './GroupAPI'
 import axios from 'axios';
+import api from './api';
 
 
 
@@ -15,12 +16,12 @@ export const Detail_Memo: React.FC<GetGroupNum> = ({ groupNum }) => {
     useEffect(() => {
         const getMemos = async () => {
             try {
-                const response = await axios.get<MemoData[]>(`http://localhost/back/api/detail/memo/getMemos/${groupNum}`);
+                const response = await axios.get<MemoData[]>(`http://localhost/detail/memo/getMemos/${groupNum}`);
 
                 const responseData: MemoData[] = response.data;
                 setMemos(responseData);
-                console.log(responseData);
-                console.log("Memo 출력 성공.", responseData);
+                // console.log(responseData);
+                // console.log("Memo 출력 성공.", responseData);
 
             } catch (error) {
                 console.error("Memo 출력 실패. 원인:", error);
@@ -56,8 +57,8 @@ export const Detail_Memo: React.FC<GetGroupNum> = ({ groupNum }) => {
 
     const handleInsertMemo = async (tempMemoNum: number, memo_content: string): Promise<void> => {
 
-        const response = await axios.post<MemoData>(
-            `http://localhost/back/api/detail/memo/addMemo/${groupNum}`,
+        const response = await api.post<MemoData>(
+            `/detail/memo/addMemo/${groupNum}`,
             { memo_content }
         );
 
@@ -72,8 +73,8 @@ export const Detail_Memo: React.FC<GetGroupNum> = ({ groupNum }) => {
 
     const handleUpdateMemo = async (memoNum: number, memo_content: string): Promise<void> => {
 
-        const response = await axios.patch<MemoData>(
-            `http://localhost/back/api/detail/memo/patchMemo/${memoNum}`,
+        await api.patch<MemoData>(
+            `/detail/memo/patchMemo/${memoNum}`,
             { memo_content }
         );
 
@@ -96,8 +97,8 @@ export const Detail_Memo: React.FC<GetGroupNum> = ({ groupNum }) => {
             return;
         };
 
-        await axios.delete(
-            `http://localhost/back/api/detail/memo/deleteMemo/${memoNum}`
+        await api.delete(
+            `/detail/memo/deleteMemo/${memoNum}`
         );
 
         setMemos((prev) =>

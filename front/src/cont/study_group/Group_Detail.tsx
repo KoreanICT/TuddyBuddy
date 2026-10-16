@@ -14,7 +14,7 @@ import { Project_Discussion } from './Project_Discussion';
 import { Project_Course } from './Project_Course';
 import { Detail_Document } from './Detail_Document';
 import { Project_TDL } from './Project_TDL';
-import { getFirstLetter } from './GroupAPI';
+import api, { getFirstLetter } from './GroupAPI';
 import axios from 'axios';
 import { Group_EditModal } from './Group_Edit';
 
@@ -55,8 +55,8 @@ export const Group_Detail: React.FC = () => {
             return;
         }
         try {
-            const response = await axios.get(
-                `http://localhost/back/api/group/detail/${parsed}`
+            const response = await api.get(
+                `/group/detail/${parsed}`
             )
             setGroupData(response.data);
         } catch (error) {

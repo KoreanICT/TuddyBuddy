@@ -97,6 +97,7 @@ const AppRoutes: React.FC = () => {
         { path: '/auth/signup', element: <Signup /> },
         { path: '/auth/kakao/callback', element: <KakaoCallback /> },
         { path: '/auth/mypage', element: <MyPage /> },
+        
         { path: '/point_history', element: <PointHistory /> },
         { path: '/member_edit', element: <Member_Edit /> },
         { path: '/auth/kakao/signup', element: <KakaoSignup /> },

@@ -4,6 +4,7 @@ import styles from './detail.module.css'
 import { Detail_DocumentModal } from './Detail_DocumentModal';
 import { GetGroupNum, formatFileSize } from './GroupAPI'
 import axios from 'axios';
+
 interface DocumentData {
     document_num: number;
     group_num: number;
@@ -17,9 +18,6 @@ interface DocumentData {
     updated_at?: string | null;
     can_manage: number;
 }
-
-
-const backendUrl = process.env.REACT_APP_BACK_END_URL;
 
 export const Detail_Document: React.FC<GetGroupNum> = ({ groupNum }) => {
 
@@ -81,7 +79,7 @@ export const Detail_Document: React.FC<GetGroupNum> = ({ groupNum }) => {
 
             const responseData: DocumentData[] = response.data;
             setDocuments(responseData)
-            console.log("Documentlist 출력 성공.", responseData);
+            // console.log("Documentlist 출력 성공.", responseData);
 
         } catch (error) {
             console.error("Documentlist 출력 실패. 원인:", error);

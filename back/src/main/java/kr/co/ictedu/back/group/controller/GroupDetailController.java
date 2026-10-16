@@ -52,6 +52,7 @@ public class GroupDetailController {
 		
 		return ResponseEntity.ok(dto);
 	}
+	
 	@Operation(summary = "스터디룸 변경", description = "스터디룸의 데이터를 변경합니다.")
 	@ApiResponse(responseCode = "200", description = "헤더 데이터 조회 성공")
 	@ApiResponse(responseCode = "500", description = "헤더 데이터 조회 실패")
@@ -95,5 +96,25 @@ public class GroupDetailController {
 		Long member_num = 1L;
 		service.kickMember(groupNum, member_num, memberNum);
 		return ResponseEntity.ok("강퇴 완료.");
+	}
+	
+	@Operation(summary = "스터디룸 탈퇴", description = "현재 입장한 스터디룸을 탈퇴합니다.")
+	@ApiResponse(responseCode = "200", description = "탈퇴 성공")
+	@ApiResponse(responseCode = "500", description = "탈퇴 실패")
+	@DeleteMapping("/groupQuit/{groupNum}")
+	public ResponseEntity<String> groupQuit(@PathVariable("groupNum") Long groupNum) {
+		Long member_num = 1L;
+		service.groupQuit(groupNum, member_num);
+		return ResponseEntity.ok("탈퇴 완료");
+	}
+	
+	@Operation(summary = "스터디룸 삭제", description = "자신이 방장이고 남은 인원이 본인 제외 0명인 경우 스터디룸을 삭제합니다.")
+	@ApiResponse(responseCode = "200", description = "삭제 성공")
+	@ApiResponse(responseCode = "500", description = "삭제 실패")
+	@DeleteMapping("/deleteGroup/{groupNum}")
+	public ResponseEntity<String> deleteGroup(@PathVariable("groupNum") Long groupNum) {
+		Long member_num = 1L;
+		service.deleteGroup(groupNum, member_num);
+		return ResponseEntity.ok("탈퇴 완료");
 	}
 }
