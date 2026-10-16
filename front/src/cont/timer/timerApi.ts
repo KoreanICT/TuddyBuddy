@@ -1,33 +1,42 @@
-//최솔
+// 최솔
 import { Interval, TimerSession, TimerSummary } from './types';
 
-// const BASE = (
-//   process.env.REACT_APP_BACK_END_URL ||
-//   'http://192.168.0.19/back'
-// ).replace(/\/$/, '');
-const BASE = 'http://localhost:80/back';
-const URL = `${BASE}/api/timer-sessions`;
+const BASE = (
+  process.env.REACT_APP_BACK_END_URL ||
+  'http://192.168.0.19:80/back'
+).replace(/\/$/, '');
 
 
+const IS_DEV_TIMER = process.env.NODE_ENV === 'development';
+
+const URL = `${BASE}${
+  IS_DEV_TIMER
+    ? '/api/dev/timer-sessions'
+    : '/api/timer-sessions'
+}`;
+console.log('TIMER DEV:', IS_DEV_TIMER);
+console.log('TIMER URL:', URL);
+console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('REACT_APP_TIMER_DEV:', process.env.REACT_APP_TIMER_DEV);
 async function request<T>(
   path: string,
   init?: RequestInit
 ): Promise<T> {
-
-  // 로그인 시 localStorage에 저장한 JWT 가져오기
-  const token = localStorage.getItem('token');
-
   const headers = new Headers(init?.headers);
   headers.set('Content-Type', 'application/json');
 
-  // Spring Security JWT 인증
-  if (token) {
-    headers.set('Authorization', `Bearer ${token}`);
+  // 개발용 비로그인 테스트에서는 JWT를 전송하지 않음
+  if (!IS_DEV_TIMER) {
+    const token = localStorage.getItem('token');
+
+    if (token) {
+      headers.set('Authorization', `Bearer ${token}`);
+    }
   }
 
   const response = await fetch(`${URL}${path}`, {
     ...init,
-    credentials: 'include',
+    credentials: IS_DEV_TIMER ? 'omit' : 'include',
     headers,
   });
 

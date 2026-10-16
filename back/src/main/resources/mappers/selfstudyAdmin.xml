@@ -65,7 +65,7 @@
 		#{subject_name},
 		'Y'
 		)
-	</insert>
+	</insert>                                
 
 	<!-- 과목 이름 수정 -->
 	<update id="updateSubjectName" parameterType="subjectVO">
