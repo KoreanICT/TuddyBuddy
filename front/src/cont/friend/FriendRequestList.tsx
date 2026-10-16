@@ -2,12 +2,7 @@
 
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
-import {
-    UserRound,
-    UserCheck,
-    UserX,
-    Users
-} from 'lucide-react';
+import { UserRound, UserCheck, UserX, Users } from 'lucide-react';
 
 import styles from './friendRequestList.module.css';
 import { useAuth } from '../../login/hooks/useAuth';
@@ -48,6 +43,7 @@ const FriendRequestList: React.FC = () => {
     };
 
     useEffect(() => {
+        if (memberNum == null) return;
         fetchRequestList();
     }, []);
 
@@ -56,13 +52,14 @@ const FriendRequestList: React.FC = () => {
         try {
             const urls = "http://localhost:80/back/api/friend/friendAccept";
 
-            const formData = new FormData();
-            formData.append('num', String(friendNum));
-
-            await axios.put(urls, formData);
+            await axios.put(urls, null, {
+                params: {
+                    num: friendNum,
+                    response_num: memberNum
+                }
+            });
 
             setRequests(prev => prev.filter(request => request.num !== friendNum));
-
             alert('친구 요청을 수락했습니다.');
 
         } catch (error) {
