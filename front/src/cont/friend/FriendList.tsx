@@ -26,7 +26,12 @@ interface MemberProfile {
 
 const FriendList: React.FC = () => {
     const [friends, setFriends] = useState<FriendVO[]>([]);
+
+    // 커스텀 훅에서 member_num 가져오기
     const { memberNum } = useAuth();
+
+
+    
     // 상대방 회원 번호
     const getFriendMemberNum = (friend: FriendVO) => {
         const loginNum = Number(memberNum);

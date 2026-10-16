@@ -17,7 +17,7 @@ interface MyProfileResponse {
     member_code?: string;
 }
 
-export const useMyProfileInfo = () => {
+export const useMyProfileInfo  = () => {
     const { memberNum } = useAuth();
 
     const [profile, setProfile] = useState<MyProfileInfo | null>(null);

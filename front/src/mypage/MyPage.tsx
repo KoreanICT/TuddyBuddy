@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import './MyPage.css';
 import MyReportList from './report/MyReportList';
+import MyFriend from './friend/MyFriend';
 
 const MyPage: React.FC = () => {
   const [activeMenu, setActiveMenu] = useState('info');
@@ -59,14 +60,10 @@ const MyPage: React.FC = () => {
 
 
           <button
-            className={
-              activeMenu === 'example2'
-                ? 'sidebar-menu active'
-                : 'sidebar-menu'
-            }
-            onClick={() => setActiveMenu('example2')}
+            className={activeMenu === 'friend' ? 'sidebar-menu active' : 'sidebar-menu'}
+            onClick={() => setActiveMenu('friend')}
           >
-            친구 목록 - 용센
+            내 친구 목록
           </button>
 
           <button
@@ -200,15 +197,7 @@ const MyPage: React.FC = () => {
           )}
 
           {/* 친구 목록 */}
-          {activeMenu === 'example2' && (
-            <div className="menu-panel">
-              <h2>친구 목록</h2>
-
-              <p>
-                친구 목록 메뉴를 눌렀을 때 보여줄 내용입니다.
-              </p>
-            </div>
-          )}
+          {activeMenu === 'friend' && <MyFriend />}
 
           {/* 나의 스터디 그룹 */}
           {activeMenu === 'example3' && (

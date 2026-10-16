@@ -8,7 +8,7 @@ import { Search, UserRound, UserPlus, IdCard } from 'lucide-react';
 import styles from './friendAdd.module.css';
 import StudentCodeModal from './StudentCodeModal';
 import { useAuth } from '../../login/hooks/useAuth';
-import { useMyProfileInfo } from '../../login/hooks/myProfileInfo';
+import { useMyProfileInfo } from '../../login/hooks/useMyProfileInfo';
 
 interface MemberVO {
     member_num: number;
@@ -29,6 +29,7 @@ const FriendAdd: React.FC = () => {
     const { memberNum } = useAuth();
     const { profile, loading } = useMyProfileInfo();
     const myMemberCode = profile?.member_code ?? '';
+    const myMemberNick = profile?.member_nick ?? '';
 
     // 회원 코드 검색
     const handleSearch = async () => {
