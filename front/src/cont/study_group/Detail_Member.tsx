@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import styles from './detail.module.css';
 import { GetGroupNum } from './GroupAPI'
 import axios from 'axios';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 interface MemberData {
     member_num: number;
@@ -48,7 +48,7 @@ export const Detail_Member: React.FC<GetGroupNum> = ({ groupNum }) => {
         if (window.confirm(`${nickname} 님을 강퇴하시겠습니까?`)) {
             try {
                 await axios.delete(
-                    `http://localhost/back/api/group/detail/kickMember/${groupNum}/${memberNum}`
+                    `/group/detail/kickMember/${groupNum}/${memberNum}`
                 )
             } catch (error) {
                 console.error("강퇴하는데 실패했습니다. ", error);
