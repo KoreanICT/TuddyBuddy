@@ -54,6 +54,8 @@ const AppRoutes: React.FC = () => {
     const isAuth = pathname.startsWith("/auth");
 
     const routeList: RouteItem[] = [
+
+        // contents
         { path: '/community', element: <Community /> },
 
         { path: '/group', element: <Group_Home /> },
@@ -77,6 +79,7 @@ const AppRoutes: React.FC = () => {
         { path: "/notice", element: <NoticeList /> },
         { path: "/notice/:num", element: <NoticeDetail /> },
 
+        // admin
         { path: "/admin", element: <AdminHome /> },
         { path: "/admin/memberManagement", element: <MemberManagement /> },
         { path: "/admin/boardManagement", element: <BoardManagement /> },
