@@ -8,6 +8,7 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,7 +25,7 @@ import kr.co.ictedu.back.group.dto.GroupUpdateDTO;
 import kr.co.ictedu.back.group.service.GroupDetailService;
 
 
-@Tag(name = "스터디룹 상세 API", description = "스터디룸의 상세 정보 조회, 수정 API")
+@Tag(name = "스터디룹 상세 API", description = "스터디룸의 상세 정보 및 소속 멤버 조회, 수정, 삭제 API")
 @RestController
 @RequestMapping("/api/group/detail")
 public class GroupDetailController {
@@ -51,7 +52,9 @@ public class GroupDetailController {
 		
 		return ResponseEntity.ok(dto);
 	}
-	
+	@Operation(summary = "스터디룸 변경", description = "스터디룸의 데이터를 변경합니다.")
+	@ApiResponse(responseCode = "200", description = "헤더 데이터 조회 성공")
+	@ApiResponse(responseCode = "500", description = "헤더 데이터 조회 실패")
 	@PatchMapping(value="/patchGroup/{groupNum}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<Map<String, Object>> updateGroup(
 			@PathVariable("groupNum") Long groupNum, 
@@ -64,4 +67,33 @@ public class GroupDetailController {
 		return ResponseEntity.ok(result);
 	}
 	
+	@Operation(summary = "스터디룸 멤버 조회", description = "스터디룸에 소속된 멤버들의 리스트를 조회합니다.")
+	@ApiResponse(responseCode = "200", description = "멤버 리스트 조회 성공")
+	@ApiResponse(responseCode = "500", description = "멤버 리스트 조회 실패")
+	@GetMapping("/getMemberlist/{groupNum}")
+	public ResponseEntity<Map<String, Object>> getMembers(@PathVariable("groupNum") Long groupNum) {
+		Long member_num = 1L;
+		Map<String, Object> map = service.getMembers(groupNum, member_num);
+		return ResponseEntity.ok(map);
+	}
+	
+	@Operation(summary = "방장 위임", description = "자신이 방장일 경우 다른 멤버에게 방장을 위임합니다.")
+	@ApiResponse(responseCode = "200", description = "위임 성공")
+	@ApiResponse(responseCode = "500", description = "위임 실패")
+	@PatchMapping("/transferLeader/{groupNum}/{memberNum}")
+	public ResponseEntity<String> transferLeader(@PathVariable("groupNum") Long groupNum, @PathVariable("memberNum") Long memberNum) {
+		Long member_num = 1L;
+		service.transferLeader(groupNum, member_num, memberNum);
+		return ResponseEntity.ok("위임 완료.");
+	}
+	
+	@Operation(summary = "멤버 강퇴", description = "자신이 방장일 경우 다른 멤버를 강퇴합니다.")
+	@ApiResponse(responseCode = "200", description = "강퇴 성공")
+	@ApiResponse(responseCode = "500", description = "강퇴 실패")
+	@DeleteMapping("/kickMember/{groupNum}/{memberNum}")
+	public ResponseEntity<String> kickMember(@PathVariable("groupNum") Long groupNum, @PathVariable("memberNum") Long memberNum) {
+		Long member_num = 1L;
+		service.kickMember(groupNum, member_num, memberNum);
+		return ResponseEntity.ok("강퇴 완료.");
+	}
 }

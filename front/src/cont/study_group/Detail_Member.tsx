@@ -1,103 +1,139 @@
 //작성자 : 오진석
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import styles from './detail.module.css';
-import { MemberData } from './GroupAPI';
 import { GetGroupNum } from './GroupAPI'
 import axios from 'axios';
 
+interface MemberData {
+    member_num: number;
+    member_nick: string;
+    member_name: string;
+    is_leader: number;
+}
+
+interface MemberRequestData {
+    members: MemberData[];
+    isMeLeader: boolean;
+}
+
 export const Detail_Member: React.FC<GetGroupNum> = ({ groupNum }) => {
-    // 샘플 멤버 데이터 (실제 연동 시 props 또는 API 데이터로 대체)
-    const [members, setMembers] = useState<MemberData[]>([
-        {
-            memberNum: 1,
-            nickname: '물리충',
-            name: '진석',
-            avatarUrl: 'https://picsum.photos/100?random=1',
-            is_leader: 1,
+    const [members, setMembers] = useState<MemberData[]>([]);
+    const [isMeLeader, setIsMeLeader] = useState(false);
+
+    const getMembers = async () => {
+        try {
+            const response = await axios.get(
+                `http://localhost/back/api/group/detail/getMemberlist/${groupNum}`
+            )
+            const responseData: MemberRequestData = response.data;
+            setIsMeLeader(response.data.isMeLeader);
+            setMembers(responseData.members);
+        } catch (error) {
+            console.error('멤버 정보 조회 실패 :', error)
         }
-    ]);
-    const [isLeader, setIsLeader] = useState<boolean>(true);
-    const [meLeader, setMeLeader] = useState<number>(0);
+    }
 
+    useEffect(() => {
+        getMembers();
+    }, [groupNum])
 
-    // useState(() => {
-    //     const getMembers = async () => {
-    //         try {
-    //             const response = await axios.get<MemberData[]>(
-    //                 `http://localhost/back/api/getMembers/${groupNum}`
-    //             )
-    //             const responseData: MemberData[] = response.data; 
-    //             setMembers(responseData);
-    //             //setMeLeader(responseData.meLeader);
-    //         } catch (error) {
-    //             console.error('멤버 정보 조회 실패 :', error)
-    //         }
-    //     }
-    // }, [])
+    const canLeaderQuit = isMeLeader && members.length === 1;
+    const canNormalMemberQuit = !isMeLeader;
+    const canQuit = canLeaderQuit || canNormalMemberQuit;
 
-    const handleKick = (id: number, nickname: string) => {
+    const handleKick = async (memberNum: number, nickname: string) => {
         if (window.confirm(`${nickname} 님을 강퇴하시겠습니까?`)) {
-            // 강퇴 로직 실행
-            console.log(`Kick member ID: ${id}`);
+            try {
+                await axios.delete(
+                    `http://localhost/back/api/detail/kickMember/${groupNum}/${memberNum}`
+                )
+            } catch (error) {
+                console.error("강퇴하는데 실패했습니다. ", error);
+            }
+            console.log(`Kick member ID: ${memberNum}`);
         }
+        await getMembers();
     };
 
     const handleQuit = async () => {
-        if (meLeader === 1) {
-            return;
+        try {
+            await axios.delete(
+                `http://localhost/back/api/detail/groupQuit/${groupNum}`
+            )
+        } catch (error) {
+            console.error("탈퇴하는데 실패했습니다. 잠시후 다시 시도해주세요.");
         }
-
-        await axios.delete(
-            `http://localhost/back/api/detail/groupQuit/${groupNum}`
-        )
     }
 
+    const handleTransferLeader = async (memberNum: number, member_nick: string) => {
+        if (window.confirm(`${member_nick}님에게 방장을 위임하시겠습니까?`)) {
+            try {
+                await axios.patch(
+                    `http://localhost/back/api/detail/transferLeader/${groupNum}/${memberNum}`
+                )
+            } catch (error) {
+                console.error("위임에 오류가 생겼습니다.", error);
+            }
+        }
+        await getMembers();
+    }
     return (
         <div className={styles.detail_content_wrapper}>
             <div className={styles.detail_section_card}>
                 <h3 className={styles.section_title}>멤버 목록 ({members.length})</h3>
                 <button
                     type="button"
-                    
+                    className={styles.transferbtn}
+                    disabled={!canQuit}
+                    onClick={handleQuit}
                 >
                     스터디룸 탈퇴
                 </button>
                 {/* 멤버 카드 횡방향 목록 컨테이너 */}
                 <div className={styles.member_grid}>
                     {members.map((member) => (
-                        <div className={styles.member_card}>
+                        <div key={member.member_num} className={styles.member_card}>
                             {/* 우상단 강퇴 버튼 (x) */}
-                            {/* {!member.isLeader && (
-                                <button
-                                    type="button"
-                                    className={styles.kick_btn}
-                                    onClick={() => handleKick(member.id, member.nickname)}
-                                    title="강퇴하기"
-                                    aria-label="강퇴"
-                                >
-                                    ✕
-                                </button>
-                            )} */}
+                            {isMeLeader && member.is_leader !== 1 && (
+                                <>
+                                    <button
+                                        type="button"
+                                        className={styles.kick_btn}
+                                        onClick={() => handleKick(member.member_num, member.member_nick)}
+                                        title="강퇴하기"
+                                        aria-label="강퇴"
+                                    >
+                                        ✕
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => handleTransferLeader(member.member_num, member.member_nick)}
+                                    >
+                                        방장 위임
+                                    </button>
+                                </>
+                            )}
 
                             {/* 동그란 썸네일 */}
                             <div className={styles.avatar_wrapper}>
                                 <img
-                                    src={member.avatarUrl}
-                                    alt={member.nickname}
+                                    src={`https://picsum.photos/100?random=${member.member_num}`}
+                                    alt={member.member_nick}
                                     className={styles.avatar_img}
                                 />
                             </div>
 
                             {/* 닉네임 및 이름 */}
                             <div className={styles.member_info}>
-                                <span className={styles.member_nickname}>{member.nickname}</span>
-                                <span className={styles.member_name}>({member.name})</span>
+                                <span className={styles.member_nickname}>{member.member_nick}</span>
+                                <span className={styles.member_name}>({member.member_name})</span>
                             </div>
 
                             {/* 방장 라벨 */}
-                            {/* {member.isLeader && (
+                            {member.is_leader === 1 && (
                                 <span className={styles.leader_badge}>방장</span>
-                            )} */}
+                            )}
                         </div>
                     ))}
                 </div>
