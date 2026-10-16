@@ -48,7 +48,7 @@ export const Detail_Member: React.FC<GetGroupNum> = ({ groupNum }) => {
         if (window.confirm(`${nickname} 님을 강퇴하시겠습니까?`)) {
             try {
                 await axios.delete(
-                    `http://localhost/back/api/detail/kickMember/${groupNum}/${memberNum}`
+                    `http://localhost/back/api/group/detail/kickMember/${groupNum}/${memberNum}`
                 )
             } catch (error) {
                 console.error("강퇴하는데 실패했습니다. ", error);
@@ -59,41 +59,46 @@ export const Detail_Member: React.FC<GetGroupNum> = ({ groupNum }) => {
     };
 
     const handleQuit = async () => {
-        if (isMeLeader && canQuit) {
-            if (window.confirm("지금 탈퇴하시면 이 스터디룸의 데이터는 모두 삭제됩니다. 정말 탈퇴하시겠습니까?")) {
-                if (window.confirm("정말로 탈퇴하시겠습니까?")) {
-                    try {
-                        await axios.delete(
-                            `http://localhost/back/api/detail/deletegroup/${groupNum}`
-                        )
-                    } catch (error) {
-                        console.error("탈퇴하는데 실패했습니다.")
-                    }
-                }
-            } else {
+        if (isMeLeader) {
+            if (!canQuit) {
                 return;
             }
-        } else if (!isMeLeader) {
-            if (window.confirm("정말로 이 스터디룸을 탈퇴하시겠습니까?")) {
-                try {
-                    await axios.delete(
-                        `http://localhost/back/api/detail/groupQuit/${groupNum}`
-                    )
-                } catch (error) {
-                    console.error("탈퇴하는데 실패했습니다. 잠시후 다시 시도해주세요.");
-                }
-            } else {
+            const firstConfirm = window.confirm("지금 탈퇴하시면 이 스터디룸의 데이터는 모두 삭제됩니다. 정말 탈퇴하시겠습니까?");
+            if (!firstConfirm) {
                 return;
             }
+            const secondConfirm = window.confirm("정말로 탈퇴하시겠습니까?");
+            if (!secondConfirm) {
+                return;
+            }
+            try {
+                await axios.delete(
+                    `http://localhost/back/api/group/detail/deleteGroup/${groupNum}`
+                )
+                navigate("/group");
+            } catch (error) {
+                console.error("탈퇴하는데 실패했습니다.")
+            }
+            return;
         }
-        navigate("/group");
+        const confirmed = window.confirm("정말로 이 스터디룸을 탈퇴하시겠습니까?");
+        if (!confirmed) {
+            return;
+        }
+        try {
+            await axios.delete(
+                `http://localhost/back/api/group/detail/groupQuit/${groupNum}`
+            )
+        } catch (error) {
+            console.error("탈퇴하는데 실패했습니다. 잠시후 다시 시도해주세요.");
+        }
     }
 
     const handleTransferLeader = async (memberNum: number, member_nick: string) => {
         if (window.confirm(`${member_nick}님에게 방장을 위임하시겠습니까?`)) {
             try {
                 await axios.patch(
-                    `http://localhost/back/api/detail/transferLeader/${groupNum}/${memberNum}`
+                    `http://localhost/back/api/group/detail/transferLeader/${groupNum}/${memberNum}`
                 )
             } catch (error) {
                 console.error("위임에 오류가 생겼습니다.", error);
