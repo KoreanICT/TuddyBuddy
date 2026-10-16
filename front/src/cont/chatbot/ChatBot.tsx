@@ -1,6 +1,6 @@
 // 허승표
 
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import styles from './chatbot.module.css'
 import { Bot, LoaderCircle, Send, X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom';
@@ -44,10 +44,11 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
     const isLogin = Boolean(token && member_num !== null);
 
     // Spring Boot 요청에 사용할 인증 해더
-    const getAuthHeaders = () => ({
+    // token이 바뀔 때만 함수 갱신
+    const getAuthHeaders = useCallback(() => ({
         'Content-Type': 'application/json',
         ...(token ? { Authorization: `Bearer ${token}` } : {})
-    });
+    }),[token]);
 
     // 회원/비회원별 채팅 세션 저장 키
     const chatStorageKey = isLogin && member_num != null
@@ -98,7 +99,31 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
     // 대화 내역 재조회 요청 횟수
     const [historyRetry, setHistoryRetry] = useState(0);
 
-    // 채팅 세션 생성 및 유지
+    // 입력한 질문
+    const [input, setInput] = useState('');
+
+    // AI 답변 대기 상태
+    const [isLoading, setIsLoading] = useState(false);
+
+    // 현재 세션에 속한 요청을 함께 취소하기 위한 컨트롤러
+    const chatRequestRef = useRef<AbortController | null>(null);
+
+    // 상태 업데이트 전에도 중복 정송 방지
+    const sendingRef = useRef(false);
+
+    // 대화 마지막 위치
+    const chatEndRef = useRef<HTMLDivElement>(null);
+
+    // 임시 메시지 ID 관리
+    const messageIdRef = useRef(0);
+
+    // 임시 메시지 ID 생성 함수
+    const getMessageId = () => {
+        messageIdRef.current += 1;
+        return `temp-${messageIdRef.current}`;
+    };
+
+        // 채팅 세션 생성 및 유지
     useEffect(() => {
         let cancelled = false;
 
@@ -211,24 +236,6 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
     // 기존 대화 내역 다시 조회
     const retryLoadMessages = () => {
         setHistoryRetry(prev => prev + 1);
-    };
-
-    // 입력한 질문
-    const [input, setInput] = useState('');
-
-    // AI 답변 대기 상태
-    const [isLoading, setIsLoading] = useState(false);
-
-    // <div>를 가리킬 변수
-    const chatEndRef = useRef<HTMLDivElement>(null);
-
-    // 임시 메시지 ID 관리
-    const messageIdRef = useRef(0);
-
-    // 임시 메시지 ID 생성 함수
-    const getMessageId = () => {
-        messageIdRef.current += 1;
-        return `temp-${messageIdRef.current}`;
     };
 
     // 사용자 질문 정송 및 AI 답변 받기
