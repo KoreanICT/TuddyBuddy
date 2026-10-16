@@ -2,7 +2,7 @@
  // 주용현
 
 import axios from 'axios';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from './useAuth';
 
 interface MyProfileInfo {
@@ -18,7 +18,11 @@ interface MyProfileResponse {
 }
 
 export const useMyProfileInfo  = () => {
-    const { memberNum } = useAuth();
+    const { memberNum, token } = useAuth();
+
+    const getAuthHeaders = useCallback(() => ({
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+    }), [token]);
 
     const [profile, setProfile] = useState<MyProfileInfo | null>(null);
     const [loading, setLoading] = useState(false);
@@ -26,7 +30,7 @@ export const useMyProfileInfo  = () => {
 
     // 로그인 회원 정보 조회
     useEffect(() => {
-        if (memberNum == null) {
+        if (!token || memberNum == null) {
             setProfile(null);
             setLoading(false);
             setError(null);
@@ -44,6 +48,7 @@ export const useMyProfileInfo  = () => {
                 const urls = 'http://localhost:80/back/api/member/memberProfile';
 
                 const response = await axios.get<MyProfileResponse>(urls, {
+                    headers: getAuthHeaders(),
                     params: { member_num: memberNum }
                 });
 
@@ -69,7 +74,7 @@ export const useMyProfileInfo  = () => {
         return () => {
             cancelled = true;
         };
-    }, [memberNum]);
+    }, [memberNum, token, getAuthHeaders]);
 
     return { profile, loading, error };
 };

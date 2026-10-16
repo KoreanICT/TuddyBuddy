@@ -2,7 +2,7 @@
  // 주용현
 
 import axios from 'axios';
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Search, UserRound, UserPlus, IdCard } from 'lucide-react';
 
 import styles from './friendAdd.module.css';
@@ -26,7 +26,11 @@ const FriendAdd: React.FC = () => {
     const [adding, setAdding] = useState(false);
     const [requestSent, setRequestSent] = useState(false);
 
-    const { memberNum } = useAuth();
+    const { memberNum, token } = useAuth();
+
+    const getAuthHeaders = useCallback(() => ({
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+    }), [token]);
     const { profile, loading } = useMyProfileInfo();
     const myMemberCode = profile?.member_code ?? '';
     const myMemberNick = profile?.member_nick ?? '';
@@ -51,6 +55,7 @@ const FriendAdd: React.FC = () => {
             // TODO: 실제 회원 검색 API 경로 확인
             const urls = 'http://localhost:80/back/api/member/memberCodeSearch';
             const response = await axios.get<MemberVO | null>(urls, {
+                headers: getAuthHeaders(),
                 params: { member_code: code }
             });
 
@@ -78,7 +83,7 @@ const FriendAdd: React.FC = () => {
     const handleAddFriend = async () => {
         if (!searchedMember || adding || requestSent) return;
 
-        if (memberNum == null) {
+        if (!token || memberNum == null) {
             alert('로그인 정보가 없습니다.');
             return;
         }
@@ -97,7 +102,7 @@ const FriendAdd: React.FC = () => {
             formData.append('request_num', String(memberNum));
             formData.append('response_num', String(searchedMember.member_num));
 
-            await axios.post(urls, formData);
+            await axios.post(urls, formData, { headers: getAuthHeaders() });
 
             setRequestSent(true);
             alert('친구 요청을 보냈습니다.');

@@ -2,7 +2,7 @@
  // 주용현
 
 import axios from 'axios';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { UserRound, UserCheck, UserX, Users } from 'lucide-react';
 
 import styles from './friendRequestList.module.css';
@@ -20,15 +20,20 @@ interface FriendVO {
 
 const FriendRequestList: React.FC = () => {
     const [requests, setRequests] = useState<FriendVO[]>([]);
-    const { memberNum } = useAuth();
+    const { memberNum, token } = useAuth();
+
+    const getAuthHeaders = useCallback(() => ({
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+    }), [token]);
 
     // 받은 친구 요청 목록 조회
-    const fetchRequestList = async () => {
-        if (memberNum == null) return;
+    const fetchRequestList = useCallback(async () => {
+        if (!token || memberNum == null) return;
 
         try {
             const urls = "http://localhost:80/back/api/friend/friendRequestList";
             const response = await axios.get(urls, {
+                headers: getAuthHeaders(),
                 params: { response_num: memberNum }
             });
 
@@ -37,16 +42,19 @@ const FriendRequestList: React.FC = () => {
             console.error('받은 친구 요청 조회 실패:', error);
             setRequests([]);
         }
-    };
+    }, [memberNum, token, getAuthHeaders]);
 
     useEffect(() => {
-        if (memberNum == null) return;
+        if (!token || memberNum == null) {
+            setRequests([]);
+            return;
+        }
         fetchRequestList();
-    }, [memberNum]);
+    }, [memberNum, token, fetchRequestList]);
 
     // 친구 요청 수락
     const handleAccept = async (friendNum: number) => {
-        if (memberNum == null) {
+        if (!token || memberNum == null) {
             alert('로그인 정보가 없습니다.');
             return;
         }
@@ -55,6 +63,7 @@ const FriendRequestList: React.FC = () => {
             const urls = "http://localhost:80/back/api/friend/friendAccept";
 
             await axios.put(urls, null, {
+                headers: getAuthHeaders(),
                 params: {
                     num: friendNum,
                     response_num: memberNum
@@ -71,7 +80,7 @@ const FriendRequestList: React.FC = () => {
 
     // 친구 요청 거절
     const handleReject = async (friendNum: number) => {
-        if (memberNum == null) {
+        if (!token || memberNum == null) {
             alert('로그인 정보가 없습니다.');
             return;
         }
@@ -83,6 +92,7 @@ const FriendRequestList: React.FC = () => {
             const urls = "http://localhost:80/back/api/friend/friendReject";
 
             await axios.put(urls, null, {
+                headers: getAuthHeaders(),
                 params: {
                     num: friendNum,
                     response_num: memberNum

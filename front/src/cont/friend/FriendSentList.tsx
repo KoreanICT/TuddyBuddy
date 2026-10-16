@@ -2,7 +2,7 @@
  // 주용현
 
 import axios from 'axios';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { UserRound, Send, Clock, UserCheck, UserX } from 'lucide-react';
 
 import styles from './friendSentList.module.css';
@@ -20,15 +20,20 @@ interface FriendVO {
 
 const FriendSentList: React.FC = () => {
     const [sentList, setSentList] = useState<FriendVO[]>([]);
-    const { memberNum } = useAuth();
+    const { memberNum, token } = useAuth();
+
+    const getAuthHeaders = useCallback(() => ({
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+    }), [token]);
 
     // 보낸 친구 요청 목록 조회
-    const fetchSentList = async () => {
-        if (memberNum == null) return;
+    const fetchSentList = useCallback(async () => {
+        if (!token || memberNum == null) return;
 
         try {
             const urls = "http://localhost:80/back/api/friend/friendResponseList";
             const response = await axios.get(urls, {
+                headers: getAuthHeaders(),
                 params: { request_num: memberNum }
             });
 
@@ -37,12 +42,15 @@ const FriendSentList: React.FC = () => {
             console.error('보낸 친구 요청 조회 실패:', error);
             setSentList([]);
         }
-    };
+    }, [memberNum, token, getAuthHeaders]);
 
     useEffect(() => {
-        if (memberNum == null) return;
+        if (!token || memberNum == null) {
+            setSentList([]);
+            return;
+        }
         fetchSentList();
-    }, [memberNum]);
+    }, [memberNum, token, fetchSentList]);
 
     // 상태 출력
     const getStatusText = (status: string) => {
