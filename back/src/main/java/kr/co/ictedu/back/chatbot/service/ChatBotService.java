@@ -90,9 +90,6 @@ public class ChatBotService {
 
 			errorResponse.setAnswer("죄송합니다. 현재 답변을 가져오지 못했습니다. 잠시 후 다시 시도해 주세요.");
 
-			// 오류 안내 DB 저장
-			saveBotMessage(request, errorResponse);
-
 			// 오류 안내 반환
 			return errorResponse;
 		}
