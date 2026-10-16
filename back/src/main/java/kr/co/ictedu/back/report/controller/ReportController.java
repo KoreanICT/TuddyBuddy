@@ -51,13 +51,18 @@ public class ReportController {
         description = "신고 정보를 등록합니다."
     )
     @ApiResponse(responseCode = "200", description = "신고 등록 성공")
+    @ApiResponse(responseCode = "400", description = "잘못된 신고 등록 정보")
     @PostMapping("/reportAdd")
     public ResponseEntity<?> reportAdd(
             @Parameter(description = "신고 등록 정보")
             @ModelAttribute ReportVO vo) {
 
-        reportService.add(vo);
-        return ResponseEntity.ok().body("신고 등록 성공!");
+        try {
+            reportService.add(vo);
+            return ResponseEntity.ok().body("신고 등록 성공!");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     // 회원별 신고 목록

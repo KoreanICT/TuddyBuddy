@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import styles from './myReportList.module.css';
 
 type ReportStatus = 'PENDING' | 'REVIEWING' | 'COMPLETED' | 'REJECTED';
-type ReportType = 'POST' | 'COMMENT' | 'USER' | 'STUDY';
+type ReportType = 'POST' | 'COMMENT' | 'USER' | 'STUDY' | 'community' | 'report';
 
 interface ReportVO {
     num: number;
@@ -102,6 +102,8 @@ const MyReportList: React.FC = () => {
             case 'COMMENT': return '댓글';
             case 'USER': return '회원';
             case 'STUDY': return '스터디';
+            case 'community': return '커뮤니티 게시글';
+            case 'report': return '일반 신고';
             default: return type;
         }
     };
