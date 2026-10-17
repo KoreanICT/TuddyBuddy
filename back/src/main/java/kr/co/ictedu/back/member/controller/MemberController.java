@@ -13,7 +13,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.bind.annotation.PutMapping;
 import kr.co.ictedu.back.securityauth.MemberRoles;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -46,9 +45,6 @@ public class MemberController {
 
     @Autowired
     private PagingService pagingService;
-
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
 
     // ==========================================
     // 관리자 회원가입
@@ -114,18 +110,7 @@ public class MemberController {
 
         String trimmedNick = nick.trim();
 
-        String sql =
-            "SELECT COUNT(*) FROM member WHERE member_nick = ?";
-
-        Integer count = jdbcTemplate.queryForObject(
-            sql,
-            Integer.class,
-            trimmedNick
-        );
-
-        return ResponseEntity.ok(
-            count == null ? 0 : count
-        );
+        return ResponseEntity.ok(memberService.checkNick(trimmedNick));
     }
 
     // ==========================================
@@ -327,21 +312,11 @@ public class MemberController {
         }
 
         // 현재 회원을 제외한 닉네임 중복 확인
-        String sql =
-            "SELECT COUNT(*) FROM member "
-            + "WHERE member_nick = ? "
-            + "AND member_num <> ?";
+        int duplicateCount = memberService.countByNickExcludingMember(
+            nickname, loginMember.getMember_num()
+        );
 
-        Integer duplicateCount =
-            jdbcTemplate.queryForObject(
-                sql,
-                Integer.class,
-                nickname,
-                loginMember.getMember_num()
-            );
-
-        if (duplicateCount != null
-                && duplicateCount > 0) {
+        if (duplicateCount > 0) {
 
             return ResponseEntity.status(409).body(
                 Map.of(

@@ -7,7 +7,6 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.http.HttpStatus;
@@ -28,9 +27,6 @@ public class MemberService {
 
 	@Autowired
 	private PasswordEncoder passwordEncoder;
-
-	@Autowired
-	private JdbcTemplate jdbcTemplate;
 
 	// 비밀번호 변경 결과
 	public enum PasswordChangeResult {
@@ -221,9 +217,8 @@ public class MemberService {
 
 		// 비밀번호 저장
 		// 조회 시점의 비밀번호가 그대로일 때만 변경
-		String sql = "UPDATE member " + "SET member_pwd = ? " + "WHERE member_num = ? " + "AND member_pwd = ?";
-
-		int result = jdbcTemplate.update(sql, newEncodedPassword, member.getMember_num(), encodedPassword);
+		int result = memberDao.updatePasswordIfUnchanged(
+				member.getMember_num(), newEncodedPassword, encodedPassword);
 
 		if (result != 1) {
 			return PasswordChangeResult.UPDATE_CONFLICT;
@@ -239,6 +234,10 @@ public class MemberService {
 	// ==========================================
 	public int checkNick(String nick) {
 		return memberDao.countByNick(nick);
+	}
+
+	public int countByNickExcludingMember(String nick, Long memberNum) {
+		return memberDao.countByNickExcludingMember(nick, memberNum);
 	}
 
 	// ==========================================
