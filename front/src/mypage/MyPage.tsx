@@ -1,5 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 import './MyPage.css';
@@ -26,6 +27,9 @@ interface MemberVO {
 }
 
 const MyPage: React.FC = () => {
+    const navigate = useNavigate();
+
+    // 메뉴 상태
     const [activeMenu, setActiveMenu] = useState('info');
 
     // 회원정보
@@ -66,17 +70,14 @@ const MyPage: React.FC = () => {
                 setError('');
 
             } catch (error) {
-                if (axios.isCancel(error)) {
-                    return;
-                }
+                if (axios.isCancel(error)) return;
 
                 console.error('마이페이지 회원정보 조회 실패:', error);
-
                 setMember(null);
 
                 if (axios.isAxiosError(error)) {
                     if (error.response?.status === 401) {
-                        setError('로그인 정보가 만료되었거나 인증되지 않았습니다. 다시 로그인해주세요.');
+                        setError('로그인 정보가 만료되었습니다. 다시 로그인해주세요.');
                     } else if (error.response?.status === 403) {
                         setError('회원정보에 접근할 권한이 없습니다.');
                     } else if (error.response?.status === 404) {
@@ -141,6 +142,11 @@ const MyPage: React.FC = () => {
     // 프로필 대표 문자
     const getProfileInitial = (name?: string) => {
         return name?.trim().charAt(0) || '?';
+    };
+
+    // 회원정보 수정 페이지 이동
+    const handleMemberEdit = () => {
+        navigate('/member_edit');
     };
 
     return (
@@ -230,26 +236,19 @@ const MyPage: React.FC = () => {
                                 회원님의 정보를 확인하고 수정할 수 있습니다.
                             </p>
 
-                            {/* 회원정보 불러오는 중 */}
                             {loading ? (
                                 <div className="menu-panel" role="status">
                                     <p>회원정보를 불러오는 중입니다.</p>
                                 </div>
-
-                            /* 회원정보 조회 오류 */
                             ) : error ? (
                                 <div className="menu-panel" role="alert">
                                     <h2>회원정보 조회 실패</h2>
                                     <p>{error}</p>
                                 </div>
-
-                            /* 회원정보가 없는 경우 */
                             ) : !member ? (
                                 <div className="menu-panel">
                                     <p>회원정보를 찾을 수 없습니다.</p>
                                 </div>
-
-                            /* 회원정보 조회 성공 */
                             ) : (
                                 <>
                                     {/* 프로필 카드 */}
@@ -355,6 +354,32 @@ const MyPage: React.FC = () => {
                                             readOnly
                                         />
                                     </div>
+
+                                    {/* 회원정보 수정 버튼 */}
+                                    <div
+                                        style={{
+                                            display: 'flex',
+                                            justifyContent: 'flex-end',
+                                            marginTop: '24px'
+                                        }}
+                                    >
+                                        <button
+                                            type="button"
+                                            onClick={handleMemberEdit}
+                                            style={{
+                                                padding: '12px 24px',
+                                                border: 'none',
+                                                borderRadius: '8px',
+                                                backgroundColor: '#2563eb',
+                                                color: '#ffffff',
+                                                fontSize: '14px',
+                                                fontWeight: 600,
+                                                cursor: 'pointer'
+                                            }}
+                                        >
+                                            정보 수정
+                                        </button>
+                                    </div>
                                 </>
                             )}
                         </div>
@@ -395,17 +420,6 @@ const MyPage: React.FC = () => {
 
                             <p>
                                 내가 참여한 스터디 그룹을 보여주는 영역입니다.
-                            </p>
-                        </div>
-                    )}
-
-                    {/* 학습 분석 */}
-                    {activeMenu === 'example4' && (
-                        <div className="menu-panel">
-                            <h2>학습 분석</h2>
-
-                            <p>
-                                학습 분석 메뉴를 눌렀을 때 보여줄 내용입니다.
                             </p>
                         </div>
                     )}
