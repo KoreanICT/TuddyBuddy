@@ -4,14 +4,24 @@ package kr.co.ictedu.back.point.dao;
 import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import kr.co.ictedu.back.point.vo.PointVO;
 
 @Mapper
 public interface PointDao {
-	
+
 	//n번 회원의 기존 포인트 조회 - member테이블
 	Long select_point(Long num);
+
+	//잔액 변경 시 동시 사용으로 인한 중복 차감을 막기 위해 회원 행 잠금
+	Long select_point_for_update(@Param("num") Long num);
+
+	//회원 잔액 변경
+	int update_member_point(@Param("num") Long num, @Param("balance") Long balance);
+
+	//추천인 코드 소유 회원 조회
+	Long select_member_num_by_code(@Param("member_code") String member_code);
 	
 	//n번 회원의 모든 포인트 로그를 조회 - point테이블
 	List<PointVO> select_point_log(Long num);

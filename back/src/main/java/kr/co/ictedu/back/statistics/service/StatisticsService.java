@@ -47,6 +47,7 @@ public class StatisticsService {
 	public Map<String, Object> selectStatistics(Long memberNum) {
 		// (1) LLM 데이터(피드백) 추출 메서드 호출
 		StatisticsDTO llmFeedback = getLlmFeedbackData(memberNum);
+		System.out.println("llmFeedback데이터: " + llmFeedback);
 		// (2) 차트 데이터 추출 메서드 호출
 		Map<String, Object> chartData = getChartData(memberNum);
 		System.out.println("chart데이터: " + chartData);

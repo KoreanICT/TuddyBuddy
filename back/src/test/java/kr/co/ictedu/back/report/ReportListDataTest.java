@@ -35,16 +35,16 @@ public class ReportListDataTest {
 			return;
 		}
 
-		String[][] testData = { { "POST", "SPAM", "PENDING", "15" }, { "COMMENT", "ABUSE", "PENDING", "32" },
-				{ "USER", "HARASSMENT", "REVIEWING", "7" }, { "STUDY", "SPAM", "COMPLETED", "10" },
-				{ "POST", "ABUSE", "REJECTED", "21" }, { "COMMENT", "SPAM", "PENDING", "45" },
-				{ "USER", "ABUSE", "REVIEWING", "15" }, { "POST", "FALSE_INFO", "COMPLETED", "30" },
-				{ "STUDY", "SPAM", "PENDING", "12" }, { "USER", "HARASSMENT", "REJECTED", "22" },
-				{ "COMMENT", "ABUSE", "COMPLETED", "51" }, { "POST", "FALSE_INFO", "PENDING", "40" },
-				{ "USER", "SPAM", "REVIEWING", "30" }, { "STUDY", "ABUSE", "COMPLETED", "18" },
-				{ "POST", "SPAM", "PENDING", "55" }, { "COMMENT", "HARASSMENT", "REJECTED", "62" },
-				{ "USER", "FALSE_INFO", "PENDING", "33" }, { "STUDY", "SPAM", "REVIEWING", "25" },
-				{ "POST", "ABUSE", "COMPLETED", "70" }, { "COMMENT", "SPAM", "PENDING", "81" } };
+		String[][] testData = { { "community", "SPAM", "PENDING", "15" }, { "report", "ABUSE", "PENDING", "0" },
+				{ "user", "HARASSMENT", "REVIEWING", "7" }, { "study", "SPAM", "COMPLETED", "10" },
+				{ "community", "ABUSE", "REJECTED", "21" }, { "report", "SPAM", "PENDING", "0" },
+				{ "user", "ABUSE", "REVIEWING", "15" }, { "document", "FALSE_INFO", "COMPLETED", "30" },
+				{ "study", "SPAM", "PENDING", "12" }, { "user", "HARASSMENT", "REJECTED", "22" },
+				{ "report", "ABUSE", "COMPLETED", "0" }, { "community", "FALSE_INFO", "PENDING", "40" },
+				{ "user", "SPAM", "REVIEWING", "30" }, { "study", "ABUSE", "COMPLETED", "18" },
+				{ "community", "SPAM", "PENDING", "55" }, { "report", "HARASSMENT", "REJECTED", "0" },
+				{ "user", "FALSE_INFO", "PENDING", "33" }, { "study", "SPAM", "REVIEWING", "25" },
+				{ "document", "ABUSE", "COMPLETED", "70" }, { "report", "SPAM", "PENDING", "0" } };
 
 		int inserted = 0;
 

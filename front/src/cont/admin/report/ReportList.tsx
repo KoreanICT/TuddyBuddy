@@ -8,8 +8,9 @@ import { useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import styles from './report.module.css';
 
+import { ReportType, REPORT_TYPES, REPORT_TYPE_LABELS } from '../../report/reportTarget';
+
 type ReportStatus = 'PENDING' | 'REVIEWING' | 'COMPLETED' | 'REJECTED';
-type ReportType = 'POST' | 'COMMENT' | 'USER' | 'STUDY' | 'community' | 'report';
 
 interface ReportVO {
     num: number;
@@ -115,10 +116,9 @@ const ReportList: React.FC = () => {
     // =========================
     const typeChartData = useMemo(() => {
         const counts: Record<ReportType, number> = {
-            POST: 0,
-            COMMENT: 0,
-            USER: 0,
-            STUDY: 0,
+            user: 0,
+            study: 0,
+            document: 0,
             community: 0,
             report: 0
         };
@@ -127,14 +127,7 @@ const ReportList: React.FC = () => {
             if (report.type in counts) counts[report.type]++;
         });
 
-        return [
-            { name: '게시글', count: counts.POST },
-            { name: '댓글', count: counts.COMMENT },
-            { name: '회원', count: counts.USER },
-            { name: '스터디', count: counts.STUDY },
-            { name: '커뮤니티 게시글', count: counts.community },
-            { name: '일반 신고', count: counts.report }
-        ];
+        return REPORT_TYPES.map(type => ({ name: REPORT_TYPE_LABELS[type], count: counts[type] }));
     }, [reportList]);
 
     // =========================
@@ -177,21 +170,6 @@ const ReportList: React.FC = () => {
             case 'COMPLETED': return '처리완료';
             case 'REJECTED': return '반려';
             default: return status;
-        }
-    };
-
-    // =========================
-    // 신고 유형 출력
-    // =========================
-    const getTypeText = (type: ReportType) => {
-        switch (type) {
-            case 'POST': return '게시글';
-            case 'COMMENT': return '댓글';
-            case 'USER': return '회원';
-            case 'STUDY': return '스터디';
-            case 'community': return '커뮤니티 게시글';
-            case 'report': return '일반 신고';
-            default: return type;
         }
     };
 
@@ -289,7 +267,7 @@ const ReportList: React.FC = () => {
                             reportList.map(report => (
                                 <tr key={report.num} onClick={() => handleDetail(report.num)} style={{ cursor: 'pointer' }}>
                                     <td>{report.num}</td>
-                                    <td>{getTypeText(report.type)}</td>
+                                    <td>{REPORT_TYPE_LABELS[report.type]}</td>
                                     <td>{report.member_num}</td>
                                     <td>{report.target_num ?? '-'}</td>
                                     <td>{report.category}</td>

@@ -15,7 +15,7 @@ export interface Category {
 // 1. 차트용 데이터 인터페이스
 export interface HistoryItem {
     resultId: number;        // selfstudy_results_id
-    round: string;           // 예: '1회차'
+    round: number | string;  // 백엔드 회차 값 또는 표시용 문자열
     score: number;           // selfstudy_total_score (예: 75)
     date: string;            // submitted_at (예: '08-30')
 }
@@ -30,7 +30,7 @@ export interface SubjectShareItem {
     subjectId?: number;      // subject_id
     name: string;            // 과목명 또는 단원명
     value: number;           // 풀이 문제 비중/정답률 (%)
-    color: string;           // 차트 표시 색상
+    color?: string;          // 백엔드 응답에 색상이 없을 때 UI 기본 색상 사용
 }
 
 export interface ChartDataState {
@@ -39,14 +39,14 @@ export interface ChartDataState {
     subjectShare: SubjectShareItem[];
 }
 
-// LLM 평가/컨설팅용 데이터 인터페이스 (quiz_responses 오답 기반)
+// LLM 취약점은 백엔드 문자열 응답 또는 화면 더미데이터 객체 형식
 export interface WeaknessItem {
-    subjectName: string;     // 취약 과목/단원명
-    reason: string;          // 오답 원인 및 보완점 (quiz_responses 기반)
+    subjectName: string;
+    reason: string;
 }
 
 export interface LLMFeedbackState {
     mentorComment: string;   // llm멘트
-    weaknesses: WeaknessItem[];
+    weaknesses: (string | WeaknessItem)[];
     consultingPath: string[]; // 탈출 컨설팅 경로
 }

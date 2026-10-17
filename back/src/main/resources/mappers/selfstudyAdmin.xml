@@ -18,7 +18,7 @@
 		category_status
 		)
 		VALUES (
-		seq_categories.NEXTVAL,
+		categories_seq.NEXTVAL,
 		#{category_name},
 		'Y'
 		)
@@ -60,7 +60,7 @@
 		subject_status
 		)
 		VALUES (
-		seq_subjects.NEXTVAL,
+		subjects_seq.NEXTVAL,
 		#{category_id},
 		#{subject_name},
 		'Y'

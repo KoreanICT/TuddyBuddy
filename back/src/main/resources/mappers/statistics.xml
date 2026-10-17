@@ -18,8 +18,22 @@
 	    WHERE qs.MEMBER_NUM = #{memberNum}
 	</select>
 
+	<resultMap id="incorrectQuizMap" type="map">
+		<id property="quiz_id" column="quiz_id"/>
+		<result property="question" column="question"
+				javaType="string" jdbcType="CLOB"
+				typeHandler="org.apache.ibatis.type.ClobTypeHandler"/>
+		<result property="options" column="options"/>
+		<result property="user_answer" column="user_answer"/>
+		<result property="correct_answer" column="correct_answer"/>
+		<result property="is_correct" column="is_correct"/>
+		<result property="explanation" column="explanation"
+				javaType="string" jdbcType="CLOB"
+				typeHandler="org.apache.ibatis.type.ClobTypeHandler"/>
+	</resultMap>
+
 	<!-- 정답을 맞춘 문제 목록 조회 -->
-	<select id="selectIncorrectQuizzesByResultId_Statistics" resultType="map">
+	<select id="selectIncorrectQuizzesByResultId_Statistics" resultMap="incorrectQuizMap">
 		SELECT
 		q.quiz_id AS "quiz_id",
 		q.quiz_question AS "question",
