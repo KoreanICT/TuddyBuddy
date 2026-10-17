@@ -13,6 +13,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.bind.annotation.PutMapping;
 import kr.co.ictedu.back.securityauth.MemberRoles;
+import kr.co.ictedu.back.securityauth.AuthCookies;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -45,6 +47,9 @@ public class MemberController {
 
     @Autowired
     private PagingService pagingService;
+
+    @Autowired
+    private AuthCookies authCookies;
 
     // ==========================================
     // 관리자 회원가입
@@ -372,7 +377,8 @@ public class MemberController {
     @PostMapping("/password/change")
     public ResponseEntity<?> changePassword(
             @RequestBody Map<String, String> request,
-            Authentication authentication) {
+            Authentication authentication,
+            HttpServletRequest servletRequest, HttpServletResponse servletResponse) {
 
     	 System.out.println("===== 비밀번호 변경 Controller 진입 =====");
 
@@ -449,6 +455,7 @@ public class MemberController {
         switch (result) {
 
             case SUCCESS:
+                authCookies.clear(servletRequest, servletResponse);
                 System.out.println(
                     "===== 일반 회원 비밀번호 변경 성공 ====="
                 );
@@ -532,7 +539,7 @@ public class MemberController {
     public String memberWithdraw(
             @RequestParam(value = "num", required = false) Long ignoredNum,
             Authentication authentication,
-            HttpServletRequest request) {
+            HttpServletRequest request, HttpServletResponse response) {
         if (authentication == null || !authentication.isAuthenticated()
                 || "anonymousUser".equals(authentication.getPrincipal())) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
@@ -542,6 +549,7 @@ public class MemberController {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "회원 인증정보가 없습니다.");
         }
         memberService.withdrawMember(member.getMember_num());
+        authCookies.clear(request, response);
         HttpSession session = request.getSession(false);
         if (session != null) {
             session.invalidate();

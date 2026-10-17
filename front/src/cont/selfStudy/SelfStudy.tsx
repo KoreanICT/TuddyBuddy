@@ -1,3 +1,4 @@
+import { BACKEND_URL, authenticatedFetch } from '../../login/authHttp';
 // 최솔
 import React, {
   useCallback,
@@ -26,10 +27,7 @@ import {
 
 import styles from './selfstudy.module.css';
 
-const BACKEND_URL = (
-  process.env.REACT_APP_BACK_END_URL ||
-  'http://192.168.0.19/back'
-).replace(/\/$/, '');
+
 
 const getValue = (
   data: any,
@@ -305,7 +303,7 @@ const SelfStudy: React.FC = () => {
           setCategories(mappedCategories);
         }
       } catch (error) {
-        console.error('카테고리 조회 실패:', error);
+        console.error('카테고리 조회 실패:');
 
         if (!cancelled) {
           setCategories([]);
@@ -381,7 +379,7 @@ const SelfStudy: React.FC = () => {
           setSubjects(mappedSubjects);
         }
       } catch (error) {
-        console.error('과목 조회 실패:', error);
+        console.error('과목 조회 실패:');
 
         if (!cancelled) {
           setSubjects([]);
@@ -456,7 +454,7 @@ const SelfStudy: React.FC = () => {
       setSavedSessions(sessions);
       setSavedResults(results);
     } catch (error) {
-      console.error('학습 기록 조회 실패:', error);
+      console.error('학습 기록 조회 실패:');
       setHistoryError(
         '저장된 학습 기록을 불러오지 못했습니다.'
       );
@@ -605,7 +603,7 @@ const SelfStudy: React.FC = () => {
       setActiveTab('quiz');
     } catch (error) {
       if (requestId === restoreRequestRef.current) {
-        console.error('학습 세션 복원 실패:', error);
+        console.error('학습 세션 복원 실패:');
         alert(
           error instanceof Error
             ? error.message
@@ -669,7 +667,7 @@ const SelfStudy: React.FC = () => {
 
       await loadHistory();
     } catch (error) {
-      console.error('학습 세션 삭제 실패:', error);
+      console.error('학습 세션 삭제 실패:');
       alert('학습 기록을 삭제하지 못했습니다.');
     } finally {
       setDeleting(false);
@@ -759,7 +757,7 @@ const SelfStudy: React.FC = () => {
   formData.append('quiz_prompt', quizPrompt);
 
   try {
-    const response = await fetch(
+    const response = await authenticatedFetch(
       `${BACKEND_URL}/api/selfstudy/generate`,
       {
         method: 'POST',
@@ -836,11 +834,11 @@ const SelfStudy: React.FC = () => {
 
     // 학습 기록 새로고침
     await loadHistory().catch((error) => {
-      console.error('학습 기록 갱신 실패:', error);
+      console.error('학습 기록 갱신 실패:');
     });
 
   } catch (error) {
-    console.error('AI 문제 생성 오류:', error);
+    console.error('AI 문제 생성 오류:');
 
     const message =
       error instanceof Error
@@ -943,7 +941,7 @@ const SelfStudy: React.FC = () => {
     setSubmitting(true);
 
     try {
-      const response = await fetch(
+      const response = await authenticatedFetch(
         `${BACKEND_URL}/api/selfstudy/submit`,
         {
           method: 'POST',
@@ -979,7 +977,7 @@ const SelfStudy: React.FC = () => {
       // 제출한 점수 및 결과를 학습 기록 목록에 반영
       await loadHistory();
     } catch (error) {
-      console.error('답안 제출 실패:', error);
+      console.error('답안 제출 실패:');
 
       alert(
         error instanceof Error

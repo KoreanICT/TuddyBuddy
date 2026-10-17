@@ -1,19 +1,17 @@
 
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { AuthSession, currentToken } from '../session';
 
 // 어떤 상태를 관리할지 정의하는 인터페이스
-interface AuthState {
-  username: string;
-  token: string;
-  member_num: number | null; // 추가: 회원번호
-  authority: string;         // 추가: 회원권한
+interface AuthState extends Omit<AuthSession, 'member_num'> {
+  member_num: number | null;
   error: string | null;
 }
 
 // 상태의 초기값 설정
 const initialState: AuthState = {
   username: localStorage.getItem('username') || '',
-  token: localStorage.getItem('token') || '',
+  token: currentToken(),
 
   // 추가: 새로고침 시 회원정보 복원
   member_num: localStorage.getItem('member_num')
@@ -36,12 +34,7 @@ const authSlice = createSlice({
     // 로그인 성공
     loginSuccess(
       state,
-      action: PayloadAction<{
-        username: string;
-        token: string;
-        member_num: number;
-        authority: string;
-      }>
+      action: PayloadAction<AuthSession>
     ) {
       state.username = action.payload.username;
       state.token = action.payload.token;

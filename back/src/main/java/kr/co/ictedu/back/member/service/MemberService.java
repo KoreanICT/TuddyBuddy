@@ -14,6 +14,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.server.ResponseStatusException;
 import kr.co.ictedu.back.securityauth.MemberRoles;
+import kr.co.ictedu.back.securityauth.RefreshTokenService;
 import org.springframework.transaction.annotation.Transactional;
 
 import kr.co.ictedu.back.member.dao.MemberDAO;
@@ -27,6 +28,9 @@ public class MemberService {
 
 	@Autowired
 	private PasswordEncoder passwordEncoder;
+
+	@Autowired
+	private RefreshTokenService refreshTokens;
 
 	// 비밀번호 변경 결과
 	public enum PasswordChangeResult {
@@ -171,6 +175,7 @@ public class MemberService {
 	// ==========================================
 	// 일반 회원 비밀번호 변경
 	// ==========================================
+	@Transactional
 	public PasswordChangeResult changePassword(String email, String currentPassword, String newPassword) {
 
 		// 회원정보 조회
@@ -223,6 +228,8 @@ public class MemberService {
 		if (result != 1) {
 			return PasswordChangeResult.UPDATE_CONFLICT;
 		}
+
+		refreshTokens.revokeAll(member.getMember_num());
 
 		System.out.println("===== 비밀번호 DB 변경 완료 =====");
 
@@ -278,6 +285,7 @@ public class MemberService {
         if (memberDao.deleteMember(mnum) != 1) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "회원 탈퇴에 실패했습니다.");
         }
+        refreshTokens.revokeAll(mnum);
         return true;
 	}
 

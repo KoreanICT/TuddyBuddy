@@ -2,8 +2,8 @@ package kr.co.ictedu.back.securityjwt;
 
 import java.util.List;
 import kr.co.ictedu.back.securityauth.MemberRoles;
+import kr.co.ictedu.back.securityauth.AuthCookies;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -20,13 +20,14 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import jakarta.servlet.DispatcherType;
 
 @EnableWebSecurity
 @Configuration
 public class SecurityConfig {
 
-	@Value("${security.value}")
-	private String myip;
+	@Autowired
+	private AuthCookies authCookies;
 
 	// JWT 토큰을 검증하는 필터
 	@Autowired
@@ -65,7 +66,7 @@ public class SecurityConfig {
 				.cors((cors) -> cors.configurationSource(corsConfigurationSource()))
 				.formLogin((login) -> login.disable()).httpBasic((basic) -> basic.disable())
 				.authorizeHttpRequests((auth) -> auth
-
+						.dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
 						.requestMatchers("/api/auth/**").permitAll() // /api/auth/** 에서 오는 모든 요청은 허용
 						.requestMatchers("/api/chatbot/session", "/api/chatbot/ai", "/api/chatbot/message/session/*").permitAll() // Chatbot 회원/비회원 공통 API
 						.requestMatchers("/api/member/admin/signup").denyAll().requestMatchers("/api/member/admin/**")
@@ -84,6 +85,9 @@ public class SecurityConfig {
 				.addFilterBefore(jwtTokenFilter, BasicAuthenticationFilter.class)
 				// 세션 정책 설정: SessionCreationPolicy.STATELESS로 설정하여 세션 기반 인증을 사용하지 않도록 한다.
 				.sessionManagement((session) -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+				.exceptionHandling(errors -> errors
+						.authenticationEntryPoint((request, response, exception) -> response.setStatus(401))
+						.accessDeniedHandler((request, response, exception) -> response.setStatus(403)))
 				// 로그아웃 기능 비활성화
 				.logout((logout) -> logout.disable());
 		return http.build();
@@ -93,8 +97,7 @@ public class SecurityConfig {
 	public CorsConfigurationSource corsConfigurationSource() {
 		CorsConfiguration corsConfiguration = new CorsConfiguration();
 		corsConfiguration.setAllowCredentials(true);
-		corsConfiguration.setAllowedOrigins(// React 그러니까 개발 클라이언트 접속만 허용
-				List.of("http://" + myip + ":3000", "http://localhost:3000", "http://" + myip + ":80"));
+		corsConfiguration.setAllowedOrigins(authCookies.allowedOrigins());
 		corsConfiguration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
 		corsConfiguration.setAllowedHeaders(List.of("*"));
 

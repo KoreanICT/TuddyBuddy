@@ -1,3 +1,4 @@
+import { authenticatedFetch } from '../../login/authHttp';
 // 허승표
 
 import React, { useEffect, useRef, useState } from 'react'
@@ -190,7 +191,7 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
 
                 // 현재 사용자의 저장된 세션이 없으면 생성
                 if (nextChatNum === null) {
-                    const response = await fetch(
+                    const response = await authenticatedFetch(
                         'http://localhost:80/back/api/chatbot/session',
                         {
                             method: 'POST',
@@ -250,7 +251,7 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
 
                 // 현재 사용자의 기존 대화 조회
                 // X로 닫앗다 다시 열면 같은 세션의 기록 복원
-                const response = await fetch(
+                const response = await authenticatedFetch(
                     `http://localhost:80/back/api/chatbot/message/session/${nextChatNum}`,
                     {
                         headers: getAuthHeaders(currentToken)
@@ -297,7 +298,7 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
                 // 계정 전환 또는 창 닫기로 취소된 요청은 무시
                 if (requestState.cancelled) return;
 
-                console.error('채팅 준비 오류: ', error);
+                console.error('채팅 준비 오류: ');
 
                 if (sessionReady) {
                     setHistoryError(true);
@@ -374,7 +375,7 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
 
         try {
             // Spring Boot에 AI 질문 요청
-            const response = await fetch(
+            const response = await authenticatedFetch(
                 'http://localhost:80/back/api/chatbot/ai',
                 {
                     method: 'POST',
@@ -418,7 +419,7 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
         } catch (error) {
             // 계정 전환 또는 창 닫기로 취소된 요청은 무시
             if (requestState.cancelled) return;
-            console.error('챗봇 오류: ', error);
+            console.error('챗봇 오류: ');
 
             // 서버 처리 여부를 확인할 수 없는 상태
             setMessages(prev =>

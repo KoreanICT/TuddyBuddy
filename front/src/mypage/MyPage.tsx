@@ -1,3 +1,4 @@
+import { BACKEND_URL } from '../login/authHttp';
 
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -10,9 +11,7 @@ import { useAppDispatch } from '../login/reducers/store';
 import { logoutAction } from '../login/authActions/authActions';
 
 // 백엔드 서버 주소
-const API_URL =
-    process.env.REACT_APP_BACK_END_URL ||
-    'http://localhost:80/back';
+const API_URL = BACKEND_URL;
 
 // 회원정보 타입
 interface MemberVO {
@@ -80,7 +79,7 @@ const MyPage: React.FC = () => {
             } catch (error) {
                 if (axios.isCancel(error)) return;
 
-                console.error('마이페이지 회원정보 조회 실패:', error);
+                console.error('마이페이지 회원정보 조회 실패:');
                 setMember(null);
 
                 if (axios.isAxiosError(error)) {
