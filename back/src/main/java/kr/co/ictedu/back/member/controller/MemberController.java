@@ -653,6 +653,21 @@ public class MemberController {
 			return ResponseEntity.badRequest().body(e.getMessage());
 		}
 	}
+    @GetMapping("/memberProfile")
+    public ResponseEntity<?> memberProfile(@RequestParam("member_num") Long memberNum,
+            Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()
+                || "anonymousUser".equals(authentication.getPrincipal())) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
+        }
+        if (memberNum <= 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "회원 번호가 올바르지 않습니다.");
+        }
+        Map<String, Object> profile = memberService.getMemberProfile(memberNum);
+        if (profile == null || profile.isEmpty()) return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(profile);
+    }
+
     public record AuthorityUpdateRequest(Long memberNum, String authority) { }
 
     @PutMapping("/admin/authority")
