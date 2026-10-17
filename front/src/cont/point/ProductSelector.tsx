@@ -66,7 +66,7 @@ export const ProductSelector: React.FC<ProductSelectorProps> = ({ onSelectOrder 
       }
 
       // 3. 백엔드 사후 검증 호출
-      const verifyResponse = await axios.post('http://localhost/back/api/point/pointAdd', {
+      const verifyResponse = await axios.post(`${process.env.REACT_APP_BACK_END_URL}/api/point/pointAdd`, {
             paymentId: response.paymentId,
             payment:selectedProduct,
             description:"포인트 결제",
