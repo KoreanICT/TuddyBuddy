@@ -20,7 +20,6 @@ import {
   SelfStudyResult,
   SavedQuizResponse,
   MainTabType,
-  RightTabType,
   Category,
   Subject,
 } from './types';
@@ -206,12 +205,6 @@ const SelfStudy: React.FC = () => {
 
   const [activeTab, setActiveTab] =
     useState<MainTabType>('quiz');
-
-  const [rightTab, setRightTab] =
-    useState<RightTabType>('my');
-
-  const [searchFilter, setSearchFilter] = useState('name');
-  const [searchKeyword, setSearchKeyword] = useState('');
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
@@ -1035,6 +1028,11 @@ const SelfStudy: React.FC = () => {
           wrongNotes={wrongNotes}
           handleSelectAnswer={handleSelectAnswer}
           previewUrl={studyImageUrl}
+          restoring={restoring}
+          deleting={deleting}
+        />
+
+        <RightSidebar
           savedSessions={savedSessions}
           savedResults={savedResults}
           currentSessionId={quizSessionId}
@@ -1045,15 +1043,6 @@ const SelfStudy: React.FC = () => {
           onRefreshHistory={loadHistory}
           onRestoreSession={handleRestoreSession}
           onDeleteSession={handleDeleteSession}
-        />
-
-        <RightSidebar
-          rightTab={rightTab}
-          setRightTab={setRightTab}
-          searchFilter={searchFilter}
-          setSearchFilter={setSearchFilter}
-          searchKeyword={searchKeyword}
-          setSearchKeyword={setSearchKeyword}
         />
       </div>
 
