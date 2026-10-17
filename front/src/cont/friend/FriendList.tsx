@@ -2,7 +2,7 @@
 // 주용현
 
 import axios from 'axios';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { UserRound, Trash2, Users } from 'lucide-react';
 
 import styles from './friendList.module.css';
@@ -28,12 +28,16 @@ const FriendList: React.FC = () => {
     const [friends, setFriends] = useState<FriendVO[]>([]);
 
     // 커스텀 훅에서 member_num 가져오기
-    const { memberNum } = useAuth();
+    const { memberNum, token } = useAuth();
+
+    const getAuthHeaders = useCallback(() => ({
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+    }), [token]);
 
 
     
     // 상대방 회원 번호
-    const getFriendMemberNum = (friend: FriendVO) => {
+    const getFriendMemberNum = useCallback((friend: FriendVO) => {
         const loginNum = Number(memberNum);
         const requestNum = Number(friend.request_num);
         const responseNum = Number(friend.response_num);
@@ -46,15 +50,16 @@ const FriendList: React.FC = () => {
         console.log('조회할 친구 회원번호:', friendNum);
 
         return friendNum;
-    };
+    }, [memberNum]);
 
     // 친구 목록 조회
-    const fetchFriendList = async () => {
-        if (memberNum == null) return;
+    const fetchFriendList = useCallback(async () => {
+        if (!token || memberNum == null) return;
 
         try {
             const urls = "http://localhost:80/back/api/friend/friendList";
             const response = await axios.get<FriendVO[]>(urls, {
+                headers: getAuthHeaders(),
                 params: { member_num: memberNum }
             });
 
@@ -63,6 +68,7 @@ const FriendList: React.FC = () => {
                 try {
                     const profileUrl = "http://localhost:80/back/api/member/memberProfile";
                     const profile = await axios.get<MemberProfile>(profileUrl, {
+                        headers: getAuthHeaders(),
                         params: { member_num: getFriendMemberNum(friend) }
                     });
 
@@ -78,19 +84,19 @@ const FriendList: React.FC = () => {
             console.error('친구 목록 조회 실패:', error);
             setFriends([]);
         }
-    };
+    }, [memberNum, token, getAuthHeaders, getFriendMemberNum]);
 
     useEffect(() => {
-        if (memberNum == null) {
+        if (!token || memberNum == null) {
             setFriends([]);
             return;
         }
         fetchFriendList();
-    }, [memberNum]);
+    }, [memberNum, token, fetchFriendList]);
 
     // 친구 삭제
     const handleDeleteFriend = async (friendNum: number) => {
-        if (memberNum == null) {
+        if (!token || memberNum == null) {
             alert('로그인 정보가 없습니다.');
             return;
         }
@@ -102,6 +108,7 @@ const FriendList: React.FC = () => {
             const urls = "http://localhost:80/back/api/friend/friendDelete";
 
             await axios.delete(urls, {
+                headers: getAuthHeaders(),
                 params: {
                     num: friendNum,
                     member_num: memberNum

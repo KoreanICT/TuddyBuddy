@@ -9,7 +9,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pi
 import styles from './report.module.css';
 
 type ReportStatus = 'PENDING' | 'REVIEWING' | 'COMPLETED' | 'REJECTED';
-type ReportType = 'POST' | 'COMMENT' | 'USER' | 'STUDY';
+type ReportType = 'POST' | 'COMMENT' | 'USER' | 'STUDY' | 'community' | 'report';
 
 interface ReportVO {
     num: number;
@@ -118,7 +118,9 @@ const ReportList: React.FC = () => {
             POST: 0,
             COMMENT: 0,
             USER: 0,
-            STUDY: 0
+            STUDY: 0,
+            community: 0,
+            report: 0
         };
 
         reportList.forEach(report => {
@@ -129,7 +131,9 @@ const ReportList: React.FC = () => {
             { name: '게시글', count: counts.POST },
             { name: '댓글', count: counts.COMMENT },
             { name: '회원', count: counts.USER },
-            { name: '스터디', count: counts.STUDY }
+            { name: '스터디', count: counts.STUDY },
+            { name: '커뮤니티 게시글', count: counts.community },
+            { name: '일반 신고', count: counts.report }
         ];
     }, [reportList]);
 
@@ -185,6 +189,8 @@ const ReportList: React.FC = () => {
             case 'COMMENT': return '댓글';
             case 'USER': return '회원';
             case 'STUDY': return '스터디';
+            case 'community': return '커뮤니티 게시글';
+            case 'report': return '일반 신고';
             default: return type;
         }
     };
