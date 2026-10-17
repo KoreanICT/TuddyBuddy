@@ -95,6 +95,16 @@ public class ReportService {
         return report;
     }
 
+    public Map<String, Object> targetDetail(Long reportNum) {
+        ReportVO report = detail(reportNum);
+        if ("report".equals(report.getType())) return Map.of("available", true, "general", true);
+        Map<String, Object> target = reportDao.targetDetail(report.getType(), report.getTarget_num());
+        if (target == null) return Map.of("available", false);
+        Map<String, Object> result = new java.util.HashMap<>(target);
+        result.put("available", true);
+        return result;
+    }
+
     @Transactional
     public void del(Long num) {
         lockReport(num);

@@ -185,6 +185,13 @@
 						authority LIKE '%' || #{searchValue} || '%'
 					</when>
 
+					<when test='searchType == "4"'>
+						member_nick LIKE '%' || #{searchValue} || '%'
+					</when>
+					<when test='searchType == "5"'>
+						member_code LIKE '%' || #{searchValue} || '%'
+					</when>
+
 				</choose>
 			</where>
 
@@ -219,6 +226,13 @@
 					<!-- 권한 검색 -->
 					<when test='searchType == "3"'>
 						authority LIKE '%' || #{searchValue} || '%'
+					</when>
+
+					<when test='searchType == "4"'>
+						member_nick LIKE '%' || #{searchValue} || '%'
+					</when>
+					<when test='searchType == "5"'>
+						member_code LIKE '%' || #{searchValue} || '%'
 					</when>
 
 				</choose>

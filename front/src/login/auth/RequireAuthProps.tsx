@@ -34,7 +34,7 @@ const RequireAuth: React.FC<RequireAuthProps> = ({ children, allowedRoles }) => 
   }, [token, expiresAt, expiryTick]);
 
   if (!decoded) {
-    const redirect = encodeURIComponent(location.pathname + location.search);
+    const redirect = encodeURIComponent(location.pathname + location.search + location.hash);
     return <Navigate to={`/auth/member?redirect=${redirect}`} replace />;
   }
 

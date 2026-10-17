@@ -30,6 +30,8 @@ public interface ReportDao {
 	// 신고 상세 조회
 	ReportVO detail(Long num);
 
+	Map<String, Object> targetDetail(@Param("type") String type, @Param("targetNum") Long targetNum);
+
 	ReportVO lockDetail(Long num);
 
 	int targetExists(@Param("type") String type, @Param("targetNum") Long targetNum);
