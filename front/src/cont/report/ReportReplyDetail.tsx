@@ -110,7 +110,7 @@ const ReportReplyDetail: React.FC = () => {
                 <div className={styles.notFound}>존재하지 않는 신고 답변입니다.</div>
 
                 <div className={styles.replyDetailActions}>
-                    <button className={styles.listButton} onClick={() => navigate('/report/replyList')}>
+                    <button className={styles.listButton} onClick={() => navigate('/reportReplyList')}>
                         목록
                     </button>
                 </div>
@@ -179,7 +179,7 @@ const ReportReplyDetail: React.FC = () => {
 
             {/* Buttons */}
             <div className={styles.replyDetailActions}>
-                <button className={styles.listButton} onClick={() => navigate('/report/replyList')}>
+                <button className={styles.listButton} onClick={() => navigate('/reportReplyList')}>
                     목록
                 </button>
             </div>

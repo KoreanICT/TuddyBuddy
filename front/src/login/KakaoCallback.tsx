@@ -9,6 +9,7 @@ import axios from 'axios';
 
 import { authPost, BACKEND_URL } from './authHttp';
 import { saveSession } from './session';
+import { consumeLoginDestination } from './loginRedirect';
 
 // 백엔드 서버 주소
 const API_URL = BACKEND_URL;
@@ -247,7 +248,7 @@ const KakaoCallback: React.FC = () => {
           // 10. 로그인 성공
           // ==========================================
           setMessage(
-            '카카오 로그인 성공! 메인 페이지로 이동합니다.'
+            '카카오 로그인 성공! 요청한 화면으로 이동합니다.'
           );
 
           // 남아 있는 가입용 임시 토큰 제거
@@ -258,7 +259,7 @@ const KakaoCallback: React.FC = () => {
           // ==========================================
           // 11. 메인 페이지 이동
           // ==========================================
-          navigate('/', {
+          navigate(consumeLoginDestination(), {
             replace: true
           });
 

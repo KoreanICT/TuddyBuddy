@@ -239,6 +239,12 @@ public class ReportController {
 
     /* 신고 관리 */
 
+    @GetMapping("/reportTargetDetail")
+    public Map<String, Object> reportTargetDetail(@RequestParam("num") Long num, Authentication authentication) {
+        requireManager(authentication);
+        return reportService.targetDetail(num);
+    }
+
     // 신고 상태 변경
     @Operation(
         summary = "신고 상태 변경",

@@ -72,7 +72,7 @@ public class SecurityConfig {
 						.requestMatchers("/api/chatbot/session", "/api/chatbot/ai", "/api/chatbot/message/session/*").permitAll() // Chatbot 회원/비회원 공통 API
 						.requestMatchers("/api/member/admin/signup").denyAll().requestMatchers("/api/member/admin/**")
 						.hasAuthority(MemberRoles.ADMIN)
-						.requestMatchers("/api/member/memberList", "/api/selfstudy/admin/**", "/api/notice/noticeAdd",
+						.requestMatchers("/api/admin/dashboard", "/api/member/memberList", "/api/selfstudy/admin/**", "/api/notice/noticeAdd",
 								"/api/notice/noticeUpdate", "/api/notice/noticeDelete", "/api/report/reportList",
 								"/api/report/reportStatusUpdate", "/api/report/reportReplyAdd",
 								"/api/report/reportReplyUpdate", "/api/report/reportReplyDelete",

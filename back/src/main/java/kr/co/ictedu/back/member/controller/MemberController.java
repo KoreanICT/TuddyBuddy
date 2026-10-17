@@ -574,6 +574,11 @@ public class MemberController {
         PageVO pageVO =
             pagingService.makePage(totalCnt, cPage);
 
+        // 마지막 페이지의 회원을 삭제한 후에도 유효한 페이지를 반환합니다.
+        if (pageVO.getNowPage() > Math.max(1, pageVO.getTotalPage())) {
+            pageVO = pagingService.makePage(totalCnt, String.valueOf(Math.max(1, pageVO.getTotalPage())));
+        }
+
         Map<String, String> map =
             new HashMap<>(paramMap);
 
@@ -596,9 +601,8 @@ public class MemberController {
 		response.put("data", list.stream().map(member -> {
             Map<String, Object> item = new LinkedHashMap<>();
             item.put("member_num", member.getMember_num());
-            item.put("member_email", member.getMember_email());
-            item.put("member_name", member.getMember_name());
             item.put("member_nick", member.getMember_nick());
+            item.put("member_code", member.getMember_code());
             item.put("authority", member.getAuthority());
             item.put("regdate", member.getRegdate());
             return item;
@@ -652,6 +656,17 @@ public class MemberController {
     }
 
     public record AuthorityUpdateRequest(Long memberNum, String authority) { }
+
+    @DeleteMapping("/admin/withdraw")
+    public ResponseEntity<?> withdrawManagedMember(@RequestParam("memberNum") Long memberNum) {
+        try {
+            memberService.withdrawManagedMember(memberNum);
+            return ResponseEntity.ok(Map.of("success", true, "message", "회원 탈퇴 처리가 완료되었습니다."));
+        } catch (ResponseStatusException e) {
+            return ResponseEntity.status(e.getStatusCode()).body(Map.of("success", false,
+                    "message", e.getReason() == null ? "회원 탈퇴 처리에 실패했습니다." : e.getReason()));
+        }
+    }
 
     @PutMapping("/admin/authority")
     public ResponseEntity<?> updateAuthority(@RequestBody AuthorityUpdateRequest body) {
