@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import kr.co.ictedu.back.report.vo.ReportVO;
 
@@ -28,6 +29,10 @@ public interface ReportDao {
 
 	// 신고 상세 조회
 	ReportVO detail(Long num);
+
+	ReportVO lockDetail(Long num);
+
+	int targetExists(@Param("type") String type, @Param("targetNum") Long targetNum);
 
 	int update(ReportVO vo);
 

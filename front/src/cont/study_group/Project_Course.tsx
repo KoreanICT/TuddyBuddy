@@ -19,7 +19,7 @@ import {
 import '@xyflow/react/dist/style.css';
 import styles from './project.module.css'
 import axios from 'axios';
-import { GetGroupNum, GetIsleaderandGroupNum } from './GroupAPI'
+import api, { GetGroupNum, GetIsleaderandGroupNum } from './GroupAPI'
 import { CustomNodeData, DiagramData, DiagramSaveRequest, DiagramResponse } from './GroupAPI';
 import { AppNode, AppEdge } from './Type';
 
@@ -191,8 +191,8 @@ export const Project_Course: React.FC<GetIsleaderandGroupNum> = ({groupNum, isLe
     useEffect(() => {
         const loadDiagram = async () => {
             try {
-                const response = await axios.get<DiagramResponse> (
-                    `http://localhost/back/api/detail/diagram/getDiagram/${groupNum}`
+                const response = await api.get<DiagramResponse> (
+                    `/detail/diagram/getDiagram/${groupNum}`
                 );
                 const diagram = response.data;
                 if (!diagram) {

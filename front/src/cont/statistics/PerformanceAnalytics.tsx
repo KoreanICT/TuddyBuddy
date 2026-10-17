@@ -38,9 +38,14 @@ export default function PerformanceAnalytics() {
         const fetchAnalytics = async () => {
             setLoading(true);
             try {
+                const token = localStorage.getItem('token');
+                if (typeof token !== 'string' || token.trim() === '') return;
+
                 // 1.  카테고리 수집
-                const savedResponse = await axios.post('http://localhost/back/api/statistics/getCategories', {
+                const savedResponse = await axios.post(`${process.env.REACT_APP_BACK_END_URL}/api/statistics/getCategories`, {
                     memberNum: 1,
+                }, {
+                    headers: { Authorization: `Bearer ${token}` },
                 });
 
                 if (!savedResponse.data) return;
@@ -67,12 +72,28 @@ export default function PerformanceAnalytics() {
         const fetchAnalyticsData = async () => {
             setLoading(true);
             try {
+                const token = localStorage.getItem('token');
+                if (typeof token !== 'string' || token.trim() === '') return;
+
                 // 스프링부트 API 호출: /api/v1/analytics/subjects/{subjectId}
-                const response = await axios.post(`http://localhost:80/back/api/statistics/getStatistics`, {
+                const response = await axios.post(`${process.env.REACT_APP_BACK_END_URL}/api/statistics/getStatistics`, {
                     memberNum: 1,
+                }, {
+                    headers: { Authorization: `Bearer ${token}` },
                 });
 
-                setChartData(response.data.chartData);
+                const responseChartData = response.data.chartData;
+                const predictionResponse = responseChartData?.prediction;
+                const prediction = Array.isArray(predictionResponse)
+                    ? predictionResponse
+                    : Array.isArray(predictionResponse?.prediction)
+                        ? predictionResponse.prediction
+                        : [];
+
+                setChartData({
+                    ...responseChartData,
+                    prediction,
+                });
                 setLlmFeedback(response.data.llmFeedback);
 
             } catch (error) {
@@ -214,7 +235,7 @@ export default function PerformanceAnalytics() {
                                             paddingAngle={4}
                                         >
                                             {chartData.subjectShare.map((entry, index) => (
-                                                <Cell key={`cell-${index}`} fill={entry.color} />
+                                                <Cell key={`cell-${index}`} fill={entry.color ?? '#2563eb'} />
                                             ))}
                                         </Pie>
                                         <Tooltip formatter={(value) => `${value}%`} />
@@ -251,10 +272,16 @@ export default function PerformanceAnalytics() {
                                 <div className="weakness-list">
                                     {llmFeedback.weaknesses.map((item, idx) => (
                                         <div key={idx} className="weakness-item">
-                                            <div className="weakness-head">
-                                                <span className="subject">{item.subjectName}</span>
-                                            </div>
-                                            <p className="reason">{item.reason}</p>
+                                            {typeof item === 'string' ? (
+                                                <p className="reason">{item}</p>
+                                            ) : (
+                                                <>
+                                                    <div className="weakness-head">
+                                                        <span className="subject">{item.subjectName}</span>
+                                                    </div>
+                                                    <p className="reason">{item.reason}</p>
+                                                </>
+                                            )}
                                         </div>
                                     ))}
                                 </div>

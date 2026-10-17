@@ -1,28 +1,34 @@
 // 주용현
 
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useCallback, useState } from 'react';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import styles from './report.module.css';
 import { useAuth } from '../../login/hooks/useAuth';
 
-type ReportType = 'POST' | 'COMMENT' | 'USER' | 'STUDY';
+import { readReportTarget, REPORT_TYPE_LABELS } from './reportTarget';
 
 interface ReportForm {
-    type: ReportType;
-    target_num: string;
     reason: string;
     content: string;
 }
 
 const ReportCreate: React.FC = () => {
     const navigate = useNavigate();
-    const { memberNum } = useAuth();
+    const location = useLocation();
+    const previousPath = (location.state as { reportReturnTo?: unknown } | null)?.reportReturnTo;
+    const returnTo = typeof previousPath === 'string' && previousPath.startsWith('/')
+        && !previousPath.startsWith('//') && !previousPath.includes('\\') ? previousPath : '/';
+    const [searchParams] = useSearchParams();
+    const target = readReportTarget(searchParams);
+    const { memberNum, token } = useAuth();
+
+    const getAuthHeaders = useCallback(() => ({
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+    }), [token]);
 
 
     const [form, setForm] = useState<ReportForm>({
-        type: 'POST',
-        target_num: '',
         reason: '',
         content: '',
     });
@@ -41,15 +47,18 @@ const ReportCreate: React.FC = () => {
 
         if (submitting) return;
 
-        const targetNum = Number(form.target_num);
-
-        if (!Number.isSafeInteger(targetNum) || targetNum <= 0 || !form.target_num.trim()) {
-            alert('신고 대상 번호를 올바르게 입력해주세요.');
+        if (!token || memberNum == null) {
+            alert('로그인이 필요합니다.');
             return;
         }
 
-        if (!form.reason.trim()) {
-            alert('신고 사유를 입력해주세요.');
+        if (!target) {
+            alert('신고 대상 정보가 올바르지 않습니다. 원래 화면에서 다시 신고해주세요.');
+            return;
+        }
+
+        if (!form.reason.trim() || form.reason.trim().length > 255) {
+            alert('신고 사유를 255자 이내로 입력해주세요.');
             return;
         }
 
@@ -63,20 +72,20 @@ const ReportCreate: React.FC = () => {
 
             const formData = new FormData();
 
-            formData.append('member_num', String(memberNum));
-            formData.append('type', form.type);
-            formData.append('target_num', String(targetNum));
+            formData.append('type', target.type);
+            formData.append('target_num', String(target.targetNum));
             formData.append('category', form.reason.trim());
             formData.append('content', form.content.trim());
 
             const response = await axios.post(
                 'http://localhost:80/back/api/report/reportAdd',
-                formData
+                formData,
+                { headers: getAuthHeaders() }
             );
 
             console.log('신고 등록 결과:', response.data);
             alert('신고가 정상적으로 접수되었습니다.');
-            navigate('/');
+            navigate(returnTo, { replace: true });
 
         } catch (error) {
             console.error('신고 등록 실패:', error);
@@ -95,45 +104,37 @@ const ReportCreate: React.FC = () => {
     // 취소
     // =========================
     const handleCancel = () => {
-        if (form.target_num || form.reason || form.content) {
+        if (form.reason || form.content) {
             const confirmCancel = window.confirm('작성 중인 내용이 있습니다. 취소하시겠습니까?');
             if (!confirmCancel) return;
         }
 
-        navigate(-1);
+        navigate(returnTo, { replace: true });
     };
 
     return (
         <div className={styles.reportCreate}>
             <div className={styles.header}>
                 <h1>신고 작성</h1>
-                <p>서비스 이용 중 발견한 부적절한 게시글, 댓글, 회원 또는 스터디를 신고할 수 있습니다.</p>
+                <p>신고 사유와 상세 내용을 작성해주세요.</p>
             </div>
 
             <form className={styles.reportForm} onSubmit={handleSubmit}>
 
-                {/* 신고 유형 */}
-                <div className={styles.formRow}>
-                    <label className={styles.label} htmlFor="type">신고 유형</label>
-                    <div className={styles.formContent}>
-                        <select id="type" name="type" value={form.type} onChange={handleChange} className={styles.select}>
-                            <option value="POST">게시글</option>
-                            <option value="COMMENT">댓글</option>
-                            <option value="USER">회원</option>
-                            <option value="STUDY">스터디</option>
-                        </select>
+                {/* 버튼에서 전달받은 대상은 작성 화면에서 변경하지 않습니다. */}
+                {!target && (
+                    <div className={styles.notice} role="alert">
+                        신고 대상 정보가 올바르지 않습니다. 원래 화면에서 다시 신고해주세요.
                     </div>
-                </div>
-
-                {/* 신고 대상 번호 */}
+                )}
                 <div className={styles.formRow}>
-                    <label className={styles.label} htmlFor="target_num">신고 대상 번호</label>
+                    <span className={styles.label}>신고 대상</span>
                     <div className={styles.formContent}>
-                        <input
-                            id="target_num" name="target_num" type="number" min="1" step="1"
-                            value={form.target_num} onChange={handleChange}
-                            className={styles.input} placeholder="신고 대상 번호를 입력해주세요."
-                        />
+                        {target ? (
+                            target.type === 'report'
+                                ? REPORT_TYPE_LABELS[target.type]
+                                : `${REPORT_TYPE_LABELS[target.type]} #${target.targetNum}`
+                        ) : '대상 정보 오류'}
                     </div>
                 </div>
 
@@ -142,7 +143,7 @@ const ReportCreate: React.FC = () => {
                     <label className={styles.label} htmlFor="reason">신고 사유</label>
                     <div className={styles.formContent}>
                         <input
-                            id="reason" name="reason" type="text" value={form.reason}
+                            id="reason" name="reason" type="text" value={form.reason} maxLength={255}
                             onChange={handleChange} className={styles.input}
                             placeholder="신고 사유를 입력해주세요."
                         />
@@ -171,9 +172,9 @@ const ReportCreate: React.FC = () => {
                 {/* 버튼 */}
                 <div className={styles.actions}>
                     <button type="button" className={styles.cancelButton} onClick={handleCancel} disabled={submitting}>
-                        취소
+                        이전 화면으로 돌아가기
                     </button>
-                    <button type="submit" className={styles.submitButton} disabled={submitting}>
+                    <button type="submit" className={styles.submitButton} disabled={submitting || !target}>
                         {submitting ? '접수 중...' : '신고 접수'}
                     </button>
                 </div>

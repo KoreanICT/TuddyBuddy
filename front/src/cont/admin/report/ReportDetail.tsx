@@ -1,12 +1,18 @@
 // 주용현
 
 import axios from 'axios';
-import React, { useEffect, useState } from 'react';
+import { useAuth } from '../../../login/hooks/useAuth';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import styles from './report.module.css';
 
+import { ReportType, REPORT_TYPE_LABELS } from '../../report/reportTarget';
+
 type ReportStatus = 'PENDING' | 'REVIEWING' | 'COMPLETED' | 'REJECTED';
-type ReportType = 'POST' | 'COMMENT' | 'USER' | 'STUDY';
+
+const canApplyStatus = (current: ReportStatus, next: ReportStatus) =>
+    current === next || current === 'PENDING' ||
+    (current === 'REVIEWING' && (next === 'COMPLETED' || next === 'REJECTED'));
 
 interface ReportVO {
     num: number;
@@ -22,6 +28,11 @@ interface ReportVO {
 const ReportDetail: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
+    const { token } = useAuth();
+
+    const getAuthHeaders = useCallback(() => ({
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+    }), [token]);
 
     const [report, setReport] = useState<ReportVO | null>(null);
     const [status, setStatus] = useState<ReportStatus>('PENDING');
@@ -46,7 +57,7 @@ const ReportDetail: React.FC = () => {
 
                 const response = await axios.get<ReportVO>(
                     'http://localhost:80/back/api/report/reportDetail',
-                    { params: { num: id } }
+                    { headers: getAuthHeaders(), params: { num: id } }
                 );
 
                 if (!active) return;
@@ -69,7 +80,7 @@ const ReportDetail: React.FC = () => {
         return () => {
             active = false;
         };
-    }, [id]);
+    }, [id, getAuthHeaders]);
 
     // =========================
     // 신고 상태 출력
@@ -85,23 +96,15 @@ const ReportDetail: React.FC = () => {
     };
 
     // =========================
-    // 신고 유형 출력
-    // =========================
-    const getTypeText = (type: ReportType) => {
-        switch (type) {
-            case 'POST': return '게시글';
-            case 'COMMENT': return '댓글';
-            case 'USER': return '회원';
-            case 'STUDY': return '스터디';
-            default: return type;
-        }
-    };
-
-    // =========================
     // 상태 적용
     // =========================
     const handleApply = async () => {
         if (!report || updating) return;
+
+        if (!canApplyStatus(report.status, status)) {
+            alert('현재 신고 상태에서 선택한 상태로 변경할 수 없습니다.');
+            return;
+        }
 
         try {
             setUpdating(true);
@@ -110,12 +113,16 @@ const ReportDetail: React.FC = () => {
             formData.append('num', String(report.num));
             formData.append('status', status);
 
-            const response = await axios.put(
+            const response = await axios.put<number>(
                 'http://localhost:80/back/api/report/reportStatusUpdate',
-                formData
+                formData,
+                { headers: getAuthHeaders() }
             );
 
-            console.log('신고 상태 수정:', response.data);
+            if (typeof response.data !== 'number' || response.data < 1) {
+                alert('신고 상태가 변경되지 않았습니다.');
+                return;
+            }
 
             alert(`신고 상태가 "${getStatusText(status)}" 상태로 변경되었습니다.`);
 
@@ -124,7 +131,9 @@ const ReportDetail: React.FC = () => {
 
         } catch (error) {
             console.error('신고 상태 수정 실패:', error);
-            alert('신고 상태 수정 중 오류가 발생했습니다.');
+            const message = axios.isAxiosError(error) && typeof error.response?.data === 'string'
+                ? error.response.data : '신고 상태 수정 중 오류가 발생했습니다.';
+            alert(message);
         } finally {
             setUpdating(false);
         }
@@ -182,7 +191,7 @@ const ReportDetail: React.FC = () => {
 
                 <div className={styles.detailRow}>
                     <div className={styles.label}>신고 유형</div>
-                    <div className={styles.value}>{getTypeText(report.type)}</div>
+                    <div className={styles.value}>{REPORT_TYPE_LABELS[report.type]}</div>
                 </div>
 
                 <div className={styles.detailRow}>
@@ -220,10 +229,10 @@ const ReportDetail: React.FC = () => {
                             onChange={(e) => setStatus(e.target.value as ReportStatus)}
                             disabled={updating}
                         >
-                            <option value="PENDING">접수</option>
-                            <option value="REVIEWING">처리중</option>
-                            <option value="COMPLETED">처리완료</option>
-                            <option value="REJECTED">반려</option>
+                            <option value="PENDING" disabled={!canApplyStatus(report.status, 'PENDING')}>접수</option>
+                            <option value="REVIEWING" disabled={!canApplyStatus(report.status, 'REVIEWING')}>처리중</option>
+                            <option value="COMPLETED" disabled={!canApplyStatus(report.status, 'COMPLETED')}>처리완료</option>
+                            <option value="REJECTED" disabled={!canApplyStatus(report.status, 'REJECTED')}>반려</option>
                         </select>
 
                         <button className={styles.applyButton} onClick={handleApply} disabled={updating}>

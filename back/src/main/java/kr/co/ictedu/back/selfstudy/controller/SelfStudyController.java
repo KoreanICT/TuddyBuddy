@@ -2,6 +2,7 @@
 package kr.co.ictedu.back.selfstudy.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 
@@ -26,6 +27,8 @@ import kr.co.ictedu.back.selfstudy.vo.QuizSessionVO;
 import kr.co.ictedu.back.selfstudy.vo.QuizVO;
 import kr.co.ictedu.back.selfstudy.vo.SelfStudyResultVO;
 import kr.co.ictedu.back.selfstudy.vo.SubjectVO;
+import kr.co.ictedu.back.selfstudy.service.AuthenticatedMember;
+
 
 @Tag(name = "셀프스터디", description = "셀프스터디 API")
 @RestController
@@ -33,15 +36,15 @@ import kr.co.ictedu.back.selfstudy.vo.SubjectVO;
 public class SelfStudyController {
 
 	private final SelfStudyService selfStudyService;
+	private final AuthenticatedMember authenticatedMember;
 
-	public SelfStudyController(SelfStudyService selfStudyService) {
-		this.selfStudyService = selfStudyService;
+	public SelfStudyController(
+	        SelfStudyService selfStudyService,
+	        AuthenticatedMember authenticatedMember
+	) {
+	    this.selfStudyService = selfStudyService;
+	    this.authenticatedMember = authenticatedMember;
 	}
-
-//    @GetMapping("/test")
-//    public String test() {
-//        return "Spring Boot 정상";
-//    }
 
 	@Operation(summary = "카테고리 목록 조회")
 	@GetMapping("/categories")
@@ -56,41 +59,27 @@ public class SelfStudyController {
 		return selfStudyService.getSubjects(categoryId);
 	}
 
-//    @PostMapping("/generate")
-//    public ResponseEntity<?> generateQuiz(
-//            @ModelAttribute QuizGenerateRequestDto request, jakarta.servlet.http.HttpSession session) {
-//        Object principal = session.getAttribute("loginMember");
-//        if (!(principal instanceof kr.co.ictedu.back.member.vo.MemberVO member) || member.getMember_num() == null)
-//            throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
-//        request.setMember_num(member.getMember_num());
-//        return ResponseEntity.ok(
-//                selfStudyService.generateQuiz(request)
-//        );
-//    }
-//    
+
 	@Operation(summary = "AI 퀴즈 생성")
 	@PostMapping("/generate")
 	public ResponseEntity<?> generateQuiz(@ModelAttribute QuizGenerateRequestDto request) {
 
-		// 개발용: 로그인 없이 회원 1로 저장
-		request.setMember_num(1L);
+		request.setMember_num(authenticatedMember.requireId());
 
 		return ResponseEntity.ok(selfStudyService.generateQuiz(request));
 	}
 
-	// http://localhost/back/api/selfstudy/sessions?memberNum=1
 	@Operation(summary = "내 퀴즈 세션 목록 조회")
 	@GetMapping("/sessions")
-	public List<QuizSessionVO> getSessions(jakarta.servlet.http.HttpSession session) {
-		return selfStudyService.getSessions(requireMember(session));
+	public List<QuizSessionVO> getSessions() {
+		return selfStudyService.getSessions(authenticatedMember.requireId());
 	}
 
 	// http://localhost/back/api/selfstudy/sessions/1
 	@Operation(summary = "퀴즈 세션 상세 조회")
 	@GetMapping("/sessions/{quizSessionId}")
-	public QuizSessionVO getSession(@PathVariable("quizSessionId") Long quizSessionId,
-			jakarta.servlet.http.HttpSession session) {
-		selfStudyService.requireSessionOwner(quizSessionId, requireMember(session));
+	public QuizSessionVO getSession(@PathVariable("quizSessionId") Long quizSessionId) {
+		selfStudyService.requireSessionOwner(quizSessionId, authenticatedMember.requireId());
 
 		return selfStudyService.getSession(quizSessionId);
 	}
@@ -98,26 +87,18 @@ public class SelfStudyController {
 	// http://localhost/back/api/selfstudy/sessions/1/quizzes
 	@Operation(summary = "세션 문제 목록 조회")
 	@GetMapping("/sessions/{quizSessionId}/quizzes")
-	public List<QuizVO> getQuizzes(@PathVariable("quizSessionId") Long quizSessionId,
-			jakarta.servlet.http.HttpSession session) {
-		selfStudyService.requireSessionOwner(quizSessionId, requireMember(session));
+	public List<QuizVO> getQuizzes(@PathVariable("quizSessionId") Long quizSessionId) {
+		selfStudyService.requireSessionOwner(quizSessionId, authenticatedMember.requireId());
 
 		return selfStudyService.getQuizzes(quizSessionId);
 	}
 
-//    @PostMapping("/submit")
-//    public SelfStudyResultVO submitQuiz(
-//            @RequestBody QuizSubmitRequestDto request, jakarta.servlet.http.HttpSession session) {
-//        request.setMember_num(requireMember(session));
-//        selfStudyService.requireSessionOwner(request.getQuiz_sessionid(), request.getMember_num());
-//        return selfStudyService.submitQuiz(request);
-//    }
+
 	@Operation(summary = "퀴즈 답안 제출")
 	@PostMapping("/submit")
 	public SelfStudyResultVO submitQuiz(@RequestBody QuizSubmitRequestDto request) {
 
-		// 개발용: generate와 동일한 회원 번호
-		request.setMember_num(1L);
+		request.setMember_num(authenticatedMember.requireId());
 
 		selfStudyService.requireSessionOwner(request.getQuiz_sessionid(), request.getMember_num());
 
@@ -127,25 +108,23 @@ public class SelfStudyController {
 	// http://localhost/back/api/selfstudy/results/1
 	@Operation(summary = "내 학습 결과 목록 조회")
 	@GetMapping("/results")
-	public List<SelfStudyResultVO> getResults(jakarta.servlet.http.HttpSession session) {
-		return selfStudyService.getResults(requireMember(session));
+	public List<SelfStudyResultVO> getResults() {
+		return selfStudyService.getResults(authenticatedMember.requireId());
 	}
 
 	// http://localhost/back/api/selfstudy/results/1
 	@Operation(summary = "학습 결과 상세 조회")
 	@GetMapping("/results/{resultId}")
-	public SelfStudyResultVO getResult(@PathVariable("resultId") Long resultId,
-			jakarta.servlet.http.HttpSession session) {
-		selfStudyService.requireResultOwner(resultId, requireMember(session));
+	public SelfStudyResultVO getResult(@PathVariable("resultId") Long resultId) {
+		selfStudyService.requireResultOwner(resultId, authenticatedMember.requireId());
 		return selfStudyService.getResult(resultId);
 	}
 
 	// http://localhost/back/api/selfstudy/sessions/1
 	@Operation(summary = "퀴즈 세션 상세 조회")
 	@DeleteMapping("/sessions/{quizSessionId}")
-	public ResponseEntity<Void> deleteSession(@PathVariable("quizSessionId") Long quizSessionId,
-			jakarta.servlet.http.HttpSession session) {
-		selfStudyService.requireSessionOwner(quizSessionId, requireMember(session));
+	public ResponseEntity<Void> deleteSession(@PathVariable("quizSessionId") Long quizSessionId) {
+		selfStudyService.requireSessionOwner(quizSessionId, authenticatedMember.requireId());
 
 		selfStudyService.deleteSession(quizSessionId);
 
@@ -155,17 +134,9 @@ public class SelfStudyController {
 	// http://localhost/back/api/selfstudy/results/1/responses
 	@Operation(summary = "학습 결과별 답안 조회")
 	@GetMapping("/results/{resultId}/responses")
-	public List<QuizResponseVO> getResponses(@PathVariable("resultId") Long resultId,
-			jakarta.servlet.http.HttpSession session) {
-		selfStudyService.requireResultOwner(resultId, requireMember(session));
+	public List<QuizResponseVO> getResponses(@PathVariable("resultId") Long resultId) {
+		selfStudyService.requireResultOwner(resultId, authenticatedMember.requireId());
 		return selfStudyService.getResponses(resultId);
 	}
 
-	private Long requireMember(jakarta.servlet.http.HttpSession session) {
-		Object principal = session.getAttribute("loginMember");
-		if (!(principal instanceof kr.co.ictedu.back.member.vo.MemberVO member) || member.getMember_num() == null)
-			throw new org.springframework.web.server.ResponseStatusException(
-					org.springframework.http.HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
-		return member.getMember_num();
-	}
 }

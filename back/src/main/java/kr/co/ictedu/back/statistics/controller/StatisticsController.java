@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import kr.co.ictedu.back.statistics.service.StatisticsService;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -30,11 +31,14 @@ public class StatisticsController {
 	}
 	
 	@PostMapping("/getStatistics")
-	public Map<String, Object> getStatistics(@RequestBody Map<String, Object> request) {
+	public Map<String, Object> getStatistics(
+			@RequestBody Map<String, Object> request,
+			 HttpServletRequest httpRequest) {
 		System.out.println("평가분석 테스트");
 		Long memberNum = ((Number) request.get("memberNum")).longValue();
 		Map<String, Object> statisticsMap = statisticsService.selectStatistics(memberNum);
 		System.out.println("statisticsMap: " + statisticsMap);
+		System.out.println("요청 경로: " + httpRequest.getRequestURI());
 		return statisticsMap;
 	}
 	

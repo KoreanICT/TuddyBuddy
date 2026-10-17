@@ -1,206 +1,451 @@
 .mypage-page {
-  background-color: #f5f6f8;
   min-height: 100vh;
-
-  padding: 100px 20px 40px;
+  padding: 88px 28px 64px;
+  background: #f7f8fc;
+  color: #20283e;
   box-sizing: border-box;
 }
 
-.mypage-layout {
-  max-width: 1200px;
+.mypage-page .mypage-layout {
+  max-width: 1160px;
   margin: 0 auto;
   display: flex;
-  gap: 24px;
   align-items: flex-start;
+  gap: 28px;
 }
 
-/* 왼쪽 메뉴 */
-.mypage-sidebar {
-  width: 240px;
-  background: #ffffff;
-  border-radius: 16px;
-  padding: 24px 18px;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
-  box-sizing: border-box;
+.mypage-page .mypage-sidebar {
   position: sticky;
-  top: 20px;
+  top: 24px;
+  width: 224px;
+  flex-shrink: 0;
+  padding: 24px 14px 14px;
+  border: 1px solid #e8ebf3;
+  border-radius: 20px;
+  background: #fff;
+  box-sizing: border-box;
 }
 
-.sidebar-title {
-  font-size: 22px;
+.mypage-page .sidebar-title {
+  margin: 0 12px 22px;
+  font-size: 18px;
   font-weight: 700;
-  margin-bottom: 20px;
-  color: #111827;
+  letter-spacing: -0.5px;
 }
 
-.sidebar-menu {
+.mypage-page .sidebar-menu {
   width: 100%;
-  border: none;
-  background: #f3f4f6;
-  color: #374151;
-  padding: 14px 16px;
-  margin-bottom: 10px;
-  border-radius: 12px;
+  margin-bottom: 6px;
+  padding: 13px 14px;
+  border: 0;
+  border-radius: 11px;
+  background: transparent;
+  color: #69738b;
   text-align: left;
-  font-size: 15px;
+  font: inherit;
+  font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background 0.18s ease, color 0.18s ease;
 }
 
-.sidebar-menu:hover {
-  background: #e5e7eb;
+.mypage-page .sidebar-menu:hover {
+  background: #f4f5fb;
+  color: #3730a3;
 }
 
-.sidebar-menu.active {
-  background: #2563eb;
-  color: white;
+.mypage-page .sidebar-menu.active {
+  background: #eef0ff;
+  color: #4338ca;
   font-weight: 700;
 }
 
-/* 오른쪽 본문 */
-.mypage-content {
+.mypage-page .mypage-content {
   flex: 1;
+  min-width: 0;
 }
 
-.mypage-container,
-.menu-panel {
-  background: #ffffff;
-  border-radius: 20px;
-  padding: 40px;
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.06);
+.mypage-page .mypage-container,
+.mypage-page .menu-panel {
+  padding: 36px;
+  border: 1px solid #e8ebf3;
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: 0 8px 30px rgba(42, 50, 90, 0.035);
 }
 
-.mypage-title {
-  text-align: center;
-  font-size: 34px;
-  margin-bottom: 10px;
-  color: #111827;
+.mypage-page .mypage-title {
+  margin: 0 0 10px;
+  font-size: 28px;
+  font-weight: 750;
+  letter-spacing: -1px;
+  text-align: left;
 }
 
-.mypage-subtitle {
-  text-align: center;
-  color: #6b7280;
-  margin-bottom: 30px;
-  font-size: 16px;
+.mypage-page .mypage-subtitle {
+  margin: 0 0 28px;
+  color: #788198;
+  font-size: 14px;
+  line-height: 1.7;
 }
 
-.profile-card {
-  background: #f3f4f6;
-  border-radius: 16px;
-  padding: 20px;
+.mypage-page .profile-card {
   display: flex;
   align-items: center;
   gap: 18px;
-  margin-bottom: 30px;
+  margin-bottom: 20px;
+  padding: 24px;
+  border: 1px solid #e7e9fa;
+  border-radius: 18px;
+  background: linear-gradient(115deg, #f5f6ff, #fcfcff);
 }
 
-.profile-avatar {
-  width: 64px;
-  height: 64px;
-  background: #2563eb;
-  color: white;
-  border-radius: 50%;
+.mypage-page .profile-avatar {
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  flex-shrink: 0;
+  border: 3px solid #fff;
+  border-radius: 20px;
+  background: #5b5bd6;
+  color: #fff;
   font-size: 24px;
   font-weight: 700;
+  box-shadow: 0 4px 10px rgba(79, 70, 229, 0.12);
 }
 
-.profile-info h3 {
+.mypage-page .profile-info {
+  min-width: 0;
+}
+
+.mypage-page .profile-info h3 {
   margin: 0 0 6px;
-  font-size: 22px;
+  font-size: 21px;
+  letter-spacing: -0.5px;
+  overflow-wrap: anywhere;
 }
 
-.profile-info p {
+.mypage-page .profile-info p {
   margin: 0;
-  color: #6b7280;
+  color: #737c94;
+  font-size: 14px;
+  overflow-wrap: anywhere;
 }
 
-.badge {
-  display: inline-block;
-  margin-left: 8px;
-  background: #dbeafe;
-  color: #2563eb;
-  padding: 3px 8px;
-  border-radius: 8px;
-  font-size: 12px;
-  font-weight: 600;
+.mypage-page .point-box {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 6px 16px;
+  margin-bottom: 30px;
+  padding: 22px 24px;
+  border: 1px solid #eaedf5;
+  border-radius: 16px;
+  background: #fff;
 }
 
-.point-box {
-  margin-bottom: 28px;
+.mypage-page .point-box p {
+  margin: 0;
+  color: #737c94;
+  font-size: 13px;
 }
 
-.point-box p {
-  margin: 0 0 8px;
-  color: #374151;
-}
-
-.point-box strong {
-  display: block;
+.mypage-page .point-box strong {
+  grid-column: 1;
+  color: #4338ca;
   font-size: 28px;
-  margin-bottom: 10px;
+  line-height: 1.3;
+  letter-spacing: -0.8px;
+  overflow-wrap: anywhere;
 }
 
-.point-link {
-  border: none;
-  background: none;
-  color: #111827;
+.mypage-page .point-link {
+  grid-column: 2;
+  grid-row: 1 / 3;
+  padding: 8px 0;
+  border: 0;
+  background: transparent;
+  color: #6366a3;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  padding: 0;
 }
 
-.form-group {
-  margin-bottom: 22px;
+.mypage-page .point-link:hover {
+  color: #4338ca;
+  text-decoration: underline;
 }
 
-.form-group label {
+.mypage-page .mypage-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.mypage-page .form-group {
+  min-width: 0;
+}
+
+.mypage-page .form-group label {
   display: block;
-  margin-bottom: 10px;
-  font-weight: 700;
-  color: #111827;
+  margin-bottom: 9px;
+  color: #677188;
+  font-size: 13px;
+  font-weight: 600;
 }
 
-.form-group input {
+.mypage-page .form-group input {
   width: 100%;
-  height: 52px;
+  height: 50px;
   padding: 0 16px;
-  border: 1px solid #d1d5db;
-  border-radius: 10px;
-  font-size: 15px;
+  border: 1px solid #edf0f6;
+  border-radius: 11px;
+  background: #f8f9fc;
+  color: #2b354e;
+  font: inherit;
+  font-size: 14px;
   box-sizing: border-box;
-  background: #f9fafb;
 }
 
-.nickname-row {
+.mypage-page .form-group input:focus-visible {
+  outline: 2px solid #a5b4fc;
+  outline-offset: 2px;
+}
+
+.mypage-page .mypage-edit-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 26px;
+}
+
+.mypage-page .mypage-edit-button {
+  padding: 12px 24px;
+  border: 0;
+  border-radius: 11px;
+  background: #4f46e5;
+  color: #fff;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(79, 70, 229, 0.12);
+}
+
+.mypage-page .mypage-edit-button:hover:not(:disabled) {
+  background: #4338ca;
+}
+
+.mypage-page .nickname-row {
   display: flex;
   gap: 10px;
 }
 
-.nickname-row input {
+.mypage-page .nickname-row input {
   flex: 1;
+  min-width: 0;
 }
 
-.nickname-row button {
+.mypage-page .nickname-row button {
   min-width: 100px;
-  border: 1px solid #d1d5db;
-  background: white;
+  border: 1px solid #e8ebf3;
   border-radius: 10px;
+  background: #fff;
   font-weight: 600;
   cursor: pointer;
 }
 
-.menu-panel h2 {
-  margin-top: 0;
-  margin-bottom: 12px;
-  font-size: 30px;
-  color: #111827;
+.mypage-page .menu-panel h2 {
+  margin: 0 0 12px;
+  font-size: 24px;
+  color: #20283e;
 }
 
-.menu-panel p {
-  color: #6b7280;
-  font-size: 16px;
+.mypage-page .menu-panel p {
+  color: #737c94;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.mypage-page .mypage-withdraw {
+  margin-top: 34px;
+  padding-top: 24px;
+  border-top: 1px solid #edf0f6;
+}
+
+.mypage-page .mypage-withdraw h3 {
+  margin: 0 0 8px;
+  color: #555f75;
+  font-size: 15px;
+}
+
+.mypage-page .mypage-withdraw p {
+  margin: 0 0 14px;
+  color: #7c8495;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.mypage-page .mypage-withdraw button {
+  padding: 9px 14px;
+  border: 1px solid #e1e5ed;
+  border-radius: 9px;
+  background: #fff;
+  color: #596379;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.mypage-page .mypage-withdraw .mypage-withdraw-open {
+  border-color: #f0d6d6;
+  color: #a64a4a;
+}
+
+.mypage-page .mypage-withdraw-confirm {
+  padding: 20px;
+  border: 1px solid #f3dddd;
+  border-radius: 14px;
+  background: #fffafa;
+}
+
+.mypage-page .mypage-withdraw-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: #596379;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.mypage-page .mypage-withdraw-check input {
+  flex-shrink: 0;
+  margin-top: 5px;
+  accent-color: #b54848;
+}
+
+.mypage-page .mypage-withdraw-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.mypage-page .mypage-withdraw .mypage-withdraw-submit {
+  border-color: #b54848;
+  background: #b54848;
+  color: #fff;
+}
+
+.mypage-page .mypage-withdraw .mypage-withdraw-error {
+  margin-top: 14px;
+  color: #a63030;
+}
+
+.mypage-page .mypage-withdraw button:disabled,
+.mypage-page .mypage-edit-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.mypage-page button:focus-visible,
+.mypage-page .mypage-withdraw input:focus-visible {
+  outline: 2px solid #6366f1;
+  outline-offset: 3px;
+}
+
+@media (max-width: 768px) {
+  .mypage-page {
+    padding: 60px 16px 32px;
+  }
+
+  .mypage-page .mypage-layout {
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .mypage-page .mypage-sidebar {
+    position: static;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    padding: 10px;
+    overflow-x: auto;
+    border-radius: 14px;
+  }
+
+  .mypage-page .sidebar-title {
+    display: none;
+  }
+
+  .mypage-page .sidebar-menu {
+    flex: 0 0 auto;
+    width: auto;
+    margin: 0;
+    padding: 10px 14px;
+    white-space: nowrap;
+  }
+
+  .mypage-page .mypage-content {
+    width: 100%;
+  }
+
+  .mypage-page .mypage-container,
+  .mypage-page .menu-panel {
+    padding: 24px 20px;
+    border-radius: 18px;
+  }
+
+  .mypage-page .mypage-title {
+    font-size: 24px;
+  }
+
+  .mypage-page .mypage-info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .mypage-page .profile-card {
+    padding: 18px 16px;
+    gap: 12px;
+  }
+
+  .mypage-page .profile-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 16px;
+    font-size: 20px;
+  }
+
+  .mypage-page .profile-info h3 {
+    font-size: 18px;
+  }
+
+  .mypage-page .point-box {
+    padding: 18px 16px;
+  }
+
+  .mypage-page .point-box strong {
+    font-size: 24px;
+  }
+
+}
+
+@media (max-width: 380px) {
+  .mypage-page .point-box {
+    grid-template-columns: 1fr;
+  }
+
+  .mypage-page .point-link {
+    grid-column: 1;
+    grid-row: auto;
+    justify-self: start;
+  }
+
+  .mypage-page .mypage-withdraw-confirm {
+    padding: 16px;
+  }
+
 }

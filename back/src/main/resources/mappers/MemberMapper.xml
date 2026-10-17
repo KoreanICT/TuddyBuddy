@@ -1,356 +1,357 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-    "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="kr.co.ictedu.back.member.dao.MemberDAO">
 
-    <!-- ===================================================== -->
-    <!-- 회원가입 -->
-    <!-- ===================================================== -->
-    <insert id="insertMember" parameterType="mvo">
+	<!-- ===================================================== -->
+	<!-- 회원가입 -->
+	<!-- ===================================================== -->
+	<insert id="insertMember" parameterType="mvo">
 
-        INSERT INTO member (
-            member_num,
-            member_email,
-            member_pwd,
-            member_name,
-            member_nick,
-            member_phone,
-            authority,
-            regdate,
-            member_code,
-            point,
-            member_login_type,
-            member_social_id
-        )
-        VALUES (
-            member_seq.NEXTVAL,
-            #{member_email, jdbcType=VARCHAR},
-            #{member_pwd, jdbcType=VARCHAR},
-            #{member_name, jdbcType=VARCHAR},
-            #{member_nick, jdbcType=VARCHAR},
-            #{member_phone, jdbcType=VARCHAR},
-            #{authority, jdbcType=VARCHAR},
-            SYSDATE,
-            #{member_code, jdbcType=VARCHAR},
-            0,
-            'LOCAL',
-            #{member_social_id, jdbcType=VARCHAR}
-        )
+		INSERT INTO member (
+		member_num,
+		member_email,
+		member_pwd,
+		member_name,
+		member_nick,
+		member_phone,
+		authority,
+		regdate,
+		member_code,
+		point,
+		member_login_type,
+		member_social_id
+		)
+		VALUES (
+		member_seq.NEXTVAL,
+		#{member_email, jdbcType=VARCHAR},
+		#{member_pwd, jdbcType=VARCHAR},
+		#{member_name, jdbcType=VARCHAR},
+		#{member_nick, jdbcType=VARCHAR},
+		#{member_phone, jdbcType=VARCHAR},
+		#{authority, jdbcType=VARCHAR},
+		SYSDATE,
+		#{member_code, jdbcType=VARCHAR},
+		0,
+		'LOCAL',
+		#{member_social_id, jdbcType=VARCHAR}
+		)
 
-    </insert>
-
-
-    <!-- ===================================================== -->
-    <!-- 이메일 중복 확인 -->
-    <!-- ===================================================== -->
-    <select id="countByEmail"
-            parameterType="string"
-            resultType="int">
-
-        SELECT COUNT(*)
-        FROM member
-        WHERE member_email = #{email}
-
-    </select>
+	</insert>
 
 
-    <!-- ===================================================== -->
-    <!-- 이메일 확인 -->
-    <!-- ===================================================== -->
-    <select id="checkEmail"
-            parameterType="string"
-            resultType="int">
+	<!-- ===================================================== -->
+	<!-- 이메일 중복 확인 -->
+	<!-- ===================================================== -->
+	<select id="countByEmail"
+		parameterType="string"
+		resultType="int">
 
-        SELECT COUNT(*)
-        FROM member
-        WHERE member_email = #{email}
+		SELECT COUNT(*)
+		FROM member
+		WHERE member_email = #{email}
 
-    </select>
-
-
-    <!-- ===================================================== -->
-    <!-- 닉네임 중복 확인 -->
-    <!-- ===================================================== -->
-    <select id="countByNick"
-            parameterType="string"
-            resultType="int">
-
-        SELECT COUNT(*)
-        FROM member
-        WHERE member_nick = #{nick}
-
-    </select>
+	</select>
 
 
-    <!-- ===================================================== -->
-    <!-- 이메일로 회원 정보 조회 -->
-    <!-- ===================================================== -->
-    <select id="getMemberByEmail"
-            parameterType="string"
-            resultType="mvo">
+	<!-- ===================================================== -->
+	<!-- 이메일 확인 -->
+	<!-- ===================================================== -->
+	<select id="checkEmail"
+		parameterType="string"
+		resultType="int">
 
-        SELECT
-            member_num,
-            member_email,
-            member_pwd,
-            member_name,
-            member_nick,
-            member_phone,
-            authority,
-            regdate,
-            member_code,
-            point,
-            member_login_type,
-            member_social_id
-        FROM member
-        WHERE member_email = #{email}
+		SELECT COUNT(*)
+		FROM member
+		WHERE member_email = #{email}
 
-    </select>
+	</select>
 
 
-    <!-- ===================================================== -->
-    <!-- 회원 정보 수정 -->
-    <!-- ===================================================== -->
-    <update id="updateMember"
-            parameterType="mvo">
+	<!-- ===================================================== -->
+	<!-- 닉네임 중복 확인 -->
+	<!-- ===================================================== -->
+	<select id="countByNick"
+		parameterType="string"
+		resultType="int">
 
-        UPDATE member
-        SET
-            member_nick = #{member_nick},
-            member_phone = #{member_phone}
-        WHERE member_email = #{member_email}
+		SELECT COUNT(*)
+		FROM member
+		WHERE member_nick = #{nick}
 
-    </update>
-
-
-    <!-- ===================================================== -->
-    <!-- 회원 탈퇴 -->
-    <!-- ===================================================== -->
-    <delete id="deleteMember"
-            parameterType="java.lang.Long">
-
-        DELETE FROM member
-        WHERE member_num = #{mnum}
-
-    </delete>
+	</select>
 
 
-    <!-- ===================================================== -->
-    <!-- 회원 전체 조회 + 검색 + 페이징 -->
-    <!-- ===================================================== -->
-    <select id="memberList"
-            parameterType="map"
-            resultType="mvo">
+	<!-- ===================================================== -->
+	<!-- 현재 회원을 제외한 닉네임 중복 확인 -->
+	<!-- ===================================================== -->
+	<select id="countByNickExcludingMember" resultType="int">
+		SELECT COUNT(*)
+		FROM member
+		WHERE member_nick = #{nick}
+		AND member_num &lt;&gt; #{memberNum}
+	</select>
 
-        SELECT
-            member_num,
-            member_email,
-            member_name,
-            member_nick,
-            member_phone,
-            authority,
-            regdate,
-            member_code,
-            point,
-            member_login_type,
-            member_social_id
-        FROM (
-            SELECT
-                member_num,
-                member_email,
-                member_name,
-                member_nick,
-                member_phone,
-                authority,
-                regdate,
-                member_code,
-                point,
-                member_login_type,
-                member_social_id,
-                ROW_NUMBER() OVER (
-                    ORDER BY member_num DESC
-                ) AS row_num
-            FROM member
+	<!-- 이메일로 회원 정보 조회 -->
+	<select id="getMemberByEmail"
+		parameterType="string"
+		resultType="mvo">
 
-            <if test="searchType != null
+		SELECT
+		member_num,
+		member_email,
+		member_pwd,
+		member_name,
+		member_nick,
+		member_phone,
+		authority,
+		regdate,
+		member_code,
+		point,
+		member_login_type,
+		member_social_id
+		FROM member
+		WHERE member_email = #{email}
+
+	</select>
+
+
+	<!-- ===================================================== -->
+	<!-- 조회 시점의 비밀번호가 그대로일 때만 비밀번호 변경 -->
+	<!-- ===================================================== -->
+	<update id="updatePasswordIfUnchanged">
+		UPDATE member
+		SET member_pwd = #{newPassword}
+		WHERE member_num = #{memberNum}
+		AND member_pwd = #{currentPassword}
+	</update>
+
+	<!-- 회원 정보 수정 -->
+	<update id="updateMember"
+		parameterType="mvo">
+
+		UPDATE member
+		SET
+		member_nick = #{member_nick},
+		member_phone = #{member_phone}
+		WHERE member_email = #{member_email}
+
+	</update>
+
+
+	<!-- ===================================================== -->
+	<!-- 회원 탈퇴 -->
+	<!-- ===================================================== -->
+	<delete id="deleteMember"
+		parameterType="java.lang.Long">
+
+		DELETE FROM member
+		WHERE member_num = #{mnum}
+
+	</delete>
+
+
+	<!-- ===================================================== -->
+	<!-- 회원 전체 조회 + 검색 + 페이징 -->
+	<!-- ===================================================== -->
+	<select id="memberList"
+		parameterType="map"
+		resultType="mvo"> SELECT member_num, member_email, member_name,
+		member_nick, member_phone, authority, regdate, member_code, point,
+		member_login_type, member_social_id FROM ( SELECT member_num,
+		member_email, member_name, member_nick, member_phone, authority,
+		regdate, member_code, point, member_login_type, member_social_id,
+		ROW_NUMBER() OVER ( ORDER BY member_num DESC ) AS row_num FROM member <if
+			test="searchType != null
                       and searchType != ''
                       and searchValue != null
                       and searchValue != ''">
 
-                <where>
-                    <choose>
+			<where>
+				<choose>
 
-                        <!-- 이름 검색 -->
-                        <when test="searchType == '1'">
-                            member_name LIKE '%' || #{searchValue} || '%'
-                        </when>
+					<!-- 이름 검색 -->
+					<when test='searchType == "1"'>
+						member_name LIKE '%' || #{searchValue} || '%'
+					</when>
 
-                        <!-- 이메일 검색 -->
-                        <when test="searchType == '2'">
-                            member_email LIKE '%' || #{searchValue} || '%'
-                        </when>
+					<!-- 이메일 검색 -->
+					<when test='searchType == "2"'>
+						member_email LIKE '%' || #{searchValue} || '%'
+					</when>
 
-                        <!-- 권한 검색 -->
-                        <when test="searchType == '3'">
-                            authority LIKE '%' || #{searchValue} || '%'
-                        </when>
+					<!-- 권한 검색 -->
+					<when test='searchType == "3"'>
+						authority LIKE '%' || #{searchValue} || '%'
+					</when>
 
-                    </choose>
-                </where>
+				</choose>
+			</where>
 
-            </if>
-
-        )
-        WHERE row_num BETWEEN #{begin} AND #{end}
-
-    </select>
+		</if>
+		) WHERE row_num BETWEEN #{begin} AND #{end} </select>
 
 
-    <!-- ===================================================== -->
-    <!-- 전체 회원 수 -->
-    <!-- ===================================================== -->
-    <select id="totalCount"
-            parameterType="map"
-            resultType="int">
-
-        SELECT COUNT(*)
-        FROM member
-
-        <if test="searchType != null
+	<!-- ===================================================== -->
+	<!-- 전체 회원 수 -->
+	<!-- ===================================================== -->
+	<select id="totalCount"
+		parameterType="map"
+		resultType="int"> SELECT COUNT(*) FROM member <if
+			test="searchType != null
                   and searchType != ''
                   and searchValue != null
                   and searchValue != ''">
 
-            <where>
-                <choose>
+			<where>
+				<choose>
 
-                    <!-- 이름 검색 -->
-                    <when test="searchType == '1'">
-                        member_name LIKE '%' || #{searchValue} || '%'
-                    </when>
+					<!-- 이름 검색 -->
+					<when test='searchType == "1"'>
+						member_name LIKE '%' || #{searchValue} || '%'
+					</when>
 
-                    <!-- 이메일 검색 -->
-                    <when test="searchType == '2'">
-                        member_email LIKE '%' || #{searchValue} || '%'
-                    </when>
+					<!-- 이메일 검색 -->
+					<when test='searchType == "2"'>
+						member_email LIKE '%' || #{searchValue} || '%'
+					</when>
 
-                    <!-- 권한 검색 -->
-                    <when test="searchType == '3'">
-                        authority LIKE '%' || #{searchValue} || '%'
-                    </when>
+					<!-- 권한 검색 -->
+					<when test='searchType == "3"'>
+						authority LIKE '%' || #{searchValue} || '%'
+					</when>
 
-                </choose>
-            </where>
+				</choose>
+			</where>
 
-        </if>
+		</if>
 
-    </select>
-
-
-    <!-- ===================================================== -->
-    <!-- 선택된 회원 권한 변경 -->
-    <!-- ===================================================== -->
-    <update id="updateGrade"
-            parameterType="map">
-
-        UPDATE member
-        SET authority = #{authority}
-        WHERE member_num IN
-
-        <foreach
-            collection="memberNums"
-            item="memberNum"
-            open="("
-            separator=","
-            close=")">
-
-            #{memberNum}
-
-        </foreach>
-
-    </update>
+	</select>
 
 
-    <!-- ===================================================== -->
-    <!-- 담당인원 : 주용현 -->
-    <!-- 회원 코드로 회원 검색 -->
-    <!-- ===================================================== -->
-    <select id="findByMemberCode"
-            parameterType="string"
-            resultType="mvo">
+	<!-- ===================================================== -->
+	<!-- 선택된 회원 권한 변경 -->
+	<!-- ===================================================== -->
+	<update id="updateGrade"
+		parameterType="map"> UPDATE member SET authority = #{authority} WHERE
+		member_num IN <foreach
+			collection="memberNums"
+			item="memberNum"
+			open="("
+			separator=","
+			close=")">
 
-        SELECT
-            member_num,
-            member_name,
-            member_nick,
-            member_code
-        FROM member
-        WHERE member_code = #{member_code}
+			#{memberNum}
 
-    </select>
+		</foreach>
+
+	</update>
 
 
-    <!-- ===================================================== -->
-    <!-- 추가: 카카오 소셜 로그인 회원 조회 -->
-    <!-- ===================================================== -->
-    <select id="findBySocialLogin"
-            resultType="mvo">
+	<!-- 관리자 화면에서 변경 가능한 회원 등급만 처리 -->
+	<update id="updateManagedAuthority">
+		UPDATE member
+		SET authority = #{authority}
+		WHERE member_num = #{memberNum}
+		AND authority IN ('MEMBER', 'SUB_ADMIN')
+		AND #{authority} IN ('MEMBER', 'SUB_ADMIN')
+	</update>
 
-        SELECT
-            member_num,
-            member_email,
-            member_pwd,
-            member_name,
-            member_nick,
-            member_phone,
-            authority,
-            regdate,
-            member_code,
-            point,
-            member_login_type,
-            member_social_id
-        FROM member
-        WHERE member_login_type = #{loginType}
-          AND member_social_id = #{socialId}
+	<!-- 등급 변경 검증과 처리를 같은 트랜잭션에서 직렬화 -->
+	<select id="lockMemberByNum" resultType="mvo">
+		SELECT member_num, member_email, member_pwd, member_name, member_nick,
+		member_phone, authority, regdate, member_code, point,
+		member_login_type, member_social_id
+		FROM member
+		WHERE member_num = #{memberNum}
+		FOR UPDATE
+	</select>
 
-    </select>
-    
-        <!-- ===================================================== -->
-    <!-- 카카오 회원가입 -->
-    <!-- ===================================================== -->
-    <insert id="insertKakaoMember"
-            parameterType="mvo">
+	<!-- 담당인원 : 주용현 -->
+	<!-- 회원 코드로 회원 검색 -->
+	<select id="findByMemberCode"
+		parameterType="string"
+		resultType="mvo">
 
-        INSERT INTO member (
-            member_num,
-            member_email,
-            member_pwd,
-            member_name,
-            member_nick,
-            member_phone,
-            authority,
-            regdate,
-            member_code,
-            point,
-            member_login_type,
-            member_social_id
-        )
-        VALUES (
-            member_seq.NEXTVAL,
-            #{member_email, jdbcType=VARCHAR},
-            #{member_pwd, jdbcType=VARCHAR},
-            #{member_name, jdbcType=VARCHAR},
-            #{member_nick, jdbcType=VARCHAR},
-            #{member_phone, jdbcType=VARCHAR},
-            'MEMBER',
-            SYSDATE,
-            #{member_code, jdbcType=VARCHAR},
-            0,
-            'KAKAO',
-            #{member_social_id, jdbcType=VARCHAR}
-        )
+		SELECT
+		member_num,
+		member_name,
+		member_nick,
+		member_code
+		FROM member
+		WHERE member_code = #{member_code}
 
-    </insert>
+	</select>
+
+	<!-- 담당인원 : 주용현 -->
+	<!-- 회원 번호로 회원 정보 상세 조회 -->
+	<select id="getMemberProfile" parameterType="long" resultType="map">
+		SELECT member_nick, member_code
+		FROM member
+		WHERE member_num = #{member_num}
+	</select>
+
+
+	<!-- ===================================================== -->
+	<!-- 추가: 카카오 소셜 로그인 회원 조회 -->
+	<!-- ===================================================== -->
+	<select id="findBySocialLogin"
+		resultType="mvo">
+
+		SELECT
+		member_num,
+		member_email,
+		member_pwd,
+		member_name,
+		member_nick,
+		member_phone,
+		authority,
+		regdate,
+		member_code,
+		point,
+		member_login_type,
+		member_social_id
+		FROM member
+		WHERE member_login_type = #{loginType}
+		AND member_social_id = #{socialId}
+
+	</select>
+
+	<!-- ===================================================== -->
+	<!-- 카카오 회원가입 -->
+	<!-- ===================================================== -->
+	<insert id="insertKakaoMember"
+		parameterType="mvo">
+
+		INSERT INTO member (
+		member_num,
+		member_email,
+		member_pwd,
+		member_name,
+		member_nick,
+		member_phone,
+		authority,
+		regdate,
+		member_code,
+		point,
+		member_login_type,
+		member_social_id
+		)
+		VALUES (
+		member_seq.NEXTVAL,
+		#{member_email, jdbcType=VARCHAR},
+		#{member_pwd, jdbcType=VARCHAR},
+		#{member_name, jdbcType=VARCHAR},
+		#{member_nick, jdbcType=VARCHAR},
+		#{member_phone, jdbcType=VARCHAR},
+		'MEMBER',
+		SYSDATE,
+		#{member_code, jdbcType=VARCHAR},
+		0,
+		'KAKAO',
+		#{member_social_id, jdbcType=VARCHAR}
+		)
+
+	</insert>
 
 </mapper>

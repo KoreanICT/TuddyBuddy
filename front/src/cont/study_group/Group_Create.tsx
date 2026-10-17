@@ -1,13 +1,19 @@
 //작성자 : 오진석
 import React, { useState, useRef, useEffect } from 'react';
 import styles from './detail.module.css';
-import { TagItem, searchGroupTags, createGroup } from './GroupAPI';
+import { TagItem, searchGroupTags, GroupData } from './GroupAPI';
+import axios from 'axios';
 const PRESET_COLORS = ['#e2e8f0', '#fef08a', '#bbf7d0', '#c0f2ff', '#bfdbfe', '#fbcfe8', '#fed7aa'];
 
 interface GroupCreateModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSubmitSuccess?: (groupNum: number) => void;
+}
+
+interface GroupCreateRequest {
+    group: GroupData;
+    tags: TagItem[];
 }
 
 export const Group_Create: React.FC<GroupCreateModalProps> = ({ isOpen, onClose, onSubmitSuccess }) => {
@@ -29,6 +35,7 @@ export const Group_Create: React.FC<GroupCreateModalProps> = ({ isOpen, onClose,
 
     const [submitting, setSubmitting] = useState(false);
 
+    
     useEffect(() => {
         const keyword = tagInput.trim();
         if (!keyword) {
@@ -51,6 +58,27 @@ export const Group_Create: React.FC<GroupCreateModalProps> = ({ isOpen, onClose,
 
     if (!isOpen) return null;
 
+    const createGroup = async (requestData: GroupCreateRequest, thumbnail: File | null) => {
+        const formData = new FormData();
+
+        formData.append(
+            'groupData',
+            new Blob(
+                [JSON.stringify(requestData)],
+                { type: 'application/json' }
+            )
+        );
+        if (thumbnail) {
+            formData.append('thumbnail', thumbnail);
+        }
+        const response = await axios.post(
+            `http://localhost/back/api/group/add`,
+            formData
+        );
+        return response.data.group_num;
+    };
+
+    
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
@@ -269,7 +297,7 @@ export const Group_Create: React.FC<GroupCreateModalProps> = ({ isOpen, onClose,
                             </span>
                         </label>
 
-                        <textarea 
+                        <textarea
                             className={styles.form_textarea}
                             placeholder="스터디 목적, 목표, 규칙 등을 간단히 입력해주세요."
                             value={description}
@@ -309,7 +337,7 @@ export const Group_Create: React.FC<GroupCreateModalProps> = ({ isOpen, onClose,
                                                 : ''
                                             }`
                                         }
-                                        style={{backgroundColor:color}}
+                                        style={{ backgroundColor: color }}
                                         onClick={() => setSelectedColor(color)}
                                     />
                                 )
@@ -325,10 +353,10 @@ export const Group_Create: React.FC<GroupCreateModalProps> = ({ isOpen, onClose,
                                 onChange={e => setTagInput(e.target.value)}
                                 onKeyDown={e => {
                                     if (e.key === 'Enter') {
-                                            e.preventDefault();
-                                            handleAddTag();
-                                        }
+                                        e.preventDefault();
+                                        handleAddTag();
                                     }
+                                }
                                 }
                             />
                             <button
@@ -350,19 +378,19 @@ export const Group_Create: React.FC<GroupCreateModalProps> = ({ isOpen, onClose,
                         {suggestedTags.length > 0 && (
                             <div className={styles.tag_suggestions}>
                                 {suggestedTags.map(tag => (
-                                        <button
-                                            type="button"
-                                            key={tag.tag_num}
-                                            className={styles.tag_suggestion_item}
-                                            onClick={() =>
-                                                handleSelectTag(tag)
-                                            }
-                                        >
-                                            <span style={{backgroundColor:tag.tag_color}}>
-                                                {tag.tag_name}
-                                            </span>
-                                        </button>
-                                    )
+                                    <button
+                                        type="button"
+                                        key={tag.tag_num}
+                                        className={styles.tag_suggestion_item}
+                                        onClick={() =>
+                                            handleSelectTag(tag)
+                                        }
+                                    >
+                                        <span style={{ backgroundColor: tag.tag_color }}>
+                                            {tag.tag_name}
+                                        </span>
+                                    </button>
+                                )
                                 )}
                             </div>
                         )}
@@ -373,7 +401,7 @@ export const Group_Create: React.FC<GroupCreateModalProps> = ({ isOpen, onClose,
                                     <span
                                         key={tag.tag_num ?? `${tag.tag_name}-${index}`}
                                         className={styles.custom_tag}
-                                        style={{backgroundColor:tag.tag_color}}
+                                        style={{ backgroundColor: tag.tag_color }}
                                     >
                                         {tag.tag_name}
                                         <button

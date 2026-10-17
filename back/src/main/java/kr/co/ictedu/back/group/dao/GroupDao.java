@@ -21,7 +21,6 @@ public interface GroupDao {
 	void addTag(TagVO tagvo);
 	void addGroupTag(@Param("group_num") Long groupNum, @Param("tag_num") Long tagNum);
 	void addGroupMember(GroupMemberVO groupMember);
-	List<GroupListDTO> getGroups(@Param("member_num") Long memberNum);
 	void getMyGroupsProc(Map<String, Object> params);
 	void getPublicGroupsProc(Map<String,Object> params);
 	GroupVO findGroupByInviteCode(@Param("invite_code") String inviteCode);

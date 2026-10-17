@@ -1,11 +1,12 @@
 // 주용현
 
 import axios from 'axios';
-import React, { useEffect, useState } from 'react';
+import { useAuth } from '../../login/hooks/useAuth';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import styles from './report.module.css';
 
-type ReportType = 'POST' | 'COMMENT' | 'USER' | 'STUDY';
+import { ReportType, REPORT_TYPE_LABELS } from './reportTarget';
 
 interface ReportVO {
     num: number;
@@ -28,6 +29,11 @@ interface ReportReplyVO {
 const ReportReplyDetail: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
+    const { token } = useAuth();
+
+    const getAuthHeaders = useCallback(() => ({
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+    }), [token]);
 
     const [report, setReport] = useState<ReportVO | null>(null);
     const [reply, setReply] = useState<ReportReplyVO | null>(null);
@@ -53,11 +59,11 @@ const ReportReplyDetail: React.FC = () => {
                 const [reportResponse, replyResponse] = await Promise.all([
                     axios.get<ReportVO>(
                         'http://localhost:80/back/api/report/reportDetail',
-                        { params: { num: id } }
+                        { headers: getAuthHeaders(), params: { num: id } }
                     ),
                     axios.get<ReportReplyVO>(
                         'http://localhost:80/back/api/report/reportReplyDetail',
-                        { params: { report_num: id } }
+                        { headers: getAuthHeaders(), params: { report_num: id } }
                     )
                 ]);
 
@@ -82,20 +88,7 @@ const ReportReplyDetail: React.FC = () => {
         return () => {
             active = false;
         };
-    }, [id]);
-
-    // =========================
-    // 신고 유형 출력
-    // =========================
-    const getTypeText = (type: ReportType) => {
-        switch (type) {
-            case 'POST': return '게시글';
-            case 'COMMENT': return '댓글';
-            case 'USER': return '회원';
-            case 'STUDY': return '스터디';
-            default: return type;
-        }
-    };
+    }, [id, getAuthHeaders]);
 
     // =========================
     // 조회 중
@@ -144,7 +137,7 @@ const ReportReplyDetail: React.FC = () => {
 
                 <div className={styles.replyDetailRow}>
                     <div className={styles.replyDetailLabel}>신고 종류</div>
-                    <div className={styles.replyDetailValue}>{getTypeText(report.type)}</div>
+                    <div className={styles.replyDetailValue}>{REPORT_TYPE_LABELS[report.type]}</div>
                 </div>
 
                 <div className={styles.replyDetailRow}>

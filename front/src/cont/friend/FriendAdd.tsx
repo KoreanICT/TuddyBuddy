@@ -1,13 +1,14 @@
-// 주용현
+
+ // 주용현
 
 import axios from 'axios';
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Search, UserRound, UserPlus, IdCard } from 'lucide-react';
 
 import styles from './friendAdd.module.css';
 import StudentCodeModal from './StudentCodeModal';
-import PublicAccount from './PublicAccount';
 import { useAuth } from '../../login/hooks/useAuth';
+import { useMyProfileInfo } from '../../login/hooks/useMyProfileInfo';
 
 interface MemberVO {
     member_num: number;
@@ -25,8 +26,14 @@ const FriendAdd: React.FC = () => {
     const [adding, setAdding] = useState(false);
     const [requestSent, setRequestSent] = useState(false);
 
-    const { memberNum } = useAuth();
-    const myMemberCode = '8f3a2b7c-91d4-4e6a-b528-73c9d1f04a82';
+    const { memberNum, token } = useAuth();
+
+    const getAuthHeaders = useCallback(() => ({
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+    }), [token]);
+    const { profile, loading } = useMyProfileInfo();
+    const myMemberCode = profile?.member_code ?? '';
+    const myMemberNick = profile?.member_nick ?? '';
 
     // 회원 코드 검색
     const handleSearch = async () => {
@@ -48,6 +55,7 @@ const FriendAdd: React.FC = () => {
             // TODO: 실제 회원 검색 API 경로 확인
             const urls = 'http://localhost:80/back/api/member/memberCodeSearch';
             const response = await axios.get<MemberVO | null>(urls, {
+                headers: getAuthHeaders(),
                 params: { member_code: code }
             });
 
@@ -75,6 +83,11 @@ const FriendAdd: React.FC = () => {
     const handleAddFriend = async () => {
         if (!searchedMember || adding || requestSent) return;
 
+        if (!token || memberNum == null) {
+            alert('로그인 정보가 없습니다.');
+            return;
+        }
+
         if (searchedMember.member_num === memberNum) {
             alert('자기 자신에게는 친구 요청을 보낼 수 없습니다.');
             return;
@@ -89,7 +102,7 @@ const FriendAdd: React.FC = () => {
             formData.append('request_num', String(memberNum));
             formData.append('response_num', String(searchedMember.member_num));
 
-            await axios.post(urls, formData);
+            await axios.post(urls, formData, { headers: getAuthHeaders() });
 
             setRequestSent(true);
             alert('친구 요청을 보냈습니다.');
@@ -125,9 +138,15 @@ const FriendAdd: React.FC = () => {
                         <p>스터던트 코드로 친구를 찾아보세요.</p>
                     </div>
 
-                    <button type="button" className={styles.codeButton} onClick={() => setIsCodeOpen(true)}>
+                    {/* 내 회원 코드 */}
+                    <button
+                        type="button"
+                        className={styles.codeButton}
+                        onClick={() => setIsCodeOpen(true)}
+                        disabled={loading || !myMemberCode}
+                    >
                         <IdCard size={17} />
-                        내 코드
+                        {loading ? '조회 중...' : '내 코드'}
                     </button>
                 </div>
 
@@ -221,7 +240,6 @@ const FriendAdd: React.FC = () => {
                     </div>
                 )}
             </div>
-
 
             <StudentCodeModal
                 isOpen={isCodeOpen}

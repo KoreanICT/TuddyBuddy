@@ -1,8 +1,12 @@
-
 package kr.co.ictedu.back.securityjwt;
 
 import java.security.Key;
 import java.util.Date;
+import java.util.Base64;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import kr.co.ictedu.back.securityauth.RefreshTokenService;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -27,7 +31,53 @@ import lombok.extern.slf4j.Slf4j;
 public class JwtTokenProvider {
 
     // JWT 생성 및 검증에 사용되는 비밀 키
-    Key key = Keys.secretKeyFor(SignatureAlgorithm.HS512);
+    private volatile Key key;
+    private final StringRedisTemplate redis;
+    private final long accessTtlMillis;
+
+    public JwtTokenProvider(StringRedisTemplate redis,
+            @Value("${JWT_SECRET:}") String configuredSecret,
+            @Value("${auth.access-token-ttl-seconds:900}") long accessTtlSeconds) {
+        this.redis = redis;
+        if (accessTtlSeconds <= 0 || accessTtlSeconds > 86400) {
+            throw new IllegalArgumentException("Access token TTL must be between 1 and 86400 seconds");
+        }
+        this.accessTtlMillis = accessTtlSeconds * 1000;
+        if (!configuredSecret.isBlank()) this.key = decodeKey(configuredSecret);
+    }
+
+    private static Key decodeKey(String secret) {
+        byte[] bytes;
+        try {
+            bytes = Base64.getDecoder().decode(secret);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("JWT_SECRET must be Base64 encoded");
+        }
+        if (bytes.length < 64) throw new IllegalArgumentException("JWT_SECRET must contain at least 64 decoded bytes");
+        return Keys.hmacShaKeyFor(bytes);
+    }
+
+    private Key signingKey() {
+        if (key != null) return key;
+        synchronized (this) {
+            if (key != null) return key;
+            try {
+                String name = "tuddy:auth:jwt-signing-key";
+                String candidate = Base64.getEncoder().encodeToString(Keys.secretKeyFor(SignatureAlgorithm.HS512).getEncoded());
+                redis.opsForValue().setIfAbsent(name, candidate);
+                String shared = redis.opsForValue().get(name);
+                if (shared == null) throw RefreshTokenService.unavailable();
+                key = decodeKey(shared);
+                return key;
+            } catch (DataAccessException e) {
+                throw RefreshTokenService.unavailable();
+            }
+        }
+    }
+
+    public void ensureReady() {
+        signingKey();
+    }
 
     // JWT 생성
     public String createToken(Authentication authentication) {
@@ -37,9 +87,9 @@ public class JwtTokenProvider {
 
         Date now = new Date();
 
-        // JWT 유효시간 1시간
+        // JWT 기본 유효시간 15분 (auth.access-token-ttl-seconds 설정 가능)
         Date expiryDate =
-                new Date(now.getTime() + 3600000);
+                new Date(now.getTime() + accessTtlMillis);
 
         // 추가: 로그인한 사용자의 권한 가져오기
         String role = authentication.getAuthorities()
@@ -55,7 +105,7 @@ public class JwtTokenProvider {
                 .claim("role", role) // 추가: JWT에 권한 저장
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
-                .signWith(key, SignatureAlgorithm.HS512)
+                .signWith(signingKey(), SignatureAlgorithm.HS512)
                 .compact();
     }
 
@@ -66,12 +116,7 @@ public class JwtTokenProvider {
                 request.getHeader("Authorization");
 
         System.out.println(
-                "bearerToken 값 : " +
-                (StringUtils.hasText(bearerToken)
-                    ? "[Authorization 헤더 존재]"
-                    : "null")
-        );
-
+                "bearerToken 값 : " + (StringUtils.hasText(bearerToken) ? "[Authorization 헤더 존재]" : "null"));
         if (StringUtils.hasText(bearerToken)
                 && bearerToken.startsWith("Bearer ")) {
 
@@ -87,7 +132,7 @@ public class JwtTokenProvider {
         try {
 
             Jwts.parserBuilder()
-                    .setSigningKey(key)
+                    .setSigningKey(signingKey())
                     .build()
                     .parseClaimsJws(token);
 
@@ -121,7 +166,7 @@ public class JwtTokenProvider {
     public String getUsername(String token) {
 
         return Jwts.parserBuilder()
-                .setSigningKey(key)
+                .setSigningKey(signingKey())
                 .build()
                 .parseClaimsJws(token)
                 .getBody()
@@ -132,7 +177,7 @@ public class JwtTokenProvider {
     public String getRole(String token) {
 
         Claims claims = Jwts.parserBuilder()
-                .setSigningKey(key)
+                .setSigningKey(signingKey())
                 .build()
                 .parseClaimsJws(token)
                 .getBody();

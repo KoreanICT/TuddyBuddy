@@ -9,6 +9,25 @@
 	    FROM MEMBER 
 	    WHERE MEMBER_NUM = #{num}
 	</select>
+
+	<select id="select_point_for_update" parameterType="Long" resultType="Long">
+		SELECT POINT
+		FROM MEMBER
+		WHERE MEMBER_NUM = #{num}
+		FOR UPDATE
+	</select>
+
+	<update id="update_member_point">
+		UPDATE MEMBER
+		SET POINT = #{balance}
+		WHERE MEMBER_NUM = #{num}
+	</update>
+
+	<select id="select_member_num_by_code" parameterType="String" resultType="Long">
+		SELECT MEMBER_NUM
+		FROM MEMBER
+		WHERE MEMBER_CODE = #{member_code}
+	</select>
 	
 	<select id="select_point_log" parameterType="Long" resultType="povo">
 		SELECT 

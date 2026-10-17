@@ -176,13 +176,11 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
 
     sessionStorage.setItem('kakao_oauth_state', state);
 
-    // 기존 Login.tsx의 OAuth 요청 방식 유지
     const params = new URLSearchParams({
       client_id: clientId,
       redirect_uri: redirectUri,
       response_type: 'code',
-      state,
-      scope: 'profile_nickname'
+      state
     });
 
     window.location.href =
@@ -341,7 +339,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
               fill="currentColor"
               aria-hidden="true"
             >
-              <path d="M12 2C5.925 2 1 5.76 1 10.4c0 3.02 2.08 5.67 5.2 7.15L5.15 21.4c-.1.36.3.65.61.44l4.53-3.08c.56.08 1.13.12 1.71.12 6.075 0 11-3.76 11-8.48S18.075 2 12 2z"/>
+              <path d="M12 2C5.925 2 1 5.76 1 10.4c0 3.02 2.08 5.67 5.2 7.15L5.15 21.4c-.1.36.3.65.61.44l4.53-3.08c.56.08 1.13.12 1.71.12 6.075 0 11-3.76 11-8.48S18.075 2 12 2z" />
             </svg>
           </span>
 

@@ -1,5 +1,6 @@
 //김진규
 import React, { useState } from 'react';
+import axios from 'axios';
 import styles from './productSelector.module.css';
 
 //const apiUrl = process.env.BACKEND_URL;
@@ -40,6 +41,9 @@ export const ProductSelector: React.FC<ProductSelectorProps> = ({ onSelectOrder 
     try {
       setIsLoading(true);
 
+      const token = localStorage.getItem('token');
+      if (typeof token !== 'string' || token.trim() === '') return;
+
       const paymentId = `pay_${crypto.randomUUID()}`;
 
       // 2. 포트원 결제창 호출 (현재 화면 위에 팝업/모달로 뜸)
@@ -62,20 +66,22 @@ export const ProductSelector: React.FC<ProductSelectorProps> = ({ onSelectOrder 
       }
 
       // 3. 백엔드 사후 검증 호출
-      const verifyResponse = await fetch(`http:// /back/api/point/pointAdd`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
+      const verifyResponse = await axios.post(`${process.env.REACT_APP_BACK_END_URL}/api/point/pointAdd`, {
             paymentId: response.paymentId,
             payment:selectedProduct,
             description:"포인트 결제",
             point_type:"PAYMENT"
-        }),
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        validateStatus: () => true,
       });
 
       console.log(verifyResponse);
 
-      if (verifyResponse.ok) {
+      if (verifyResponse.status >= 200 && verifyResponse.status < 300) {
         alert('결제가 완료되었습니다!');
       } else {
         alert('결제 검증에 실패했습니다.');
