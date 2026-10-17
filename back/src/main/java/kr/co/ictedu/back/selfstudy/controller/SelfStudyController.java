@@ -2,6 +2,7 @@
 package kr.co.ictedu.back.selfstudy.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 
@@ -26,6 +27,8 @@ import kr.co.ictedu.back.selfstudy.vo.QuizSessionVO;
 import kr.co.ictedu.back.selfstudy.vo.QuizVO;
 import kr.co.ictedu.back.selfstudy.vo.SelfStudyResultVO;
 import kr.co.ictedu.back.selfstudy.vo.SubjectVO;
+import kr.co.ictedu.back.selfstudy.service.AuthenticatedMember;
+
 
 @Tag(name = "셀프스터디", description = "셀프스터디 API")
 @RestController
@@ -33,13 +36,15 @@ import kr.co.ictedu.back.selfstudy.vo.SubjectVO;
 public class SelfStudyController {
 
 	private final SelfStudyService selfStudyService;
-    private final kr.co.ictedu.back.selfstudy.service.AuthenticatedMember authenticatedMember;
+	private final AuthenticatedMember authenticatedMember;
 
-	public SelfStudyController(SelfStudyService selfStudyService, kr.co.ictedu.back.selfstudy.service.AuthenticatedMember authenticatedMember) {
-        this.authenticatedMember = authenticatedMember;
-		this.selfStudyService = selfStudyService;
+	public SelfStudyController(
+	        SelfStudyService selfStudyService,
+	        AuthenticatedMember authenticatedMember
+	) {
+	    this.selfStudyService = selfStudyService;
+	    this.authenticatedMember = authenticatedMember;
 	}
-
 
 	@Operation(summary = "카테고리 목록 조회")
 	@GetMapping("/categories")

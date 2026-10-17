@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.co.ictedu.back.selfstudy.service.SelfStudyAdminService;
 import kr.co.ictedu.back.selfstudy.vo.CategoryVO;
 import kr.co.ictedu.back.selfstudy.vo.SubjectVO;
+import kr.co.ictedu.back.selfstudy.service.AuthenticatedMember;
 
 @Tag(name = "셀프스터디 관리자", description = "카테고리 및 과목 관리 API")
 @RestController
@@ -23,11 +24,14 @@ import kr.co.ictedu.back.selfstudy.vo.SubjectVO;
 public class SelfStudyAdminController {
 
     private final SelfStudyAdminService selfStudyAdminService;
-    private final kr.co.ictedu.back.selfstudy.service.AuthenticatedMember authenticatedMember;
+    private final AuthenticatedMember authenticatedMember;
 
-    public SelfStudyAdminController(SelfStudyAdminService selfStudyAdminService, kr.co.ictedu.back.selfstudy.service.AuthenticatedMember authenticatedMember) {
-        this.authenticatedMember = authenticatedMember;
+    public SelfStudyAdminController(
+            SelfStudyAdminService selfStudyAdminService,
+            AuthenticatedMember authenticatedMember
+    ) {
         this.selfStudyAdminService = selfStudyAdminService;
+        this.authenticatedMember = authenticatedMember;
     }
 
     @Operation(summary = "전체 카테고리 조회", description = "비활성 카테고리 포함")
