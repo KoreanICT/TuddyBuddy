@@ -35,9 +35,6 @@ out/
 
 ### VS Code ###
 .vscode/
-<<<<<<< HEAD
 
 ### Application Properties ###
 src/main/resources/application.properties
-=======
->>>>>>> dtd
