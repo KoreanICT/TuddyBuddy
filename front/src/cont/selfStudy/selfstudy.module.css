@@ -693,6 +693,24 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+.loadingArrow {
+  display: inline-block;
+  margin-right: 8px;
+  animation: loadingArrowSpin 0.9s linear infinite;
+}
+
+@keyframes loadingArrowSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loadingArrow {
+    animation: none;
+  }
+}
 /* =========================
     subject filterlayout
 ========================= */
@@ -765,6 +783,12 @@
   margin-bottom: 0;
   padding: 20px;
   min-width: 0;
+  min-height: 0;
+}
+
+.historyCardCollapsed {
+  padding-top: 12px;
+  padding-bottom: 12px;
 }
 
 /* 제목 + 접기/펼치기 버튼 */
@@ -792,6 +816,15 @@
   font-size: 12px;
   font-weight: 600;
   color: #64748b;
+}
+
+.historyChevron {
+  display: inline-block;
+  transition: transform 0.2s ease;
+}
+
+.historyChevronCollapsed {
+  transform: rotate(180deg);
 }
 
 /* 학습 기록 안내 문구 */
@@ -922,33 +955,12 @@
   margin-top: 12px;
 }
 
-/* 불러오기 버튼 */
-.historyRestoreBtn {
-  flex: 1 1 auto;
-  padding: 7px 10px;
-  font-size: 12px;
-}
-
-/* 삭제 버튼 */
-.historyDeleteBtn {
-  padding: 7px 10px;
-  color: #dc2626;
-  font-size: 12px;
-}
-
 /* 작은 화면 대응 */
 @media (max-width: 480px) {
 .historyCard {
   margin-bottom: 0;
   padding: 20px;
   min-width: 0;
-  height: auto;
-  min-height: 0;
-}
-
-.historyCardCollapsed {
-  padding-top: 12px;
-  padding-bottom: 12px;
   height: auto;
   min-height: 0;
 }

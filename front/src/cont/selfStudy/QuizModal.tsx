@@ -346,7 +346,13 @@ export const QuizModal: React.FC<QuizModalProps> = ({
             className={styles.submitBtn}
             onClick={handleUploadSubmit}
             disabled={loading}
+            aria-busy={loading}
           >
+            {loading && (
+              <span className={styles.loadingArrow} aria-hidden="true">
+                ↻
+              </span>
+            )}
             {loading
               ? 'AI가 문제를 생성하는 중...'
               : '문제 생성 시작'}

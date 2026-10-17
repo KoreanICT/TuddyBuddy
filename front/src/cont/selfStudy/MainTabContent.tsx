@@ -318,12 +318,12 @@ export const MainTabContent: React.FC<Props> = ({
 
                       <div className={styles.wrongAnswerDetail}>
                         <p className={styles.myAnswer}>
-                          내 제출 답 (quiz_user_response):{' '}
+                          제출한 답 :{' '}
                           {item.quizUserResponse}
                         </p>
 
                         <p className={styles.correctAnswer}>
-                          정답 (quiz_correct_answer):{' '}
+                          정답 :{' '}
                           {item.quizCorrectAnswer}
                         </p>
                       </div>
@@ -331,7 +331,7 @@ export const MainTabContent: React.FC<Props> = ({
                       <div className={styles.explanationBox}>
                         <p>
                           <strong>
-                            해설 (quiz_explanation):
+                            해설 :
                           </strong>{' '}
                           {item.quizExplanation}
                         </p>
@@ -352,7 +352,7 @@ export const MainTabContent: React.FC<Props> = ({
           <div className={styles.actionBar}>
             {score !== null && (
               <strong>
-                저장된 점수: {score}점
+                점수: {score}점
               </strong>
             )}
 
