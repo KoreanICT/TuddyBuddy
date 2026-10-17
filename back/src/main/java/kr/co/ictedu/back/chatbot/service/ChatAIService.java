@@ -1,7 +1,10 @@
+// 허승표
+
 package kr.co.ictedu.back.chatbot.service;
 
 import java.net.http.HttpClient;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
@@ -20,7 +23,7 @@ public class ChatAIService {
 
 	private RestClient restClient;
 	
-    public ChatAIService() {
+    public ChatAIService(@Value("${chatbot.ai.base-url}") String baseUrl) {
     	// HTTP/1.1 방식의 HttpClient 생성
     	HttpClient httpClient = HttpClient.newBuilder()
     			.version(HttpClient.Version.HTTP_1_1)	// HTTP 버전을 1.1로 지정
@@ -31,7 +34,7 @@ public class ChatAIService {
     			new JdkClientHttpRequestFactory(httpClient);
     	
         this.restClient = RestClient.builder()
-        		.baseUrl("http://192.168.0.72:8000") // 나중에 application.properties에 분리하기
+        		.baseUrl(baseUrl)
         		.requestFactory(requestFactory)
         		.build();
     }

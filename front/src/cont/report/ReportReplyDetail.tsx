@@ -1,10 +1,12 @@
+// 주용현
 
 import axios from 'axios';
-import React, { useEffect, useState } from 'react';
+import { useAuth } from '../../login/hooks/useAuth';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import styles from './report.module.css';
 
-type ReportType = 'POST' | 'COMMENT' | 'USER' | 'STUDY';
+type ReportType = 'POST' | 'COMMENT' | 'USER' | 'STUDY' | 'community' | 'report';
 
 interface ReportVO {
     num: number;
@@ -27,6 +29,11 @@ interface ReportReplyVO {
 const ReportReplyDetail: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
+    const { token } = useAuth();
+
+    const getAuthHeaders = useCallback(() => ({
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+    }), [token]);
 
     const [report, setReport] = useState<ReportVO | null>(null);
     const [reply, setReply] = useState<ReportReplyVO | null>(null);
@@ -52,11 +59,11 @@ const ReportReplyDetail: React.FC = () => {
                 const [reportResponse, replyResponse] = await Promise.all([
                     axios.get<ReportVO>(
                         'http://localhost:80/back/api/report/reportDetail',
-                        { params: { num: id } }
+                        { headers: getAuthHeaders(), params: { num: id } }
                     ),
                     axios.get<ReportReplyVO>(
                         'http://localhost:80/back/api/report/reportReplyDetail',
-                        { params: { report_num: id } }
+                        { headers: getAuthHeaders(), params: { report_num: id } }
                     )
                 ]);
 
@@ -81,7 +88,7 @@ const ReportReplyDetail: React.FC = () => {
         return () => {
             active = false;
         };
-    }, [id]);
+    }, [id, getAuthHeaders]);
 
     // =========================
     // 신고 유형 출력
@@ -92,6 +99,8 @@ const ReportReplyDetail: React.FC = () => {
             case 'COMMENT': return '댓글';
             case 'USER': return '회원';
             case 'STUDY': return '스터디';
+            case 'community': return '커뮤니티 게시글';
+            case 'report': return '일반 신고';
             default: return type;
         }
     };

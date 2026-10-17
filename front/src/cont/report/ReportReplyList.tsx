@@ -1,7 +1,10 @@
+// 주용현
+
 import axios from 'axios';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './report.module.css';
+import { useAuth } from '../../login/hooks/useAuth';
 
 interface ReportReplyVO {
     num: number;
@@ -16,15 +19,21 @@ const ReportReplyList: React.FC = () => {
     const navigate = useNavigate();
     const [replyList, setReplyList] = useState<ReportReplyVO[]>([]);
 
+    const { memberNum, token } = useAuth();
+
+    const getAuthHeaders = useCallback(() => ({
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+    }), [token]);
+
     // 신고 답변 목록 조회
-    const fetchReplyList = async () => {
+    const fetchReplyList = useCallback(async () => {
         try {
             const urls = "http://localhost:80/back/api/report/reportReplyList"; // '/back/api/report/reportReplyList',
 
             const response = await axios.get(urls, {
+                headers: getAuthHeaders(),
                 params: {
-                    // TODO: 로그인 연결 후 실제 회원 번호 사용
-                    member_num: 1
+                    member_num: memberNum
                 }
             });
 
@@ -33,11 +42,11 @@ const ReportReplyList: React.FC = () => {
         } catch (error) {
             console.error('신고 답변 목록 조회 실패:', error);
         }
-    };
+    }, [memberNum, getAuthHeaders]);
 
     useEffect(() => {
         fetchReplyList();
-    }, []);
+    }, [fetchReplyList]);
 
     // 답변 상세 이동
     const handleDetail = (report_num: number) => {

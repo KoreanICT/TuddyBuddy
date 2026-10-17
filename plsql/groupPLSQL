@@ -44,5 +44,27 @@ BEGIN
 
 END;
 /
-        
-        
+
+CREATE OR REPLACE FUNCTION FN_GROUP_RESOURCE_PERMISSION (
+    P_GROUP_NUM IN NUMBER,
+    P_OWNER_NUM IN NUMBER,
+    P_MEMBER_NUM IN NUMBER
+)
+RETURN NUMBER
+IS 
+    V_IS_LEADER NUMBER := 0;
+BEGIN
+    IF P_OWNER_NUM = P_MEMBER_NUM THEN
+        RETURN 1;
+    END IF;
+    
+    SELECT COUNT(*) INTO V_IS_LEADER FROM group_member WHERE group_num = P_GROUP_NUM AND member_num = P_MEMBER_NUM AND is_leader = 1;
+    
+    IF V_IS_LEADER > 0 THEN 
+        RETURN 1;
+    END IF;
+    
+    RETURN 0;
+END;
+/
+    

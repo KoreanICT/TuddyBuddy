@@ -1,6 +1,8 @@
+// 주용현
 
 import axios from 'axios';
-import React, { useEffect, useState } from 'react';
+import { useAuth } from '../../login/hooks/useAuth';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, ChevronLeft, ChevronRight, Megaphone } from 'lucide-react';
 
@@ -34,6 +36,11 @@ interface NoticeListResponse {
 
 const NoticeList: React.FC = () => {
     const navigate = useNavigate();
+    const { token } = useAuth();
+
+    const getAuthHeaders = useCallback(() => ({
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+    }), [token]);
 
     const [notices, setNotices] = useState<NoticeVO[]>([]);
     const [cPage, setCPage] = useState(1);
@@ -47,12 +54,13 @@ const NoticeList: React.FC = () => {
     const [loading, setLoading] = useState(false);
 
     // 공지사항 목록 조회
-    const fetchNoticeList = async () => {
+    const fetchNoticeList = useCallback(async () => {
         setLoading(true);
 
         try {
             const urls = "http://localhost:80/back/api/notice/noticeList";
             const response = await axios.get<NoticeListResponse>(urls, {
+                headers: getAuthHeaders(),
                 params: { cPage, searchType: searchField, searchValue: searchKeyword }
             });
 
@@ -71,11 +79,11 @@ const NoticeList: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [cPage, searchField, searchKeyword, getAuthHeaders]);
 
     useEffect(() => {
         fetchNoticeList();
-    }, [cPage, searchField, searchKeyword]);
+    }, [fetchNoticeList]);
 
     // 검색
     const handleSearch = (e: React.SubmitEvent<HTMLFormElement>) => {

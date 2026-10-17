@@ -1,9 +1,9 @@
+// 작성자 : 오진석
 import React, { useMemo, useState } from "react";
 import styles from "./project.module.css";
 //import { useAuth } from "../../hooks/useAuth"
-import { getMember } from "./getMembernum";
 import axios from "axios";
-import { GetGroupNum } from './GroupAPI'
+import { GetGroupNum, formatDate } from './GroupAPI'
 interface Schedule {
     schedule_num: number;
     group_num: number;
@@ -22,17 +22,6 @@ interface Tdl {
     title: string;
     expired_at: string;
 }
-
-/**
- * yyyy-MM-dd
- */
-const formatDate = (date: Date): string => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-
-    return `${year}-${month}-${day}`;
-};
 
 /**
  * 테스트용 일정 데이터
@@ -78,12 +67,23 @@ const initialTdls: Tdl[] = [
     },
 ];
 
+interface MemberData {
+    member_num: number,
+    pwd: string,
+}
+
 export const Project_Calendar: React.FC<GetGroupNum> = (groupNum) => {
 
-    const member = getMember();//멤버 정보 가져오기 임시 함수 import
-    const currentMemberNum = member?.member_num;
     const today = new Date();
 
+    const [member,setMember] = useState<MemberData>();
+    const getMember = () => {
+        setMember({
+            member_num: 0,
+            pwd: "0"
+        })
+    }
+    const currentMemberNum = member?.member_num;
     /*
      * 현재 달력에서 보고 있는 년 / 월
      */

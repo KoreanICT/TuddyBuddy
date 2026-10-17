@@ -1,3 +1,4 @@
+//작성자 : 오진석
 package kr.co.ictedu.back.group.dto;
 
 import java.time.LocalDateTime;
@@ -10,6 +11,7 @@ import kr.co.ictedu.back.group.vo.TagVO;
 import lombok.Getter;
 import lombok.Setter;
 
+@Alias("grouplistdto")
 @Getter
 @Setter
 public class GroupListDTO {

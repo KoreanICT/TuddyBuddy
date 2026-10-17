@@ -1,6 +1,8 @@
+// 주용현
 
 import axios from 'axios';
-import React, { useEffect, useState } from 'react';
+import { useAuth } from '../../login/hooks/useAuth';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, CalendarDays, Megaphone, ImageIcon } from 'lucide-react';
 
@@ -19,19 +21,25 @@ interface NoticeVO {
 
 const NoticeDetail: React.FC = () => {
     const navigate = useNavigate();
+    const { token } = useAuth();
     const { num } = useParams<{ num: string }>();
+
+    const getAuthHeaders = useCallback(() => ({
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+    }), [token]);
 
     const [notice, setNotice] = useState<NoticeVO | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
 
     // 공지사항 상세 조회
-    const fetchNoticeDetail = async () => {
+    const fetchNoticeDetail = useCallback(async () => {
         setLoading(true);
 
         try {
             const urls = "http://localhost:80/back/api/notice/noticeDetail";
             const response = await axios.get<NoticeVO>(urls, {
+                headers: getAuthHeaders(),
                 params: { num }
             });
 
@@ -44,7 +52,7 @@ const NoticeDetail: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [num, getAuthHeaders]);
 
     useEffect(() => {
         if (!num || !/^\d+$/.test(num)) {
@@ -55,7 +63,7 @@ const NoticeDetail: React.FC = () => {
         }
 
         fetchNoticeDetail();
-    }, [num]);
+    }, [num, fetchNoticeDetail]);
 
     // 작성일 표시
     const formatDate = (date?: string) => {

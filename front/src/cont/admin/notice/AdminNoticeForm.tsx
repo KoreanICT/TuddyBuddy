@@ -1,9 +1,11 @@
+// 주용현
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Save, ImagePlus, X } from 'lucide-react';
 import styles from './adminNoticeForm.module.css';
+import { useAuth } from '../../../login/hooks/useAuth';
 
 interface NoticeVO {
     num: number;
@@ -22,6 +24,11 @@ const AdminNoticeForm: React.FC = () => {
     const navigate = useNavigate();
     const { num } = useParams<{ num: string }>();
     const isEdit = !!num;
+    const { memberNum, token } = useAuth();
+
+    const getAuthHeaders = useCallback(() => ({
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+    }), [token]);
 
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
@@ -31,8 +38,8 @@ const AdminNoticeForm: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
 
-    // TODO: 로그인 연동 후 실제 관리자 번호 사용
-    const adminNum = 1;
+
+    const adminNum = memberNum;
 
     // 공지사항 수정 시 기존 데이터 조회
     useEffect(() => {
@@ -43,6 +50,7 @@ const AdminNoticeForm: React.FC = () => {
 
             try {
                 const response = await axios.get<NoticeVO>(`${API_URL}/noticeDetail`, {
+                    headers: getAuthHeaders(),
                     params: { num }
                 });
 
@@ -60,7 +68,7 @@ const AdminNoticeForm: React.FC = () => {
         };
 
         fetchNotice();
-    }, [num, isEdit, navigate]);
+    }, [num, isEdit, navigate, getAuthHeaders]);
 
     // 이미지 선택
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -112,6 +120,7 @@ const AdminNoticeForm: React.FC = () => {
         formData.append('title', title.trim());
         formData.append('content', content.trim());
         formData.append('member_num', String(adminNum));
+        console.log(adminNum);
 
         if (image) formData.append('mfile', image);
 
@@ -119,9 +128,13 @@ const AdminNoticeForm: React.FC = () => {
 
         try {
             if (isEdit) {
-                await axios.put(`${API_URL}/noticeUpdate`, formData);
+                await axios.put(`${API_URL}/noticeUpdate`, formData, {
+                    headers: getAuthHeaders(),
+                });
             } else {
-                await axios.post(`${API_URL}/noticeAdd`, formData);
+                await axios.post(`${API_URL}/noticeAdd`, formData, {
+                    headers: getAuthHeaders(),
+                });
             }
 
             alert(isEdit ? '공지사항이 수정되었습니다.' : '공지사항이 등록되었습니다.');

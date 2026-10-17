@@ -1,3 +1,4 @@
+//김진규
 // ==========================================
 // DB 스키마 기반 기본 엔티티 인터페이스
 // ==========================================
@@ -5,13 +6,6 @@
 export interface Category {
     categoryId: number;
     categoryName: string;
-}
-
-export interface Subject {
-    subjectId: number;
-    categoryId: number;
-    subjectName: string;
-    usageCount: number;
 }
 
 // ==========================================

@@ -1,11 +1,13 @@
+// 주용현
 
 import axios from 'axios';
-import React, { useEffect, useState } from 'react';
+import { useAuth } from '../../login/hooks/useAuth';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './myReportList.module.css';
 
 type ReportStatus = 'PENDING' | 'REVIEWING' | 'COMPLETED' | 'REJECTED';
-type ReportType = 'POST' | 'COMMENT' | 'USER' | 'STUDY';
+type ReportType = 'POST' | 'COMMENT' | 'USER' | 'STUDY' | 'community' | 'report';
 
 interface ReportVO {
     num: number;
@@ -28,6 +30,11 @@ interface ReportListResponse {
 
 const MyReportList: React.FC = () => {
     const navigate = useNavigate();
+    const { token, memberNum } = useAuth();
+
+    const getAuthHeaders = useCallback(() => ({
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+    }), [token]);
 
     const [reportList, setReportList] = useState<ReportVO[]>([]);
     const [totalItems, setTotalItems] = useState(0);
@@ -36,9 +43,6 @@ const MyReportList: React.FC = () => {
     const [startPage, setStartPage] = useState(1);
     const [endPage, setEndPage] = useState(1);
     const [loading, setLoading] = useState(true);
-
-    // TODO: 로그인 연동 후 실제 회원 번호로 변경
-    const memberNum = 1;
 
     // =========================
     // 나의 신고 목록 조회
@@ -53,6 +57,7 @@ const MyReportList: React.FC = () => {
                 const response = await axios.get<ReportListResponse>(
                     'http://localhost:80/back/api/report/myReportList',
                     {
+                        headers: getAuthHeaders(),
                         params: {
                             member_num: memberNum,
                             cPage: currentPage
@@ -86,7 +91,7 @@ const MyReportList: React.FC = () => {
         return () => {
             active = false;
         };
-    }, [currentPage, memberNum]);
+    }, [currentPage, memberNum, getAuthHeaders]);
 
     // =========================
     // 신고 유형 출력
@@ -97,6 +102,8 @@ const MyReportList: React.FC = () => {
             case 'COMMENT': return '댓글';
             case 'USER': return '회원';
             case 'STUDY': return '스터디';
+            case 'community': return '커뮤니티 게시글';
+            case 'report': return '일반 신고';
             default: return type;
         }
     };

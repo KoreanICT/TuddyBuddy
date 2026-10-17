@@ -1,3 +1,4 @@
+//작성자 : 오진석
 import React, { useEffect, useState } from 'react';
 import styles from './group.module.css';
 import { TagItem } from './GroupAPI';
@@ -49,24 +50,58 @@ export interface PublicGroupListItem {
 
 export const Group_List: React.FC<GroupPublicProps> = ({ mode, searchType, searchTerm, onEnterGroup }) => {
     const [groups, setGroups] = useState<GroupListItem[]>([]);
+    const [mygroups, setMygroups] = useState<GroupListItem[]>([]);
     const [loading, setLoading] = useState(false);
+
 
     useEffect(() => {
         const loadGroups = async () => {
-            try {
-                setLoading(true);
-                const data = mode === 'my' ? await getMyGroups() : await getPublicGroups();
-                setGroups(data);
-            } catch (error) {
-                console.error('스터디룸 조회 실패', error)
-            } finally {
-                setLoading(false);
+
+            if (mode==='my') {
+                try {
+                    setLoading(true);
+                    const data = await getMyGroups();
+                    setMygroups(data);
+                } catch (error) {
+                    console.error('스터디룸 조회 실패', error)
+                } finally {
+                    setLoading(false);
+                }
+            } else if (mode === 'public') {
+                try {
+                    setLoading(true);
+                    const data = await getPublicGroups();
+                    setGroups(data);
+                } catch (error) {
+                    console.error('스터디룸 조회 실패', error)
+                } finally {
+                    setLoading(false);
+                }
             }
+            // try {
+            //     setLoading(true);
+                
+                
+            // } catch (error) {
+            //     console.error('스터디룸 조회 실패', error)
+            // } finally {
+            //     setLoading(false);
+            // }
         };
         loadGroups();
     }, [mode]);
 
-    const filteredGroups = groups.filter(group => {
+
+    // const data = mode === 'my' ? (
+                    
+    //                 setMygroups(data);
+    //             ) : (
+    //                 await getPublicGroups();
+    //                 setGroups(data);
+    //             )
+
+
+    const filteredGroups = (mode === 'my' ? mygroups : groups).filter(group => {
         if (!searchTerm.trim()) {
             return true;
         }

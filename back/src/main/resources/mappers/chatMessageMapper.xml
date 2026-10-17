@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
+<!-- 허승표 -->
+
 <mapper namespace="kr.co.ictedu.back.chatbot.dao.ChatMessageDAO">
 
 	<!-- 메시지 저장 -->
@@ -19,7 +21,7 @@
 	</select>
 	
 	<!-- 특정 회원의 전체 대화 내용 조회 -->
-    <select id="memberList" parameterType="int" resultType="cmvo">
+    <select id="memberList" parameterType="Long" resultType="cmvo">
 		SELECT m.message_num, m.chat_num, m.message_sender, m.message_content, m.message_regdate FROM chat_message m
 		JOIN chat_session s
 		ON m.chat_num = s.chat_num

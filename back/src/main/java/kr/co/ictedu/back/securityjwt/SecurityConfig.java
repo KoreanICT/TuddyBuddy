@@ -1,6 +1,7 @@
 package kr.co.ictedu.back.securityjwt;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -21,6 +22,10 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @EnableWebSecurity
 @Configuration
 public class SecurityConfig {
+	
+	@Value("${security.value}")
+	private String myip;
+	
 	// JWT 토큰을 검증하는 필터
 	@Autowired
 	private JwtTokenFilter jwtTokenFilter;
@@ -54,6 +59,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf((csrf) -> csrf.disable())
+                //.csrf((csrf) -> csrf.disable())
                 //리액트와 크로스 통신 및 리액트의 view를 사용 
                 .cors((cors) -> cors.configurationSource(corsConfigurationSource()))
                 .formLogin((login) -> login.disable())
@@ -61,20 +67,15 @@ public class SecurityConfig {
                 .authorizeHttpRequests((auth) -> auth
 
                         .requestMatchers("/api/auth/**").permitAll() // /api/auth/** 에서 오는 모든 요청은 허용
-                        .requestMatchers("/demos/**").permitAll() 
-                        .requestMatchers("/api/gallery/**").permitAll()
-                        .requestMatchers("/api/board/**").permitAll()
                         .requestMatchers("/api/member/**").permitAll()
-//                        .requestMatchers("/api/employees/**").permitAll()
                         .requestMatchers("/uploads/**").permitAll() //이미지 경로도 열어줘야 한다.
-                        //.requestMatchers("/demos/**").permitAll()
-                        //.requestMatchers("/**").permitAll()
+//                        .requestMatchers("/**").permitAll()
                         .anyRequest().authenticated()) // 모든 요청에 대해 인증을 요구
                 // JWT 토큰 필터 추가: JwtTokenFilter를 BasicAuthenticationFilter 전에 추가하여 JWT 토큰을 검증
                 .addFilterBefore(jwtTokenFilter, BasicAuthenticationFilter.class)
                 // 세션 정책 설정: SessionCreationPolicy.STATELESS로 설정하여 세션 기반 인증을 사용하지 않도록 한다.
                 .sessionManagement((session) -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                // 로그아웃 기능 비활성화: 상태를 유지하지 않는 인증 방식에서는 로그아웃이 필요 없다.
+                // 로그아웃 기능 비활성화
                 .logout((logout) -> logout.disable());
         return http.build();
     }
@@ -83,7 +84,7 @@ public class SecurityConfig {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
         corsConfiguration.setAllowCredentials(true);
         corsConfiguration.setAllowedOrigins(// React 그러니까 개발 클라이언트 접속만 허용 
-        		List.of("http://192.168.0.20:3000", "http://localhost:3000" , "http://192.168.0.20:80")
+        		List.of("http://" +myip+ ":3000", "http://localhost:3000" , "http://"+myip+":80")
         		);
         corsConfiguration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         corsConfiguration.setAllowedHeaders(List.of("*"));
@@ -94,5 +95,10 @@ public class SecurityConfig {
         return urlBasedCorsConfigurationSource;
 
     }// corsConfigurationSource
+    
+    public static void main(String[] args) {
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+        System.out.println(encoder.encode("1122"));
+    }
 
 }

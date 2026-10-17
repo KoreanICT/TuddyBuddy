@@ -1,3 +1,4 @@
+//김진규
 package kr.co.ictedu.back.statistics.service;
 
 import java.util.ArrayList;
@@ -6,13 +7,21 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import io.swagger.v3.oas.models.PathItem.HttpMethod;
 import kr.co.ictedu.back.selfstudy.dao.SelfStudyDao;
 import kr.co.ictedu.back.selfstudy.vo.QuizResponseVO;
 import kr.co.ictedu.back.selfstudy.vo.QuizVO;
 import kr.co.ictedu.back.selfstudy.vo.SelfStudyResultVO;
+import kr.co.ictedu.back.statistics.dao.StatisticsDao;
+import kr.co.ictedu.back.statistics.dto.PredictionDTO;
+import kr.co.ictedu.back.statistics.dto.StatisticsDTO;
 
 @Service
 public class StatisticsService {
@@ -20,57 +29,110 @@ public class StatisticsService {
 	@Autowired
 	private SelfStudyDao selfStudyDao;
 
-	public Map<String, Object> getAiPerformanceFeedback(Long resultId) {
+	@Autowired
+	private StatisticsDao statisticsDao;
 
-		// 2. 학습 결과 단건 조회 (세션 ID 및 회원 번호 확인용)
-		SelfStudyResultVO result = selfStudyDao.selectResult(resultId);
+	@Value("${fastapi.url}")
+	private String fastapiUrl;
+
+	public List<String> selectCategories(Long memberNum) {
+		// 카테고리 추출
+		List<String> categories = statisticsDao.selectCategories_Statistics(memberNum);
+		return categories;
+	}
+
+	/**
+	 * 1. 최종 통합 통계 데이터 조회 (컨트롤러에서 호출하는 메인 메서드)
+	 */
+	public Map<String, Object> selectStatistics(Long memberNum) {
+		// (1) LLM 데이터(피드백) 추출 메서드 호출
+		StatisticsDTO llmFeedback = getLlmFeedbackData(memberNum);
+		// (2) 차트 데이터 추출 메서드 호출
+		Map<String, Object> chartData = getChartData(memberNum);
+		System.out.println("chart데이터: " + chartData);
+		// (3) 두 데이터를 하나의 맵으로 묶어서 리액트로 반환
+		Map<String, Object> finalResult = new HashMap<>();
+		finalResult.put("chartData", chartData);
+		finalResult.put("llmFeedback", llmFeedback);
+		System.out.println("통합데이터: " + finalResult);
+		return finalResult;
+	}
+
+	/**
+	 * 2. DB 조인 쿼리를 활용한 LLM 피드백 데이터 추출 및 FastAPI 통신 메서드
+	 */
+	private StatisticsDTO getLlmFeedbackData(Long memberNum) {
+		// (1) 세션 ID 추출
+		Long sessionId = statisticsDao.selectSessionId_Statistics(memberNum);
+
+		// (2) 학습 결과 단건 조회 (결과 존재 여부 검증 및 selfstudy_results_id 확보용)
+		SelfStudyResultVO result = statisticsDao.selectResult(sessionId);
 		if (result == null) {
 			throw new IllegalArgumentException("존재하지 않는 학습 결과입니다.");
 		}
 
-		// 3. 해당 세션의 전체 문제 목록 조회 (기존 쿼리 재사용)
-		List<QuizVO> quizzes = selfStudyDao.selectQuizzes(result.getQuiz_session_id());
+		// (3) 최적화된 조인 쿼리를 통해 해당 결과의 오답 로그 목록을 곧바로 조회
+		// (더미 데이터 기준으로 selfstudy_results_id를 전달하여 오답 'N'만 추출)
+		List<Map<String, Object>> quizLogs = statisticsDao
+				.selectIncorrectQuizzesByResultId_Statistics(result.getSelfstudy_results_id());
 
-		// 4. 해당 결과의 유저 답변 목록 조회 (기존 쿼리 재사용)
-		List<QuizResponseVO> responses = selfStudyDao.selectQuizResponses(resultId);
-
-		// 5. 문제와 유저 답변을 맵핑하여 오답(`quiz_correct == 'N'`)만 골라내어 Map 리스트로 구성
-		List<Map<String, Object>> quizLogs = new ArrayList<>();
-
-		for (QuizVO quiz : quizzes) {
-			QuizResponseVO matchResponse = responses.stream().filter(r -> r.getQuiz_id().equals(quiz.getQuiz_id()))
-					.findFirst().orElse(null);
-
-			// 답변이 존재하고, 틀린 문제인 경우만 필터링
-			if (matchResponse != null && "N".equalsIgnoreCase(matchResponse.getQuiz_correct())) {
-				Map<String, Object> logMap = new HashMap<>();
-				logMap.put("quiz_id", quiz.getQuiz_id());
-				logMap.put("question", quiz.getQuiz_question());
-
-				// 선택지(보기) 처리 
-				logMap.put("options", quiz.getQuiz_selections());
-				logMap.put("user_answer", matchResponse.getQuiz_user_response());
-				logMap.put("correct_answer", quiz.getQuiz_correct_answer());
-				logMap.put("is_correct", false); // 오답이므로 고정 또는 판별값 대입
-				logMap.put("explanation", quiz.getQuiz_explanation());
-
-				quizLogs.add(logMap);
-			}
-		}
-
-		// 6. FastAPI로 보낼 최종 요청 Payload(Body) 구성
+		// (4) FastAPI로 보낼 최종 요청 Payload(Body) 구성
 		Map<String, Object> requestPayload = new HashMap<>();
 		requestPayload.put("user_id", result.getMember_num());
 		requestPayload.put("quiz_logs", quizLogs);
 
-		// 6. RestTemplate을 통해 FastAPI 서버로 POST 요청 전송 (루트 경로 "/")
+		// (5) RestTemplate을 통해 FastAPI 서버로 POST 요청 전송
 		RestTemplate restTemplate = new RestTemplate();
-		String fastapiUrl = "http://localhost:8000/"; // FastAPI 서버 주소 (포트 확인)
+		StatisticsDTO llmFeedback = restTemplate.postForObject(fastapiUrl + "/statistics", requestPayload,
+				StatisticsDTO.class 
+		);
 
-		// postForObject를 이용해 요청을 보내고 Map 형태로 응답 받기
-		Map<String, Object> aiResponse = restTemplate.postForObject(fastapiUrl, requestPayload, Map.class);
-
-		// 7. DB 저장 없이 곧바로 반환 (일회성 증발 데이터)
-		return aiResponse;
+		System.out.println("llm데이터 수신 성공: " + llmFeedback.getMentorComment());
+		return llmFeedback;
 	}
+
+	/**
+	 * 3. 차트 데이터(history, prediction, subjectShare) 추출 메서드
+	 */
+	private Map<String, Object> getChartData(Long memberNum) {
+		Map<String, Object> chartData = new HashMap<>();
+
+		// DB에서 실제 history 데이터 조회
+		List<Map<String, Object>> historyList = statisticsDao.selectHistoryStatistics(memberNum);
+		System.out.println("historyList : " + historyList);
+		chartData.put("history", historyList);
+
+		//llm평가분석 데이터 추출 및 조회
+		PredictionDTO prediction = prediction_llm(memberNum);
+		System.out.println("prediction : " + prediction);
+		chartData.put("prediction", prediction);
+
+		//DB에서 실제 subjectShare 데이터 조회
+		List<Map<String, Object>> subjectShareList = statisticsDao.selectSubjectShareStatistics(memberNum);
+		System.out.println("subjectShareList : " + subjectShareList);
+		chartData.put("subjectShare", subjectShareList);
+
+		return chartData;
+	}
+
+	private PredictionDTO prediction_llm(Long memberNum) {
+		// 카테고리별 통계점수
+		List<Map<String, Object>> categoryStatsList = statisticsDao.selectCategoryStatisticsList(memberNum);
+
+		// llm에 사용되어야함
+		/*
+		 * chartData.put("prediction", predictionList); prediction: [ {name: '최근
+		 * 평균',score: 63.7, type: 'actual' }, {name: '다음 시험 예측', score: 82.0,
+		 * type:'predict' }, ]
+		 */
+		RestTemplate restTemplate = new RestTemplate();
+		PredictionDTO llmFeedback = restTemplate.postForObject(fastapiUrl + "/prediction", categoryStatsList,
+				PredictionDTO.class 
+		);
+
+		System.out.println("llm데이터 수신 성공: " + llmFeedback.getMentorComment());
+		return llmFeedback;
+	
+	}
+	
 }

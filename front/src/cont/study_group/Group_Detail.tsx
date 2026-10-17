@@ -1,3 +1,4 @@
+//작성자 : 오진석
 import React, { useEffect, useRef, useState } from 'react';
 import { NavLink, useParams } from 'react-router-dom';
 import { Detail_Sidebar } from './Detail_Sidebar';
@@ -13,7 +14,7 @@ import { Project_Discussion } from './Project_Discussion';
 import { Project_Course } from './Project_Course';
 import { Detail_Document } from './Detail_Document';
 import { Project_TDL } from './Project_TDL';
-import { getFirstLetter } from './GroupAPI';
+import api, { getFirstLetter } from './GroupAPI';
 import axios from 'axios';
 import { Group_EditModal } from './Group_Edit';
 
@@ -54,15 +55,15 @@ export const Group_Detail: React.FC = () => {
             return;
         }
         try {
-            const response = await axios.get(
-                `http://localhost/back/api/group/detail/${parsed}`
+            const response = await api.get(
+                `/group/detail/${parsed}`
             )
             setGroupData(response.data);
         } catch (error) {
             console.error('스터디룸 상세 조회 실패', error);
         }
     };
-    
+
     useEffect(() => {
         loadGroupDetail();
     }, [groupNum]);
@@ -81,7 +82,7 @@ export const Group_Detail: React.FC = () => {
             {/* 1. 상단 목록으로 돌아가기 버튼 (입장하기 버튼과 동일 서식) */}
             <div className={styles.top_navigation}>
                 <NavLink
-                    to="/homegroup"
+                    to="/group"
                     className={`${styles.action_btn} ${styles.primary}`}
                 >
                     스터디 목록으로 돌아가기
@@ -162,7 +163,7 @@ export const Group_Detail: React.FC = () => {
                     {currentTab === 'calendar' && <Project_Calendar groupNum={parsedGroupNum} />}
                     {currentTab === 'board' && <Project_TDL groupNum={parsedGroupNum} />}
                     {currentTab === 'discussion' && <Project_Discussion groupNum={parsedGroupNum} />}
-                    {currentTab === 'course' && <Project_Course groupNum={parsedGroupNum} />}
+                    {currentTab === 'course' && <Project_Course groupNum={parsedGroupNum}  isLeader={groupData?.is_leader === 1} />}
                     {currentTab === 'document' && <Detail_Document groupNum={parsedGroupNum} />}
                 </main>
             </div>

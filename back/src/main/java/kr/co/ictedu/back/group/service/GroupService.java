@@ -1,3 +1,4 @@
+//작성자 : 오진석
 package kr.co.ictedu.back.group.service;
 
 import java.io.File;
@@ -148,10 +149,7 @@ public class GroupService {
 		
 		return groupNum;
 	}
-	public List<GroupListDTO> getGroups(Long memberNum) {
-		List<GroupListDTO> list = dao.getGroups(memberNum);
-		return list;
-	}
+
 
 	public List<GroupListDTO> getMyGroups(Long memberNum) {
 		Map<String, Object> params = new HashMap<>();

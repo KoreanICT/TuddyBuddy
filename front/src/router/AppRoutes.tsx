@@ -1,12 +1,11 @@
-
 import Home from "../cont/Home";
-import Login from "../member/Login";
-import Signup from "../member/Signup"
+
+import Signup from "../member/Signup";
 import MyPage from "../mypage/MyPage";
 import { ProductSelector } from "../cont/point/ProductSelector";
 import PerformanceAnalytics from "../cont/statistics/PerformanceAnalytics";
 import React from "react";
-import { Route, Routes, useLocation } from "react-router-dom";
+import { Route, Routes, useLocation, Navigate } from "react-router-dom";
 import { Group_Home } from "../cont/study_group/Group_Home";
 import { Group_Detail } from "../cont/study_group/Group_Detail";
 import AdminHome from "../cont/admin/AdminHome";
@@ -14,7 +13,6 @@ import MemberManagement from "../cont/admin/member/MemberManagement";
 import BoardManagement from "../cont/admin/board/BoardManagement";
 import FriendAdd from "../cont/friend/FriendAdd";
 import FriendList from "../cont/friend/FriendList";
-//import Community from "../cont/community/Community";
 import ReportList from "../cont/admin/report/ReportList";
 import ReportDetail from "../cont/admin/report/ReportDetail";
 import ReportReply from "../cont/admin/report/ReportReply";
@@ -39,7 +37,10 @@ import AdminNoticeList from "../cont/admin/notice/AdminNoticeList";
 import AdminNoticeForm from "../cont/admin/notice/AdminNoticeForm";
 import NoticeList from "../cont/notice/NoticeList";
 import NoticeDetail from "../cont/notice/NoticeDetail";
-
+import SelfStudyManagement from "../cont/admin/selfstudy/SelfStudyManagement";
+import KakaoCallback from "../login/KakaoCallback";
+import KakaoSignup from "../login/KakaoSignup";
+import Login from "../login/Login";
 
 interface RouteItem {
     path: string;
@@ -53,14 +54,13 @@ const AppRoutes: React.FC = () => {
     const isAuth = pathname.startsWith("/auth");
 
     const routeList: RouteItem[] = [
-        { path: '/community', element: <Community /> },
-
-
-        { path: '/homeGroup', element: <Group_Home /> },
-        { path: '/group/detail/:groupNum', element: <Group_Detail /> },
-
 
         // contents
+        { path: '/community', element: <Community /> },
+
+        { path: '/group', element: <Group_Home /> },
+        { path: '/group/detail/:groupNum', element: <Group_Detail /> },
+
         { path: "/", element: <Home /> },
         { path: "/friend/add", element: <FriendAdd /> },
         { path: "/friend/list", element: <FriendList /> },
@@ -73,13 +73,11 @@ const AppRoutes: React.FC = () => {
         { path: '/selfStudy', element: <SelfStudy /> },
         { path: '/reportCreate', element: <ReportCreate /> },
 
-
         { path: '/reportReplyList', element: <ReportReplyList /> },
         { path: "/report/replyDetail/:id", element: <ReportReplyDetail /> },
 
         { path: "/notice", element: <NoticeList /> },
         { path: "/notice/:num", element: <NoticeDetail /> },
-
 
         // admin
         { path: "/admin", element: <AdminHome /> },
@@ -92,16 +90,18 @@ const AppRoutes: React.FC = () => {
         { path: "/admin/notice", element: <AdminNoticeList /> },
         { path: "/admin/notice/add", element: <AdminNoticeForm /> },
         { path: "/admin/notice/edit/:num", element: <AdminNoticeForm /> },
-
+        { path: "/admin/selfstudy", element: <SelfStudyManagement /> },
 
         // auth
         { path: '/auth/member', element: <Login /> },
         { path: '/auth/signup', element: <Signup /> },
+        { path: '/auth/kakao/callback', element: <KakaoCallback /> },
         { path: '/auth/mypage', element: <MyPage /> },
+        
         { path: '/point_history', element: <PointHistory /> },
         { path: '/member_edit', element: <Member_Edit /> },
+        { path: '/auth/kakao/signup', element: <KakaoSignup /> },
     ];
-
 
     return (
         <>
@@ -115,7 +115,6 @@ const AppRoutes: React.FC = () => {
                 </AdminLayout>
 
             ) : isAuth ? (
-
                 <AuthLayout>
                     <Routes>
                         {routeList.map((route, idx) => (
@@ -125,7 +124,6 @@ const AppRoutes: React.FC = () => {
                 </AuthLayout>
 
             ) : (
-
                 <Layout>
                     <Routes>
                         {routeList.map((route, idx) => (

@@ -1,92 +1,92 @@
+//작성자 : 오진석
 import React, { useEffect, useState } from 'react'
 import styles from './detail.module.css'
-import { Detail_Document_insert } from './Detail_Document_insert';
-import { GetGroupNum } from './GroupAPI'
+import { Detail_DocumentModal } from './Detail_DocumentModal';
+import { GetGroupNum, formatFileSize } from './GroupAPI'
 import axios from 'axios';
+
 interface DocumentData {
     document_num: number;
     group_num: number;
     member_nick: string;
-    title: string;
-    original_name: string;
+    document_title: string;
     document_type: string;
     document_size: number;
+    original_name: string;
     hit: number;
     created_at: string;
     updated_at?: string | null;
+    can_manage: number;
 }
 
+export const Detail_Document: React.FC<GetGroupNum> = ({ groupNum }) => {
 
-const backendUrl = process.env.REACT_APP_BACK_END_URL;
-
-export const Detail_Document: React.FC<GetGroupNum> = (groupNum) => {
-
+    
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-    const [documents, setDocuments] = useState<DocumentData[]>([{
-        document_num: 1,
-        group_num: 1,
-        member_nick: '오진석',
-        title: '파이썬 2강 교재',
-        original_name: '파이썬',
-        document_type: 'pdf',
-        document_size: 87003,
-        hit: 67,
-        created_at: "2026.09.30",
-    },
-    {
-        document_num: 2,
-        group_num: 1,
-        member_nick: '오진석',
-        title: '파이썬 3강 교재',
-        original_name: '파이썬',
-        document_type: 'pdf',
-        document_size: 78803,
-        hit: 103,
-        created_at: "2026.10.02",
-    }]);
+    const [documents, setDocuments] = useState<DocumentData[]>([]);
+    const [editingDocumentNum, setEditingDocumentNum] = useState<number | null>(null);
 
-    const handleUploadSuccess = () => {
-        setIsModalOpen(false);
-    }
+    useEffect(() => {
+        getDocuments();
+    }, [groupNum])
 
-    const formatFileSize = (size: number) => {
-        if (size < 1024) {
-            return `${size} B`;
-        }
+    const handleDownload = async (documentNum: number, originalName: string, documentType: string) => {
+        try {
+            const response = await axios.get(
+                `http://localhost/back/api/detail/document/download/${documentNum}`,
+                {
+                    responseType: 'blob'
+                }
+            );
+            const blobUrl = window.URL.createObjectURL(new Blob([response.data]))
+            const link = document.createElement('a');
+            link.href = blobUrl;
+            link.download = documentType ? `${originalName}.${documentType}` : originalName;
 
-        if (size < 1024 * 1024) {
-            return `${(size / 1024).toFixed(1)} KB`
-        }
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
 
-        return `${(size / (1024 * 1024)).toFixed(1)} MB`
+            window.URL.revokeObjectURL(blobUrl);
+        } catch (error) {
+            console.error('문서 다운로드 실패', error);
+            alert('파일 다운로드 중 오류가 발생했습니다.')
+        };
     };
 
-    // const documentdataHandle = (responseData:DocumentData[]) => {
-    //     setDocuments(responseData)
-    // }
-    // useEffect(() => {
+    const handleDelete = async (documentNum: number) => {
+        const confirmed = window.confirm('삭제하시겠습니까?');
+        if(!confirmed) {
+            return;
+        }
+        try {
+            await axios.delete(`http://localhost/back/api/detail/document/deleteDocument/${documentNum}`);
+            alert('참고 자료가 삭제되었습니다.')
+            await getDocuments();
+        }  catch (error) {
+            console.error('문서 삭제 실패:', error);
+            alert('문서 삭제 중 오류가 발생했습니다.');
+        }
+    }
 
-    //     if (!isModalOpen) return;
+    const handleEdit = (document: DocumentData) => {
+        setEditingDocumentNum(document.document_num);
+        setIsModalOpen(true);
+    }
+    const getDocuments = async () => {
+        try {
+            const response = await axios.get<DocumentData[]>(`http://localhost/back/api/detail/document/getDocuments/${groupNum}`);
 
-    //     const getDocuments = async () => {
-    //         try {
-    //             const response = await axios.get<DocumentData>(`${backendUrl}/api/`);
+            const responseData: DocumentData[] = response.data;
+            setDocuments(responseData)
+            // console.log("Documentlist 출력 성공.", responseData);
 
-    //             const responseData:DocumentData = response.data;
-    //             if (!responseData) {
-    //                 return;
-    //             } else {
-    //                 documentdataHandle([responseData])
-    //             }
-    //             console.log("Documentlist 출력 성공.");
+        } catch (error) {
+            console.error("Documentlist 출력 실패. 원인:", error);
+        }
+    };
 
-
-    //         } catch (error) {
-    //             console.error("Documentlist 출력 실패. 원인:", error);
-    //         }
-    //     };
-    //     getDocuments();
-    // }, [])
+    
 
     return (
         <div className={styles.detail_content_wrapper}>
@@ -118,11 +118,11 @@ export const Detail_Document: React.FC<GetGroupNum> = (groupNum) => {
                             >
                                 <div className={styles.document_main}>
                                     <strong className={styles.document_title}>
-                                        {document.title}
+                                        {document.document_title}
                                     </strong>
 
                                     <span className={styles.document_name}>
-                                        {document.original_name}.{document.document_type}
+                                        {document.original_name}
                                     </span>
                                 </div>
 
@@ -137,12 +137,36 @@ export const Detail_Document: React.FC<GetGroupNum> = (groupNum) => {
                                         다운로드 {document.hit}
                                     </span>
                                     <span>
-                                        {document.created_at}
+                                        {document.updated_at ? document.updated_at : document.created_at}
                                     </span>
                                 </div>
+                                {document.can_manage === 1 && (
+                                    <>
+                                        <button 
+                                            type="button"
+                                            className={styles.document_edit_btn}
+                                            onClick={() => handleEdit(document)}
+                                        >
+                                            수정
+                                        </button>
+
+                                        <button 
+                                            type="button"
+                                            className={styles.document_delete_btn}
+                                            onClick={() => handleDelete(document.document_num)}
+                                        >
+                                            삭제
+                                        </button>
+                                    </>
+                                )}
                                 <button
                                     type="button"
                                     className={styles.document_download_btn}
+                                    onClick={() => handleDownload(
+                                        document.document_num,
+                                        document.original_name,
+                                        document.document_type
+                                    )}
                                 >
                                     다운로드
                                 </button>
@@ -150,10 +174,18 @@ export const Detail_Document: React.FC<GetGroupNum> = (groupNum) => {
                         ))
                     )}
 
-                    <Detail_Document_insert
+                    <Detail_DocumentModal
                         isOpen={isModalOpen}
-                        onClose={() => setIsModalOpen(false)}
-                        onSubmitSuccess={handleUploadSuccess}
+                        onClose={() => {setIsModalOpen(false); setEditingDocumentNum(null);}}
+                        onSubmitSuccess={async () => {
+                            setIsModalOpen(false);
+                            setEditingDocumentNum(null);
+
+                            await getDocuments();
+                        }}
+                        groupNum={groupNum}
+                        mode={editingDocumentNum ? 'edit' : 'create'}
+                        documentNum={editingDocumentNum ?? undefined}
                     />
                 </div>
             </div>

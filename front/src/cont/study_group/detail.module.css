@@ -1,3 +1,4 @@
+/* 작성자 : 오진석 */
 /* 상단 내비게이션 (돌아가기 버튼 영역) */
 .top_navigation {
     margin-top: 24px;
@@ -846,7 +847,7 @@
     display: flex;
     align-items: center;
 
-    gap: 20px;
+    gap: 10px;
 
     padding: 16px 20px;
 
@@ -908,7 +909,34 @@
 .document_download_btn:hover {
     background: var(--background-secondary);
 }
+.document_edit_btn {
+    padding: 7px 12px;
 
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+
+    color: var(--text);
+    background: var(--background);
+
+    font-size: 13px;
+}
+.document_edit_btn:hover {
+    background: var(--background-secondary);
+}
+.document_delete_btn {
+    padding: 7px 12px;
+
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+
+    color: #ffffff;
+    background: rgb(243, 88, 88);
+
+    font-size: 13px;
+}
+document_delete_btn:hover {
+    background: var(--background-secondary);
+}
 .document_empty {
     padding: 50px 20px;
 
