@@ -1,6 +1,6 @@
 // 허승표
 
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import styles from './chatbot.module.css'
 import { Bot, LoaderCircle, Send, X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom';
@@ -30,6 +30,27 @@ interface ChatMessageResponse {
     message_regdate: string;
 }
 
+// 현재 대화의 요청 상태
+interface ChatRequestState {
+    // 이전 대화가 되어 응답을 무시해야 하는지
+    cancelled: boolean;
+}
+
+
+// Spring Boot 요청에 사용할 인증 해더
+// 함수는 유지하고 요청할 때 최신 토큰 사용
+const getAuthHeaders = (token: string | null | undefined) => {
+    return {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+    };
+};
+
+// 세션 번호별로 진행 중인 답변 요청 보관
+// 컴포넌트 밖에 있으므로 x로 닫아도 유지됨
+const pendingChatRequests: {
+    [chatNum: number]: Promise<void> | undefined;
+} = {};
 
 const ChatBot: React.FC<ChatBotProps> = (props) => {
 
@@ -41,7 +62,8 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
     );
 
     // Redux 상태로 로그인 여부 판단
-    const isLogin = Boolean(token && member_num !== null);
+    // null과 undefined 모두 제외
+    const isLogin = Boolean(token && member_num != null);
 
     // 최신 인증 토큰 보관
     const tokenRef = useRef(token);
@@ -50,17 +72,6 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
     useEffect(() => {
         tokenRef.current = token;
     }, [token]);
-
-    // Spring Boot 요청에 사용할 인증 해더
-    // 함수는 유지하고 요청할 때 최신 토큰 사용
-    const getAuthHeaders = useCallback(() => {
-        const currentToken = tokenRef.current;
-
-        return {
-            'Content-Type': 'application/json',
-            ...(currentToken ? { Authorization: `Bearer ${currentToken}` } : {})
-        };
-    }, []);
 
     // 회원/비회원별 채팅 세션 저장 키
     const chatStorageKey = isLogin && member_num != null
@@ -117,8 +128,8 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
     // AI 답변 대기 상태
     const [isLoading, setIsLoading] = useState(false);
 
-    // 현재 세션에 속한 요청을 함께 취소하기 위한 컨트롤러
-    const chatRequestRef = useRef<AbortController | null>(null);
+    // 현재 대화의 요청 상태 보관
+    const chatRequestRef = useRef<ChatRequestState | null>(null);
 
     // 상태 업데이트 전에도 중복 전송 방지
     const sendingRef = useRef(false);
@@ -137,10 +148,16 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
 
     // 로그인 상태에 맞는 세션 준비 및 대화 복원
     useEffect(() => {
-        const controller = new AbortController();
-        const { signal } = controller;
+        // 이 대화의 응답을 무시해야 하는지 표시
+        const requestState: ChatRequestState = {
+            cancelled: false
+        };
 
-        chatRequestRef.current = controller;
+        chatRequestRef.current = requestState;
+
+        // 세션 준비시 사용할 토큰만 보관
+        // 토큰만 갱신될 때 이 effect를 다시 실행하지 않도록 처리
+        const currentToken = tokenRef.current;
 
         // 이전 사용자의 화면 상태 초기화
         setActiveChatKey(null);
@@ -158,6 +175,7 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
 
         const prepareChat = async () => {
             try {
+                // 비회원도 현재 탬에 저장된 세션 번호 확인
                 const savedChatNum = sessionStorage.getItem(chatStorageKey);
                 let nextChatNum = savedChatNum ? Number(savedChatNum) : null;
 
@@ -170,14 +188,13 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
                 // 기존에 저장된 세션을 복원하는 중인지 확인
                 const isStoredSession = nextChatNum !== null;
 
-                // 현재 사용자의 젖아된 세션이 없으면 생성
+                // 현재 사용자의 저장된 세션이 없으면 생성
                 if (nextChatNum === null) {
                     const response = await fetch(
                         'http://localhost:80/back/api/chatbot/session',
                         {
                             method: 'POST',
-                            headers: getAuthHeaders(),
-                            signal,
+                            headers: getAuthHeaders(isLogin ? currentToken : null),
                             body: JSON.stringify({
                                 // 실제 회원 번호는 서버에서 JWT로 결정
                                 member_num: null
@@ -185,13 +202,16 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
                         }
                     );
 
+                    // 이전 대화가 됐다면 응답 무시
+                    if (requestState.cancelled) return;
+
                     if (!response.ok) {
                         throw new Error('채팅 세션 생성 실패');
                     }
 
                     const data = await response.json();
 
-                    if (signal.aborted) return;
+                    if (requestState.cancelled) return;
 
                     const createdChatNum = Number(data.chat_num);
 
@@ -201,25 +221,44 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
 
                     nextChatNum = createdChatNum;
 
+                    // 회원과 비회원 모두 세션 번호 저장
                     sessionStorage.setItem(chatStorageKey, String(nextChatNum));
                 }
 
-                if (signal.aborted) return;
+                if (requestState.cancelled) return;
 
                 sessionReady = true;
                 setChatNum(nextChatNum);
 
+                // 닫기 전에 시작한 답변 요청이 있는지 확인
+                const pendingRequest = pendingChatRequests[nextChatNum];
+
+                if (pendingRequest) {
+                    // 다시 연 화면에 답변 생성 중 안내 표시
+                    // isHistoryLoaded는 아직 false여서 질문 입력은 차단됩
+                    setActiveChatKey(chatStorageKey);
+                    setIsLoading(true);
+
+                    // 이전 요청이 끝날 때까지 기다림
+                    await pendingRequest;
+
+                    // 기다리는 동안 로그아웃하거나 창을 닫았다면 중단
+                    if (requestState.cancelled) return;
+
+                    setIsLoading(false);
+                }
+
                 // 현재 사용자의 기존 대화 조회
+                // X로 닫앗다 다시 열면 같은 세션의 기록 복원
                 const response = await fetch(
                     `http://localhost:80/back/api/chatbot/message/session/${nextChatNum}`,
                     {
-                        headers: getAuthHeaders(),
-                        signal
+                        headers: getAuthHeaders(currentToken)
                     }
                 );
 
                 // 계정 전환 또는 창 닫기로 취소된 조회 결과는 반영하지 않음
-                if (signal.aborted) return;
+                if (requestState.cancelled) return;
 
                 // 저장된 세션이 삭제된 경우 새 세션 준비
                 if (response.status === 404 && isStoredSession) {
@@ -238,7 +277,7 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
                 const data: ChatMessageResponse[] = await response.json();
 
                 // 계정 전환 또는 창 닫기로 취소된 조회 결과는 반영하지 않음
-                if (signal.aborted) return;
+                if (requestState.cancelled) return;
 
                 // DB 데이터 -> React 메시지 형식으로 변환
                 const loadedMessages: Message[] = data.map(
@@ -256,7 +295,7 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
                 setIsHistoryLoaded(true);
             } catch (error) {
                 // 계정 전환 또는 창 닫기로 취소된 요청은 무시
-                if (signal.aborted) return;
+                if (requestState.cancelled) return;
 
                 console.error('채팅 준비 오류: ', error);
 
@@ -271,14 +310,15 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
         prepareChat();
 
         return () => {
-            // 이전 세션의 생성/조회/AI 요청 취소
-            controller.abort();
+            // 이전 대화의 응답을 무시하도록 표시 -> 서버 요청 자체를 중단하는 것은 아님
+            requestState.cancelled = true;
 
-            if (chatRequestRef.current === controller) {
+            if (chatRequestRef.current === requestState) {
                 chatRequestRef.current = null;
             }
         };
-    }, [chatStorageKey, getAuthHeaders, sessionRetry, historyRetry]);
+        // getAuthHeaders는 컴포넌트 밖에 있으므로 랜더링할 때마다 새로 만들어지지 않음
+    }, [chatStorageKey, sessionRetry, historyRetry]);
 
     // 채팅 세션 생성 다시 시도
     const retryCreateSession = () => {
@@ -292,16 +332,15 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
 
     // 사용자 질문 정송 및 AI 답변 받기
     const sendMessage = async () => {
-        const controller = chatRequestRef.current;
+        const requestState = chatRequestRef.current;
 
         // 현재 사용자 세션이 준비된 경우에만 전송
         if (
             input.trim() === '' || chatNum === null || !isCurrentChat ||
             !isHistoryLoaded || isLoading || sendingRef.current ||
-            !controller || controller.signal.aborted
+            !requestState || requestState.cancelled
         ) { return; }
 
-        const { signal } = controller;
         const question = input.trim();
         const messageId = getMessageId();
 
@@ -322,14 +361,24 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
 
         setInput('');
 
+        // 추가 요청이 끝났음을 알려줄 함수
+        let finishRequest: () => void = () => { };
+
+        // 이 Promise는 아래 finally에서 완료 처리
+        const pendingRequest = new Promise<void>((resolve) => {
+            finishRequest = resolve;
+        });
+
+        // 현재 세션에서 답변을 기다리고 있음을 기록
+        pendingChatRequests[chatNum] = pendingRequest;
+
         try {
             // Spring Boot에 AI 질문 요청
             const response = await fetch(
                 'http://localhost:80/back/api/chatbot/ai',
                 {
                     method: 'POST',
-                    headers: getAuthHeaders(),
-                    signal,
+                    headers: getAuthHeaders(tokenRef.current),
                     body: JSON.stringify({
                         chat_num: chatNum,
                         question,
@@ -345,8 +394,8 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
             // Spring Boot에서 반환한 AI 응답
             const data = await response.json();
 
-            // 이전 세션의 응답이면 화면에 반영하지 않음
-            if (signal.aborted) return;
+            // 화면 반영만 차단
+            if (requestState.cancelled) return;
 
             // 정상 응답 확인 후 전송 상태 변경
             setMessages(prev =>
@@ -368,8 +417,7 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
             ]);
         } catch (error) {
             // 계정 전환 또는 창 닫기로 취소된 요청은 무시
-            if (signal.aborted) return;
-
+            if (requestState.cancelled) return;
             console.error('챗봇 오류: ', error);
 
             // 서버 처리 여부를 확인할 수 없는 상태
@@ -392,8 +440,16 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
             ]);
 
         } finally {
+            // 성공/실패/창 닫기 여부와 관계없이 요청 완료 알림
+            finishRequest();
+
+            // 현재 요청의 기록만 정리
+            if (pendingChatRequests[chatNum] === pendingRequest) {
+                delete pendingChatRequests[chatNum];
+            }
+
             // 이전 요청이 새 세션의 로딩 상태를 변경하지 않도록 방지
-            if (!signal.aborted) {
+            if (!requestState.cancelled) {
                 sendingRef.current = false;
                 setIsLoading(false);
             }
@@ -557,7 +613,11 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
                     disabled={!isCurrentChat || !isHistoryLoaded}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={(e) => {
+                        // 한글을 조합 중이면 전송하지 않음
+                        if (e.nativeEvent.isComposing || e.nativeEvent.keyCode === 299) { return };
+
                         if (e.key === 'Enter') {
+                            e.preventDefault();
                             sendMessage();
                         }
                     }}
