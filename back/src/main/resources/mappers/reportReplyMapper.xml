@@ -25,7 +25,23 @@
 		SELECT num, content, created_date, report_num, admin_num FROM
 		report_reply
 		WHERE report_num = #{report_num}
+		ORDER BY num DESC
+		FETCH FIRST 1 ROW ONLY
 	</select>
+
+	<select id="findByNum" parameterType="long" resultType="rerevo">
+		SELECT num, content, created_date, report_num, admin_num
+		FROM report_reply
+		WHERE num = #{num}
+	</select>
+
+	<select id="countByReport" parameterType="long" resultType="int">
+		SELECT COUNT(*) FROM report_reply WHERE report_num = #{report_num}
+	</select>
+
+	<delete id="deleteByReport" parameterType="long">
+		DELETE FROM report_reply WHERE report_num = #{report_num}
+	</delete>
 
 	<!-- 신고 답변 수정 -->
 	<update id="update" parameterType="rerevo">

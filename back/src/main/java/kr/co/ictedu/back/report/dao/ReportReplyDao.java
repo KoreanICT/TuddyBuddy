@@ -19,6 +19,12 @@ public interface ReportReplyDao {
     // 신고 번호로 답변 조회
     ReportReplyVO detail(Long report_num);
 
+    ReportReplyVO findByNum(Long num);
+
+    int countByReport(Long report_num);
+
+    int deleteByReport(Long report_num);
+
     int update(ReportReplyVO vo);
 
     int del(Long num);

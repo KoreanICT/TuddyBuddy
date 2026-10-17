@@ -8,13 +8,16 @@ import { logoutAction } from '../login/authActions/authActions';
 
 import styles from './userMenu.module.css';
 import AuthModal from '../login/AuthModal';
+import { parseJwt } from '../login/comp/jwtUtils';
+import { isAdminRole } from '../login/auth/roles';
 
 const UserMenu: React.FC = () => {
 
   // Redux JWT 로그인 상태
-  const isLogin = useSelector(
-    (state: RootState) => Boolean(state.auth.token)
-  );
+  const token = useSelector((state: RootState) => state.auth.token);
+  const isLogin = Boolean(token);
+  const decoded = token ? parseJwt(token) : null;
+  const canOpenAdmin = decoded !== null && decoded.exp > Date.now() / 1000 && isAdminRole(decoded.role);
 
   const dispatch = useAppDispatch();
 
@@ -148,12 +151,12 @@ const UserMenu: React.FC = () => {
             포인트 구매
           </NavLink>
 
-          <NavLink
+          {canOpenAdmin && <NavLink
             to="/admin"
             onClick={closeMenu}
           >
             관리자 메뉴
-          </NavLink>
+          </NavLink>}
 
           <NavLink
             to="/friend/list"

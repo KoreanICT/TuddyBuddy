@@ -155,17 +155,17 @@
 				<choose>
 
 					<!-- 이름 검색 -->
-					<when test="searchType == '1'">
+					<when test='searchType == "1"'>
 						member_name LIKE '%' || #{searchValue} || '%'
 					</when>
 
 					<!-- 이메일 검색 -->
-					<when test="searchType == '2'">
+					<when test='searchType == "2"'>
 						member_email LIKE '%' || #{searchValue} || '%'
 					</when>
 
 					<!-- 권한 검색 -->
-					<when test="searchType == '3'">
+					<when test='searchType == "3"'>
 						authority LIKE '%' || #{searchValue} || '%'
 					</when>
 
@@ -191,17 +191,17 @@
 				<choose>
 
 					<!-- 이름 검색 -->
-					<when test="searchType == '1'">
+					<when test='searchType == "1"'>
 						member_name LIKE '%' || #{searchValue} || '%'
 					</when>
 
 					<!-- 이메일 검색 -->
-					<when test="searchType == '2'">
+					<when test='searchType == "2"'>
 						member_email LIKE '%' || #{searchValue} || '%'
 					</when>
 
 					<!-- 권한 검색 -->
-					<when test="searchType == '3'">
+					<when test='searchType == "3"'>
 						authority LIKE '%' || #{searchValue} || '%'
 					</when>
 
@@ -231,6 +231,25 @@
 
 	</update>
 
+
+	<!-- 관리자 화면에서 변경 가능한 회원 등급만 처리 -->
+	<update id="updateManagedAuthority">
+		UPDATE member
+		SET authority = #{authority}
+		WHERE member_num = #{memberNum}
+		AND authority IN ('MEMBER', 'SUB_ADMIN')
+		AND #{authority} IN ('MEMBER', 'SUB_ADMIN')
+	</update>
+
+	<!-- 등급 변경 검증과 처리를 같은 트랜잭션에서 직렬화 -->
+	<select id="lockMemberByNum" resultType="mvo">
+		SELECT member_num, member_email, member_pwd, member_name, member_nick,
+		member_phone, authority, regdate, member_code, point,
+		member_login_type, member_social_id
+		FROM member
+		WHERE member_num = #{memberNum}
+		FOR UPDATE
+	</select>
 
 	<!-- 담당인원 : 주용현 -->
 	<!-- 회원 코드로 회원 검색 -->

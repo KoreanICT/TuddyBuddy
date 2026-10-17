@@ -9,6 +9,10 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.bind.annotation.PutMapping;
+import kr.co.ictedu.back.securityauth.MemberRoles;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -53,11 +57,9 @@ public class MemberController {
     public ResponseEntity<?> adminSignup(
             @RequestBody MemberVO vo) {
 
-        vo.setAuthority("ADMIN");
-        memberService.create(vo);
-
-        return ResponseEntity.ok("관리자 생성 완료");
-    }
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body("최고 관리자 계정은 DB 관리자가 관리합니다.");
+	}
 
     // ==========================================
     // 일반 회원가입
@@ -76,7 +78,7 @@ public class MemberController {
             "nick = " + memberDTO.getMember_nick()
         );
 
-        memberDTO.setAuthority("MEMBER");
+		memberDTO.setAuthority(MemberRoles.MEMBER);
 
         memberService.create(memberDTO);
 
@@ -553,17 +555,22 @@ public class MemberController {
     // ==========================================
     @DeleteMapping("/withdraw")
     public String memberWithdraw(
-            @RequestParam("num") Long num,
-            HttpSession session) {
-
-        System.out.println(
-            "탈퇴 요청 num = " + num
-        );
-
-        memberService.withdrawMember(num);
-
-        session.invalidate();
-
+            @RequestParam(value = "num", required = false) Long ignoredNum,
+            Authentication authentication,
+            HttpServletRequest request) {
+        if (authentication == null || !authentication.isAuthenticated()
+                || "anonymousUser".equals(authentication.getPrincipal())) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
+        }
+        MemberVO member = memberService.getMemberByEmail(authentication.getName());
+        if (member == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "회원 인증정보가 없습니다.");
+        }
+        memberService.withdrawMember(member.getMember_num());
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            session.invalidate();
+        }
         return "탈퇴 완료";
     }
 
@@ -573,9 +580,10 @@ public class MemberController {
     @RequestMapping("/memberList")
     public Map<String, Object> memberList(
             @RequestParam Map<String, String> paramMap,
-            HttpServletRequest request) {
+            HttpServletRequest request, Authentication authentication) {
 
-        String cPage = paramMap.get("cPage");
+        requireManager(authentication);
+		String cPage = paramMap.get("cPage");
 
         int totalCnt =
             memberService.totalCount(paramMap);
@@ -602,12 +610,21 @@ public class MemberController {
         Map<String, Object> response =
             new HashMap<>();
 
-        response.put("data", list);
-        response.put("totalItems", pageVO.getTotalRecord());
-        response.put("totalPages", pageVO.getTotalPage());
-        response.put("currentPage", pageVO.getNowPage());
-        response.put("startPage", pageVO.getStartPage());
-        response.put("endPage", pageVO.getEndPage());
+		response.put("data", list.stream().map(member -> {
+            Map<String, Object> item = new LinkedHashMap<>();
+            item.put("member_num", member.getMember_num());
+            item.put("member_email", member.getMember_email());
+            item.put("member_name", member.getMember_name());
+            item.put("member_nick", member.getMember_nick());
+            item.put("authority", member.getAuthority());
+            item.put("regdate", member.getRegdate());
+            return item;
+        }).toList());
+		response.put("totalItems", pageVO.getTotalRecord());
+		response.put("totalPages", pageVO.getTotalPage());
+		response.put("currentPage", pageVO.getNowPage());
+		response.put("startPage", pageVO.getStartPage());
+		response.put("endPage", pageVO.getEndPage());
 
         return response;
     }
@@ -634,8 +651,30 @@ public class MemberController {
 
         } catch (IllegalArgumentException e) {
 
-            return ResponseEntity.badRequest()
-                .body(e.getMessage());
+		} catch (IllegalArgumentException e) {
+			return ResponseEntity.badRequest().body(e.getMessage());
+		}
+	}
+    public record AuthorityUpdateRequest(Long memberNum, String authority) { }
+
+    @PutMapping("/admin/authority")
+    public ResponseEntity<?> updateAuthority(@RequestBody AuthorityUpdateRequest body) {
+        if (body == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "회원 번호와 권한이 필요합니다.");
+        }
+        memberService.updateManagedAuthority(body.memberNum(), body.authority());
+        return ResponseEntity.ok(Map.of("success", true, "message", "회원 권한을 변경했습니다."));
+    }
+
+    private void requireManager(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()
+                || "anonymousUser".equals(authentication.getPrincipal())) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
+        }
+        MemberVO member = memberService.getMemberByEmail(authentication.getName());
+        if (member == null || !MemberRoles.isManager(member.getAuthority())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "관리자 권한이 필요합니다.");
         }
     }
+
 }

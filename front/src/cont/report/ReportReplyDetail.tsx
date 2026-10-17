@@ -6,7 +6,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import styles from './report.module.css';
 
-type ReportType = 'POST' | 'COMMENT' | 'USER' | 'STUDY' | 'community' | 'report';
+import { ReportType, REPORT_TYPE_LABELS } from './reportTarget';
 
 interface ReportVO {
     num: number;
@@ -91,21 +91,6 @@ const ReportReplyDetail: React.FC = () => {
     }, [id, getAuthHeaders]);
 
     // =========================
-    // 신고 유형 출력
-    // =========================
-    const getTypeText = (type: ReportType) => {
-        switch (type) {
-            case 'POST': return '게시글';
-            case 'COMMENT': return '댓글';
-            case 'USER': return '회원';
-            case 'STUDY': return '스터디';
-            case 'community': return '커뮤니티 게시글';
-            case 'report': return '일반 신고';
-            default: return type;
-        }
-    };
-
-    // =========================
     // 조회 중
     // =========================
     if (loading) {
@@ -152,7 +137,7 @@ const ReportReplyDetail: React.FC = () => {
 
                 <div className={styles.replyDetailRow}>
                     <div className={styles.replyDetailLabel}>신고 종류</div>
-                    <div className={styles.replyDetailValue}>{getTypeText(report.type)}</div>
+                    <div className={styles.replyDetailValue}>{REPORT_TYPE_LABELS[report.type]}</div>
                 </div>
 
                 <div className={styles.replyDetailRow}>
