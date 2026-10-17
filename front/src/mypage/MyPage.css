@@ -204,3 +204,81 @@
   color: #6b7280;
   font-size: 16px;
 }
+
+.mypage-withdraw {
+  margin-top: 40px;
+  padding-top: 24px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.mypage-withdraw h3 {
+  margin: 0 0 12px;
+  font-size: 18px;
+}
+
+.mypage-withdraw p {
+  color: #4b5563;
+  line-height: 1.6;
+}
+
+.mypage-withdraw button {
+  padding: 10px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #ffffff;
+  font: inherit;
+  cursor: pointer;
+}
+
+.mypage-withdraw .mypage-withdraw-open {
+  border-color: #b91c1c;
+  color: #b91c1c;
+}
+
+.mypage-withdraw-confirm {
+  padding: 16px;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  background: #fff7f7;
+}
+
+.mypage-withdraw-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  line-height: 1.6;
+}
+
+.mypage-withdraw-check input {
+  flex-shrink: 0;
+  margin-top: 6px;
+}
+
+.mypage-withdraw-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.mypage-withdraw .mypage-withdraw-submit {
+  border-color: #b91c1c;
+  background: #b91c1c;
+  color: #ffffff;
+}
+
+.mypage-withdraw .mypage-withdraw-error {
+  color: #b91c1c;
+}
+
+.mypage-withdraw button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.mypage-withdraw button:focus-visible,
+.mypage-withdraw input:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 3px;
+}

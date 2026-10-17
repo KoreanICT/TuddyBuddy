@@ -179,7 +179,7 @@ public class MemberController {
 
         response.put(
             "regdate",
-            member.getRegdate()
+            member.getRegdate() == null ? null : member.getRegdate().toLocalDate().toString()
         );
 
         response.put(

@@ -1,11 +1,13 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 import './MyPage.css';
 import MyReportList from './report/MyReportList';
 import MyFriend from './friend/MyFriend';
+import { useAppDispatch } from '../login/reducers/store';
+import { logoutAction } from '../login/authActions/authActions';
 
 // 백엔드 서버 주소
 const API_URL =
@@ -28,6 +30,12 @@ interface MemberVO {
 
 const MyPage: React.FC = () => {
     const navigate = useNavigate();
+    const dispatch = useAppDispatch();
+    const [withdrawOpen, setWithdrawOpen] = useState(false);
+    const [withdrawConfirmed, setWithdrawConfirmed] = useState(false);
+    const [withdrawing, setWithdrawing] = useState(false);
+    const [withdrawError, setWithdrawError] = useState('');
+    const withdrawLock = useRef(false);
 
     // 메뉴 상태
     const [activeMenu, setActiveMenu] = useState('info');
@@ -114,20 +122,6 @@ const MyPage: React.FC = () => {
         }
     };
 
-    // 로그인 유형 표시
-    const getLoginTypeText = (loginType?: string) => {
-        switch (loginType?.toUpperCase()) {
-            case 'KAKAO':
-                return '카카오 로그인';
-            case 'LOCAL':
-                return '일반 회원가입';
-            case 'GOOGLE':
-                return '구글 로그인';
-            default:
-                return loginType || '-';
-        }
-    };
-
     // 포인트 표시
     const formatPoint = (point?: number | null) => {
         const value = Number(point ?? 0);
@@ -139,6 +133,44 @@ const MyPage: React.FC = () => {
         return `${value.toLocaleString('ko-KR')}P`;
     };
 
+    // 날짜는 그대로, 시간대가 포함된 가입일은 한국 시간으로 표시
+    const formatRegdate = (regdate?: string) => {
+        if (typeof regdate !== 'string') return '-';
+        const match = /^(\d{4})-(\d{2})-(\d{2})(?:T(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d{1,3})?(?:Z|[+-](?:[01]\d|2[0-3]):[0-5]\d))?$/.exec(regdate);
+        if (!match) return '-';
+
+        const [, yearText, monthText, dayText] = match;
+        const year = Number(yearText);
+        const month = Number(monthText);
+        const day = Number(dayText);
+        const leapYear = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+        const daysInMonth = [31, leapYear ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+
+        if (year < 1 || month < 1 || month > 12 || day < 1 || day > daysInMonth[month - 1]) {
+            return '-';
+        }
+
+        if (regdate.length === 10) {
+            return `${yearText}년 ${monthText}월 ${dayText}일`;
+        }
+
+        const timestamp = new Date(regdate);
+        if (!Number.isFinite(timestamp.getTime())) return '-';
+
+        const parts = new Intl.DateTimeFormat('ko-KR', {
+            timeZone: 'Asia/Seoul',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+        }).formatToParts(timestamp);
+        const formattedYear = parts.find(part => part.type === 'year')?.value;
+        const formattedMonth = parts.find(part => part.type === 'month')?.value;
+        const formattedDay = parts.find(part => part.type === 'day')?.value;
+
+        if (!formattedYear || !formattedMonth || !formattedDay) return '-';
+        return `${formattedYear}년 ${formattedMonth}월 ${formattedDay}일`;
+    };
+
     // 프로필 대표 문자
     const getProfileInitial = (name?: string) => {
         return name?.trim().charAt(0) || '?';
@@ -147,6 +179,44 @@ const MyPage: React.FC = () => {
     // 회원정보 수정 페이지 이동
     const handleMemberEdit = () => {
         navigate('/member_edit');
+    };
+
+    const handleWithdraw = async () => {
+        if (!withdrawConfirmed || withdrawing || withdrawLock.current) return;
+
+        const token = localStorage.getItem('token');
+        if (!token) {
+            setWithdrawError('로그인이 필요합니다. 다시 로그인한 후 시도해주세요.');
+            return;
+        }
+
+        withdrawLock.current = true;
+        setWithdrawing(true);
+        setWithdrawError('');
+
+        try {
+            await axios.delete(`${API_URL}/api/member/withdraw`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+        } catch (err) {
+            const status = axios.isAxiosError(err) ? err.response?.status : undefined;
+            if (status === 401) {
+                setWithdrawError('로그인이 만료되었습니다. 다시 로그인한 후 시도해주세요.');
+            } else if (status === 403) {
+                setWithdrawError('이 계정은 회원탈퇴 권한이 없습니다. 최고 관리자 계정은 탈퇴할 수 없습니다.');
+            } else if (status === 409) {
+                setWithdrawError('현재 계정 상태에서는 탈퇴할 수 없습니다. 잠시 후 다시 시도해주세요.');
+            } else {
+                setWithdrawError('회원탈퇴를 완료하지 못했습니다. 잠시 후 다시 시도해주세요.');
+            }
+            withdrawLock.current = false;
+            setWithdrawing(false);
+            return;
+        }
+
+        await dispatch(logoutAction());
+        window.alert('회원탈퇴가 완료되었습니다.');
+        navigate('/', { replace: true });
     };
 
     return (
@@ -341,16 +411,16 @@ const MyPage: React.FC = () => {
                                         />
                                     </div>
 
-                                    {/* 가입 유형 */}
+                                    {/* 가입일 */}
                                     <div className="form-group">
-                                        <label htmlFor="mypage-login-type">
-                                            가입 유형
+                                        <label htmlFor="mypage-regdate">
+                                            가입일
                                         </label>
 
                                         <input
-                                            id="mypage-login-type"
+                                            id="mypage-regdate"
                                             type="text"
-                                            value={getLoginTypeText(member.member_login_type)}
+                                            value={formatRegdate(member.regdate)}
                                             readOnly
                                         />
                                     </div>
@@ -366,6 +436,7 @@ const MyPage: React.FC = () => {
                                         <button
                                             type="button"
                                             onClick={handleMemberEdit}
+                                            disabled={withdrawing}
                                             style={{
                                                 padding: '12px 24px',
                                                 border: 'none',
@@ -380,6 +451,60 @@ const MyPage: React.FC = () => {
                                             정보 수정
                                         </button>
                                     </div>
+
+                                    <section className="mypage-withdraw" aria-labelledby="mypage-withdraw-title">
+                                        <h3 id="mypage-withdraw-title">회원탈퇴</h3>
+                                        <p>탈퇴하면 이 계정으로 서비스를 이용할 수 없습니다.</p>
+                                        {!withdrawOpen ? (
+                                            <button
+                                                type="button"
+                                                className="mypage-withdraw-open"
+                                                onClick={() => {
+                                                    setWithdrawOpen(true);
+                                                    setWithdrawConfirmed(false);
+                                                    setWithdrawError('');
+                                                }}
+                                            >
+                                                회원탈퇴 진행
+                                            </button>
+                                        ) : (
+                                            <div className="mypage-withdraw-confirm" aria-busy={withdrawing}>
+                                                <p>계속 진행하려면 아래 항목을 확인해주세요.</p>
+                                                <label className="mypage-withdraw-check">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={withdrawConfirmed}
+                                                        disabled={withdrawing}
+                                                        onChange={(event) => setWithdrawConfirmed(event.target.checked)}
+                                                    />
+                                                    <span>안내를 확인했으며 회원탈퇴를 진행하겠습니다.</span>
+                                                </label>
+                                                {withdrawError && <p className="mypage-withdraw-error" role="alert">{withdrawError}</p>}
+                                                {withdrawing && <p role="status">회원탈퇴를 처리하고 있습니다.</p>}
+                                                <div className="mypage-withdraw-actions">
+                                                    <button
+                                                        type="button"
+                                                        disabled={withdrawing}
+                                                        onClick={() => {
+                                                            setWithdrawOpen(false);
+                                                            setWithdrawConfirmed(false);
+                                                            setWithdrawError('');
+                                                        }}
+                                                    >
+                                                        취소
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        className="mypage-withdraw-submit"
+                                                        disabled={!withdrawConfirmed || withdrawing}
+                                                        onClick={() => void handleWithdraw()}
+                                                    >
+                                                        {withdrawing ? '탈퇴 처리 중...' : '최종 탈퇴'}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </section>
                                 </>
                             )}
                         </div>
