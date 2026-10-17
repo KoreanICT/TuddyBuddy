@@ -3,6 +3,7 @@
 package kr.co.ictedu.back.chatbot.service;
 
 import java.net.http.HttpClient;
+import java.time.Duration;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
@@ -27,11 +28,15 @@ public class ChatAIService {
     	// HTTP/1.1 방식의 HttpClient 생성
     	HttpClient httpClient = HttpClient.newBuilder()
     			.version(HttpClient.Version.HTTP_1_1)	// HTTP 버전을 1.1로 지정
+    			.connectTimeout(Duration.ofSeconds(5))	// 연결 제한시간 5초 
     			.build();								// HttpClient 객체 생성
     	
     	// HttpClient를 Spring RestClient에서 사용할 수 있도록 연결
     	JdkClientHttpRequestFactory requestFactory = 
     			new JdkClientHttpRequestFactory(httpClient);
+    	
+    	// 응답 제한시간: 60초
+    	requestFactory.setReadTimeout(Duration.ofSeconds(60));
     	
         this.restClient = RestClient.builder()
         		.baseUrl(baseUrl)

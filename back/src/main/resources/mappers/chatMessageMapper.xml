@@ -17,7 +17,7 @@
 	<select id="list" parameterType="int" resultType="cmvo">
 		SELECT message_num, chat_num, message_sender, message_content, message_regdate FROM chat_message
 		WHERE chat_num = #{chat_num}
-		ORDER BY message_regdate ASC
+		ORDER BY message_regdate ASC, message_num ASC
 	</select>
 	
 	<!-- 특정 회원의 전체 대화 내용 조회 -->
@@ -26,7 +26,7 @@
 		JOIN chat_session s
 		ON m.chat_num = s.chat_num
 		WHERE s.member_num = #{member_num}
-		ORDER BY m.message_regdate ASC
+		ORDER BY m.message_regdate ASC, m.message_num ASC
 	</select>
 
 </mapper>
