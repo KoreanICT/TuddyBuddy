@@ -485,7 +485,6 @@ const Member_edit: React.FC = () => {
             }
 
         } catch (err) {
-            console.error('비밀번호 변경 오류:', err);
 
             if (axios.isAxiosError(err)) {
                 if (err.response?.status === 401) {
