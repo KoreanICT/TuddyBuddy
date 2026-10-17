@@ -4,6 +4,7 @@ import styles from './memberManagement.module.css';
 import { useAuth } from '../../../login/hooks/useAuth';
 import { parseJwt } from '../../../login/comp/jwtUtils';
 import { MemberRole, ROLE_LABELS } from '../../../login/auth/roles';
+import ProfileCard from '../../profile/ProfileCard';
 
 type EditableRole = 'MEMBER' | 'SUB_ADMIN';
 
@@ -145,20 +146,22 @@ const MemberManagement: React.FC = () => {
             <div className={styles.tableWrapper}>
                 <table className={styles.table}>
                     <thead>
-                        <tr><th>번호</th><th>이름</th><th>닉네임</th><th>이메일</th><th>권한</th><th>가입일</th><th>관리</th></tr>
+                        <tr><th>번호</th><th>프로필</th><th>이름</th><th>닉네임</th><th>이메일</th><th>권한</th><th>가입일</th><th>관리</th></tr>
                     </thead>
                     <tbody>
                         {loading ? (
-                            <tr><td colSpan={7}>회원 목록을 불러오는 중입니다.</td></tr>
+                            <tr><td colSpan={8}>회원 목록을 불러오는 중입니다.</td></tr>
                         ) : error ? (
-                            <tr><td colSpan={7}>회원 목록을 확인할 수 없습니다.</td></tr>
+                            <tr><td colSpan={8}>회원 목록을 확인할 수 없습니다.</td></tr>
                         ) : members.length === 0 ? (
-                            <tr><td colSpan={7} className={styles.empty}>회원 데이터가 없습니다.</td></tr>
+                            <tr><td colSpan={8} className={styles.empty}>회원 데이터가 없습니다.</td></tr>
                         ) : members.map(member => {
                             const editable = canEdit && member.authority !== 'ADMIN' && member.member_num !== memberNum;
                             return (
                                 <tr key={member.member_num}>
                                     <td>{member.member_num}</td>
+                                    <td>{Number(member.member_num) === Number(memberNum)
+                                        ? '본인' : <ProfileCard memberNum={Number(member.member_num)} />}</td>
                                     <td>{member.member_name}</td>
                                     <td>{member.member_nick}</td>
                                     <td>{member.member_email}</td>

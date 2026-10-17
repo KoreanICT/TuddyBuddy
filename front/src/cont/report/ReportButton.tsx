@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { getReportCreateUrl, isValidReportTarget, ReportTarget } from './reportTarget';
 
 export type ReportButtonProps = ReportTarget & Omit<
@@ -11,6 +11,7 @@ const ReportButton: React.FC<ReportButtonProps> = ({
     type, targetNum, children = '신고하기', disabled, onClick, ...buttonProps
 }) => {
     const navigate = useNavigate();
+    const location = useLocation();
     const validTarget = isValidReportTarget(type, targetNum);
 
     const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -19,7 +20,9 @@ const ReportButton: React.FC<ReportButtonProps> = ({
         const target: ReportTarget = type === 'report'
             ? { type, targetNum: 0 }
             : { type, targetNum };
-        navigate(getReportCreateUrl(target));
+        navigate(getReportCreateUrl(target), {
+            state: { reportReturnTo: location.pathname + location.search + location.hash }
+        });
     };
 
     return (
