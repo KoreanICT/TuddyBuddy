@@ -1,52 +1,60 @@
-//최솔
+// 최솔
 package kr.co.ictedu.back.timer.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpSession;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
-import kr.co.ictedu.back.member.vo.MemberVO;
+
 import kr.co.ictedu.back.timer.dto.TimerDto;
 import kr.co.ictedu.back.timer.service.TimerService;
+import kr.co.ictedu.back.timer.service.TimerAuthenticatedMember;
 
-import org.springframework.beans.factory.annotation.Value;//
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "타이머", description = "타이머 API")
 @RestController
 @RequestMapping("/api/timer-sessions")
 public class TimerController {
-	private final TimerService service;
 
-	public TimerController(TimerService service) {
-		this.service = service;
-	}
+    private final TimerService service;
+    private final TimerAuthenticatedMember authenticatedMember;
 
-	@Operation(summary = "타이머 세션 생성")
-	@PostMapping
-	@ResponseStatus(HttpStatus.CREATED)
-	public TimerDto.Session create(@RequestBody TimerDto.Create request, HttpSession session) {
-		return service.create(member(session), request);
-	}
+    public TimerController(
+            TimerService service,
+            TimerAuthenticatedMember authenticatedMember) {
 
-	@Operation(summary = "타이머 기록 저장")
-	@PutMapping("/{sessionId}/records")
-	public TimerDto.Session save(@PathVariable("sessionId") Long id, @RequestBody TimerDto.Save request,
-			HttpSession session) {
-		return service.save(member(session), id, request);
-	}
+        this.service = service;
+        this.authenticatedMember = authenticatedMember;
+    }
 
-	@Operation(summary = "타이머 학습 요약 조회")
-	@GetMapping("/summary")
-	public TimerDto.Summary summary(HttpSession session) {
-		return service.summary(member(session));
-	}
+    @Operation(summary = "타이머 세션 생성")
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public TimerDto.Session create(
+            @RequestBody TimerDto.Create request) {
 
-	private Long member(HttpSession session) {
-		if (session.getAttribute("loginMember") instanceof MemberVO m && m.getMember_num() != null)
-			return m.getMember_num();
-		throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
-	}
+        Long memberNum = authenticatedMember.requireMemberNum();
 
+        return service.create(memberNum, request);
+    }
+
+    @Operation(summary = "타이머 기록 저장")
+    @PutMapping("/{sessionId}/records")
+    public TimerDto.Session save(
+            @PathVariable("sessionId") Long sessionId,
+            @RequestBody TimerDto.Save request) {
+
+        Long memberNum = authenticatedMember.requireMemberNum();
+
+        return service.save(memberNum, sessionId, request);
+    }
+
+    @Operation(summary = "타이머 학습 요약 조회")
+    @GetMapping("/summary")
+    public TimerDto.Summary summary() {
+
+        Long memberNum = authenticatedMember.requireMemberNum();
+
+        return service.summary(memberNum);
+    }
 }
