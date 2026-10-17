@@ -4,7 +4,6 @@ import styles from './memo.module.css';
 import { Detail_MemoBoard } from './Detail_MemoBoard';
 import { MemoData } from './Detail_MemoCard';
 import { GetGroupNum } from './GroupAPI'
-import axios from 'axios';
 import api from './api';
 
 
@@ -16,7 +15,7 @@ export const Detail_Memo: React.FC<GetGroupNum> = ({ groupNum }) => {
     useEffect(() => {
         const getMemos = async () => {
             try {
-                const response = await axios.get<MemoData[]>(`http://localhost/detail/memo/getMemos/${groupNum}`);
+                const response = await api.get<MemoData[]>(`/detail/memo/getMemos/${groupNum}`);
 
                 const responseData: MemoData[] = response.data;
                 setMemos(responseData);

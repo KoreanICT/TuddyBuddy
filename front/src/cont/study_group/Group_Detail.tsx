@@ -1,3 +1,4 @@
+import api from './api';
 //작성자 : 오진석
 import React, { useEffect, useRef, useState } from 'react';
 import { NavLink, useParams } from 'react-router-dom';
@@ -14,8 +15,7 @@ import { Project_Discussion } from './Project_Discussion';
 import { Project_Course } from './Project_Course';
 import { Detail_Document } from './Detail_Document';
 import { Project_TDL } from './Project_TDL';
-import api, { getFirstLetter } from './GroupAPI';
-import axios from 'axios';
+import { getFirstLetter } from './GroupAPI';
 import { Group_EditModal } from './Group_Edit';
 
 interface GroupHeaderData {

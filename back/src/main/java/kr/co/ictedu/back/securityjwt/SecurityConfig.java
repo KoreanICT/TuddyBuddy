@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -68,7 +69,9 @@ public class SecurityConfig {
 
                         .requestMatchers("/api/auth/**").permitAll() // /api/auth/** 에서 오는 모든 요청은 허용
                         .requestMatchers("/api/member/**").permitAll()
-                        .requestMatchers("/uploads/**").permitAll() //이미지 경로도 열어줘야 한다.
+                        .requestMatchers("/imgfile/**").permitAll() //이미지 경로도 열어줘야 한다.
+                        // img 요청에는 JWT 헤더가 없으므로 썸네일 조회 허용
+                        .requestMatchers(HttpMethod.GET,"/api/group/tags/search","/api/group/getpublicrooms","/api/group/thumbnail/**").permitAll()
 //                        .requestMatchers("/**").permitAll()
                         .anyRequest().authenticated()) // 모든 요청에 대해 인증을 요구
                 // JWT 토큰 필터 추가: JwtTokenFilter를 BasicAuthenticationFilter 전에 추가하여 JWT 토큰을 검증

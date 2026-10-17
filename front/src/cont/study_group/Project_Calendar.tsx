@@ -2,7 +2,6 @@
 import React, { useMemo, useState } from "react";
 import styles from "./project.module.css";
 //import { useAuth } from "../../hooks/useAuth"
-import axios from "axios";
 import { GetGroupNum, formatDate } from './GroupAPI'
 interface Schedule {
     schedule_num: number;
@@ -254,7 +253,7 @@ export const Project_Calendar: React.FC<GetGroupNum> = (groupNum) => {
      *
      * 나중에는 이 부분을
      *
-     * await axios.post(...)
+     * await api.post(...)
      *
      * 로 변경하면 된다.
      */

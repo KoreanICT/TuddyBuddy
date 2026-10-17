@@ -10,7 +10,7 @@ import { AppDispatch } from '../reducers/store';
 
 // 백엔드 서버 주소 
 const API_URL = `${
-  process.env.REACT_APP_BACK_END_URL || 'http://192.168.0.19/back'
+  process.env.REACT_APP_BACK_END_URL || 'http://192.168.0.11/back'
 }/api/auth`;
 
 // ======================================================

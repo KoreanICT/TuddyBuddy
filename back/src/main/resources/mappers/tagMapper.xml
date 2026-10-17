@@ -4,7 +4,7 @@
 <mapper namespace="kr.co.ictedu.back.group.dao.TagDao">
 
 	<select id="searchTags" resultType="tagvo">
-		SELECT tag_num, tag_name, tag_color FROM tag WHERE LOWER(tag_name) LIKE '%' || LOWER (#{keyword}) || '%'
+		SELECT tag_num, tag_name, tag_color FROM studytag WHERE LOWER(tag_name) LIKE '%' || LOWER (#{keyword}) || '%'
 		ORDER BY tag_name
 		FETCH FIRST 10 ROWS ONLY
 	</select>

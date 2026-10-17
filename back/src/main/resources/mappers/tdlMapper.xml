@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--작성자 : 오진석 -->
+
+<mapper namespace="kr.co.ictedu.back.group.dao.TdlDao">
+
+	<insert id="addTdl" parameterType="tdlvo">
+		INSERT INTO tdl (tdl_num, group_num, member_num, tdl_name, tdl_detail, status, repeat_type, created_at, due_at)
+		VALUES (tdl_seq.nextVal, #{group_num}, #{member_num}, #{tdl_name}, #{tdl_detail}, #{status}, #{repeat_type, jdbcType=DATE}, SYSDATE, #{due_at, jdbcType=DATE})
+	</insert>
+	
+	<select id="getTdls" resultType="tdlRequestdto">
+		SELECT t.tdl_num, m.member_nick, t.tdl_name, t.tdl_detail, t.status, t.repeat_type, t.created_at, t.updated_at, t.completed_at, t.due_at,
+		FN_GROUP_RESOURCE_PERMISSION(t.group_num, t.member_num, #{member_num}) AS can_manage
+		FROM tdl t JOIN member m ON t.member_num = m.member_num
+		WHERE group_num = #{group_num}
+	</select> 
+	
+	<update id="updateTdl">
+		UPDATE tdl SET tdl_name = #{tdl_name}, tdl_detail = #{tdl_detail}, repeat_type = #{repeat_type}, updated_at = SYSDATE 
+	</update>
+	
+	<update id="updateExpiredTdl">
+		UPDATE tdl SET status = 'Incomplete', updated_at = SYSDATE
+		WHERE STATUS = 'In progress' AND due_at IS NOT NUll AND due_at &lt; SYSDATE 
+		AND group_num = #{group_num}
+	</update>
+	
+	<update id="updateTdlStatus">
+		UPDATE tdl SET status = #{status}, updated_at = SYSDATE, 
+		completed_at = 
+			CASE
+				WHEN #{status} = 'Done'
+				THEN SYSDATE
+				ELSE NULL
+			END
+		WHERE tdl_num = #{tdl_num} AND status != 'Incomplete'
+	</update>
+	
+	<delete id="deleteTdl">
+		DELETE FROM tdl WHERE tdl_num = #{tdl_num}
+	</delete>
+	
+</mapper>

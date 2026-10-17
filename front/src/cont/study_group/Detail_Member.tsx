@@ -2,8 +2,8 @@
 import React, { useEffect, useState } from 'react';
 import styles from './detail.module.css';
 import { GetGroupNum } from './GroupAPI'
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import api from './api';
 
 interface MemberData {
     member_num: number;
@@ -23,8 +23,8 @@ export const Detail_Member: React.FC<GetGroupNum> = ({ groupNum }) => {
 
     const getMembers = async () => {
         try {
-            const response = await axios.get(
-                `http://localhost/back/api/group/detail/getMemberlist/${groupNum}`
+            const response = await api.get(
+                `/group/detail/getMemberlist/${groupNum}`
             )
             const responseData: MemberRequestData = response.data;
             setIsMeLeader(response.data.isMeLeader);
@@ -47,8 +47,8 @@ export const Detail_Member: React.FC<GetGroupNum> = ({ groupNum }) => {
     const handleKick = async (memberNum: number, nickname: string) => {
         if (window.confirm(`${nickname} 님을 강퇴하시겠습니까?`)) {
             try {
-                await axios.delete(
-                    `http://localhost/back/api/group/detail/kickMember/${groupNum}/${memberNum}`
+                await api.delete(
+                    `/group/detail/kickMember/${groupNum}/${memberNum}`
                 )
             } catch (error) {
                 console.error("강퇴하는데 실패했습니다. ", error);
@@ -72,8 +72,8 @@ export const Detail_Member: React.FC<GetGroupNum> = ({ groupNum }) => {
                 return;
             }
             try {
-                await axios.delete(
-                    `http://localhost/back/api/group/detail/deleteGroup/${groupNum}`
+                await api.delete(
+                    `/group/detail/deleteGroup/${groupNum}`
                 )
                 navigate("/group");
             } catch (error) {
@@ -86,8 +86,8 @@ export const Detail_Member: React.FC<GetGroupNum> = ({ groupNum }) => {
             return;
         }
         try {
-            await axios.delete(
-                `http://localhost/back/api/group/detail/groupQuit/${groupNum}`
+            await api.delete(
+                `/group/detail/groupQuit/${groupNum}`
             )
         } catch (error) {
             console.error("탈퇴하는데 실패했습니다. 잠시후 다시 시도해주세요.");
@@ -97,8 +97,8 @@ export const Detail_Member: React.FC<GetGroupNum> = ({ groupNum }) => {
     const handleTransferLeader = async (memberNum: number, member_nick: string) => {
         if (window.confirm(`${member_nick}님에게 방장을 위임하시겠습니까?`)) {
             try {
-                await axios.patch(
-                    `http://localhost/back/api/group/detail/transferLeader/${groupNum}/${memberNum}`
+                await api.patch(
+                    `/group/detail/transferLeader/${groupNum}/${memberNum}`
                 )
             } catch (error) {
                 console.error("위임에 오류가 생겼습니다.", error);
