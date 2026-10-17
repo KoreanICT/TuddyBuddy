@@ -119,6 +119,9 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
     // 대화 내역 조회 실패 여부
     const [historyError, setHistoryError] = useState(false);
 
+    // 비회원 대화 접근 정보 확인 실패
+    const [guestAccessError, setGuestAccessError] = useState(false);
+
     // 대화 내역 재조회 요청 횟수
     const [historyRetry, setHistoryRetry] = useState(0);
 
@@ -168,6 +171,7 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
         setIsHistoryLoaded(false);
         setSessionError(false);
         setHistoryError(false);
+        setGuestAccessError(false);
         sendingRef.current = false;
 
         // 세션 준비 이후 발생한 오류는 대화 조회 오류로 구분
@@ -194,6 +198,7 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
                         'http://localhost:80/back/api/chatbot/session',
                         {
                             method: 'POST',
+                            credentials: 'include',
                             headers: getAuthHeaders(isLogin ? currentToken : null),
                             body: JSON.stringify({
                                 // 실제 회원 번호는 서버에서 JWT로 결정
@@ -253,12 +258,22 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
                 const response = await fetch(
                     `http://localhost:80/back/api/chatbot/message/session/${nextChatNum}`,
                     {
+                        credentials: 'include',
                         headers: getAuthHeaders(currentToken)
                     }
                 );
 
                 // 계정 전환 또는 창 닫기로 취소된 조회 결과는 반영하지 않음
                 if (requestState.cancelled) return;
+
+                // 비회원 대화에 접근할 수 없는 경우
+                if (
+                    response.status === 403 &&
+                    chatStorageKey === 'guestChatNum'
+                ) {
+                    setGuestAccessError(true);
+                    return;
+                }
 
                 // 저장된 세션이 삭제된 경우 새 세션 준비
                 if (response.status === 404 && isStoredSession) {
@@ -330,6 +345,27 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
         setHistoryRetry(prev => prev + 1);
     };
 
+    // 비회원 새 대화 시작
+    const StartNewGuestChat = () => {
+        // 회원 상태에서는 실행하지 않음
+        if (isLogin || !guestAccessError) return;
+
+        // 이 탭에 저장된 비회원 세션번호만 제거
+        sessionStorage.removeItem('guestChatNum');
+
+        // 화면 상태 초기화
+        setGuestAccessError(false);
+        setChatNum(null);
+        setActiveChatKey(null);
+        setMessages([]);
+        setInput('');
+        setIsHistoryLoaded(false);
+
+        // 기존 세션 준비 effect 실행
+        // 저장된 번호가 없으므로 새 세션 생성
+        setSessionRetry(prev => prev + 1);
+    }
+
     // 사용자 질문 정송 및 AI 답변 받기
     const sendMessage = async () => {
         const requestState = chatRequestRef.current;
@@ -341,6 +377,9 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
             !requestState || requestState.cancelled
         ) { return; }
 
+        if (input.length > 1000) {
+            window.alert('질문은 1,000자 이하로 입력해 주세요.');
+        }
         const question = input.trim();
         const messageId = getMessageId();
 
@@ -372,12 +411,16 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
         // 현재 세션에서 답변을 기다리고 있음을 기록
         pendingChatRequests[chatNum] = pendingRequest;
 
+        // 기본 오류 안내
+        let errorMessage = '서버 응답을 받지 못했습니다. 잠시 후 대화 내역을 다시 확인해 주세요.';
+
         try {
             // Spring Boot에 AI 질문 요청
             const response = await fetch(
                 'http://localhost:80/back/api/chatbot/ai',
                 {
                     method: 'POST',
+                    credentials: 'include',
                     headers: getAuthHeaders(tokenRef.current),
                     body: JSON.stringify({
                         chat_num: chatNum,
@@ -387,7 +430,31 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
                 }
             );
 
+            // 이전 대화의 요청이면 화면을 변경하지 않음
+            if (requestState.cancelled) return;
+
+            // 창을 열어둔 동안 비회원 소유 정보가 만료된 경우
+            if (response.status === 403 && !isLogin) {
+                setGuestAccessError(true);
+
+                // 기존 대화의 추가 전송 차단
+                setIsHistoryLoaded(false);
+                return;
+            }
             if (!response.ok) {
+                // AI 서버 장애 안내는 문자열 응답으로 전달됨
+                if (response.status === 503) {
+                    const serverMessage = await response.text();
+
+                    errorMessage = serverMessage.trim() ||
+                        '현재 AI 서버를 이용할 수 없습니다. 잠시 후 다시 시도해 주세요.'
+                } else if (response.status === 400) {
+                    // 질문 유효성 검증 오류 안내
+                    const serverMessage = await response.text();
+
+                    errorMessage = serverMessage.trim() ||
+                        '질문 내용을 확인해 주세요.';
+                }
                 throw new Error('AI 답변 요청 실패');
             }
 
@@ -396,6 +463,14 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
 
             // 화면 반영만 차단
             if (requestState.cancelled) return;
+
+            // 답변이 없거나 공백뿐이면 오류 처리
+            if (
+                typeof data?.answer !== 'string' ||
+                data.answer.trim() === ''
+            ) {
+                throw new Error('AI 답변 내용이 없습니다.');
+            }
 
             // 정상 응답 확인 후 전송 상태 변경
             setMessages(prev =>
@@ -435,7 +510,7 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
                 {
                     id: getMessageId(),
                     sender: 'bot',
-                    text: '서버 응답을 받지 못했습니다. 잠시 후 대화 내역을 다시 확인해 주세요.'
+                    text: errorMessage
                 }
             ]);
 
@@ -501,6 +576,23 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
 
             {/* 대화 - 대화 내용 */}
             <div className={styles.chatContent}>
+                {/* 비회원 대화 접근 정보 확인 실패 */}
+                {!isLogin && guestAccessError && (
+                    <div className={styles.historyError}>
+                        <p>대화 접근 정보를 확인할 수 없습니다.</p>
+                        <span>
+                            확인 정보가 만료되었거나 접근할 수 없는 대화입니다.
+                            새 대화를 시작해 주세요.
+                            이전 대화는 이 화면에 복원되지 않습니다.
+                        </span>
+                        <button
+                            type='button'
+                            onClick={StartNewGuestChat}
+                        >
+                            새 대화 시작
+                        </button>
+                    </div>
+                )}
                 {/* 채팅 세션 생성 실패 안내 */}
                 {sessionError && chatNum === null && (
                     <div className={styles.historyError}>
@@ -608,13 +700,14 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
             <div className={styles.chatInput}>
                 <input
                     type="text"
+                    maxLength={1000}
                     placeholder='질문을 입력해주세요.'
                     value={isCurrentChat ? input : ''}
                     disabled={!isCurrentChat || !isHistoryLoaded}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={(e) => {
                         // 한글을 조합 중이면 전송하지 않음
-                        if (e.nativeEvent.isComposing || e.nativeEvent.keyCode === 299) { return };
+                        if (e.nativeEvent.isComposing || e.nativeEvent.keyCode === 229) { return };
 
                         if (e.key === 'Enter') {
                             e.preventDefault();
@@ -629,6 +722,13 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
                 >
                     <Send size={20} />
                 </button>
+            </div>
+            
+            {/* 입력 길이 안내 */}
+            <div
+                style={{padding: '0 12px 8px', fontSize: '12px'}}
+            >
+                {isCurrentChat ? input.length : 0} / 1,000자
             </div>
         </div>
     );

@@ -64,6 +64,12 @@ public class ChatBotService {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "질문 내용을 입력해 주세요.");
 		}
 		
+		if (request.getQuestion().length() > 1000) {
+			throw new ResponseStatusException(
+					HttpStatus.BAD_REQUEST,
+					"질문은 1,000자 이하로 입력해 주세요.");
+		}
+		
 		// 채팅 세션 존재 여부 확인
 		ChatSessionVO session = chatSessionService.detail(request.getChat_num());
 
@@ -77,7 +83,16 @@ public class ChatBotService {
 		try {
 			// FastAPI 호출
 			ChatAIResponse response = askAI(request);
-
+			
+			// 응답이 없거나 답변이 비어 있으면 오류 처리
+			if (
+				response == null ||
+				response.getAnswer() == null ||
+				response.getAnswer().trim().isEmpty()
+			) {
+				throw new RestClientException("AI 답변 내용이 없습니다.");
+			}
+			
 			// AI 답변 DB 저장
 			saveBotMessage(request, response);
 
@@ -85,14 +100,21 @@ public class ChatBotService {
 			return response;
 
 		} catch (RestClientException e) { // RestClientException : HTTP 통신 관련 예외 클래스
+
 			// AI 서버 통신 오류 안내
 			ChatAIResponse errorResponse = new ChatAIResponse();
 
 			errorResponse.setAnswer("죄송합니다. 현재 답변을 가져오지 못했습니다. 잠시 후 다시 시도해 주세요.");
 
-			// 오류 안내 반환
-			return errorResponse;
+			// 다시 열었을 때도 오류 안내를 볼 수 있도록 저장
+			saveBotMessage(request, errorResponse);
+			
+			// 정상 응답 대신 서비스 이용 불가 상태 반환
+			throw new ResponseStatusException(
+					HttpStatus.SERVICE_UNAVAILABLE,
+					errorResponse.getAnswer(),
+					e
+			);
 		}
-
 	}
 }
