@@ -6,8 +6,9 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './myReportList.module.css';
 
+import { ReportType, REPORT_TYPE_LABELS } from '../../cont/report/reportTarget';
+
 type ReportStatus = 'PENDING' | 'REVIEWING' | 'COMPLETED' | 'REJECTED';
-type ReportType = 'POST' | 'COMMENT' | 'USER' | 'STUDY' | 'community' | 'report';
 
 interface ReportVO {
     num: number;
@@ -94,21 +95,6 @@ const MyReportList: React.FC = () => {
     }, [currentPage, memberNum, getAuthHeaders]);
 
     // =========================
-    // 신고 유형 출력
-    // =========================
-    const getTypeText = (type: ReportType) => {
-        switch (type) {
-            case 'POST': return '게시글';
-            case 'COMMENT': return '댓글';
-            case 'USER': return '회원';
-            case 'STUDY': return '스터디';
-            case 'community': return '커뮤니티 게시글';
-            case 'report': return '일반 신고';
-            default: return type;
-        }
-    };
-
-    // =========================
     // 신고 상태 출력
     // =========================
     const getStatusText = (status: ReportStatus) => {
@@ -175,7 +161,7 @@ const MyReportList: React.FC = () => {
                                     style={{ cursor: 'pointer' }}
                                 >
                                     <td>{report.num}</td>
-                                    <td>{getTypeText(report.type)}</td>
+                                    <td>{REPORT_TYPE_LABELS[report.type]}</td>
                                     <td>{report.content}</td>
                                     <td>{getStatusText(report.status)}</td>
                                     <td>{report.created_date}</td>

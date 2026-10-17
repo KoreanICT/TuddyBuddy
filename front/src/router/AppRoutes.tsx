@@ -41,6 +41,8 @@ import SelfStudyManagement from "../cont/admin/selfstudy/SelfStudyManagement";
 import KakaoCallback from "../login/KakaoCallback";
 import KakaoSignup from "../login/KakaoSignup";
 import Login from "../login/Login";
+import RequireAuth from "../login/auth/RequireAuthProps";
+import { ADMIN_ROLES } from "../login/auth/roles";
 
 interface RouteItem {
     path: string;
@@ -50,7 +52,14 @@ interface RouteItem {
 const AppRoutes: React.FC = () => {
     const { pathname } = useLocation();
 
-    const isManage = pathname.startsWith("/admin");
+    let routePath = pathname;
+    try {
+        routePath = decodeURIComponent(pathname);
+    } catch {
+        // 잘못된 인코딩은 원래 경로로 판단합니다.
+    }
+    routePath = routePath.toLowerCase();
+    const isManage = routePath === "/admin" || routePath.startsWith("/admin/");
     const isAuth = pathname.startsWith("/auth");
 
     const routeList: RouteItem[] = [
@@ -106,13 +115,15 @@ const AppRoutes: React.FC = () => {
     return (
         <>
             {isManage ? (
-                <AdminLayout>
-                    <Routes>
-                        {routeList.map((route, idx) => (
-                            <Route key={idx} {...route} />
-                        ))}
-                    </Routes>
-                </AdminLayout>
+                <RequireAuth allowedRoles={ADMIN_ROLES}>
+                    <AdminLayout>
+                        <Routes>
+                            {routeList.map((route, idx) => (
+                                <Route key={idx} {...route} />
+                            ))}
+                        </Routes>
+                    </AdminLayout>
+                </RequireAuth>
 
             ) : isAuth ? (
                 <AuthLayout>

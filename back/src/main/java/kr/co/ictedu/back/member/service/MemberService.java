@@ -8,6 +8,11 @@ import java.util.regex.Pattern;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.server.ResponseStatusException;
+import kr.co.ictedu.back.securityauth.MemberRoles;
 import org.springframework.transaction.annotation.Transactional;
 
 import kr.co.ictedu.back.member.dao.MemberDAO;
@@ -26,6 +31,7 @@ public class MemberService {
 	// 일반 회원가입 (기존 기능)
 	// ==========================================
 	public void create(MemberVO vo) {
+        vo.setAuthority(MemberRoles.MEMBER);
 
 		System.out.println("1");
 
@@ -124,7 +130,7 @@ public class MemberService {
 		vo.setMember_nick(normalizedNick);
 		vo.setMember_phone(normalizedPhone);
 
-		vo.setAuthority("MEMBER");
+		vo.setAuthority(MemberRoles.MEMBER);
 
 		vo.setMember_login_type("KAKAO");
 		vo.setMember_social_id(kakaoId);
@@ -180,12 +186,26 @@ public class MemberService {
 	// ==========================================
 	@Transactional
 	public boolean withdrawMember(Long mnum) {
-
-		int result = memberDao.deleteMember(mnum);
-
-		System.out.println("deleteMember result = " + result);
-
-		return result > 0;
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()
+                || "anonymousUser".equals(authentication.getPrincipal())) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
+        }
+        MemberVO actor = memberDao.getMemberByEmail(authentication.getName());
+        if (actor == null || mnum == null || !mnum.equals(actor.getMember_num())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "본인 계정만 탈퇴할 수 있습니다.");
+        }
+        MemberVO target = memberDao.lockMemberByNum(mnum);
+        if (target == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "회원을 찾을 수 없습니다.");
+        }
+        if (MemberRoles.ADMIN.equals(target.getAuthority())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "최고 관리자 계정은 DB 관리자가 관리합니다.");
+        }
+        if (memberDao.deleteMember(mnum) != 1) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "회원 탈퇴에 실패했습니다.");
+        }
+        return true;
 	}
 
 	// ==========================================
@@ -205,9 +225,52 @@ public class MemberService {
 	// ==========================================
 	// 선택된 회원 등급 변경
 	// ==========================================
+	@Transactional
 	public int updateGrade(Map<String, Object> param) {
-		return memberDao.updateGrade(param);
+        Object memberNums = param.get("memberNums");
+        Object authority = param.get("authority");
+        if (!(memberNums instanceof List<?> numbers) || numbers.isEmpty()
+                || !(authority instanceof String role)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "회원 번호와 권한이 필요합니다.");
+        }
+        int updated = 0;
+        for (Object number : numbers) {
+            if (!(number instanceof Number)) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "회원 번호가 올바르지 않습니다.");
+            }
+            updated += updateManagedAuthority(((Number) number).longValue(), role);
+        }
+        return updated;
 	}
+
+    @Transactional
+    public int updateManagedAuthority(Long memberNum, String authority) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()
+                || "anonymousUser".equals(authentication.getPrincipal())) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
+        }
+        MemberVO actor = memberDao.getMemberByEmail(authentication.getName());
+        if (actor == null || !MemberRoles.ADMIN.equals(actor.getAuthority())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "최고 관리자만 권한을 변경할 수 있습니다.");
+        }
+        if (memberNum == null || memberNum <= 0
+                || !(MemberRoles.MEMBER.equals(authority) || MemberRoles.SUB_ADMIN.equals(authority))) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "회원 번호 또는 변경할 권한이 올바르지 않습니다.");
+        }
+        MemberVO target = memberDao.lockMemberByNum(memberNum);
+        if (target == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "회원을 찾을 수 없습니다.");
+        }
+        if (!MemberRoles.MEMBER.equals(target.getAuthority()) && !MemberRoles.SUB_ADMIN.equals(target.getAuthority())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "해당 계정의 권한은 DB 관리자만 변경할 수 있습니다.");
+        }
+        int updated = memberDao.updateManagedAuthority(memberNum, authority);
+        if (updated != 1) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "권한 변경에 실패했습니다.");
+        }
+        return updated;
+    }
 
 	// ==========================================
 	// 이메일 중복 확인

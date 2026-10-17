@@ -94,10 +94,41 @@
 	</select>
 
 	<!-- 신고 수정 -->
+	<select id="lockDetail" parameterType="long" resultType="revo">
+		SELECT num, member_num, type, category, content, status, created_date,
+		target_num
+		FROM report
+		WHERE num = #{num}
+		FOR UPDATE
+	</select>
+
+	<select id="targetExists" resultType="int">
+		<choose>
+			<when test='type == "community"'>
+				SELECT COUNT(*) FROM community_section WHERE community_id = #{targetNum}
+			</when>
+			<when test='type == "user"'>
+				SELECT COUNT(*) FROM member WHERE member_num = #{targetNum}
+			</when>
+			<when test='type == "study"'>
+				SELECT COUNT(*) FROM studygroup WHERE group_num = #{targetNum}
+			</when>
+			<when test='type == "document"'>
+				SELECT COUNT(*) FROM group_document WHERE document_num = #{targetNum}
+			</when>
+			<when test='type == "report"'>
+				SELECT 1 FROM dual
+			</when>
+			<otherwise>
+				SELECT 0 FROM dual
+			</otherwise>
+		</choose>
+	</select>
+
+	<!-- 신고 사유와 내용만 수정 -->
 	<update id="update" parameterType="revo">
 		UPDATE report
-		SET type = #{type},
-		category = #{category},
+		SET category = #{category},
 		content = #{content}
 		WHERE num = #{num}
 	</update>
