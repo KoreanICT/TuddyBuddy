@@ -1,23 +1,20 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { useSelector } from 'react-redux';
 
-import { useAppDispatch, RootState } from '../login/reducers/store';
+import { useAppDispatch } from '../login/reducers/store';
 import { logoutAction } from '../login/authActions/authActions';
 
 
 import styles from './userMenu.module.css';
 import AuthModal from '../login/AuthModal';
-import { parseJwt } from '../login/comp/jwtUtils';
-import { isAdminRole } from '../login/auth/roles';
+import { ROLE_ACCESS } from '../login/auth/roles';
+import RoleGate from '../login/auth/RoleGate';
+import { useRoleAccess } from '../login/hooks/useRoleAccess';
 
 const UserMenu: React.FC = () => {
 
   // Redux JWT 로그인 상태
-  const token = useSelector((state: RootState) => state.auth.token);
-  const isLogin = Boolean(token);
-  const decoded = token ? parseJwt(token) : null;
-  const canOpenAdmin = decoded !== null && decoded.exp > Date.now() / 1000 && isAdminRole(decoded.role);
+  const { isAuthenticated: isLogin } = useRoleAccess();
 
   const dispatch = useAppDispatch();
 
@@ -152,12 +149,12 @@ const UserMenu: React.FC = () => {
             포인트 구매
           </NavLink>
 
-          {canOpenAdmin && <NavLink
+          <RoleGate allowedRoles={ROLE_ACCESS.admin}><NavLink
             to="/admin"
             onClick={closeMenu}
           >
             관리자 메뉴
-          </NavLink>}
+          </NavLink></RoleGate>
 
           <NavLink
             to="/friend/list"

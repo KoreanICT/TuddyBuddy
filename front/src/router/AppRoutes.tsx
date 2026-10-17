@@ -42,7 +42,7 @@ import KakaoCallback from "../login/KakaoCallback";
 import KakaoSignup from "../login/KakaoSignup";
 import Login from "../login/Login";
 import RequireAuth from "../login/auth/RequireAuthProps";
-import { ADMIN_ROLES } from "../login/auth/roles";
+import { ROLE_ACCESS } from "../login/auth/roles";
 
 interface RouteItem {
     path: string;
@@ -67,8 +67,8 @@ const AppRoutes: React.FC = () => {
         // contents
         { path: '/community', element: <Community /> },
 
-        { path: '/group', element: <Group_Home /> },
-        { path: '/group/detail/:groupNum', element: <Group_Detail /> },
+        { path: '/group', element: <RequireAuth allowedRoles={ROLE_ACCESS.member}><Group_Home /></RequireAuth> },
+        { path: '/group/detail/:groupNum', element: <RequireAuth allowedRoles={ROLE_ACCESS.member}><Group_Detail /></RequireAuth> },
 
         { path: "/", element: <Home /> },
         { path: "/friend/add", element: <FriendAdd /> },
@@ -78,8 +78,8 @@ const AppRoutes: React.FC = () => {
         { path: "/friend/sent", element: <FriendSentList /> },
 
         { path: '/point', element: <ProductSelector /> },
-        { path: '/statistics', element: <PerformanceAnalytics /> },
-        { path: '/selfStudy', element: <SelfStudy /> },
+        { path: '/statistics', element: <RequireAuth allowedRoles={ROLE_ACCESS.member}><PerformanceAnalytics /></RequireAuth> },
+        { path: '/selfStudy', element: <RequireAuth allowedRoles={ROLE_ACCESS.member}><SelfStudy /></RequireAuth> },
         { path: '/reportCreate', element: <ReportCreate /> },
 
         { path: '/reportReplyList', element: <ReportReplyList /> },
@@ -99,7 +99,7 @@ const AppRoutes: React.FC = () => {
         { path: "/admin/notice", element: <AdminNoticeList /> },
         { path: "/admin/notice/add", element: <AdminNoticeForm /> },
         { path: "/admin/notice/edit/:num", element: <AdminNoticeForm /> },
-        { path: "/admin/selfstudy", element: <SelfStudyManagement /> },
+        { path: "/admin/selfstudy", element: <RequireAuth allowedRoles={ROLE_ACCESS.manageSelfStudy}><SelfStudyManagement /></RequireAuth> },
 
         // auth
         { path: '/auth/member', element: <Login /> },
@@ -115,7 +115,7 @@ const AppRoutes: React.FC = () => {
     return (
         <>
             {isManage ? (
-                <RequireAuth allowedRoles={ADMIN_ROLES}>
+                <RequireAuth allowedRoles={ROLE_ACCESS.admin}>
                     <AdminLayout>
                         <Routes>
                             {routeList.map((route, idx) => (

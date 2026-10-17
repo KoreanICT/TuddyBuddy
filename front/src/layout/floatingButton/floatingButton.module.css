@@ -1,7 +1,8 @@
 .floatingWrapper {
     position: fixed;
 
-    right: 28px;
+    /* 넓은 화면에서는 본문 최대 너비의 오른쪽 안쪽에 맞춥니다. */
+    right: max(28px, calc((100% - var(--max-width)) / 2 + 24px));
     bottom: 28px;
 
     z-index: 1000;
@@ -114,6 +115,21 @@
 
 .floatingButton.open {
     transform: rotate(90deg);
+}
+
+.chatButton {
+    color: var(--primary);
+    background-color: var(--background);
+    border: 1px solid var(--border);
+}
+
+.chatButton:hover {
+    background-color: var(--background-secondary);
+}
+
+.floatingButton:focus-visible {
+    outline: 3px solid var(--primary);
+    outline-offset: 4px;
 }
 
 
