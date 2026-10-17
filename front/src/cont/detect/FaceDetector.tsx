@@ -16,19 +16,23 @@ export interface FaceDetectorProps {
     onClose?: () => void;
     onDetectionResult?: (result: DetectResponse) => void;
     onDetectionEnd?: () => void;
+    onDetectionError?: (message: string) => void;
+    autoStart?: boolean;
 }
 
 const DETECT_API = 'http://192.168.0.84:8000/ai/detect';
 
-const FaceDetector: React.FC<FaceDetectorProps> = ({ onClose, onDetectionResult, onDetectionEnd }) => {
+const FaceDetector: React.FC<FaceDetectorProps> = ({
+    onClose, onDetectionResult, onDetectionEnd, onDetectionError, autoStart = false
+}) => {
     const videoRef = useRef<HTMLVideoElement | null>(null);
     const streamRef = useRef<MediaStream | null>(null);
     const mountedRef = useRef(false);
     const cameraVersionRef = useRef(0);
     const startingCameraRef = useRef(false);
     const cancelDetectionRef = useRef<(() => void) | null>(null);
-    const callbacksRef = useRef({ onClose, onDetectionResult, onDetectionEnd });
-    callbacksRef.current = { onClose, onDetectionResult, onDetectionEnd };
+    const callbacksRef = useRef({ onClose, onDetectionResult, onDetectionEnd, onDetectionError });
+    callbacksRef.current = { onClose, onDetectionResult, onDetectionEnd, onDetectionError };
     const [cameraActive, setCameraActive] = useState(false);
     const [detecting, setDetecting] = useState(false);
     const [faceDetected, setFaceDetected] = useState(false);
@@ -54,25 +58,39 @@ const FaceDetector: React.FC<FaceDetectorProps> = ({ onClose, onDetectionResult,
     };
 
     const startCamera = async () => {
-        if (startingCameraRef.current || streamRef.current) return;
+        if (startingCameraRef.current || streamRef.current) return false;
         startingCameraRef.current = true;
         const version = ++cameraVersionRef.current;
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
             if (!mountedRef.current || version !== cameraVersionRef.current) {
                 stream.getTracks().forEach(track => track.stop());
-                return;
+                return false;
             }
             streamRef.current = stream;
+            stream.getVideoTracks().forEach(track => {
+                track.onended = () => {
+                    if (streamRef.current !== stream || !mountedRef.current) return;
+                    stopCamera();
+                    callbacksRef.current.onDetectionError?.('카메라 연결이 종료되어 학습을 일시정지했습니다.');
+                };
+            });
             const video = videoRef.current;
             if (!video) throw new Error('카메라 화면이 없습니다.');
             video.srcObject = stream;
             await video.play();
-            if (mountedRef.current && version === cameraVersionRef.current) setCameraActive(true);
+            if (mountedRef.current && version === cameraVersionRef.current) {
+                setCameraActive(true);
+                return true;
+            }
+            return false;
         } catch (error) {
-            if (!mountedRef.current || version !== cameraVersionRef.current) return;
+            if (!mountedRef.current || version !== cameraVersionRef.current) return false;
             stopCamera();
-            alert('카메라를 사용할 수 없습니다.');
+            if (callbacksRef.current.onDetectionError) {
+                callbacksRef.current.onDetectionError('카메라를 사용할 수 없습니다. 카메라 권한을 확인해주세요.');
+            } else alert('카메라를 사용할 수 없습니다.');
+            return false;
         } finally {
             if (version === cameraVersionRef.current) startingCameraRef.current = false;
         }
@@ -91,6 +109,8 @@ const FaceDetector: React.FC<FaceDetectorProps> = ({ onClose, onDetectionResult,
         let active = true;
         let sessionId: string | null = null;
         let timer: number | undefined;
+        let lastResponseAt = Date.now();
+        let watchdog: number | undefined;
         const controller = new AbortController();
         const canvas = document.createElement('canvas');
         canvas.width = 640;
@@ -105,6 +125,7 @@ const FaceDetector: React.FC<FaceDetectorProps> = ({ onClose, onDetectionResult,
             if (!active) return;
             active = false;
             window.clearTimeout(timer);
+            window.clearInterval(watchdog);
             controller.abort();
             if (sessionId) deleteSession(sessionId);
             callbacksRef.current.onDetectionEnd?.();
@@ -114,7 +135,9 @@ const FaceDetector: React.FC<FaceDetectorProps> = ({ onClose, onDetectionResult,
         const fail = () => {
             if (!active) return;
             stopCamera();
-            alert('학습 집중 서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.');
+            const message = '학습 집중 서버의 응답을 확인할 수 없습니다. 연결 상태를 확인하고 다시 시작해주세요.';
+            if (callbacksRef.current.onDetectionError) callbacksRef.current.onDetectionError(message);
+            else alert(message);
             callbacksRef.current.onClose?.();
         };
 
@@ -138,7 +161,13 @@ const FaceDetector: React.FC<FaceDetectorProps> = ({ onClose, onDetectionResult,
                     if (!response.ok) throw new Error(`감지 서버 오류: ${response.status}`);
                     const data: DetectResponse = await response.json();
                     if (!active) return;
-                    if (!data.success) throw new Error('감지 실패');
+                    if (!data.success || typeof data.studying !== 'boolean'
+                        || typeof data.stopped !== 'boolean'
+                        || typeof data.face_detected !== 'boolean'
+                        || typeof data.motion_detected !== 'boolean'
+                        || !Number.isFinite(data.not_studying_seconds)
+                        || data.not_studying_seconds < 0) throw new Error('감지 실패');
+                    lastResponseAt = Date.now();
                     setFaceDetected(data.face_detected);
                     setMovementDetected(data.motion_detected);
                     setStudying(data.studying);
@@ -170,6 +199,10 @@ const FaceDetector: React.FC<FaceDetectorProps> = ({ onClose, onDetectionResult,
                 fail();
             }
         };
+        // 통신 지연·카메라 프레임 중단 중에도 타이머가 무한히 실행되지 않도록 합니다.
+        watchdog = window.setInterval(() => {
+            if (Date.now() - lastResponseAt >= 15000) fail();
+        }, 1000);
         void start();
         return () => {
             cancel();
@@ -184,11 +217,23 @@ const FaceDetector: React.FC<FaceDetectorProps> = ({ onClose, onDetectionResult,
         return () => {
             mountedRef.current = false;
             cameraVersionRef.current += 1;
+            startingCameraRef.current = false;
             cancelDetectionRef.current?.();
             streamRef.current?.getTracks().forEach(track => track.stop());
             streamRef.current = null;
         };
     }, []);
+
+    useEffect(() => {
+        if (!autoStart) return;
+        let active = true;
+        void startCamera().then(started => {
+            if (active && started) setDetecting(true);
+        });
+        return () => { active = false; };
+        // 자동 시작은 통합 학습 패널이 컴포넌트를 열 때 한 번 수행합니다.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [autoStart]);
 
     return (
         <FacePanel
@@ -196,7 +241,8 @@ const FaceDetector: React.FC<FaceDetectorProps> = ({ onClose, onDetectionResult,
             faceDetected={faceDetected} movementDetected={movementDetected} studying={studying}
             startCamera={startCamera} stopCamera={stopCamera}
             startDetection={startDetection} stopDetection={stopDetection}
-            onClose={() => { stopCamera(); callbacksRef.current.onClose?.(); }}
+            managed={autoStart}
+            onClose={onClose ? () => { stopCamera(); callbacksRef.current.onClose?.(); } : undefined}
         />
     );
 };

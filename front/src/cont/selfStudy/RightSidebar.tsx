@@ -1,6 +1,6 @@
 // 최솔 - 타이머와 내 학습 기록만 배치
 import React from 'react';
-import Timer from '../timer/Timer';
+import FocusStudyPanel from './FocusStudyPanel';
 import StudyHistory from './StudyHistory';
 import { QuizSession, SelfStudyResult } from './types';
 import styles from './selfstudy.module.css';
@@ -22,9 +22,7 @@ export const RightSidebar: React.FC<Props> = (props) => (
   <aside className={styles.rightSidebar}>
     <div className={styles.sidebarHeaderSpacer} aria-hidden="true" />
 
-    <div className={styles.topPanel}>
-      <Timer />
-    </div>
+    <FocusStudyPanel />
 
     <StudyHistory {...props} />
   </aside>
