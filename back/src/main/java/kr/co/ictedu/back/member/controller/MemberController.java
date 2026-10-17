@@ -649,9 +649,7 @@ public class MemberController {
 
             return ResponseEntity.ok(vo);
 
-        } catch (IllegalArgumentException e) {
-
-		} catch (IllegalArgumentException e) {
+        }  catch (IllegalArgumentException e) {
 			return ResponseEntity.badRequest().body(e.getMessage());
 		}
 	}
