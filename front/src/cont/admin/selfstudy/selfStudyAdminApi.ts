@@ -1,5 +1,6 @@
 //최솔
 import axios from 'axios';
+import store from '../../../login/reducers/store';
 
 export interface Category {
   categoryId: number;
@@ -20,8 +21,9 @@ type Status = 'Y' | 'N';
 const BASE_URL = `${(process.env.REACT_APP_BACK_END_URL || 'http://192.168.0.19/back').replace(/\/$/, '')}/api/selfstudy/admin`;
 const client = axios.create({ baseURL: BASE_URL });
 client.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) config.headers.set('Authorization', `Bearer ${token}`);
+  const token = store.getState().auth.token;
+  if (!token) return Promise.reject(new Error('로그인이 필요합니다.'));
+  config.headers.set('Authorization', `Bearer ${token}`);
   return config;
 });
 
