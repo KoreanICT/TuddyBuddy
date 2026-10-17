@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
@@ -29,6 +30,7 @@ import jakarta.servlet.http.HttpSession;
 import kr.co.ictedu.back.common.service.PagingService;
 import kr.co.ictedu.back.common.vo.PageVO;
 import kr.co.ictedu.back.member.service.MemberService;
+import kr.co.ictedu.back.member.service.MemberService.PasswordChangeResult;
 import kr.co.ictedu.back.member.vo.MemberVO;
 
 @CrossOrigin(
@@ -39,14 +41,14 @@ import kr.co.ictedu.back.member.vo.MemberVO;
 @RequestMapping("/api/member")
 public class MemberController {
 
-	@Autowired
-	private MemberService memberService;
+    @Autowired
+    private MemberService memberService;
 
-	@Autowired
-	private PagingService pagingService;
+    @Autowired
+    private PagingService pagingService;
 
-	@Autowired
-	private JdbcTemplate jdbcTemplate;
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     // ==========================================
     // 관리자 회원가입
@@ -67,16 +69,18 @@ public class MemberController {
             @RequestBody MemberVO memberDTO) {
 
         System.out.println("회원가입 요청 들어옴");
+
         System.out.println(
             "email = " + memberDTO.getMember_email()
         );
+
         System.out.println(
             "nick = " + memberDTO.getMember_nick()
         );
 
 		memberDTO.setAuthority(MemberRoles.MEMBER);
 
-		memberService.create(memberDTO);
+        memberService.create(memberDTO);
 
         return ResponseEntity.ok(
             "회원가입이 완료되었습니다."
@@ -94,8 +98,8 @@ public class MemberController {
             "이메일 중복 확인 : " + email
         );
 
-		return memberService.checkemail(email);
-	}
+        return memberService.checkemail(email);
+    }
 
     // ==========================================
     // 닉네임 중복 확인
@@ -104,11 +108,11 @@ public class MemberController {
     public ResponseEntity<Integer> nickCheck(
             @RequestParam("nick") String nick) {
 
-		String trimmedNick = nick.trim();
+        if (nick == null || nick.trim().isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
 
-		if (trimmedNick.isEmpty()) {
-			return ResponseEntity.badRequest().build();
-		}
+        String trimmedNick = nick.trim();
 
         String sql =
             "SELECT COUNT(*) FROM member WHERE member_nick = ?";
@@ -117,11 +121,6 @@ public class MemberController {
             sql,
             Integer.class,
             trimmedNick
-        );
-
-        System.out.println(
-            "닉네임 중복 확인 : " + trimmedNick
-            + " / 중복 개수 : " + count
         );
 
         return ResponseEntity.ok(
@@ -136,13 +135,7 @@ public class MemberController {
     public ResponseEntity<?> getMyInfo(
             Authentication authentication) {
 
-        // JWT 인증 여부 확인
-        if (authentication == null
-                || !authentication.isAuthenticated()
-                || "anonymousUser".equals(
-                    authentication.getPrincipal()
-                )) {
-
+        if (!isLoggedIn(authentication)) {
             return ResponseEntity.status(401).body(
                 Map.of(
                     "success", false,
@@ -151,25 +144,12 @@ public class MemberController {
             );
         }
 
-        // JWT에서 인증된 이메일 가져오기
         String email = authentication.getName();
 
-        if (email == null || email.isBlank()) {
-
-            return ResponseEntity.status(401).body(
-                Map.of(
-                    "success", false,
-                    "message", "회원 인증정보가 없습니다."
-                )
-            );
-        }
-
-        // Oracle DB에서 실제 회원 조회
         MemberVO member =
             memberService.getMemberByEmail(email);
 
         if (member == null) {
-
             return ResponseEntity.status(404).body(
                 Map.of(
                     "success", false,
@@ -178,8 +158,7 @@ public class MemberController {
             );
         }
 
-        // 화면에 필요한 회원정보만 반환
-        // 비밀번호, 소셜 ID는 제외
+        // 비밀번호와 카카오 고유 ID는 반환하지 않음
         Map<String, Object> response =
             new LinkedHashMap<>();
 
@@ -241,22 +220,335 @@ public class MemberController {
     }
 
     // ==========================================
-    // 회원정보 수정 (기존 기능 유지)
+    // 회원정보 수정 (JWT)
+    // 닉네임, 전화번호 변경
     // ==========================================
     @PostMapping("/update")
-    public int updateMyInfo(
-            @RequestBody MemberVO vo) {
+    public ResponseEntity<?> updateMyInfo(
+            @RequestBody MemberVO vo,
+            Authentication authentication) {
 
-        System.out.println(
-            "받은 nick = " + vo.getMember_nick()
+        if (!isLoggedIn(authentication)) {
+            return ResponseEntity.status(401).body(
+                Map.of(
+                    "success", false,
+                    "message", "로그인이 필요합니다."
+                )
+            );
+        }
+
+        String loginEmail = authentication.getName();
+
+        MemberVO loginMember =
+            memberService.getMemberByEmail(loginEmail);
+
+        if (loginMember == null) {
+            return ResponseEntity.status(404).body(
+                Map.of(
+                    "success", false,
+                    "message", "회원정보를 찾을 수 없습니다."
+                )
+            );
+        }
+
+        if (vo == null
+                || vo.getMember_nick() == null
+                || vo.getMember_phone() == null) {
+
+            return ResponseEntity.badRequest().body(
+                Map.of(
+                    "success", false,
+                    "message", "닉네임과 전화번호를 입력해주세요."
+                )
+            );
+        }
+
+        String nickname = vo.getMember_nick().trim();
+        String phone = vo.getMember_phone().trim();
+
+        // 닉네임 길이 검사
+        if (nickname.length() < 2
+                || nickname.length() > 12) {
+
+            return ResponseEntity.badRequest().body(
+                Map.of(
+                    "success", false,
+                    "message", "닉네임은 2~12자로 입력해주세요."
+                )
+            );
+        }
+
+        // 닉네임 형식 검사
+        if (!nickname.matches("^[가-힣a-zA-Z0-9]+$")) {
+            return ResponseEntity.badRequest().body(
+                Map.of(
+                    "success", false,
+                    "message", "닉네임은 한글, 영문, 숫자만 사용할 수 있습니다."
+                )
+            );
+        }
+
+        if (nickname.matches("^[0-9]+$")) {
+            return ResponseEntity.badRequest().body(
+                Map.of(
+                    "success", false,
+                    "message", "숫자로만 이루어진 닉네임은 사용할 수 없습니다."
+                )
+            );
+        }
+
+        String lowerNickname = nickname.toLowerCase();
+
+        if (List.of(
+                "관리자",
+                "운영자",
+                "admin",
+                "administrator"
+            ).contains(lowerNickname)) {
+
+            return ResponseEntity.badRequest().body(
+                Map.of(
+                    "success", false,
+                    "message", "사용할 수 없는 닉네임입니다."
+                )
+            );
+        }
+
+        // 전화번호 검사
+        String phoneNumber = phone.replace("-", "");
+
+        if (!phoneNumber.matches("^01[0-9]{8,9}$")) {
+            return ResponseEntity.badRequest().body(
+                Map.of(
+                    "success", false,
+                    "message", "올바른 휴대전화 번호를 입력해주세요."
+                )
+            );
+        }
+
+        // 현재 회원을 제외한 닉네임 중복 확인
+        String sql =
+            "SELECT COUNT(*) FROM member "
+            + "WHERE member_nick = ? "
+            + "AND member_num <> ?";
+
+        Integer duplicateCount =
+            jdbcTemplate.queryForObject(
+                sql,
+                Integer.class,
+                nickname,
+                loginMember.getMember_num()
+            );
+
+        if (duplicateCount != null
+                && duplicateCount > 0) {
+
+            return ResponseEntity.status(409).body(
+                Map.of(
+                    "success", false,
+                    "message", "이미 사용 중인 닉네임입니다."
+                )
+            );
+        }
+
+        // 클라이언트가 보낸 회원번호나 이메일은 사용하지 않음
+        MemberVO updateMember = new MemberVO();
+
+        updateMember.setMember_email(
+            loginMember.getMember_email()
         );
 
-        System.out.println(
-            "받은 email = " + vo.getMember_email()
-        );
+        updateMember.setMember_nick(nickname);
+        updateMember.setMember_phone(phoneNumber);
 
-		return memberService.updateMember(vo);
-	}
+        try {
+            int result =
+                memberService.updateMember(updateMember);
+
+            if (result <= 0) {
+                return ResponseEntity.status(500).body(
+                    Map.of(
+                        "success", false,
+                        "message", "회원정보 수정에 실패했습니다."
+                    )
+                );
+            }
+
+            System.out.println(
+                "===== 회원정보 수정 성공 ====="
+            );
+
+            return ResponseEntity.ok(result);
+
+        } catch (DataIntegrityViolationException e) {
+
+            return ResponseEntity.status(409).body(
+                Map.of(
+                    "success", false,
+                    "message", "이미 사용 중인 정보가 있습니다."
+                )
+            );
+        }
+    }
+
+    // ==========================================
+    // 일반 회원 비밀번호 변경 (JWT)
+    // ==========================================
+    @PostMapping("/password/change")
+    public ResponseEntity<?> changePassword(
+            @RequestBody Map<String, String> request,
+            Authentication authentication) {
+
+    	 System.out.println("===== 비밀번호 변경 Controller 진입 =====");
+
+    	    System.out.println(
+    	        "인증 사용자: " +
+    	        (authentication != null
+    	            ? authentication.getName()
+    	            : "null")
+    	    );
+        // 로그인 확인
+        if (!isLoggedIn(authentication)) {
+            return ResponseEntity.status(401).body(
+                Map.of(
+                    "success", false,
+                    "message", "로그인이 필요합니다."
+                )
+            );
+        }
+
+        if (request == null) {
+            return ResponseEntity.badRequest().body(
+                Map.of(
+                    "success", false,
+                    "message", "비밀번호 정보를 입력해주세요."
+                )
+            );
+        }
+
+        String currentPassword =
+            request.get("currentPassword");
+
+        String newPassword =
+            request.get("newPassword");
+
+        String newPasswordCheck =
+            request.get("newPasswordCheck");
+
+        // 필수값 확인
+        if (currentPassword == null
+                || currentPassword.isEmpty()
+                || newPassword == null
+                || newPassword.isEmpty()
+                || newPasswordCheck == null
+                || newPasswordCheck.isEmpty()) {
+
+            return ResponseEntity.badRequest().body(
+                Map.of(
+                    "success", false,
+                    "message", "비밀번호 항목을 모두 입력해주세요."
+                )
+            );
+        }
+
+        // 비밀번호 확인 일치 여부
+        if (!newPassword.equals(newPasswordCheck)) {
+            return ResponseEntity.badRequest().body(
+                Map.of(
+                    "success", false,
+                    "message", "새 비밀번호가 일치하지 않습니다."
+                )
+            );
+        }
+
+        // JWT 사용자 이메일로만 비밀번호 변경
+        String email = authentication.getName();
+
+        PasswordChangeResult result =
+            memberService.changePassword(
+                email,
+                currentPassword,
+                newPassword
+            );
+
+        switch (result) {
+
+            case SUCCESS:
+                System.out.println(
+                    "===== 일반 회원 비밀번호 변경 성공 ====="
+                );
+
+                return ResponseEntity.ok(
+                    Map.of(
+                        "success", true,
+                        "message", "비밀번호가 변경되었습니다."
+                    )
+                );
+
+            case KAKAO_ACCOUNT:
+                return ResponseEntity.status(403).body(
+                    Map.of(
+                        "success", false,
+                        "message", "카카오 회원은 비밀번호를 변경할 수 없습니다."
+                    )
+                );
+
+            case INVALID_CURRENT_PASSWORD:
+                return ResponseEntity.badRequest().body(
+                    Map.of(
+                        "success", false,
+                        "message", "현재 비밀번호가 일치하지 않습니다."
+                    )
+                );
+
+            case SAME_PASSWORD:
+                return ResponseEntity.badRequest().body(
+                    Map.of(
+                        "success", false,
+                        "message", "현재 비밀번호와 다른 비밀번호를 입력해주세요."
+                    )
+                );
+
+            case INVALID_NEW_PASSWORD:
+                return ResponseEntity.badRequest().body(
+                    Map.of(
+                        "success", false,
+                        "message", "새 비밀번호는 8~72자이며 영문과 숫자를 포함해야 합니다."
+                    )
+                );
+
+            case NOT_FOUND:
+                return ResponseEntity.status(404).body(
+                    Map.of(
+                        "success", false,
+                        "message", "회원정보를 찾을 수 없습니다."
+                    )
+                );
+
+            default:
+                return ResponseEntity.status(409).body(
+                    Map.of(
+                        "success", false,
+                        "message", "비밀번호 변경 상태가 변경되었습니다. 다시 시도해주세요."
+                    )
+                );
+        }
+    }
+
+    // ==========================================
+    // JWT 로그인 여부 확인
+    // ==========================================
+    private boolean isLoggedIn(
+            Authentication authentication) {
+
+        return authentication != null
+            && authentication.isAuthenticated()
+            && authentication.getName() != null
+            && !authentication.getName().isBlank()
+            && !"anonymousUser".equals(
+                authentication.getPrincipal()
+            );
+    }
 
     // ==========================================
     // 회원 탈퇴 (기존 기능 유지)
@@ -334,42 +626,30 @@ public class MemberController {
 		response.put("startPage", pageVO.getStartPage());
 		response.put("endPage", pageVO.getEndPage());
 
-		return response;
-	}
+        return response;
+    }
 
-	// 회원 코드로 회원 검색
-	// 담당인원 : 주용현
-	@GetMapping("/memberCodeSearch")
-	public ResponseEntity<?> memberCodeSearch(@RequestParam("member_code") String member_code) {
+    // ==========================================
+    // 회원 코드로 회원 검색
+    // 담당인원 : 주용현
+    // ==========================================
+    @GetMapping("/memberCodeSearch")
+    public ResponseEntity<?> memberCodeSearch(
+            @RequestParam("member_code") String member_code) {
 
-		try {
+        try {
+            MemberVO vo =
+                memberService.findByMemberCode(
+                    member_code
+                );
 
-			MemberVO vo = memberService.findByMemberCode(member_code);
+            if (vo == null) {
+                return ResponseEntity.notFound().build();
+            }
 
-			if (vo == null) {
-				return ResponseEntity.notFound().build();
-			}
+            return ResponseEntity.ok(vo);
 
-			return ResponseEntity.ok(vo);
-
-		} catch (IllegalArgumentException e) {
-
-			return ResponseEntity.badRequest().body(e.getMessage());
-		}
-	}
-
-	// 회원 번호로 회원 정보 상세 조회
-	// 담당인원 : 주용현
-	@GetMapping("/memberProfile")
-	public ResponseEntity<?> getMemberProfile(@RequestParam("member_num") Long member_num) {
-		try {
-			Map<String, Object> profile = memberService.getMemberProfile(member_num);
-
-			if (profile == null || profile.isEmpty()) {
-				return ResponseEntity.notFound().build();
-			}
-
-			return ResponseEntity.ok(profile);
+        } catch (IllegalArgumentException e) {
 
 		} catch (IllegalArgumentException e) {
 			return ResponseEntity.badRequest().body(e.getMessage());
