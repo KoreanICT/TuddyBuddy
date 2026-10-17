@@ -1,14 +1,16 @@
-
 package kr.co.ictedu.back.member;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-import java.util.UUID;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import kr.co.ictedu.back.member.dao.MemberDAO;
 import kr.co.ictedu.back.member.service.MemberService;
@@ -16,6 +18,21 @@ import kr.co.ictedu.back.member.vo.MemberVO;
 
 @SpringBootTest
 public class MemberSignupTest {
+
+    @Value("${test.member.email}")
+    private String loginEmail;
+
+    @Value("${test.member.password}")
+    private String password;
+
+    @Value("${test.member.nick}")
+    private String nick;
+
+    @Value("${test.member.name}")
+    private String name;
+
+    @Value("${test.member.phone}")
+    private String phone;
 
     @Autowired
     private MemberService memberService;
@@ -26,63 +43,53 @@ public class MemberSignupTest {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    // =========================
-    // 실제 Oracle DB 회원가입 테스트
-    // =========================
+    @Autowired
+    private PlatformTransactionManager transactionManager;
+
+    // 수동 실행용: 모든 검증에 성공하면 로그인용 더미 회원을 실제 DB에 유지합니다.
+    // 더미 회원 정보는 application.properties의 test.member 설정에서 읽습니다.
     @Test
     void signupRealDBTest() {
-        String unique = UUID.randomUUID().toString().substring(0, 8);
-        String email = "test" + unique + "@example.com";
-        String password = "Test1234!";
-        String nick = "tester" + unique;
+        assertTrue(loginEmail != null && !loginEmail.isBlank(), "더미 이메일 설정이 필요합니다.");
+        assertTrue(password != null && !password.isBlank(), "더미 비밀번호 설정이 필요합니다.");
+        assertTrue(nick != null && !nick.isBlank(), "더미 닉네임 설정이 필요합니다.");
+        assertTrue(name != null && !name.isBlank(), "더미 이름 설정이 필요합니다.");
+        assertTrue(phone != null && !phone.isBlank(), "더미 전화번호 설정이 필요합니다.");
 
-        // 회원가입 데이터
-        MemberVO vo = new MemberVO();
-        vo.setMember_email(email);
-        vo.setMember_pwd(password);
-        vo.setMember_name("테스트회원");
-        vo.setMember_nick(nick);
-        vo.setMember_phone("01012345678");
-        vo.setMember_code("TEST" + unique);
-        vo.setAuthority("MEMBER");
-        vo.setMember_login_type("LOCAL");
+        new TransactionTemplate(transactionManager).executeWithoutResult(status -> {
+            MemberVO saved = memberDAO.getMemberByEmail(loginEmail);
+            if (saved == null) {
+                assertEquals(0, memberDAO.countByNick(nick),
+                        "더미 닉네임이 이미 사용 중입니다. 기존 회원은 변경하지 않습니다.");
 
-        // 1. 회원가입 전 중복 검사
-        assertEquals(0, memberDAO.countByEmail(email));
-        assertEquals(0, memberDAO.countByNick(nick));
+                MemberVO fixture = new MemberVO();
+                fixture.setMember_email(loginEmail);
+                fixture.setMember_pwd(password);
+                fixture.setMember_name(name);
+                fixture.setMember_nick(nick);
+                fixture.setMember_phone(phone);
+                fixture.setMember_login_type("LOCAL");
+                memberService.create(fixture);
+                saved = memberDAO.getMemberByEmail(loginEmail);
+            }
 
-        // 2. 실제 회원가입
-        memberService.create(vo);
+            assertNotNull(saved, "더미 회원 저장 후 조회에 실패했습니다.");
+            // 동일 이메일의 다른 계정은 재사용하거나 초기화하지 않습니다.
+            assertTrue(name.equals(saved.getMember_name())
+                            && nick.equals(saved.getMember_nick()),
+                    "기존 계정이 이 테스트의 더미 회원이 아닙니다. 기존 회원은 변경하지 않습니다.");
+            assertNotNull(saved.getMember_num(), "회원 번호가 생성되지 않았습니다.");
+            assertTrue(loginEmail.equals(saved.getMember_email()), "더미 이메일이 일치하지 않습니다.");
+            assertTrue("MEMBER".equals(saved.getAuthority()), "더미 회원 권한이 MEMBER가 아닙니다.");
+            assertTrue("LOCAL".equals(saved.getMember_login_type()), "더미 회원이 일반 로그인 계정이 아닙니다.");
+            assertTrue(saved.getMember_pwd() != null && saved.getMember_pwd().startsWith("$2"),
+                    "저장된 비밀번호가 BCrypt 형식이 아닙니다.");
+            assertTrue(passwordEncoder.matches(password, saved.getMember_pwd()),
+                    "기존 더미 회원의 비밀번호가 테스트 비밀번호와 다릅니다. 기존 계정은 변경하지 않습니다.");
+            assertEquals(1, memberDAO.countByEmail(loginEmail), "더미 이메일 중복 상태를 확인해주세요.");
+            assertEquals(1, memberDAO.countByNick(nick), "더미 닉네임 중복 상태를 확인해주세요.");
+        });
 
-        // 3. DB에 저장된 회원 조회
-        MemberVO saved = memberDAO.getMemberByEmail(email);
-
-        // 4. 회원정보 검증
-        assertNotNull(saved, "회원정보가 DB에 저장되지 않았습니다.");
-        assertNotNull(saved.getMember_num());
-        assertEquals(email, saved.getMember_email());
-        assertEquals("테스트회원", saved.getMember_name());
-        assertEquals(nick, saved.getMember_nick());
-        assertEquals("MEMBER", saved.getAuthority());
-        assertEquals("LOCAL", saved.getMember_login_type());
-
-        // 5. BCrypt 암호화 검증
-        assertNotEquals(password, saved.getMember_pwd());
-        assertTrue(passwordEncoder.matches(password, saved.getMember_pwd()));
-
-        // 6. 회원가입 후 중복 검사
-        assertEquals(1, memberDAO.countByEmail(email));
-        assertEquals(1, memberDAO.countByNick(nick));
-
-        System.out.println("==================================");
-        System.out.println("실제 Oracle 회원가입 테스트 성공");
-        System.out.println("회원번호 : " + saved.getMember_num());
-        System.out.println("이메일 : " + saved.getMember_email());
-        System.out.println("이름 : " + saved.getMember_name());
-        System.out.println("닉네임 : " + saved.getMember_nick());
-        System.out.println("권한 : " + saved.getAuthority());
-        System.out.println("로그인 타입 : " + saved.getMember_login_type());
-        System.out.println("BCrypt 암호화 검증 성공");
-        System.out.println("==================================");
+        System.out.println("로그인용 더미 회원 준비 및 검증을 완료했습니다.");
     }
 }

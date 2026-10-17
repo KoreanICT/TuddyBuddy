@@ -67,11 +67,7 @@ public class SecurityConfig {
 				.authorizeHttpRequests((auth) -> auth
 
 						.requestMatchers("/api/auth/**").permitAll() // /api/auth/** 에서 오는 모든 요청은 허용
-                        .requestMatchers(
-                        		"/api/chatbot/session", 
-                        		"/api/chatbot/ai", 
-                        		"/api/chatbot/message/session/*"
-                        ).permitAll() // Chatbot 회원/비회원 공통 API
+						.requestMatchers("/api/chatbot/session", "/api/chatbot/ai", "/api/chatbot/message/session/*").permitAll() // Chatbot 회원/비회원 공통 API
 						.requestMatchers("/api/member/admin/signup").denyAll().requestMatchers("/api/member/admin/**")
 						.hasAuthority(MemberRoles.ADMIN)
 						.requestMatchers("/api/member/memberList", "/api/selfstudy/admin/**", "/api/notice/noticeAdd",
