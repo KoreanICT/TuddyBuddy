@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import styles from './memberManagement.module.css';
 import { useAuth } from '../../../login/hooks/useAuth';
-import { parseJwt } from '../../../login/comp/jwtUtils';
-import { MemberRole, ROLE_LABELS } from '../../../login/auth/roles';
+import { useRoleAccess } from '../../../login/hooks/useRoleAccess';
+import { MemberRole, ROLE_LABELS, ROLE_ACCESS } from '../../../login/auth/roles';
 import ProfileCard from '../../profile/ProfileCard';
 
 type EditableRole = 'MEMBER' | 'SUB_ADMIN';
@@ -38,8 +38,8 @@ const errorMessage = (error: unknown, fallback: string): string => {
 
 const MemberManagement: React.FC = () => {
     const { token, memberNum } = useAuth();
-    const decoded = token ? parseJwt(token) : null;
-    const canEdit = decoded?.role === 'ADMIN' && decoded.exp > Date.now() / 1000;
+    const { hasRole } = useRoleAccess();
+    const canEdit = hasRole(ROLE_ACCESS.manageMemberRole);
     const [members, setMembers] = useState<Member[]>([]);
     const [pagination, setPagination] = useState({ totalItems: 0, totalPages: 0, startPage: 1, endPage: 0 });
     const [currentPage, setCurrentPage] = useState(1);
@@ -165,7 +165,7 @@ const MemberManagement: React.FC = () => {
                                     <td>{member.member_name}</td>
                                     <td>{member.member_nick}</td>
                                     <td>{member.member_email}</td>
-                                    <td>{member.authority === 'ADMIN' ? ROLE_LABELS.ADMIN : (
+                                    <td>{!editable ? ROLE_LABELS[member.authority] : (
                                         <select aria-label={`${member.member_nick} 권한`} className={styles.select}
                                             value={drafts[member.member_num] || member.authority}
                                             disabled={!editable || saving !== null}

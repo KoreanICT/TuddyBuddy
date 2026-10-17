@@ -1,6 +1,8 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import styles from './adminSidebar.module.css';
+import RoleGate from '../../login/auth/RoleGate';
+import { ROLE_ACCESS } from '../../login/auth/roles';
 
 const AdminSidebar: React.FC = () => {
     return (
@@ -9,6 +11,7 @@ const AdminSidebar: React.FC = () => {
                 관리자 메뉴
             </div>
 
+            <RoleGate allowedRoles={ROLE_ACCESS.admin}>
             <nav className={styles.menu}>
                 <NavLink
                     to="/admin"
@@ -61,6 +64,7 @@ const AdminSidebar: React.FC = () => {
                     }>
                     스터디 관리
                 </NavLink>
+                <RoleGate allowedRoles={ROLE_ACCESS.manageSelfStudy}>
                 <NavLink
                     to="/admin/selfstudy"
                     className={({ isActive }) =>
@@ -69,6 +73,7 @@ const AdminSidebar: React.FC = () => {
                 >
                     셀프스터디 관리
                 </NavLink>
+                </RoleGate>
                 <NavLink
                     to="/"
                     className={({ isActive }) =>
@@ -77,6 +82,7 @@ const AdminSidebar: React.FC = () => {
                     홈으로
                 </NavLink>
             </nav>
+            </RoleGate>
         </aside>
     );
 };
