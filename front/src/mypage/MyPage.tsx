@@ -110,18 +110,6 @@ const MyPage: React.FC = () => {
         };
     }, []);
 
-    // 회원 권한 표시
-    const getAuthorityText = (authority?: string) => {
-        switch (authority?.toUpperCase()) {
-            case 'ADMIN':
-                return '관리자';
-            case 'MEMBER':
-                return '학생';
-            default:
-                return authority || '-';
-        }
-    };
-
     // 포인트 표시
     const formatPoint = (point?: number | null) => {
         const value = Number(point ?? 0);
@@ -332,9 +320,6 @@ const MyPage: React.FC = () => {
 
                                             <p>
                                                 {member.member_email}
-                                                <span className="badge">
-                                                    {getAuthorityText(member.authority)}
-                                                </span>
                                             </p>
                                         </div>
                                     </div>
@@ -356,97 +341,85 @@ const MyPage: React.FC = () => {
                                     </div>
 
                                     {/* 이메일 */}
-                                    <div className="form-group">
-                                        <label htmlFor="mypage-email">
-                                            이메일
-                                        </label>
+                                    <div className="mypage-info-grid">
+                                        <div className="form-group">
+                                            <label htmlFor="mypage-email">
+                                                이메일
+                                            </label>
 
-                                        <input
-                                            id="mypage-email"
-                                            type="text"
-                                            value={member.member_email || ''}
-                                            readOnly
-                                        />
-                                    </div>
+                                            <input
+                                                id="mypage-email"
+                                                type="text"
+                                                value={member.member_email || ''}
+                                                readOnly
+                                            />
+                                        </div>
 
-                                    {/* 이름 */}
-                                    <div className="form-group">
-                                        <label htmlFor="mypage-name">
-                                            이름
-                                        </label>
+                                        {/* 이름 */}
+                                        <div className="form-group">
+                                            <label htmlFor="mypage-name">
+                                                이름
+                                            </label>
 
-                                        <input
-                                            id="mypage-name"
-                                            type="text"
-                                            value={member.member_name || ''}
-                                            readOnly
-                                        />
-                                    </div>
+                                            <input
+                                                id="mypage-name"
+                                                type="text"
+                                                value={member.member_name || ''}
+                                                readOnly
+                                            />
+                                        </div>
 
-                                    {/* 닉네임 */}
-                                    <div className="form-group">
-                                        <label htmlFor="mypage-nick">
-                                            닉네임
-                                        </label>
+                                        {/* 닉네임 */}
+                                        <div className="form-group">
+                                            <label htmlFor="mypage-nick">
+                                                닉네임
+                                            </label>
 
-                                        <input
-                                            id="mypage-nick"
-                                            type="text"
-                                            value={member.member_nick || ''}
-                                            readOnly
-                                        />
-                                    </div>
+                                            <input
+                                                id="mypage-nick"
+                                                type="text"
+                                                value={member.member_nick || ''}
+                                                readOnly
+                                            />
+                                        </div>
 
-                                    {/* 전화번호 */}
-                                    <div className="form-group">
-                                        <label htmlFor="mypage-phone">
-                                            전화번호
-                                        </label>
+                                        {/* 전화번호 */}
+                                        <div className="form-group">
+                                            <label htmlFor="mypage-phone">
+                                                전화번호
+                                            </label>
 
-                                        <input
-                                            id="mypage-phone"
-                                            type="text"
-                                            value={member.member_phone || ''}
-                                            readOnly
-                                        />
-                                    </div>
+                                            <input
+                                                id="mypage-phone"
+                                                type="text"
+                                                value={member.member_phone || ''}
+                                                readOnly
+                                            />
+                                        </div>
 
-                                    {/* 가입일 */}
-                                    <div className="form-group">
-                                        <label htmlFor="mypage-regdate">
-                                            가입일
-                                        </label>
+                                        {/* 가입일 */}
+                                        <div className="form-group">
+                                            <label htmlFor="mypage-regdate">
+                                                가입일
+                                            </label>
 
-                                        <input
-                                            id="mypage-regdate"
-                                            type="text"
-                                            value={formatRegdate(member.regdate)}
-                                            readOnly
-                                        />
+                                            <input
+                                                id="mypage-regdate"
+                                                type="text"
+                                                value={formatRegdate(member.regdate)}
+                                                readOnly
+                                            />
+                                        </div>
+
                                     </div>
 
                                     {/* 회원정보 수정 버튼 */}
-                                    <div
-                                        style={{
-                                            display: 'flex',
-                                            justifyContent: 'flex-end',
-                                            marginTop: '24px'
-                                        }}
-                                    >
+                                    <div className="mypage-edit-actions">
                                         <button
                                             type="button"
                                             onClick={handleMemberEdit}
                                             disabled={withdrawing}
-                                            style={{
-                                                padding: '12px 24px',
-                                                border: 'none',
-                                                borderRadius: '8px',
-                                                backgroundColor: '#2563eb',
-                                                color: '#ffffff',
-                                                fontSize: '14px',
-                                                fontWeight: 600,
-                                                cursor: 'pointer'
-                                            }}
+                                            className="mypage-edit-button"
                                         >
                                             정보 수정
                                         </button>
