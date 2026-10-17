@@ -80,14 +80,19 @@ export const StudyHistory: React.FC<Props> = ({
 
   <button
     type="button"
-    className={styles.historyToggleBtn}
+    className={timerStyles.toggleButton}
     onClick={() => setIsExpanded((prev) => !prev)}
     aria-expanded={isExpanded}
     aria-controls={contentId}
   >
     {isExpanded ? '접기' : '펼치기'}
-    <span aria-hidden="true">
-      {isExpanded ? '⌃' : '⌄'}
+    <span
+      className={`${styles.historyChevron} ${
+        !isExpanded ? styles.historyChevronCollapsed : ''
+      }`}
+      aria-hidden="true"
+    >
+    
     </span>
   </button>
 </div>
@@ -170,7 +175,7 @@ export const StudyHistory: React.FC<Props> = ({
                       <div className={styles.historyActions}>
                         <button
                           type="button"
-                          className={`${styles.actionPrimaryBtn} ${styles.historyRestoreBtn}`}
+                          className={timerStyles.primaryButton}
                           disabled={busy || historyLoading}
                           onClick={() => void onRestoreSession(sessionId)}
                         >
@@ -179,7 +184,7 @@ export const StudyHistory: React.FC<Props> = ({
 
                         <button
                           type="button"
-                          className={`${styles.actionBtn} ${styles.historyDeleteBtn}`}
+                          className={timerStyles.secondaryButton}
                           disabled={busy || historyLoading}
                           onClick={() => void onDeleteSession(sessionId)}
                         >
