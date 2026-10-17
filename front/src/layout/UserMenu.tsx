@@ -41,7 +41,8 @@ const UserMenu: React.FC = () => {
 
   // 로그아웃 처리
   const handleLogout = async () => {
-    await dispatch(logoutAction());
+    const serverCleared = await dispatch(logoutAction());
+    if (!serverCleared) window.alert('이 기기에서는 로그아웃되었습니다. 서버 연결 문제로 서버 세션 종료를 확인하지 못했습니다. 자동 로그인은 차단되며 다시 이용하려면 직접 로그인해주세요.');
     closeMenu();
   };
 

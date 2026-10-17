@@ -1,18 +1,16 @@
+import { BACKEND_URL, authPost } from './authHttp';
 
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { CheckCircle2, LockKeyhole } from 'lucide-react';
 
-import { useAppDispatch } from './reducers/store';
-import { loginSuccess } from './reducers/authReducer';
+import { saveSession } from './session';
 
 import '../member/Signup.css';
 import styles from './KakaoSignup.module.css';
 
-const API_URL =
-    process.env.REACT_APP_BACK_END_URL ||
-    'http://192.168.0.20:80/back';
+const API_URL = BACKEND_URL;
 
 interface KakaoProfile {
     email?: string;
@@ -40,7 +38,7 @@ type NickStatus = 'idle' | 'available' | 'duplicate' | 'error';
 const KakaoSignup: React.FC = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    const dispatch = useAppDispatch();
+
 
     const routeState = location.state as KakaoSignupLocationState | null;
     const kakaoProfile = routeState?.kakaoProfile;
@@ -156,7 +154,7 @@ const KakaoSignup: React.FC = () => {
                 setMessage('닉네임 중복확인 결과를 확인할 수 없습니다.');
             }
         } catch (error) {
-            console.error('닉네임 중복확인 오류:', error);
+            console.error('닉네임 중복확인 오류:');
             setNickStatus('error');
             setMessage('닉네임 중복확인 중 오류가 발생했습니다.');
         } finally {
@@ -209,7 +207,7 @@ const KakaoSignup: React.FC = () => {
                     : response.data.message || '인증번호 발송에 실패했습니다.'
             );
         } catch (error) {
-            console.error('이메일 발송 오류:', error);
+            console.error('이메일 발송 오류:');
 
             setMessage(
                 axios.isAxiosError(error)
@@ -266,7 +264,7 @@ const KakaoSignup: React.FC = () => {
                 setMessage(response.data.message || '이메일 인증에 실패했습니다.');
             }
         } catch (error) {
-            console.error('이메일 인증 오류:', error);
+            console.error('이메일 인증 오류:');
             setEmailVerified(false);
             setVerificationToken('');
 
@@ -325,7 +323,7 @@ const KakaoSignup: React.FC = () => {
         setSignupLoading(true);
 
         try {
-            const response = await axios.post<KakaoSignupResponse>(
+            const response = await authPost<KakaoSignupResponse>(
                 `${API_URL}/api/auth/kakao/signup`,
                 {
                     signupToken,
@@ -362,25 +360,15 @@ const KakaoSignup: React.FC = () => {
                 return;
             }
 
-            // 로그인 정보 저장
-            localStorage.setItem('token', token);
-            localStorage.setItem('username', username);
-            localStorage.setItem('member_num', String(member_num));
-            localStorage.setItem('authority', authority);
-
-            // Redux 상태 변경
-            dispatch(loginSuccess({
-                username,
-                token,
-                member_num,
-                authority
-            }));
-
+            if (!saveSession({ username, token, member_num, authority }, response.authTicket)) {
+                setMessage('로그인 상태가 변경되었습니다. 다시 로그인해주세요.');
+                return;
+            }
             sessionStorage.removeItem('kakao_signup_token');
 
             navigate('/', { replace: true });
         } catch (error) {
-            console.error('카카오 회원가입 오류:', error);
+            console.error('카카오 회원가입 오류');
 
             setMessage(
                 axios.isAxiosError(error)

@@ -1,3 +1,4 @@
+import { BACKEND_URL } from '../../login/authHttp';
 // 주용현
 
 import axios from 'axios';
@@ -56,7 +57,7 @@ const MyReportList: React.FC = () => {
                 setLoading(true);
 
                 const response = await axios.get<ReportListResponse>(
-                    'http://localhost:80/back/api/report/myReportList',
+                    `${BACKEND_URL}/api/report/myReportList`,
                     {
                         headers: getAuthHeaders(),
                         params: {
@@ -78,7 +79,7 @@ const MyReportList: React.FC = () => {
             } catch (error) {
                 if (!active) return;
 
-                console.error('나의 신고 목록 조회 실패:', error);
+                console.error('나의 신고 목록 조회 실패:');
                 setReportList([]);
                 setTotalItems(0);
                 setTotalPages(0);

@@ -1,3 +1,4 @@
+import { BACKEND_URL } from '../../login/authHttp';
 
 // 주용현
 
@@ -22,7 +23,7 @@ interface MemberProfile {
     member_nick?: string;
 }
 
-const API_URL = `${process.env.REACT_APP_BACK_END_URL || 'http://192.168.0.19/back'}/api`;
+const API_URL = `${BACKEND_URL}/api`;
 
 const MyFriend: React.FC = () => {
     const [friends, setFriends] = useState<FriendVO[]>([]);
@@ -70,14 +71,14 @@ const MyFriend: React.FC = () => {
                             member_nick: profile.data.MEMBER_NICK ?? profile.data.member_nick ?? '알 수 없는 회원'
                         };
                     } catch (error) {
-                        console.error('친구 닉네임 조회 실패:', error);
+                        console.error('친구 닉네임 조회 실패:');
                         return { ...friend, member_nick: '알 수 없는 회원' };
                     }
                 }));
 
                 if (!cancelled) setFriends(friendProfiles);
             } catch (error) {
-                console.error('내 친구 목록 조회 실패:', error);
+                console.error('내 친구 목록 조회 실패:');
                 if (!cancelled) setFriends([]);
             } finally {
                 if (!cancelled) setLoading(false);

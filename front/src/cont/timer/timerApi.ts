@@ -1,11 +1,9 @@
 // 최솔
 import { Interval, TimerSession, TimerSummary } from './types';
 import store from '../../login/reducers/store';
+import { BACKEND_URL, authenticatedFetch } from '../../login/authHttp';
 
-const BASE = (
-  process.env.REACT_APP_BACK_END_URL ||
-  'http://192.168.0.19:80/back'
-).replace(/\/$/, '');
+const BASE = BACKEND_URL;
 
 
 const URL = `${BASE}/api/timer-sessions`;
@@ -21,7 +19,7 @@ async function request<T>(
   if (!token) throw new Error('로그인이 필요합니다.');
   headers.set('Authorization', `Bearer ${token}`);
 
-  const response = await fetch(`${URL}${path}`, {
+  const response = await authenticatedFetch(`${URL}${path}`, {
     ...init,
     credentials: 'include',
     headers,
