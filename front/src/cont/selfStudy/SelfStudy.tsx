@@ -732,125 +732,141 @@ const SelfStudy: React.FC = () => {
   // =========================================================
 
   const handleUploadSubmit = async () => {
-    if (loading) return;
+  if (loading) return;
 
-    if (selectedSubjectId === null) {
-      alert('카테고리와 과목을 선택해주세요.');
-      return;
+  if (selectedSubjectId === null) {
+    alert('카테고리와 과목을 선택해주세요.');
+    return;
+  }
+
+  if (!selectedFile) {
+    alert('문제 생성에 사용할 이미지를 첨부해주세요.');
+    return;
+  }
+
+  if (
+    !['image/jpeg', 'image/png', 'image/webp'].includes(selectedFile.type) ||
+    selectedFile.size > 10 * 1024 * 1024
+  ) {
+    alert('10MB 이하의 JPG, PNG, WebP 이미지를 선택해주세요.');
+    return;
+  }
+
+  if (!requireLogin()) return;
+
+  setLoading(true);
+
+  const formData = new FormData();
+
+  formData.append('file', selectedFile);
+  formData.append('subject_id', String(selectedSubjectId));
+  formData.append('quiz_type', quizType);
+  formData.append('quiz_difficulty', quizDifficulty);
+  formData.append('quiz_count', String(quizCount));
+  formData.append('quiz_prompt', quizPrompt);
+
+  try {
+    const response = await fetch(
+      `${BACKEND_URL}/api/selfstudy/generate`,
+      {
+        method: 'POST',
+        credentials: 'include',
+        headers: getAuthHeaders(),
+        body: formData,
+      }
+    );
+
+    const raw = await response.text();
+
+    let data: any = {};
+
+    if (raw) {
+      try {
+        data = JSON.parse(raw);
+      } catch {
+        // JSON 형식이 아닌 서버 오류 응답 처리
+      }
     }
 
-    if (!selectedFile) {
-      alert('문제 생성에 사용할 이미지를 첨부해주세요.');
-      return;
+    if (!response.ok) {
+      const message =
+        typeof data.message === 'string'
+          ? data.message
+          : typeof data.detail === 'string'
+            ? data.detail
+            : 'AI 문제 생성에 실패했습니다.';
+
+      throw new Error(message);
     }
 
     if (
-      !['image/jpeg', 'image/png', 'image/webp'].includes(
-        selectedFile.type
-      ) ||
-      selectedFile.size > 10 * 1024 * 1024
+      !Array.isArray(data.quizzes) ||
+      data.quizzes.length !== quizCount ||
+      !data.quizSessionId
     ) {
-      alert(
-        '10MB 이하의 JPG, PNG, WebP 이미지를 선택해주세요.'
+      throw new Error(
+        '문제 생성 응답이 올바르지 않습니다. 학습 기록을 확인해주세요.'
       );
-      return;
     }
 
-    if (!requireLogin()) return;
+    // 정상 생성된 경우에만 학습 상태 변경
+    setQuizList(data.quizzes);
+    setQuizSessionId(data.quizSessionId);
+    setSubmitted(false);
+    setScore(null);
+    setWrongNotes([]);
+    setActiveTab('quiz');
 
-    setLoading(true);
-
-    const formData = new FormData();
-
-    formData.append('file', selectedFile);
-    formData.append('subject_id', String(selectedSubjectId));
-    formData.append('quiz_type', quizType);
-    formData.append('quiz_difficulty', quizDifficulty);
-    formData.append('quiz_count', String(quizCount));
-    formData.append('quiz_prompt', quizPrompt);
-
-    try {
-      const response = await fetch(
-        `${BACKEND_URL}/api/selfstudy/generate`,
-        {
-          method: 'POST',
-          credentials: 'include',
-          headers: getAuthHeaders(),
-          body: formData,
-        }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(
-          data.message ||
-          data.detail ||
-          '문제 생성에 실패했습니다.'
-        );
-      }
-
-      const newSessionId = Number(
-        data.quizSessionId ?? data.quiz_session_id
-      );
-
-      if (
-        !Array.isArray(data.quizzes) ||
-        !Number.isFinite(newSessionId) ||
-        newSessionId <= 0
-      ) {
-        throw new Error(
-          '문제 생성 응답 형식이 올바르지 않습니다.'
-        );
-      }
-
-      restoreRequestRef.current += 1;
-
-      setQuizList(data.quizzes.map(normalizeQuiz));
-      setQuizSessionId(newSessionId);
-      setSubmitted(false);
-      setScore(null);
-      setWrongNotes([]);
-      setActiveTab('quiz');
-
-      // 기존 기능: 생성 직후 원본 이미지 표시
-      const newStudyImageUrl =
-        URL.createObjectURL(selectedFile);
-
-      if (studyImageUrlRef.current) {
-        URL.revokeObjectURL(studyImageUrlRef.current);
-      }
-
-      studyImageUrlRef.current = newStudyImageUrl;
-      setStudyImageUrl(newStudyImageUrl);
-
-      setIsModalOpen(false);
-      setSelectedFile(null);
-
-      if (previewUrlRef.current) {
-        URL.revokeObjectURL(previewUrlRef.current);
-        previewUrlRef.current = null;
-      }
-
-      setPreviewUrl(null);
-      setQuizPrompt('');
-      setSelectedCategoryId(null);
-      setSelectedSubjectId(null);
-
-      // 생성한 세션을 학습 기록 목록에 반영
-      await loadHistory();
-    } catch (error) {
-      console.error('문제 생성 실패:', error);
-
-      alert(
-        error instanceof Error
-          ? error.message
-          : '문제를 생성하지 못했습니다.'
-      );
-    } finally {
-      setLoading(false);
+    // 기존 학습 이미지 URL 정리
+    if (studyImageUrlRef.current) {
+      URL.revokeObjectURL(studyImageUrlRef.current);
     }
-  };
+
+    const newStudyImageUrl = URL.createObjectURL(selectedFile);
+
+    studyImageUrlRef.current = newStudyImageUrl;
+    setStudyImageUrl(newStudyImageUrl);
+
+    // 성공한 경우에만 모달 닫기
+    setIsModalOpen(false);
+    setSelectedFile(null);
+
+    if (previewUrlRef.current) {
+      URL.revokeObjectURL(previewUrlRef.current);
+      previewUrlRef.current = null;
+    }
+
+    setPreviewUrl(null);
+    setQuizPrompt('');
+    setSelectedCategoryId(null);
+    setSelectedSubjectId(null);
+
+    // 학습 기록 새로고침
+    await loadHistory().catch((error) => {
+      console.error('학습 기록 갱신 실패:', error);
+    });
+
+  } catch (error) {
+    console.error('AI 문제 생성 오류:', error);
+
+    const message =
+      error instanceof Error
+        ? error.message
+        : '알 수 없는 오류가 발생했습니다.';
+
+    alert(
+      `문제 생성 요청을 완료하지 못했습니다.\n\n` +
+      `${message}\n\n` +
+      `입력한 내용은 유지됩니다.`
+    );
+
+    // 실패 시 모달, 이미지, 과목, 문제 설정 유지
+    // 기존 학습 문제와 학습 결과도 변경하지 않음
+
+  } finally {
+    setLoading(false);
+  }
+};
 
   // =========================================================
   // 9. 정답 선택
