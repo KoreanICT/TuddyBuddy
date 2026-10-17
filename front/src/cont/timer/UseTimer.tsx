@@ -5,8 +5,6 @@ import { TimerEngine } from './TimerEngine';
 import { TimerSession, TimerSummary } from './types';
 import { timerApi } from './timerApi';
 
-const STORAGE_KEY = 'selfstudy_timer_sessions';
-
 export function UseTimer() {
   const engine = useRef(new TimerEngine());
   const lock = useRef(false);
@@ -92,8 +90,8 @@ export function UseTimer() {
   }, []);
 
  // 타이머 시작
-const start = async (minutes: number) => {
-  if (lock.current) return;
+const start = async (minutes: number, canRun: () => boolean = () => true) => {
+  if (lock.current) return false;
 
   lock.current = true;
   setBusy(true);
@@ -117,6 +115,9 @@ const start = async (minutes: number) => {
     // 서버에 타이머 세션 생성
     const createdSession = await timerApi.create(minutes);
 
+    // 카메라 연결이 끊기거나 화면을 떠난 동안에는 늦은 응답으로 시작하지 않습니다.
+    if (!canRun()) return false;
+
     // 서버에서 생성한 세션 ID 보관
     setSession(createdSession);
 
@@ -125,11 +126,13 @@ const start = async (minutes: number) => {
 
     minutesRef.current = minutes;
     update();
+    return true;
 
   } catch (e) {
     setError(
       e instanceof Error ? e.message : '시작 실패'
     );
+    return false;
 
   } finally {
     lock.current = false;
@@ -139,33 +142,37 @@ const start = async (minutes: number) => {
 
   // 일시정지
   const pause = () => {
-    if (lock.current) return;
+    if (lock.current || engine.current.snapshot(Date.now()).status !== 'running') return false;
 
     try {
       engine.current.pause(Date.now());
       setError('');
       update();
+      return true;
 
     } catch (e) {
       setError(
         e instanceof Error ? e.message : '일시정지 실패'
       );
+      return false;
     }
   };
 
   // 재개
   const resume = () => {
-    if (lock.current) return;
+    if (lock.current || engine.current.snapshot(Date.now()).status !== 'paused') return false;
 
     try {
       engine.current.resume(Date.now());
       setError('');
       update();
+      return engine.current.snapshot(Date.now()).status === 'running';
 
     } catch (e) {
       setError(
         e instanceof Error ? e.message : '재개 실패'
       );
+      return false;
     }
   };
 
@@ -244,5 +251,6 @@ const start = async (minutes: number) => {
               : '학습 기록 조회 실패'
           )
         ),
+    getSnapshot: () => engine.current.snapshot(Date.now()),
   };
 }

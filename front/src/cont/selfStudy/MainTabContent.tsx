@@ -6,7 +6,6 @@ import {
 } from './types';
 
 import styles from './selfstudy.module.css';
-import FocusButton from '../focusButton/FocusButton';
 
 interface Props {
   onSubmit: () => void;
@@ -90,7 +89,6 @@ export const MainTabContent: React.FC<Props> = ({
             )}
           </button>
 
-          <FocusButton />
         </div>
 
         <button
