@@ -13,6 +13,17 @@ export interface Subject {
   subjectName: string;
   subjectStatus: 'Y' | 'N';
 }
+export interface SelfStudyUsage {
+  summary: {
+    generatedCount: number;
+    participantCount: number;
+    submittedCount: number;
+    averageScore: number;
+  };
+  dailyTrend: { date: string; generatedCount: number; submittedCount: number }[];
+  categoryRanking: { categoryId: number; categoryName: string; generatedCount: number }[];
+  subjectRanking: { subjectId: number; subjectName: string; categoryName: string; generatedCount: number }[];
+}
 
 type CategoryDto = { category_id: number; category_name: string; category_status: 'Y' | 'N' };
 type SubjectDto = { subject_id: number; category_id: number; subject_name: string; subject_status: 'Y' | 'N' };
@@ -40,6 +51,8 @@ export const adminErrorMessage = (error: unknown): string => {
 export const selfStudyAdminApi = {
   categories: async (): Promise<Category[]> => (await client.get<CategoryDto[]>('/categories')).data.map(mapCategory),
   subjects: async (): Promise<Subject[]> => (await client.get<SubjectDto[]>('/subjects')).data.map(mapSubject),
+  usage: async (from: string, to: string): Promise<SelfStudyUsage> =>
+    (await client.get<SelfStudyUsage>('/usage', { params: { from, to } })).data,
   createCategory: async (name: string): Promise<void> => { await client.post('/categories', { category_name: name }); },
   updateCategory: async (id: number, name: string): Promise<void> => { await client.put(`/categories/${id}`, { category_name: name }); },
   setCategoryStatus: async (id: number, status: Status): Promise<void> => { await client.patch(`/categories/${id}/status`, { status }); },
