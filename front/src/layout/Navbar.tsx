@@ -44,6 +44,11 @@ const Navbar: React.FC = () => {
                                 커뮤니티
                             </NavLink>
                         </li>
+                        <li>
+                            <NavLink to="/education-news" className={linkClass}>
+                                교육 뉴스
+                            </NavLink>
+                        </li>
 
                         <RoleGate allowedRoles={ROLE_ACCESS.member}>
                         <li>

@@ -69,6 +69,7 @@ public class SecurityConfig {
 				.authorizeHttpRequests((auth) -> auth
 						.dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
 						.requestMatchers("/api/auth/**").permitAll() // /api/auth/** 에서 오는 모든 요청은 허용
+						.requestMatchers(HttpMethod.GET, "/api/education-news").permitAll()
 						.requestMatchers("/api/notice/noticeList","/api/notice/noticeDetail").permitAll() // 공지사항 비회원도 접근 가능하게 변경
 						.requestMatchers("/api/chatbot/session", "/api/chatbot/ai", "/api/chatbot/message/session/*").permitAll() // Chatbot 회원/비회원 공통 API
 						.requestMatchers(HttpMethod.GET,"/api/group/tags/search","/api/group/getpublicrooms","/api/group/thumbnail/**").permitAll()
