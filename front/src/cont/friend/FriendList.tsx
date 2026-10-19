@@ -8,6 +8,7 @@ import { UserRound, Trash2, Users } from 'lucide-react';
 import styles from './friendList.module.css';
 import { useAuth } from '../../login/hooks/useAuth';
 import FriendMenu from './FriendMenu';
+import ReportButton from '../report/ReportButton';
 
 interface FriendVO {
     num: number;
@@ -43,11 +44,6 @@ const FriendList: React.FC = () => {
         const responseNum = Number(friend.response_num);
 
         const friendNum = requestNum === loginNum ? responseNum : requestNum;
-
-        console.log('로그인 회원번호:', loginNum);
-        console.log('요청 회원번호:', requestNum);
-        console.log('응답 회원번호:', responseNum);
-        console.log('조회할 친구 회원번호:', friendNum);
 
         return friendNum;
     }, [memberNum]);
@@ -169,15 +165,19 @@ const FriendList: React.FC = () => {
                                     </div>
                                 </div>
 
-                                <button
-                                    type="button"
-                                    className={styles.deleteButton}
-                                    onClick={() => handleDeleteFriend(friend.num)}
-                                    aria-label="친구 삭제"
-                                    title="친구 삭제"
-                                >
-                                    <Trash2 size={17} />
-                                </button>
+                                <div className={styles.actions}>
+                                    <ReportButton type="user" targetNum={getFriendMemberNum(friend)}
+                                        aria-label={`${friend.member_nick || '친구'} 회원 신고`}>신고</ReportButton>
+                                    <button
+                                        type="button"
+                                        className={styles.deleteButton}
+                                        onClick={() => handleDeleteFriend(friend.num)}
+                                        aria-label="친구 삭제"
+                                        title="친구 삭제"
+                                    >
+                                        <Trash2 size={17} />
+                                    </button>
+                                </div>
                             </div>
                         ))
                     ) : (

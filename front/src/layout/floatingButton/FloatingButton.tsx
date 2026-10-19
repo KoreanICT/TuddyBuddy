@@ -6,6 +6,7 @@ import styles from './floatingButton.module.css';
 import ChatBot from '../../cont/chatbot/ChatBot';
 import RoleGate from '../../login/auth/RoleGate';
 import { ROLE_ACCESS } from '../../login/auth/roles';
+import ReportButton from '../../cont/report/ReportButton';
 
 const FloatingButton: React.FC = () => {
 
@@ -33,11 +34,6 @@ const FloatingButton: React.FC = () => {
     // 친구 추가 이동
     const moveFriendAdd = () => {
         navigate('/friend/add');
-        setOpen(false);
-    };
-
-    const moveReportCreate = () => {
-        navigate('/reportCreate');
         setOpen(false);
     };
 
@@ -78,10 +74,10 @@ const FloatingButton: React.FC = () => {
                             친구 추가
                         </span>
                     </button>
-                    <button
-                        type="button"
+                    <ReportButton
+                        type="report" targetNum={0}
                         className={styles.menuButton}
-                        onClick={moveReportCreate}
+                        onClick={() => setOpen(false)}
                     >
                         <span className={styles.menuIcon}>
                             <Flag size={18} />
@@ -90,7 +86,7 @@ const FloatingButton: React.FC = () => {
                         <span>
                             신고하기
                         </span>
-                    </button>
+                    </ReportButton>
 
                 </div>
             )}
