@@ -1,0 +1,154 @@
+.container {
+    min-width: 0;
+    padding: 32px;
+    border: 1px solid #e8ebf3;
+    border-radius: 24px;
+    background: #fff;
+    color: #20283e;
+}
+
+.header h2 {
+    margin: 0 0 10px;
+    font-size: 26px;
+    letter-spacing: -0.7px;
+}
+
+.header p {
+    margin: 0;
+    color: #788198;
+    font-size: 14px;
+    line-height: 1.7;
+}
+
+.summary {
+    margin: 28px 0 12px;
+    color: #737c94;
+    font-size: 14px;
+}
+
+.summary strong {
+    color: #4338ca;
+}
+
+.list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.item {
+    border-bottom: 1px solid #edf0f6;
+}
+
+.postButton {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 20px 4px;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.postButton:hover {
+    background: #f8f9fc;
+}
+
+.category {
+    flex-shrink: 0;
+    max-width: 35%;
+    padding: 4px 8px;
+    border-radius: 6px;
+    background: #eef0ff;
+    color: #5146b8;
+    font-size: 12px;
+    overflow-wrap: anywhere;
+}
+
+.title {
+    flex: 1;
+    min-width: 0;
+    font-size: 15px;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.indicator {
+    flex-shrink: 0;
+    color: #788198;
+    font-size: 20px;
+}
+
+.content {
+    padding: 4px 12px 24px;
+    color: #596379;
+    font-size: 14px;
+    line-height: 1.8;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.state {
+    padding: 44px 12px;
+    color: #737c94;
+    text-align: center;
+    font-size: 14px;
+    line-height: 1.7;
+}
+
+.state h3 {
+    color: #4d5770;
+    font-size: 17px;
+}
+
+.state button,
+.pagination button {
+    padding: 8px 12px;
+    border: 1px solid #e1e5ed;
+    border-radius: 8px;
+    background: #fff;
+    color: #596379;
+    font: inherit;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.pagination {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 24px;
+}
+
+.pagination button[aria-current="page"] {
+    border-color: #4f46e5;
+    background: #eef0ff;
+    color: #4338ca;
+    font-weight: 700;
+    cursor: default;
+}
+
+.container button:focus-visible {
+    outline: 2px solid #6366f1;
+    outline-offset: 3px;
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 24px 20px;
+        border-radius: 18px;
+    }
+
+    .header h2 {
+        font-size: 23px;
+    }
+
+    .postButton {
+        gap: 8px;
+    }
+}

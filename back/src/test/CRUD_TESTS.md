@@ -19,7 +19,7 @@ C=생성, R=조회, U=수정, D=삭제입니다. 상태 비활성화는 U이며 
 | group_member | group/GroupMemberCrudTest.java | C/R/U/D, 방장 위임·탈퇴·강퇴 조건 |
 | group_question | group/GroupQuestionCrudTest.java | 비활성: 저장 기능 미구현 |
 | group_tag | group/GroupTagCrudTest.java | C/R/D |
-| login_log | member/LoginLogCrudTest.java | 비활성: 저장 기능 미구현 |
+| login_log | member/LoginLogCrudTest.java | 비활성: 운영 기록·종료 기능 추가됨, 기존 테스트는 자리표시자이며 실행 검증되지 않음 |
 | member | member/MemberCrudTest.java | C/R/U/D, 일반·카카오 저장, 검색·권한 변경 |
 | memo | group/MemoCrudTest.java | C/R/U/D |
 | notice | notice/NoticeCrudTest.java | C/R/U/D, 조회수 |

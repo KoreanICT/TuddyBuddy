@@ -5,7 +5,12 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 
 @Schema(description = "QuizGenerateResponseDto 데이터")
-public record QuizGenerateResponseDto(@Schema(description = "문제 생성 세션 번호", example = "1") Long quizSessionId,
+public record QuizGenerateResponseDto(
+		@Schema(description = "문제 생성 세션 번호", example = "1") Long quizSessionId,
+		@Schema(description = "분류된 카테고리 번호") Long categoryId,
+		@Schema(description = "분류된 카테고리명", example = "프로그래밍") String categoryName,
+		@Schema(description = "분류된 과목 번호") Long subjectId,
+		@Schema(description = "분류된 과목명", example = "자바") String subjectName,
 		@Schema(description = "생성된 문제 목록") List<QuizItem> quizzes) {
 	@Schema(description = "QuizItem 데이터")
 	public record QuizItem(@Schema(description = "문제 번호", example = "1") Long quizId,

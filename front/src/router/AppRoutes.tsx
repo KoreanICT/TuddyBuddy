@@ -1,4 +1,5 @@
 import Home from "../cont/Home";
+import NotFound from "../cont/NotFound";
 
 import Signup from "../member/Signup";
 import MyPage from "../mypage/MyPage";
@@ -25,6 +26,7 @@ import StudyManagement from "../cont/admin/study_group/StudyManagement";
 import AuthLayout from "../layout/auth/AuthLayout";
 import SelfStudy from "../cont/selfStudy/SelfStudy";
 import Community from "../cont/community/Community";
+import EducationNews from "../cont/educationNews/EducationNews";
 
 import PointHistory from "../mypage/PointHistory";
 import Member_Edit from "../mypage/Member_edit";
@@ -42,7 +44,7 @@ import KakaoCallback from "../login/KakaoCallback";
 import KakaoSignup from "../login/KakaoSignup";
 import Login from "../login/Login";
 import RequireAuth from "../login/auth/RequireAuthProps";
-import { ADMIN_ROLES } from "../login/auth/roles";
+import { ROLE_ACCESS } from "../login/auth/roles";
 
 interface RouteItem {
     path: string;
@@ -66,24 +68,25 @@ const AppRoutes: React.FC = () => {
 
         // contents
         { path: '/community', element: <Community /> },
+        { path: '/education-news', element: <EducationNews /> },
 
-        { path: '/group', element: <Group_Home /> },
-        { path: '/group/detail/:groupNum', element: <Group_Detail /> },
+        { path: '/group', element: <RequireAuth allowedRoles={ROLE_ACCESS.member}><Group_Home /></RequireAuth> },
+        { path: '/group/detail/:groupNum', element: <RequireAuth allowedRoles={ROLE_ACCESS.member}><Group_Detail /></RequireAuth> },
 
         { path: "/", element: <Home /> },
-        { path: "/friend/add", element: <FriendAdd /> },
-        { path: "/friend/list", element: <FriendList /> },
+        { path: "/friend/add", element: <RequireAuth allowedRoles={ROLE_ACCESS.member}><FriendAdd /></RequireAuth> },
+        { path: "/friend/list", element: <RequireAuth allowedRoles={ROLE_ACCESS.member}><FriendList /></RequireAuth> },
 
-        { path: "/friend/request", element: <FriendRequestList /> },
-        { path: "/friend/sent", element: <FriendSentList /> },
+        { path: "/friend/request", element: <RequireAuth allowedRoles={ROLE_ACCESS.member}><FriendRequestList /></RequireAuth> },
+        { path: "/friend/sent", element: <RequireAuth allowedRoles={ROLE_ACCESS.member}><FriendSentList /></RequireAuth> },
 
-        { path: '/point', element: <ProductSelector /> },
-        { path: '/statistics', element: <PerformanceAnalytics /> },
-        { path: '/selfStudy', element: <SelfStudy /> },
-        { path: '/reportCreate', element: <ReportCreate /> },
+        { path: '/point', element: <RequireAuth allowedRoles={ROLE_ACCESS.member}><ProductSelector /></RequireAuth> },
+        { path: '/statistics', element: <RequireAuth allowedRoles={ROLE_ACCESS.member}><PerformanceAnalytics /></RequireAuth> },
+        { path: '/selfStudy', element: <RequireAuth allowedRoles={ROLE_ACCESS.member}><SelfStudy /></RequireAuth> },
+        { path: '/reportCreate', element: <RequireAuth allowedRoles={ROLE_ACCESS.member}><ReportCreate /></RequireAuth> },
 
-        { path: '/reportReplyList', element: <ReportReplyList /> },
-        { path: "/report/replyDetail/:id", element: <ReportReplyDetail /> },
+        { path: '/reportReplyList', element: <RequireAuth allowedRoles={ROLE_ACCESS.member}><ReportReplyList /></RequireAuth> },
+        { path: "/report/replyDetail/:id", element: <RequireAuth allowedRoles={ROLE_ACCESS.member}><ReportReplyDetail /></RequireAuth> },
 
         { path: "/notice", element: <NoticeList /> },
         { path: "/notice/:num", element: <NoticeDetail /> },
@@ -99,23 +102,24 @@ const AppRoutes: React.FC = () => {
         { path: "/admin/notice", element: <AdminNoticeList /> },
         { path: "/admin/notice/add", element: <AdminNoticeForm /> },
         { path: "/admin/notice/edit/:num", element: <AdminNoticeForm /> },
-        { path: "/admin/selfstudy", element: <SelfStudyManagement /> },
+        { path: "/admin/selfstudy", element: <RequireAuth allowedRoles={ROLE_ACCESS.manageSelfStudy}><SelfStudyManagement /></RequireAuth> },
 
         // auth
         { path: '/auth/member', element: <Login /> },
         { path: '/auth/signup', element: <Signup /> },
         { path: '/auth/kakao/callback', element: <KakaoCallback /> },
-        { path: '/auth/mypage', element: <MyPage /> },
+        { path: '/auth/mypage', element: <RequireAuth allowedRoles={ROLE_ACCESS.member}><MyPage /></RequireAuth> },
         
-        { path: '/point_history', element: <PointHistory /> },
-        { path: '/member_edit', element: <Member_Edit /> },
+        { path: '/point_history', element: <RequireAuth allowedRoles={ROLE_ACCESS.member}><PointHistory /></RequireAuth> },
+        { path: '/member_edit', element: <RequireAuth allowedRoles={ROLE_ACCESS.member}><Member_Edit /></RequireAuth> },
         { path: '/auth/kakao/signup', element: <KakaoSignup /> },
+        { path: '*', element: <NotFound /> },
     ];
 
     return (
         <>
             {isManage ? (
-                <RequireAuth allowedRoles={ADMIN_ROLES}>
+                <RequireAuth allowedRoles={ROLE_ACCESS.admin}>
                     <AdminLayout>
                         <Routes>
                             {routeList.map((route, idx) => (

@@ -19,6 +19,12 @@ import org.springframework.web.bind.annotation.RestController;
 import kr.co.ictedu.back.member.service.MemberService;
 import kr.co.ictedu.back.member.vo.MemberVO;
 import kr.co.ictedu.back.securityjwt.JwtTokenProvider;
+import kr.co.ictedu.back.securityauth.RefreshTokenService;
+import kr.co.ictedu.back.securityauth.AuthCookies;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @RestController
 @RequestMapping("/api/auth/kakao")
@@ -28,6 +34,12 @@ public class KakaoSignupController {
     private final KakaoSignupRedisDao kakaoSignupRedisDao;
     private final EmailVerifiedRedisDao emailVerifiedRedisDao;
     private final JwtTokenProvider jwtTokenProvider;
+
+    @Autowired
+    private RefreshTokenService refreshTokens;
+
+    @Autowired
+    private AuthCookies authCookies;
 
     public KakaoSignupController(
             MemberService memberService,
@@ -46,7 +58,8 @@ public class KakaoSignupController {
     // ==========================================
     @PostMapping("/signup")
     public ResponseEntity<?> kakaoSignup(
-            @RequestBody Map<String, Object> request) {
+            @RequestBody Map<String, Object> request,
+            HttpServletRequest servletRequest, HttpServletResponse servletResponse) {
 
         String currentStep = "가입 요청 확인";
 
@@ -303,6 +316,11 @@ public class KakaoSignupController {
                         authentication
                     );
 
+            refreshTokens.revoke(authCookies.read(servletRequest));
+            String refreshToken = refreshTokens.issue(member);
+            authCookies.set(servletRequest, servletResponse, refreshToken);
+            refreshTokens.recordLogin(member, refreshToken, servletRequest);
+
             System.out.println(
                 "===== 카카오 신규 회원가입 및 JWT 발급 성공 ====="
             );
@@ -322,12 +340,11 @@ public class KakaoSignupController {
                 )
             );
 
+        } catch (ResponseStatusException e) {
+            throw e;
         } catch (IllegalArgumentException e) {
 
-            System.err.println(
-                "카카오 회원가입 입력 오류: "
-                + e.getMessage()
-            );
+            System.err.println("카카오 회원가입 입력 오류");
 
             return badRequest(e.getMessage());
 
@@ -357,7 +374,6 @@ public class KakaoSignupController {
                 + e.getClass().getSimpleName()
             );
 
-            e.printStackTrace();
 
             return ResponseEntity.internalServerError().body(
                 Map.of(

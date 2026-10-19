@@ -1,11 +1,24 @@
 package kr.co.ictedu.back.common.dao;
 
 import kr.co.ictedu.back.common.vo.CommunityVO;
+import kr.co.ictedu.back.common.vo.MyPostVO;
+import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 @Mapper // MyBatis를 사용하는 경우 추가
 public interface CommunityDao {
+
+    List<MyPostVO> findMyPosts(@Param("memberNum") Long memberNum,
+            @Param("startRow") int startRow, @Param("endRow") int endRow);
+
+    int countMyPosts(@Param("memberNum") Long memberNum);
+
+    int savePost(@Param("post") MyPostVO post, @Param("memberNum") Long memberNum);
+
+    List<MyPostVO> findPosts(@Param("startRow") int startRow, @Param("endRow") int endRow);
+
+    int countPosts();
 
     // 1. 게시글 쓰기
     int insertPost(CommunityVO communityVO);

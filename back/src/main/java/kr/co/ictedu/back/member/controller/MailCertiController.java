@@ -1,10 +1,10 @@
+// 최원철
 package kr.co.ictedu.back.member.controller;
 
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -33,128 +33,76 @@ public class MailCertiController {
     @Autowired
     private MemberService memberService;
 
-
-    // =========================
     // 닉네임 중복 확인
-    // =========================
     @PostMapping("/nickCheck")
-    public int checkNick(
-            @RequestBody Map<String, String> request) {
+    public int checkNick(@RequestBody Map<String, String> request) {
 
         String nick = request.get("nick");
 
-        System.out.println(
-                "닉네임 중복확인 요청: " + nick
-        );
+        System.out.println("닉네임 중복확인 요청: " + nick);
 
-        int checkNick =
-                memberService.checkNick(nick);
+        int checkNick = memberService.checkNick(nick);
 
         return (checkNick == 0) ? 0 : 1;
     }
 
-
-    // =========================
     // 이메일 중복확인 + 인증번호 발송
-    // =========================
     @PostMapping("/emailCheck")
-    public int sendEmail(
-            @RequestBody EmailCheckVO email) {
+    public int sendEmail(@RequestBody EmailCheckVO email) {
 
-        System.out.println(
-                "이메일 인증 요청: "
-                + email.getEmail()
-        );
+        System.out.println("이메일 인증 요청: " + email.getEmail());
 
-        int checkEmail =
-                emailSender.duplicateEmail(
-                        email.getEmail()
-                );
+        int checkEmail = emailSender.duplicateEmail(email.getEmail());
 
         if (checkEmail == 0) {
-
-            emailSender.sendEmail(
-                    email.getEmail()
-            );
-
+            emailSender.sendEmail(email.getEmail());
             return 0;
         }
 
         return 1;
     }
 
-
-    // =========================
     // 인증번호 확인
-    // =========================
     @PostMapping("/emailCheck/certi")
-    public ResponseEntity<EmailCountCheckVO>
-            verifyCertificationNumber(
-                    @RequestBody EmailCheckVO dto) {
+    public ResponseEntity<EmailCountCheckVO> verifyCertificationNumber(
+            @RequestBody EmailCheckVO dto) {
 
         String email = dto.getEmail();
         String code = dto.getCode();
 
-        boolean hasKey =
-                certiNumRedisDao.hasKey(email);
-
-        int attempts =
-                certiNumRedisDao.getAttempt(email);
-
+        boolean hasKey = certiNumRedisDao.hasKey(email);
+        int attempts = certiNumRedisDao.getAttempt(email);
 
         // 인증번호 만료
         if (!hasKey) {
-
             return ResponseEntity.ok(
-                    new EmailCountCheckVO(
-                            false,
-                            "expired"
-                    )
+                    new EmailCountCheckVO(false, "expired")
             );
         }
-
 
         // 3회 이상 실패
         if (attempts >= 3) {
-
             return ResponseEntity.ok(
-                    new EmailCountCheckVO(
-                            false,
-                            "exceeded"
-                    )
+                    new EmailCountCheckVO(false, "exceeded")
             );
         }
 
-
-        String savedCode =
-                certiNumRedisDao
-                        .getCertiRedisNum(email);
-
+        String savedCode = certiNumRedisDao.getCertiRedisNum(email);
 
         // 인증 성공
-        if (savedCode != null
-                && savedCode.equals(code)) {
-
-            certiNumRedisDao
-                    .delCertiRedisNum(email);
+        if (savedCode != null && savedCode.equals(code)) {
+            certiNumRedisDao.delCertiRedisNum(email);
 
             return ResponseEntity.ok(
-                    new EmailCountCheckVO(
-                            true,
-                            "ok"
-                    )
+                    new EmailCountCheckVO(true, "ok")
             );
         }
-
 
         // 인증 실패 횟수 증가
         certiNumRedisDao.incrAttempt(email);
 
         return ResponseEntity.ok(
-                new EmailCountCheckVO(
-                        false,
-                        "wrong"
-                )
+                new EmailCountCheckVO(false, "wrong")
         );
     }
 }

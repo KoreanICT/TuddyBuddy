@@ -2,13 +2,10 @@
 import React from 'react';
 import {
   Quiz,
-  QuizSession,
-  SelfStudyResult,
   MainTabType,
 } from './types';
 
 import styles from './selfstudy.module.css';
-import FocusButton from '../focusButton/FocusButton';
 
 interface Props {
   onSubmit: () => void;
@@ -29,46 +26,11 @@ interface Props {
   ) => void;
 
   previewUrl: string | null;
-
-  // 저장된 학습 기록
-  savedSessions: QuizSession[];
-  savedResults: SelfStudyResult[];
-  currentSessionId: number | null;
-
-  historyLoading: boolean;
+  categoryName: string;
+  subjectName: string;
   restoring: boolean;
   deleting: boolean;
-  historyError: string;
-
-  onRefreshHistory: () => Promise<void>;
-  onRestoreSession: (sessionId: number) => Promise<void>;
-  onDeleteSession: (sessionId: number) => Promise<void>;
 }
-
-const formatDate = (value?: string): string => {
-  if (!value) return '날짜 정보 없음';
-
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
-  return date.toLocaleString('ko-KR');
-};
-
-const getQuizTypeName = (type: string): string => {
-  switch (type) {
-    case 'MULTIPLE_CHOICE':
-      return '객관식';
-    case 'SHORT_ANSWER':
-      return '단답형';
-    case 'OX':
-      return 'OX';
-    default:
-      return type;
-  }
-};
 
 export const MainTabContent: React.FC<Props> = ({
   onSubmit,
@@ -84,37 +46,15 @@ export const MainTabContent: React.FC<Props> = ({
   wrongNotes,
   handleSelectAnswer,
   previewUrl,
-
-  savedSessions,
-  savedResults,
-  currentSessionId,
-
-  historyLoading,
+  categoryName,
+  subjectName,
   restoring,
   deleting,
-  historyError,
-
-  onRefreshHistory,
-  onRestoreSession,
-  onDeleteSession,
 }) => {
   const busy =
     submitting ||
     restoring ||
     deleting;
-
-  const getSessionResult = (
-    sessionId: number
-  ): SelfStudyResult | undefined => {
-    return savedResults
-      .filter(
-        (result) => result.quizSessionId === sessionId
-      )
-      .sort(
-        (a, b) =>
-          b.selfstudyResultsId - a.selfstudyResultsId
-      )[0];
-  };
 
   return (
     <main className={styles.mainContainer}>
@@ -153,7 +93,6 @@ export const MainTabContent: React.FC<Props> = ({
             )}
           </button>
 
-          <FocusButton />
         </div>
 
         <button
@@ -164,240 +103,28 @@ export const MainTabContent: React.FC<Props> = ({
         </button>
       </div>
 
-      {/* =====================================================
-          2. 내 학습 기록
-          기존 CSS를 유지하기 위해 contentCard 사용
-         ===================================================== */}
-
-      <div
-        className={styles.contentCard}
-        style={{
-          marginBottom: '20px',
-          padding: '20px',
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            gap: '12px',
-            flexWrap: 'wrap',
-            marginBottom: '16px',
-          }}
-        >
-          <div>
-            <h3
-              style={{
-                margin: 0,
-                fontSize: '18px',
-                fontWeight: 700,
-              }}
-            >
-              내 학습 기록
-            </h3>
-
-            <p
-              style={{
-                margin: '6px 0 0',
-                fontSize: '13px',
-                color: '#64748b',
-              }}
-            >
-              저장된 학습 세션을 선택하면
-              이전 문제와 답안을 다시 볼 수 있습니다.
-            </p>
+      {/* 원본 학습 자료: 생성 문제 영역 위에 배치 */}
+      {activeTab === 'quiz' && previewUrl && (
+        <div className={`${styles.contentCard} ${styles.topPanel}`} style={{ marginBottom: '16px' }}>
+          <div className={styles.quizCard}>
+            <div className={styles.quizHeader}>
+              <div>
+                <h4 className={styles.quizTitle}>원본 학습 자료</h4>
+                {categoryName && subjectName && (
+                  <small>{categoryName} · {subjectName}</small>
+                )}
+              </div>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '16px 0' }}>
+              <img
+                src={previewUrl}
+                alt="업로드한 원본 학습 자료"
+                style={{ display: 'block', maxWidth: '100%', maxHeight: '600px', width: 'auto', height: 'auto', objectFit: 'contain', borderRadius: '8px' }}
+              />
+            </div>
           </div>
-
-          <button
-            type="button"
-            className={styles.actionBtn}
-            disabled={historyLoading || busy}
-            onClick={() => {
-              void onRefreshHistory();
-            }}
-          >
-            {historyLoading
-              ? '조회 중...'
-              : '새로고침'}
-          </button>
         </div>
-
-        {historyError && (
-          <p
-            role="alert"
-            style={{
-              color: '#dc2626',
-              fontSize: '13px',
-            }}
-          >
-            {historyError}
-          </p>
-        )}
-
-        {historyLoading && savedSessions.length === 0 ? (
-          <p
-            style={{
-              textAlign: 'center',
-              padding: '24px',
-              color: '#64748b',
-            }}
-          >
-            학습 기록을 불러오는 중입니다...
-          </p>
-        ) : savedSessions.length === 0 ? (
-          <p
-            style={{
-              textAlign: 'center',
-              padding: '24px',
-              color: '#64748b',
-            }}
-          >
-            저장된 학습 기록이 없습니다.
-          </p>
-        ) : (
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '10px',
-              maxHeight: '320px',
-              overflowY: 'auto',
-            }}
-          >
-            {savedSessions.map((session) => {
-              const sessionId = session.quizSessionId;
-
-              if (!sessionId) return null;
-
-              const result = getSessionResult(sessionId);
-
-              const selected =
-                currentSessionId === sessionId;
-
-              return (
-                <div
-                  key={sessionId}
-                  style={{
-                    border: selected
-                      ? '1px solid #2563eb'
-                      : '1px solid #e2e8f0',
-                    borderRadius: '10px',
-                    padding: '14px',
-                    backgroundColor: selected
-                      ? '#eff6ff'
-                      : '#ffffff',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    gap: '12px',
-                    flexWrap: 'wrap',
-                  }}
-                >
-                  <div
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '6px',
-                    }}
-                  >
-                    <strong
-                      style={{
-                        fontSize: '14px',
-                      }}
-                    >
-                      학습 #{sessionId}
-
-                      {selected && (
-                        <span
-                          style={{
-                            marginLeft: '8px',
-                            color: '#2563eb',
-                            fontSize: '12px',
-                          }}
-                        >
-                          현재 선택
-                        </span>
-                      )}
-                    </strong>
-
-                    <span
-                      style={{
-                        fontSize: '12px',
-                        color: '#64748b',
-                      }}
-                    >
-                      {formatDate(session.createdAt)}
-                    </span>
-
-                    <span
-                      style={{
-                        fontSize: '12px',
-                        color: '#475569',
-                      }}
-                    >
-                      {getQuizTypeName(session.quizType)}
-                      {' · '}
-                      {session.quizCount}문제
-                      {' · '}
-                      {session.quizDifficulty}
-                    </span>
-
-                    <span
-                      style={{
-                        fontSize: '13px',
-                        fontWeight: 600,
-                        color: result
-                          ? '#2563eb'
-                          : '#64748b',
-                      }}
-                    >
-                      {result
-                        ? `저장된 점수: ${result.selfstudyTotalScore}점`
-                        : '미제출'}
-                    </span>
-                  </div>
-
-                  <div
-                    style={{
-                      display: 'flex',
-                      gap: '8px',
-                      alignItems: 'center',
-                    }}
-                  >
-                    <button
-                      type="button"
-                      className={styles.actionPrimaryBtn}
-                      disabled={busy || loadingDisabled(historyLoading)}
-                      onClick={() => {
-                        void onRestoreSession(sessionId);
-                      }}
-                    >
-                      {restoring
-                        ? '불러오는 중...'
-                        : '불러오기'}
-                    </button>
-
-                    <button
-                      type="button"
-                      className={styles.actionBtn}
-                      disabled={busy || historyLoading}
-                      onClick={() => {
-                        void onDeleteSession(sessionId);
-                      }}
-                      style={{
-                        color: '#dc2626',
-                      }}
-                    >
-                      삭제
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
+      )}
 
       {/* =====================================================
           3. 기존 문제 풀이 / 오답노트
@@ -439,39 +166,6 @@ export const MainTabContent: React.FC<Props> = ({
             {/* 문제 풀이 탭 */}
             {activeTab === 'quiz' && (
               <div className={styles.quizList}>
-
-                {/* 원본 이미지 */}
-                {previewUrl && (
-                  <div className={styles.quizCard}>
-                    <div className={styles.quizHeader}>
-                      <h4 className={styles.quizTitle}>
-                        원본 학습 자료
-                      </h4>
-                    </div>
-
-                    <div
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'center',
-                        padding: '16px 0',
-                      }}
-                    >
-                      <img
-                        src={previewUrl}
-                        alt="업로드한 원본 학습 자료"
-                        style={{
-                          display: 'block',
-                          maxWidth: '100%',
-                          maxHeight: '600px',
-                          width: 'auto',
-                          height: 'auto',
-                          objectFit: 'contain',
-                          borderRadius: '8px',
-                        }}
-                      />
-                    </div>
-                  </div>
-                )}
 
                 {/* 생성된 AI 문제 */}
                 {quizList.map((quiz, idx) => (
@@ -590,14 +284,14 @@ export const MainTabContent: React.FC<Props> = ({
 
                         <p>
                           <strong>
-                            정답 (quiz_correct_answer):
+                            정답 :
                           </strong>{' '}
                           {quiz.quizCorrectAnswer}
                         </p>
 
                         <p>
                           <strong>
-                            해설 (quiz_explanation):
+                            해설 :
                           </strong>{' '}
                           {quiz.quizExplanation}
                         </p>
@@ -631,12 +325,12 @@ export const MainTabContent: React.FC<Props> = ({
 
                       <div className={styles.wrongAnswerDetail}>
                         <p className={styles.myAnswer}>
-                          내 제출 답 (quiz_user_response):{' '}
+                          제출한 답 :{' '}
                           {item.quizUserResponse}
                         </p>
 
                         <p className={styles.correctAnswer}>
-                          정답 (quiz_correct_answer):{' '}
+                          정답 :{' '}
                           {item.quizCorrectAnswer}
                         </p>
                       </div>
@@ -644,7 +338,7 @@ export const MainTabContent: React.FC<Props> = ({
                       <div className={styles.explanationBox}>
                         <p>
                           <strong>
-                            해설 (quiz_explanation):
+                            해설 :
                           </strong>{' '}
                           {item.quizExplanation}
                         </p>
@@ -665,7 +359,7 @@ export const MainTabContent: React.FC<Props> = ({
           <div className={styles.actionBar}>
             {score !== null && (
               <strong>
-                저장된 점수: {score}점
+                점수: {score}점
               </strong>
             )}
 
@@ -700,10 +394,5 @@ export const MainTabContent: React.FC<Props> = ({
     </main>
   );
 };
-
-// 로딩 중인 기록을 중복 조회하지 않도록 처리
-function loadingDisabled(loading: boolean): boolean {
-  return loading;
-}
 
 export default MainTabContent;

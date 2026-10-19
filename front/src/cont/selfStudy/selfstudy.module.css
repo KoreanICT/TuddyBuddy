@@ -693,6 +693,24 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+.loadingArrow {
+  display: inline-block;
+  margin-right: 8px;
+  animation: loadingArrowSpin 0.9s linear infinite;
+}
+
+@keyframes loadingArrowSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loadingArrow {
+    animation: none;
+  }
+}
 /* =========================
     subject filterlayout
 ========================= */
@@ -718,4 +736,239 @@
   font-size: 12px;
   font-weight: 600;
   color: #64748b;
+}
+/* 셀프스터디 화면 재배치: 타이머 + 내 학습 기록 사이드바 */
+.rightSidebar {
+  width: 280px;
+  max-width: 38%;
+}
+.rightSidebar > * {
+  min-width: 0;
+}
+@media (max-width: 900px) {
+  .layoutWrapper {
+    flex-direction: column;
+  }
+  .rightSidebar {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+/* 원본 이미지 카드와 타이머 카드 높이 통일 */
+.topPanel {
+  height: 360px;
+  min-height: 0;
+  box-sizing: border-box;
+  overflow: auto;
+}
+/* 왼쪽 탭 헤더와 오른쪽 타이머 시작 위치 정렬 */
+.sidebarHeaderSpacer {
+  height: 13px;
+  margin-bottom: 16px;
+}
+
+/* 이미지 카드와 타이머 카드 공통 높이 */
+.topPanel {
+  height: 360px;
+  box-sizing: border-box;
+}
+
+
+/* =========================================
+   StudyHistory - 내 학습 기록
+========================================= */
+
+/* 학습 기록 전체 카드 */
+.historyCard {
+  margin-bottom: 0;
+  padding: 20px;
+  min-width: 0;
+  min-height: 0;
+}
+
+.historyCardCollapsed {
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+/* 제목 + 접기/펼치기 버튼 */
+.historyHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* 내 학습 기록 제목 */
+.historyTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  color: #1e293b;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+/* 저장된 학습 기록 개수 */
+.historyCount {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.historyChevron {
+  display: inline-block;
+  transition: transform 0.2s ease;
+}
+
+.historyChevronCollapsed {
+  transform: rotate(180deg);
+}
+
+/* 학습 기록 안내 문구 */
+.historyDescription {
+  margin: 10px 0 16px;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+/* 오류 메시지 */
+.historyError {
+  margin: 0 0 12px;
+  padding: 10px;
+  border-radius: 8px;
+  background: #fef2f2;
+  color: #dc2626;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* 학습 기록 목록 스크롤 */
+.historyList {
+  max-height: 320px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+.historyList::-webkit-scrollbar {
+  width: 6px;
+}
+
+.historyList::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.historyList::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 6px;
+}
+
+.historyList::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* 기록이 없거나 로딩 중일 때 */
+.historyEmpty {
+  padding: 20px 0;
+  margin: 0;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+/* 학습 기록 카드 목록 */
+.historyItems {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* 개별 학습 기록 */
+.historyItem {
+  padding: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #ffffff;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+/* 현재 선택된 학습 기록 */
+.historyItemSelected {
+  border-color: #2563eb;
+  background: #eff6ff;
+}
+
+/* 개별 기록 제목 영역 */
+.historyItemHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+/* 학습 세션 제목 */
+.historyItemTitle {
+  color: #1e293b;
+  font-size: 13px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+/* 현재 선택 중 표시 */
+.historySelected {
+  flex-shrink: 0;
+  color: #2563eb;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* 생성일, 문제 수, 점수, 제출일 */
+.historyItemDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* 미제출 표시 */
+.historyPending {
+  color: #d97706;
+}
+
+/* 불러오기 / 삭제 버튼 영역 */
+.historyActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+/* 작은 화면 대응 */
+@media (max-width: 480px) {
+.historyCard {
+  margin-bottom: 0;
+  padding: 20px;
+  min-width: 0;
+  height: auto;
+  min-height: 0;
+}
+
+.historyHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
 }
