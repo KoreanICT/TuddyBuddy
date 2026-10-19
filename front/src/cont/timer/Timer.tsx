@@ -1,10 +1,31 @@
-
 //최솔
 import { useState } from 'react';
 import { UseTimer } from './UseTimer';
 import styles from './timer.module.css';
 
-export default function Timer() {
+export type TimerControls = ReturnType<typeof UseTimer>;
+
+interface TimerProps {
+  timer?: TimerControls;
+  startLabel?: string;
+  embedded?: boolean;
+}
+
+// 단독 사용도 유지하며, 집중 학습에서는 부모의 타이머 하나를 공유합니다.
+export default function Timer(props: TimerProps) {
+  return props.timer
+    ? <TimerView timer={props.timer} startLabel={props.startLabel} embedded={props.embedded} />
+    : <StandaloneTimer startLabel={props.startLabel} />;
+}
+
+function StandaloneTimer({ startLabel }: { startLabel?: string }) {
+  const timer = UseTimer();
+  return <TimerView timer={timer} startLabel={startLabel} />;
+}
+
+function TimerView({ timer, startLabel = '시작', embedded = false }: {
+  timer: TimerControls; startLabel?: string; embedded?: boolean;
+}) {
   const [minutes, setMinutes] = useState(25);
   const [collapsed, setCollapsed] = useState(false);
 
@@ -20,7 +41,7 @@ export default function Timer() {
     resume,
     finish,
     refresh,
-  } = UseTimer();
+  } = timer;
 
   const formatTime = (seconds: number) => {
     const safeSeconds = Math.max(0, Math.floor(seconds));
@@ -66,7 +87,7 @@ export default function Timer() {
   };
 
   return (
-    <section className={styles.card}>
+    <section className={`${styles.card} ${embedded ? styles.embedded : ''}`}>
       <div className={styles.header}>
         <div className={styles.heading}>
           <span className={styles.title}>
@@ -169,7 +190,7 @@ export default function Timer() {
                 onClick={() => void start(minutes)}
                 disabled={busy || !isValidMinutes}
               >
-                시작
+                {startLabel}
               </button>
             )}
 

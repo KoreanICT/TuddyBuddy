@@ -5,8 +5,6 @@ const api = axios.create({
     baseURL: 'http://localhost:80/back/api',
 });
 
-
-
 api.interceptors.request.use((config) => {
     // 요청 시점의 Redux 로그인 정보
     const { token, member_num } = store.getState().auth;

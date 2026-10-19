@@ -17,6 +17,8 @@ export const Project_TDL: React.FC<GetGroupNum> = ({ groupNum }) => {
     const [isSaving, setIsSaving] = useState(false);
     const [createStatus, setCreateStatus] = useState<TDLStatus>('To Do');
     const [isCreateOpen, setIsCreateOpen] = useState<boolean>(false);
+    const [editingTdl, setEditingTdl] = useState<TDLData | null>(null);
+    const [isEditOpen, setIsEditOpen] = useState<boolean>(false);
 
     const getTdls = async (): Promise<void> => {
         try {
@@ -37,6 +39,10 @@ export const Project_TDL: React.FC<GetGroupNum> = ({ groupNum }) => {
         getTdls();
     }, [groupNum])
 
+    const handleEditTdl = (tdl: TDLData): void => {
+        setEditingTdl(tdl);
+        setIsEditOpen(true);
+    }
     const handleStatusChange = async (tdlNum: number, status: TDLStatus): Promise<void> => {
         try {
             await api.patch(
@@ -101,15 +107,27 @@ export const Project_TDL: React.FC<GetGroupNum> = ({ groupNum }) => {
         }
     }
 
-    const handlePatchTdl = async (tdl: TDLData): Promise<void> => {
+    const handlePatchTdl = async (tdl_name: string, tdl_detail: string, repeat_type: Repeat_type, due_at: string | null): Promise<void> => {
+
+        if (!editingTdl) {
+            return;
+        }
 
         try{
             setIsSaving(true);
             await api.post(
-                `/detail/tdl/`
-            )
+                `/detail/patchTdl/${editingTdl.tdl_num}`,
+                {
+                    tdl_name, tdl_detail, repeat_type, due_at
+                }
+            );
+            alert('수정 성공.');
+            getTdls();
         } catch(error) {
             console.error('변경 실패.', error);
+            throw error;
+        } finally {
+            setIsSaving(false);
         }
     }
 
@@ -159,7 +177,7 @@ export const Project_TDL: React.FC<GetGroupNum> = ({ groupNum }) => {
                         tdls={tdls}
                         onStatusChange={handleStatusChange}
                         onCreate={handleCreateTdl}
-                        onEdit={handlePatchTdl}
+                        onEdit={handleEditTdl}
                         onDelete={handleDeleteTdl}
                     />
                 ) : (
@@ -193,9 +211,24 @@ export const Project_TDL: React.FC<GetGroupNum> = ({ groupNum }) => {
 
             {isCreateOpen && (
                 <Project_TDLInsertModal
+                    mode="create"
                     status={createStatus}
+                    initialData={null}
                     onClose={() => setIsCreateOpen(false)}
                     onSubmit={handleInsertTdl}
+                />
+            )}
+
+            {isEditOpen && editingTdl && (
+                <Project_TDLInsertModal
+                    mode="edit"
+                    status={editingTdl.status}
+                    initialData={editingTdl}
+                    onClose={() => {
+                        setIsEditOpen(false);
+                        setEditingTdl(null);
+                    }}
+                    onSubmit={handlePatchTdl}
                 />
             )}
         </div >

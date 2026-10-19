@@ -19,6 +19,11 @@ import org.springframework.web.client.RestClientResponseException;
 import kr.co.ictedu.back.member.dao.MemberDAO;
 import kr.co.ictedu.back.member.vo.MemberVO;
 import kr.co.ictedu.back.securityjwt.JwtTokenProvider;
+import kr.co.ictedu.back.securityauth.RefreshTokenService;
+import kr.co.ictedu.back.securityauth.AuthCookies;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/api/auth/kakao")
@@ -37,11 +42,18 @@ public class KakaoAuthController {
 	@Autowired
 	private JwtTokenProvider jwtTokenProvider;
 
+	@Autowired
+	private RefreshTokenService refreshTokens;
+
+	@Autowired
+	private AuthCookies authCookies;
+
 	// ==========================================
 	// 카카오 로그인 콜백 처리
 	// ==========================================
 	@PostMapping("/callback")
-	public ResponseEntity<?> kakaoCallback(@RequestBody Map<String, String> request) {
+	public ResponseEntity<?> kakaoCallback(@RequestBody Map<String, String> request,
+			HttpServletRequest servletRequest, HttpServletResponse servletResponse) {
 
 		String code = request.get("code");
 
@@ -253,6 +265,9 @@ public class KakaoAuthController {
 
 			String accessToken = jwtTokenProvider.createToken(authentication);
 
+			refreshTokens.revoke(authCookies.read(servletRequest));
+			authCookies.set(servletRequest, servletResponse, refreshTokens.issue(member));
+
 			System.out.println("===== 카카오 회원 JWT 발급 성공 =====");
 
 			// ==========================================
@@ -262,6 +277,8 @@ public class KakaoAuthController {
 			return ResponseEntity.ok(Map.of("success", true, "registered", true, "access_token", accessToken,
 					"member_num", memberNum, "authority", authority, "username", username, "message", "카카오 로그인 성공"));
 
+		} catch (ResponseStatusException e) {
+			throw e;
 		} catch (RestClientResponseException e) {
 
 			System.out.println("===== 카카오 API 요청 실패 =====");

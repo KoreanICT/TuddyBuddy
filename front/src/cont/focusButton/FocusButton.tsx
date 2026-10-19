@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import FaceDetector from '../../cont/detect/FaceDetector';
+import FaceDetector, { FaceDetectorProps } from '../../cont/detect/FaceDetector';
 import styles from './focusButton.module.css';
 
 interface Position {
@@ -7,7 +7,9 @@ interface Position {
     y: number;
 }
 
-const FocusButton: React.FC = () => {
+type FocusButtonProps = Pick<FaceDetectorProps, 'onDetectionResult' | 'onDetectionEnd'>;
+
+const FocusButton: React.FC<FocusButtonProps> = ({ onDetectionResult, onDetectionEnd }) => {
 
     const [showFaceDetector, setShowFaceDetector] = useState(false);
 
@@ -85,6 +87,8 @@ const FocusButton: React.FC = () => {
 
                     <FaceDetector
                         onClose={() => setShowFaceDetector(false)}
+                        onDetectionResult={onDetectionResult}
+                        onDetectionEnd={onDetectionEnd}
                     />
                 </div>
             )}

@@ -12,6 +12,10 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -36,6 +40,9 @@ import kr.co.ictedu.back.common.service.PagingService;
 import kr.co.ictedu.back.common.vo.PageVO;
 import kr.co.ictedu.back.notice.service.NoticeService;
 import kr.co.ictedu.back.notice.vo.NoticeVO;
+import kr.co.ictedu.back.member.service.MemberService;
+import kr.co.ictedu.back.member.vo.MemberVO;
+import kr.co.ictedu.back.securityauth.MemberRoles;
 
 @Tag(name = "공지사항 API", description = "공지사항 등록, 목록, 상세, 수정, 삭제 API")
 @RestController
@@ -47,6 +54,24 @@ public class NoticeController {
 
     @Autowired
     private PagingService pagingService;
+
+    @Autowired
+    private MemberService memberService;
+
+    private MemberVO requireManager(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()
+                || authentication instanceof AnonymousAuthenticationToken) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
+        }
+        MemberVO member = memberService.getMemberByEmail(authentication.getName());
+        if (member == null || member.getMember_num() == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인 회원 정보를 찾을 수 없습니다.");
+        }
+        if (!MemberRoles.isManager(member.getAuthority())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "관리자 권한이 필요합니다.");
+        }
+        return member;
+    }
 
     @Value("${spring.servlet.multipart.location}")
     private String filePath;
@@ -75,8 +100,9 @@ public class NoticeController {
     public ResponseEntity<?> upboardAdd(
             @Parameter(description = "공지사항 등록 정보 및 첨부 이미지")
             @ModelAttribute NoticeVO vo,
-            HttpServletRequest request) {
+            HttpServletRequest request, Authentication authentication) {
 
+        vo.setMember_num(requireManager(authentication).getMember_num());
         MultipartFile mf = vo.getMfile();
         Path uploadDir = Paths.get(filePath);
 
@@ -174,8 +200,9 @@ public class NoticeController {
     @DeleteMapping("/noticeDelete")
     public String boardDelete(
             @Parameter(description = "삭제할 공지사항 번호", required = true, example = "1")
-            @RequestParam("num") Long num) {
+            @RequestParam("num") Long num, Authentication authentication) {
 
+        requireManager(authentication);
         noticeService.del(num);
         return "삭제 완료";
     }
@@ -194,7 +221,10 @@ public class NoticeController {
             @Parameter(description = "수정할 공지사항 정보 및 이미지")
             @ModelAttribute NoticeVO vo,
             @Parameter(description = "기존 이미지 삭제 여부", example = "false")
-            @RequestParam(value = "deleteImage", defaultValue = "false") boolean deleteImage) {
+            @RequestParam(value = "deleteImage", defaultValue = "false") boolean deleteImage,
+            Authentication authentication) {
+
+        requireManager(authentication);
 
         // 1. 기존 공지사항 조회
         NoticeVO oldNotice = noticeService.getNotice(vo.getNum());

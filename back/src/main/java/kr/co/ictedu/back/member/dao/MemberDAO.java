@@ -26,6 +26,11 @@ public interface MemberDAO {
 	// 닉네임 중복 확인
 	int countByNick(String nick);
 
+	int countByNickExcludingMember(@Param("nick") String nick, @Param("memberNum") Long memberNum);
+
+	int updatePasswordIfUnchanged(@Param("memberNum") Long memberNum,
+			@Param("newPassword") String newPassword, @Param("currentPassword") String currentPassword);
+
 	// 이메일로 회원 조회
 	MemberVO getMemberByEmail(String email);
 
@@ -43,6 +48,10 @@ public interface MemberDAO {
 
 	// 카카오 소셜 로그인 회원 조회
 	MemberVO findBySocialLogin(@Param("loginType") String loginType, @Param("socialId") String socialId);
+
+	MemberVO lockMemberByNum(@Param("memberNum") Long memberNum);
+
+	int updateManagedAuthority(@Param("memberNum") Long memberNum, @Param("authority") String authority);
 
 	// 체크된 회원 등급 변경
 	int updateGrade(Map<String, Object> param);

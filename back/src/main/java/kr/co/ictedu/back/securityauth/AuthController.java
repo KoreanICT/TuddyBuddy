@@ -8,7 +8,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,9 +20,10 @@ import kr.co.ictedu.back.securityjwt.JwtTokenProvider;
 // 추가
 import kr.co.ictedu.back.member.dao.MemberDAO;
 import kr.co.ictedu.back.member.vo.MemberVO;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 @RestController
-@CrossOrigin
 @RequestMapping("/api/auth")
 public class AuthController {
 
@@ -37,9 +37,16 @@ public class AuthController {
     @Autowired
     private MemberDAO memberDao;
 
+    @Autowired
+    private RefreshTokenService refreshTokens;
+
+    @Autowired
+    private AuthCookies authCookies;
+
     @PostMapping("/login")
     public ResponseEntity<?> authUser(
-            @RequestBody AuthRequest authRequest) {
+            @RequestBody AuthRequest authRequest,
+            HttpServletRequest request, HttpServletResponse response) {
 
         System.out.println("===== 로그인 컨트롤러 진입 =====");
         System.out.println("로그인 이메일 : "
@@ -79,6 +86,9 @@ public class AuthController {
             // 추가: 회원번호와 권한
             Long member_num = member.getMember_num();
             String authority = member.getAuthority();
+
+            refreshTokens.revoke(authCookies.read(request));
+            authCookies.set(request, response, refreshTokens.issue(member));
 
             // 로그인 성공 로그
             System.out.println("===== 로그인 성공 =====");

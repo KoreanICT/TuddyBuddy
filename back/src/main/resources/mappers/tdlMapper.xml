@@ -34,9 +34,9 @@
 	</update>
 	
 	<update id="updateTdl" parameterType="tdlvo">
-		UPDATE tdl SET tdl_name = #{tdl_name}, tdl_detail = #{tdl_detail}, repeat_type = #{repeat_type},
-		updated_at = SYSDATE, due_at = #{due_at} 
-		WHERE tdl_num = #{tdl_num}
+		UPDATE tdl SET tdl_name = #{tdl_name}, tdl_detail = #{tdl_detail}, repeat_type = #{repeat_type, jdbcType=VARCHAR},
+		updated_at = SYSDATE, due_at = #{due_at, jdbcType=TIMESTAMP} 
+		WHERE tdl_num = #{tdl_num} AND status != 'Incomplete'
 	</update>
 	
 	<delete id="deleteTdl">
