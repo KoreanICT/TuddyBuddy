@@ -13,7 +13,7 @@ import lombok.ToString;
 @Schema(description = "QuizGenerateRequestDto 데이터")
 public class QuizGenerateRequestDto {
 
-    @Schema(description = "과목 번호", example = "1")
+    @Schema(description = "기존 과목 번호 (자동 분류 시 생략 가능)", example = "1")
     private Long subject_id;
     @Schema(description = "회원 번호", example = "1")
     private Long member_num;
