@@ -73,7 +73,7 @@ export const QuizModal: React.FC<QuizModalProps> = ({
 
         {/* 모달 헤더 */}
         <div className={styles.modalHeader}>
-          <h3>AI 문제 생성 설정 (quiz_sessions)</h3>
+          <h3>AI 문제 생성 설정 </h3>
 
           <button
             type="button"
@@ -90,7 +90,7 @@ export const QuizModal: React.FC<QuizModalProps> = ({
           {/* 1. 이미지 첨부 */}
           <div className={styles.formGroup}>
             <label className={styles.label}>
-              이미지 첨부 (quiz_image_url)
+              이미지 첨부
             </label>
 
             <input
@@ -236,7 +236,7 @@ export const QuizModal: React.FC<QuizModalProps> = ({
 
             <div className={styles.formGroup}>
               <label className={styles.label}>
-                난이도 (quiz_difficulty)
+                난이도
               </label>
 
               <select
@@ -263,7 +263,7 @@ export const QuizModal: React.FC<QuizModalProps> = ({
 
             <div className={styles.formGroup}>
               <label className={styles.label}>
-                문항 수 (quiz_count)
+                문항 수 
               </label>
 
               <select
@@ -284,7 +284,7 @@ export const QuizModal: React.FC<QuizModalProps> = ({
           {/* 4. 추가 요청사항 */}
           <div className={styles.formGroup}>
             <label className={styles.label}>
-              추가 요청사항 (quiz_prompt)
+              추가 요청사항
             </label>
 
             <input
