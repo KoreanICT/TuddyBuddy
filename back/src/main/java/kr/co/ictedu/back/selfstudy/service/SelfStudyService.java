@@ -289,7 +289,7 @@ public class SelfStudyService {
                 );
 
                 session.setQuiz_image_url(
-                        "/quiz-images/" + filename
+                        "/imgfile/quiz/" + filename
                 );
 
                 session.setQuiz_type(

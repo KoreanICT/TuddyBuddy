@@ -1,5 +1,7 @@
 package kr.co.ictedu.back;
 
+import java.nio.file.Path;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
@@ -18,12 +20,26 @@ public class WebConfig implements WebMvcConfigurer {
     @Value("${file.upload.group-thumbnail}")
     private String thumbnailUploadPath;
 
+    @Value("${quiz.image.directory:./upload/quiz}")
+    private String quizImageDirectory;
+
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         // 기존 팀원들이 사용하던 /imgfile/** 경로 매핑 유지
         String multipartPath = "file:" + uploadPath.replace("\\", "/") + "/";
         registry.addResourceHandler("/imgfile/**")
                 .addResourceLocations(multipartPath);
+
+        String quizImagePath = Path.of(quizImageDirectory)
+                .toAbsolutePath()
+                .normalize()
+                .toUri()
+                .toString();
+        if (!quizImagePath.endsWith("/")) {
+            quizImagePath += "/";
+        }
+        registry.addResourceHandler("/imgfile/quiz/**")
+                .addResourceLocations(quizImagePath);
 
         // 새로 추가된 그룹 썸네일 /api/group/thumbnail/** 경로 매핑
         String thumbnailPath = "file:///" + thumbnailUploadPath.replace("\\", "/") + "/";
