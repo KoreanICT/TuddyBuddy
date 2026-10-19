@@ -199,8 +199,8 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
                         'http://localhost:80/back/api/chatbot/session',
                         {
                             method: 'POST',
-                            credentials: 'include',
                             headers: getAuthHeaders(isLogin ? currentToken : null),
+                            credentials: 'include',
                             body: JSON.stringify({
                                 // 실제 회원 번호는 서버에서 JWT로 결정
                                 member_num: null
@@ -259,8 +259,8 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
                 const response = await authenticatedFetch(
                     `http://localhost:80/back/api/chatbot/message/session/${nextChatNum}`,
                     {
-                        credentials: 'include',
-                        headers: getAuthHeaders(currentToken)
+                        headers: getAuthHeaders(isLogin ? currentToken : null),
+                        credentials: 'include'
                     }
                 );
 
@@ -334,7 +334,7 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
             }
         };
         // getAuthHeaders는 컴포넌트 밖에 있으므로 랜더링할 때마다 새로 만들어지지 않음
-    }, [chatStorageKey, sessionRetry, historyRetry]);
+    }, [chatStorageKey, isLogin, sessionRetry, historyRetry]);
 
     // 채팅 세션 생성 다시 시도
     const retryCreateSession = () => {
@@ -380,6 +380,7 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
 
         if (input.length > 1000) {
             window.alert('질문은 1,000자 이하로 입력해 주세요.');
+            return;
         }
         const question = input.trim();
         const messageId = getMessageId();
@@ -488,7 +489,7 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
                 {
                     id: getMessageId(),
                     sender: 'bot',
-                    text: data.answer
+                    text: data.answer,
                 }
             ]);
         } catch (error) {
@@ -724,10 +725,10 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
                     <Send size={20} />
                 </button>
             </div>
-            
+
             {/* 입력 길이 안내 */}
             <div
-                style={{padding: '0 12px 8px', fontSize: '12px'}}
+                style={{ padding: '0 12px 8px', fontSize: '12px' }}
             >
                 {isCurrentChat ? input.length : 0} / 1,000자
             </div>
