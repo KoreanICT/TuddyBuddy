@@ -1,3 +1,4 @@
+import api from './api';
 //작성자 : 오진석
 import React, { useState, useCallback, useEffect } from 'react';
 import {
@@ -18,8 +19,7 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import styles from './project.module.css'
-import axios from 'axios';
-import api, { GetGroupNum, GetIsleaderandGroupNum } from './GroupAPI'
+import { GetGroupNum, GetIsleaderandGroupNum } from './GroupAPI'
 import { CustomNodeData, DiagramData, DiagramSaveRequest, DiagramResponse } from './GroupAPI';
 import { AppNode, AppEdge } from './Type';
 
@@ -171,8 +171,8 @@ export const Project_Course: React.FC<GetIsleaderandGroupNum> = ({groupNum, isLe
         try {
             setIsSaving(true);
 
-            const response = await axios.post<DiagramResponse>(
-                `http://localhost/back/api/detail/diagram/add/${groupNum}`,
+            const response = await api.post<DiagramResponse>(
+                `/detail/diagram/add/${groupNum}`,
                 requestData
             );
 
