@@ -39,6 +39,4 @@ public class PointContoller {
 			return "JOSN비어있음";
 		}
 	}
-	
-
 }

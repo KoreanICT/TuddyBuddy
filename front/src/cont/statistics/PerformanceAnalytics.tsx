@@ -1,5 +1,5 @@
 //김진규
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
 import {
     LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell, Legend
@@ -8,11 +8,10 @@ import { AlertTriangle, Award, BookOpen, Brain, Clock, MessageSquareQuote, Trend
 import { ChartDataState, LLMFeedbackState } from './types';
 import './PerformanceAnalytics.css';
 import { json } from 'stream/consumers';
+import { useAuth } from '../../login/hooks/useAuth';
 
 export default function PerformanceAnalytics() {
-
-    // 유저 고유식별자 member_num 추출
-    const [memberNum, setMemberNum] = useState<number>();
+    const { memberNum, token } = useAuth();
 
     // 과목 목록 및 선택된 과목 ID (NUMBER 타입 PK 매핑)
     const [subjects, setSubjects] = useState<string[]>([]);
@@ -25,121 +24,76 @@ export default function PerformanceAnalytics() {
     const [llmFeedback, setLlmFeedback] = useState<LLMFeedbackState | null>(null);
 
     // 로딩 및 에러 상태
-    const [loading, setLoading] = useState<boolean>(true);
+    const [loading, setLoading] = useState<boolean>(false);
+    const [analysisUnlocked, setAnalysisUnlocked] = useState<boolean>(false);
+    const [errorMessage, setErrorMessage] = useState<string>('');
 
-    // --------------------------------------------------------------------------
-    // 1. 초기 마운트 시 과목 목록(subjects) 조회
-    // --------------------------------------------------------------------------
-    useEffect(() => {
+    const handleStartAnalysis = async () => {
+        if (!window.confirm('평가분석 및 성적예측에 1,000포인트가 사용됩니다. 진행하시겠습니까?')) return;
 
-        //더미데이터 반드시 수정할것 > member_num
-        setMemberNum(1)
-
-        const fetchAnalytics = async () => {
-            setLoading(true);
-            try {
-                const token = localStorage.getItem('token');
-                if (typeof token !== 'string' || token.trim() === '') return;
-
-                // 1.  카테고리 수집
-                const savedResponse = await axios.post(`${process.env.REACT_APP_BACK_END_URL}/api/statistics/getCategories`, {
-                    memberNum: 1,
-                }, {
-                    headers: { Authorization: `Bearer ${token}` },
-                });
-
-                if (!savedResponse.data) return;
-                setSubjects(savedResponse.data);
-                if (savedResponse.data.length > 0) {
-                    setCategories(savedResponse.data[0]);
-                }
-
-            } catch (error) {
-                console.error("카테고리 로딩 실패:", error);
-            } finally {
-                setLoading(false);
+        setLoading(true);
+        setErrorMessage('');
+        try {
+            if (typeof token !== 'string' || token.trim() === '') {
+                throw new Error('로그인 토큰을 확인할 수 없습니다.');
             }
-        };
-        fetchAnalytics();
-    }, []);
-
-    // --------------------------------------------------------------------------
-    // 2. 과목 변경 시 데이터 조회 (selfstudy_results 및 quiz_responses 기반 분석)
-    // --------------------------------------------------------------------------
-    useEffect(() => {
-        // if (!categories) return;
-
-        const fetchAnalyticsData = async () => {
-            setLoading(true);
-            try {
-                const token = localStorage.getItem('token');
-                if (typeof token !== 'string' || token.trim() === '') return;
-
-                // 스프링부트 API 호출: /api/v1/analytics/subjects/{subjectId}
-                const response = await axios.post(`${process.env.REACT_APP_BACK_END_URL}/api/statistics/getStatistics`, {
-                    memberNum: 1,
-                }, {
-                    headers: { Authorization: `Bearer ${token}` },
-                });
-
-                const responseChartData = response.data.chartData;
-                const predictionResponse = responseChartData?.prediction;
-                const prediction = Array.isArray(predictionResponse)
-                    ? predictionResponse
-                    : Array.isArray(predictionResponse?.prediction)
-                        ? predictionResponse.prediction
-                        : [];
-
-                setChartData({
-                    ...responseChartData,
-                    prediction,
-                });
-                setLlmFeedback(response.data.llmFeedback);
-
-            } catch (error) {
-                console.error("분석 데이터 로딩 실패 -> ERD 호환 더미 데이터 세팅:", error);
-
-                // DB 스키마(selfstudy_results, quiz_responses) 구조에 부합하는 더미 데이터
-                setChartData({
-                    history: [
-                        { resultId: 101, round: '1회차', score: 55, date: '08-01' },
-                        { resultId: 102, round: '2회차', score: 65, date: '08-10' },
-                        { resultId: 103, round: '3회차', score: 60, date: '08-20' },
-                        { resultId: 104, round: '4회차', score: 75, date: '08-30' },
-                    ],
-                    prediction: [
-                        { name: '최근 평균', score: 63.7, type: 'actual' },
-                        { name: '다음 시험 예측', score: 82.0, type: 'predict' },
-                    ],
-                    subjectShare: [
-                        { subjectId: 1, name: '소프트웨어 설계', value: 35, color: '#2563eb' },
-                        { subjectId: 2, name: '소프트웨어 개발', value: 25, color: '#0284c7' },
-                        { subjectId: 3, name: '데이터베이스 구축', value: 20, color: '#059669' },
-                    ]
-                });
-
-                setLlmFeedback({
-                    mentorComment: "4회차 점수는 상승했으나 quiz_responses 오답 분석 결과 데이터베이스 구축 단원 정답률이 30%에 불과합니다.",
-                    weaknesses: [
-                        { subjectName: '데이터베이스 구축', reason: 'B-Tree 인덱스 및 정규화 문제 연속 오답' },
-                        { subjectName: '소프트웨어 설계', reason: '디자인 패턴 적용 문제 개념 혼동' }
-                    ],
-                    consultingPath: [
-                        '1. quiz_responses 기반 오답노트에서 DB 정규화 문제 집중 재풀이',
-                        '2. B-Tree 인덱스 개념 해설(quiz_explanation) 복습',
-                        '3. 동일 과목 신규 quiz_session 생성 후 20문항 응시'
-                    ]
-                });
-            } finally {
-                setLoading(false);
+            if (memberNum == null || !Number.isFinite(memberNum) || memberNum <= 0) {
+                throw new Error('회원 번호를 확인할 수 없습니다.');
             }
-        };
 
-        fetchAnalyticsData();
-    }, [categories]);
+            const headers = { Authorization: `Bearer ${token}` };
+            const categoriesResponse = await axios.post(`${process.env.REACT_APP_BACK_END_URL}/api/statistics/getCategories`, {
+                memberNum,
+            }, { headers });
 
-    if (loading) {
-        return <div className="analytics-page container">성적 분석 데이터를 산출하는 중입니다...</div>;
+            if (!Array.isArray(categoriesResponse.data)) {
+                throw new Error('카테고리 응답 형식이 올바르지 않습니다.');
+            }
+            if (categoriesResponse.data.length === 0) {
+                throw new Error('분석할 카테고리가 없습니다.');
+            }
+            setSubjects(categoriesResponse.data);
+            setCategories(categoriesResponse.data[0]);
+
+            const response = await axios.post(`${process.env.REACT_APP_BACK_END_URL}/api/statistics/getStatistics`, {
+                memberNum,
+                description: '평가분석 및 성적예측 이용',
+            }, { headers });
+
+            const responseChartData = response.data.chartData;
+            const predictionResponse = responseChartData?.prediction;
+            const prediction = Array.isArray(predictionResponse)
+                ? predictionResponse
+                : Array.isArray(predictionResponse?.prediction)
+                    ? predictionResponse.prediction
+                    : [];
+
+            setChartData({ ...responseChartData, prediction });
+            setLlmFeedback(response.data.llmFeedback);
+            setAnalysisUnlocked(true);
+        } catch (error) {
+            console.error('평가분석 요청 실패:', error);
+            setErrorMessage('평가분석을 완료하지 못했습니다. 서버 처리 결과를 확인한 뒤 다시 시도해 주세요.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    if (!analysisUnlocked) {
+        return (
+            <div className="analytics-page">
+                <div className="container">
+                    <section className="card feedback-card" role="dialog" aria-labelledby="analysis-gate-title">
+                        <h2 id="analysis-gate-title">AI 평가분석 및 성적예측</h2>
+                        <p>분석 결과는 잠겨 있습니다. 진행하면 1,000포인트가 사용됩니다.</p>
+                        {errorMessage && <p role="alert">{errorMessage}</p>}
+                        <button type="button" onClick={handleStartAnalysis} disabled={loading}>
+                            {loading ? '카테고리 및 분석 데이터를 불러오는 중...' : '1,000포인트로 평가분석 시작'}
+                        </button>
+                    </section>
+                </div>
+            </div>
+        );
     }
 
     return (

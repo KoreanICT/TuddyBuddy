@@ -1,6 +1,7 @@
 //김진규
 import React, { useState } from 'react';
 import axios from 'axios';
+import { useAuth } from '../../login/hooks/useAuth';
 import styles from './productSelector.module.css';
 
 //const apiUrl = process.env.BACKEND_URL;
@@ -28,6 +29,7 @@ interface ProductSelectorProps {
 }
 
 export const ProductSelector: React.FC<ProductSelectorProps> = ({ onSelectOrder }) => {
+  const { token, memberNum } = useAuth();
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   
@@ -37,15 +39,17 @@ export const ProductSelector: React.FC<ProductSelectorProps> = ({ onSelectOrder 
 
   const handleOrderSubmit = async () => {
     if (!selectedProduct || isLoading) return;
+    if (memberNum == null || !Number.isFinite(memberNum) || memberNum <= 0) {
+      alert('회원 정보를 확인할 수 없습니다. 다시 로그인해 주세요.');
+      return;
+    }
 
     try {
       setIsLoading(true);
 
-      const token = localStorage.getItem('token');
       if (typeof token !== 'string' || token.trim() === '') return;
 
       const paymentId = `pay_${crypto.randomUUID()}`;
-
       // 2. 포트원 결제창 호출 (현재 화면 위에 팝업/모달로 뜸)
       const PortOne = await import('@portone/browser-sdk/v2');
 
@@ -68,7 +72,7 @@ export const ProductSelector: React.FC<ProductSelectorProps> = ({ onSelectOrder 
       // 3. 백엔드 사후 검증 호출
       const verifyResponse = await axios.post(`${process.env.REACT_APP_BACK_END_URL}/api/point/pointAdd`, {
             paymentId: response.paymentId,
-            payment:selectedProduct,
+            payment: { ...selectedProduct, memberNum },
             description:"포인트 결제",
             point_type:"PAYMENT"
       }, {
