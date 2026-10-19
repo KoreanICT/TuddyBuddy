@@ -9,8 +9,14 @@ import Modal from './modal/Modal';
 import StudyRoomGuide from './modal/StudyRoomGuide';
 import NoticeBanner from './notice/NoticeBanner';
 import PrivacyPolicyContent from './modal/PrivacyPolicyContent';
-import fullpage from 'fullpage.js';
-import 'fullpage.js/dist/fullpage.css';
+
+const HOME_SECTIONS = [
+  { id: 'home-intro', label: '공지 · 버디봇' },
+  { id: 'home-personal', label: '개인 스터디' },
+  { id: 'home-group', label: '그룹 스터디' },
+  { id: 'home-how', label: '이용 방법' },
+  { id: 'home-footer', label: '서비스 안내' },
+];
 
 interface HomeNotice {
   num: number;
@@ -29,43 +35,59 @@ const Home: React.FC = () => {
   const [error, setError] = useState('');
   const [revision, setRevision] = useState(0);
   const { token } = useAuth();
-  const showHowToRef = useRef<(() => void) | null>(null);
-  const setPageScrollingRef = useRef<((enabled: boolean) => void) | null>(null);
+  const homeRef = useRef<HTMLDivElement | null>(null);
+  const [activeSection, setActiveSection] = useState(0);
+  const isModalOpen = isFocusInfoOpen || isStudyRoomGuideOpen || isTermsOpen || isPrivacyOpen || isEmailPolicyOpen;
+
+  const moveToSection = (index: number) => {
+    const home = homeRef.current;
+    const section = home?.children.item(index) as HTMLElement | null;
+    if (!home || !section || isModalOpen) return;
+    const top = section.getBoundingClientRect().top - home.getBoundingClientRect().top + home.scrollTop;
+    home.scrollTo({ top, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+  };
 
   useEffect(() => {
-    const home = document.getElementById('fullpage');
-    const topOffset = Math.max(0, home?.getBoundingClientRect().top ?? 0);
-    home?.style.setProperty('--home-top-offset', `${topOffset}px`);
-    document.body.classList.add('homeFullpageActive');
-    const instance = new fullpage('#fullpage', {
-      licenseKey: 'YOUR_KEY',
-      navigation: true,
-      navigationPosition: 'right',
-      navigationTooltips: ['공지 · 버디봇', '개인 스터디', '그룹 스터디', '이용 방법', '서비스 안내'],
-      scrollingSpeed: 700,
-      fitToSection: true,
-      keyboardScrolling: true,
-      scrollOverflow: true,
-      normalScrollElements: `.${styles.modalLayer}`,
-      credits: { enabled: false }
-    });
-    showHowToRef.current = () => instance.moveTo(4);
-    setPageScrollingRef.current = enabled => {
-      instance.setAllowScrolling(enabled);
-      instance.setKeyboardScrolling(enabled);
+    const home = homeRef.current;
+    if (!home) return;
+    let frame = 0;
+    const updateActiveSection = () => {
+      frame = 0;
+      const maximum = home.scrollHeight - home.clientHeight;
+      if (maximum > 0 && home.scrollTop >= maximum - 2) {
+        setActiveSection(HOME_SECTIONS.length - 1);
+        return;
+      }
+      let closest = 0;
+      let distance = Infinity;
+      Array.from(home.children).forEach((section, index) => {
+        const current = Math.abs(section.getBoundingClientRect().top - home.getBoundingClientRect().top);
+        if (current < distance) {
+          closest = index;
+          distance = current;
+        }
+      });
+      setActiveSection(closest);
     };
+    const onScroll = () => {
+      if (!frame) frame = window.requestAnimationFrame(updateActiveSection);
+    };
+    const resize = () => {
+      home.style.setProperty('--home-top-offset', `${Math.max(0, home.getBoundingClientRect().top)}px`);
+      onScroll();
+    };
+    resize();
+    home.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', resize);
+    const observer = new ResizeObserver(onScroll);
+    Array.from(home.children).forEach(section => observer.observe(section));
     return () => {
-      showHowToRef.current = null;
-      setPageScrollingRef.current = null;
-      instance.destroy('all');
-      document.body.classList.remove('homeFullpageActive');
-      home?.style.removeProperty('--home-top-offset');
+      window.cancelAnimationFrame(frame);
+      home.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', resize);
+      observer.disconnect();
     };
   }, []);
-
-  useEffect(() => {
-    setPageScrollingRef.current?.(!(isFocusInfoOpen || isStudyRoomGuideOpen || isTermsOpen || isPrivacyOpen || isEmailPolicyOpen));
-  }, [isFocusInfoOpen, isStudyRoomGuideOpen, isTermsOpen, isPrivacyOpen, isEmailPolicyOpen]);
 
   useEffect(() => {
     let active = true;
@@ -86,8 +108,9 @@ const Home: React.FC = () => {
 
   return (
     <>
-      <div id="fullpage" className={styles.home}>
-        <section className="section" aria-labelledby="home-chatbot-title">
+      <div ref={homeRef} className={`${styles.home} ${isModalOpen ? styles.scrollLocked : ''}`}
+        tabIndex={0} aria-label="TuddyBuddy 홈" inert={isModalOpen}>
+        <section id="home-intro" className={styles.snapSection} aria-labelledby="home-chatbot-title">
         <div className={styles.introSection}>
         <NoticeBanner notices={notices} loading={loading} error={error} onRetry={() => setRevision(value => value + 1)} />
         <div className={styles.hero}>
@@ -110,7 +133,7 @@ const Home: React.FC = () => {
         </div>
         </section>
 
-        <section className="section" aria-labelledby="home-personal-title">
+        <section id="home-personal" className={styles.snapSection} aria-labelledby="home-personal-title">
         <div className={styles.hero}>
           <div className={styles.featureVisual}>
             <img src="/images/selfStudy.png" alt="이미지 학습 자료로 AI 문제를 생성하는 개인 스터디" />
@@ -121,7 +144,7 @@ const Home: React.FC = () => {
             <p className={styles.description}>학습 자료 이미지를 올리면 AI가 문제를 생성해요.<br className={styles.desktopBreak} /> 원하는 유형과 난이도로 풀고, 오답과 학습 기록을 확인하세요.</p>
             <div className={styles.heroActions}>
               <Link className={styles.primaryButton} to="/selfStudy">개인 스터디 시작하기 <ArrowRight size={18} /></Link>
-              <button type="button" className={styles.secondaryButton} onClick={() => showHowToRef.current?.()}>이용 방법 보기</button>
+              <button type="button" className={styles.secondaryButton} onClick={() => moveToSection(3)}>이용 방법 보기</button>
             </div>
             <button type="button" className={styles.focusInfoButton} onClick={() => setIsFocusInfoOpen(true)}>
               <Camera size={16} /> 보조 기능 · 집중 학습 알아보기
@@ -130,7 +153,7 @@ const Home: React.FC = () => {
         </div>
         </section>
 
-        <section className="section" aria-labelledby="home-group-title">
+        <section id="home-group" className={styles.snapSection} aria-labelledby="home-group-title">
           <div className={styles.hero}>
             <div className={styles.heroContent}>
               <span className={styles.eyebrow}>GROUP STUDY · 그룹 스터디</span>
@@ -150,7 +173,7 @@ const Home: React.FC = () => {
         </div>
         </section>
 
-        <section className="section" aria-labelledby="home-how-title">
+        <section id="home-how" className={styles.snapSection} aria-labelledby="home-how-title">
         <div className={styles.howTo}>
           <div className={styles.sectionHeading}><div><span className={styles.eyebrow}>HOW TO STUDY</span><h2 id="home-how-title">내 자료로 시작하는 세 단계</h2><p className={styles.sectionDescription}>교재나 노트 이미지를 학습 문제로 바꿔보세요.</p></div></div>
           <ol className={styles.howSteps}>
@@ -161,7 +184,7 @@ const Home: React.FC = () => {
           <div className={styles.bottomAction}><Link className={styles.primaryButton} to="/selfStudy">첫 학습 시작하기 <ArrowRight size={18} /></Link></div>
         </div>
         </section>
-        <footer className="section fp-auto-height" aria-label="TuddyBuddy 서비스 안내">
+        <footer id="home-footer" className={styles.snapFooter} aria-label="TuddyBuddy 서비스 안내">
           <div className={styles.footer}>
             <div className={styles.footerInner}>
               <div className={styles.footerBrand}>
@@ -186,8 +209,16 @@ const Home: React.FC = () => {
         </footer>
 
       </div>
-
-
+      <nav className={styles.sectionNav} aria-label="홈 섹션 이동">
+        {HOME_SECTIONS.map((section, index) => (
+          <button key={section.id} type="button" className={activeSection === index ? styles.currentSection : undefined}
+            aria-label={section.label} aria-controls={section.id} aria-current={activeSection === index ? 'location' : undefined}
+            disabled={isModalOpen} onClick={() => moveToSection(index)}>
+            <span className={styles.sectionDot} aria-hidden="true" />
+            <span className={styles.sectionTooltip} aria-hidden="true">{section.label}</span>
+          </button>
+        ))}
+      </nav>
       <div className={styles.modalLayer}>
       <StudyRoomGuide isOpen={isStudyRoomGuideOpen} onClose={() => setIsStudyRoomGuideOpen(false)} />
       <Modal isOpen={isFocusInfoOpen} onClose={() => setIsFocusInfoOpen(false)} title="학습을 돕는 집중 학습 모드">

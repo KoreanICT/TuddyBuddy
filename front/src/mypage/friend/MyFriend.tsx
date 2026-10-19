@@ -9,6 +9,7 @@ import { Users, UserRound, UserPlus, Inbox, Send } from 'lucide-react';
 
 import { useAuth } from '../../login/hooks/useAuth';
 import styles from './myFriend.module.css';
+import ReportButton from '../../cont/report/ReportButton';
 
 interface FriendVO {
     num: number;
@@ -134,6 +135,9 @@ const MyFriend: React.FC = () => {
                                 <strong>{friend.member_nick || '알 수 없는 회원'}</strong>
                                 <span>친구</span>
                             </div>
+                            <ReportButton type="user" targetNum={Number(friend.request_num) === Number(memberNum)
+                                ? Number(friend.response_num) : Number(friend.request_num)}
+                                aria-label={`${friend.member_nick || '친구'} 회원 신고`}>신고</ReportButton>
                         </div>
                     ))
                 ) : (
