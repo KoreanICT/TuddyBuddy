@@ -26,6 +26,8 @@ interface Props {
   ) => void;
 
   previewUrl: string | null;
+  categoryName: string;
+  subjectName: string;
   restoring: boolean;
   deleting: boolean;
 }
@@ -44,6 +46,8 @@ export const MainTabContent: React.FC<Props> = ({
   wrongNotes,
   handleSelectAnswer,
   previewUrl,
+  categoryName,
+  subjectName,
   restoring,
   deleting,
 }) => {
@@ -104,7 +108,12 @@ export const MainTabContent: React.FC<Props> = ({
         <div className={`${styles.contentCard} ${styles.topPanel}`} style={{ marginBottom: '16px' }}>
           <div className={styles.quizCard}>
             <div className={styles.quizHeader}>
-              <h4 className={styles.quizTitle}>원본 학습 자료</h4>
+              <div>
+                <h4 className={styles.quizTitle}>원본 학습 자료</h4>
+                {categoryName && subjectName && (
+                  <small>{categoryName} · {subjectName}</small>
+                )}
+              </div>
             </div>
             <div style={{ display: 'flex', justifyContent: 'center', padding: '16px 0' }}>
               <img
