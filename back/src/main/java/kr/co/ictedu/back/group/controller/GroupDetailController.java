@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
@@ -37,21 +38,28 @@ public class GroupDetailController {
 	@ApiResponse(responseCode = "200", description = "헤더 데이터 조회 성공")
 	@ApiResponse(responseCode = "500", description = "헤더 데이터 조회 실패")
 	@GetMapping("/{groupNum}")
-	public ResponseEntity<GroupDetailHeaderDTO> getHeader(@PathVariable("groupNum") Long groupNum) {
-		Long memberNum = 1L;
-		GroupDetailHeaderDTO groupdetailheaderdto = service.getHeader(memberNum, groupNum);
-		return ResponseEntity.ok(groupdetailheaderdto);
-	}
+    public ResponseEntity<GroupDetailHeaderDTO> getHeader(
+            @RequestHeader("memberNum") Long memberNum,
+            @PathVariable("groupNum") Long groupNum) {
+
+        return ResponseEntity.ok(
+                service.getHeader(memberNum, groupNum)
+        );
+    }
 	
 	@Operation(summary = "스터디룸 헤더 조회", description = "스터디룸의 헤더 영역의 데이터를 조회합니다.")
 	@ApiResponse(responseCode = "200", description = "헤더 데이터 조회 성공")
 	@ApiResponse(responseCode = "500", description = "헤더 데이터 조회 실패")
-	@GetMapping("/{groupNum}/edit") 
-	public ResponseEntity<GroupUpdateDTO> getUpdateData(@PathVariable("groupNum") Long groupNum) {
-		GroupUpdateDTO dto = service.getUpdateData(groupNum);
-		
-		return ResponseEntity.ok(dto);
-	}
+	@GetMapping("/edit/{groupNum}") 
+	public ResponseEntity<GroupUpdateDTO> getUpdateData(
+            @RequestHeader("memberNum") Long memberNum,
+            @PathVariable("groupNum") Long groupNum) {
+
+        // 현재 서비스에는 요청자 번호를 받는 인자가 없음
+        return ResponseEntity.ok(
+                service.getUpdateData(groupNum)
+        );
+    }
 	
 	@Operation(summary = "스터디룸 변경", description = "스터디룸의 데이터를 변경합니다.")
 	@ApiResponse(responseCode = "200", description = "헤더 데이터 조회 성공")
@@ -72,49 +80,74 @@ public class GroupDetailController {
 	@ApiResponse(responseCode = "200", description = "멤버 리스트 조회 성공")
 	@ApiResponse(responseCode = "500", description = "멤버 리스트 조회 실패")
 	@GetMapping("/getMemberlist/{groupNum}")
-	public ResponseEntity<Map<String, Object>> getMembers(@PathVariable("groupNum") Long groupNum) {
-		Long member_num = 1L;
-		Map<String, Object> map = service.getMembers(groupNum, member_num);
-		return ResponseEntity.ok(map);
-	}
+	 public ResponseEntity<Map<String, Object>> getMembers(
+	            @RequestHeader("memberNum") Long memberNum,
+	            @PathVariable("groupNum") Long groupNum) {
+
+	        return ResponseEntity.ok(
+	                service.getMembers(groupNum, memberNum)
+	        );
+	    }
 	
 	@Operation(summary = "방장 위임", description = "자신이 방장일 경우 다른 멤버에게 방장을 위임합니다.")
 	@ApiResponse(responseCode = "200", description = "위임 성공")
 	@ApiResponse(responseCode = "500", description = "위임 실패")
 	@PatchMapping("/transferLeader/{groupNum}/{memberNum}")
-	public ResponseEntity<String> transferLeader(@PathVariable("groupNum") Long groupNum, @PathVariable("memberNum") Long memberNum) {
-		Long member_num = 1L;
-		service.transferLeader(groupNum, member_num, memberNum);
-		return ResponseEntity.ok("위임 완료.");
-	}
+	public ResponseEntity<String> transferLeader(
+            @RequestHeader("memberNum") Long currentMemberNum,
+            @PathVariable("groupNum") Long groupNum,
+            @PathVariable("memberNum") Long targetMemberNum) {
+
+        service.transferLeader(
+                groupNum,
+                currentMemberNum,
+                targetMemberNum
+        );
+
+        return ResponseEntity.ok("위임 완료.");
+    }
 	
 	@Operation(summary = "멤버 강퇴", description = "자신이 방장일 경우 다른 멤버를 강퇴합니다.")
 	@ApiResponse(responseCode = "200", description = "강퇴 성공")
 	@ApiResponse(responseCode = "500", description = "강퇴 실패")
 	@DeleteMapping("/kickMember/{groupNum}/{memberNum}")
-	public ResponseEntity<String> kickMember(@PathVariable("groupNum") Long groupNum, @PathVariable("memberNum") Long memberNum) {
-		Long member_num = 1L;
-		service.kickMember(groupNum, member_num, memberNum);
-		return ResponseEntity.ok("강퇴 완료.");
-	}
+	public ResponseEntity<String> kickMember(
+            @RequestHeader("memberNum") Long currentMemberNum,
+            @PathVariable("groupNum") Long groupNum,
+            @PathVariable("memberNum") Long targetMemberNum) {
+
+        service.kickMember(
+                groupNum,
+                currentMemberNum,
+                targetMemberNum
+        );
+
+        return ResponseEntity.ok("강퇴 완료.");
+    }
 	
 	@Operation(summary = "스터디룸 탈퇴", description = "현재 입장한 스터디룸을 탈퇴합니다.")
 	@ApiResponse(responseCode = "200", description = "탈퇴 성공")
 	@ApiResponse(responseCode = "500", description = "탈퇴 실패")
 	@DeleteMapping("/groupQuit/{groupNum}")
-	public ResponseEntity<String> groupQuit(@PathVariable("groupNum") Long groupNum) {
-		Long member_num = 1L;
-		service.groupQuit(groupNum, member_num);
-		return ResponseEntity.ok("탈퇴 완료");
-	}
+	public ResponseEntity<String> groupQuit(
+            @RequestHeader("memberNum") Long memberNum,
+            @PathVariable("groupNum") Long groupNum) {
+
+        service.groupQuit(groupNum, memberNum);
+
+        return ResponseEntity.ok("탈퇴 완료.");
+    }
 	
 	@Operation(summary = "스터디룸 삭제", description = "자신이 방장이고 남은 인원이 본인 제외 0명인 경우 스터디룸을 삭제합니다.")
 	@ApiResponse(responseCode = "200", description = "삭제 성공")
 	@ApiResponse(responseCode = "500", description = "삭제 실패")
 	@DeleteMapping("/deleteGroup/{groupNum}")
-	public ResponseEntity<String> deleteGroup(@PathVariable("groupNum") Long groupNum) {
-		Long member_num = 1L;
-		service.deleteGroup(groupNum, member_num);
-		return ResponseEntity.ok("탈퇴 완료");
-	}
+	public ResponseEntity<String> deleteGroup(
+            @RequestHeader("memberNum") Long memberNum,
+            @PathVariable("groupNum") Long groupNum) {
+
+        service.deleteGroup(groupNum, memberNum);
+
+        return ResponseEntity.ok("탈퇴 완료.");
+    }
 }

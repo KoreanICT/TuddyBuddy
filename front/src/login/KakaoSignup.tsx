@@ -6,6 +6,7 @@ import axios from 'axios';
 import { CheckCircle2, LockKeyhole } from 'lucide-react';
 
 import { saveSession } from './session';
+import { consumeLoginDestination } from './loginRedirect';
 
 import '../member/Signup.css';
 import styles from './KakaoSignup.module.css';
@@ -370,7 +371,7 @@ const KakaoSignup: React.FC = () => {
             }
             sessionStorage.removeItem('kakao_signup_token');
 
-            navigate('/', { replace: true });
+            navigate(consumeLoginDestination(), { replace: true });
         } catch (error) {
             console.error('카카오 회원가입 오류');
 

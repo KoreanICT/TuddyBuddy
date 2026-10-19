@@ -2,7 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import styles from './detail.module.css';
 import { formatFileSize } from './GroupAPI';
-import axios from 'axios';
+import api from './api';
 
 interface DocumentModalProps {
     isOpen: boolean;
@@ -28,7 +28,7 @@ export const Detail_DocumentModal: React.FC<DocumentModalProps> = ({isOpen,onClo
 
         const loadDocument = async () => {
             try {
-                const response = await axios.get(`http://localhost/back/api/detail/document/getPatchDocument/${documentNum}`);
+                const response = await api.get(`/detail/document/getPatchDocument/${documentNum}`);
                 const data = response.data;
                 setTitle(data.document_title ?? '');
                 setFileName(data.original_name ?? '');
@@ -59,7 +59,7 @@ export const Detail_DocumentModal: React.FC<DocumentModalProps> = ({isOpen,onClo
             return;
         }
 
-        const allowedExtensions = ['jpg', 'jpeg', 'png', 'docx', 'xlsx', 'pdf', 'py', 'java']
+        const allowedExtensions = ['jpg', 'jpeg', 'png', 'docx', 'xlsx', 'pdf', 'py', 'java', 'txt']
         const fileExtension = selectedFile.name.split('.').pop()?.toLowerCase();
 
         if(!fileExtension || !allowedExtensions.includes(fileExtension)) {
@@ -94,7 +94,7 @@ export const Detail_DocumentModal: React.FC<DocumentModalProps> = ({isOpen,onClo
 
                 formData.append('title', title.trim());
                 formData.append('file', file);
-                await axios.post(`http://localhost/back/api/detail/document/addDocument/${groupNum}`,
+                await api.post(`/detail/document/addDocument/${groupNum}`,
                     formData
                 )
                 alert('참고 자료가 등록되었습니다.');
@@ -112,7 +112,7 @@ export const Detail_DocumentModal: React.FC<DocumentModalProps> = ({isOpen,onClo
                     formData.append('file', file);
                 }
 
-                await axios.patch(`http://localhost/back/api/detail/document/patchDocument/${documentNum}`, formData);
+                await api.patch(`/detail/document/patchDocument/${documentNum}`, formData);
                 alert('참고 자료가 수정되었습니다.');
             }
                 onSubmitSuccess?.();

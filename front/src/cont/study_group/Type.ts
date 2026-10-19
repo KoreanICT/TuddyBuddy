@@ -4,7 +4,7 @@ import { CustomNodeData } from "./GroupAPI";
 
 export type DetailTab = 'overview' | 'memo' | 'member' | 'calendar' | 'course' | 'discussion' | 'board' | 'document';
 
-export type TDLStatus = 'To Do' | 'In Progress' | 'Done'
+export type TDLStatus = 'To Do' | 'In Progress' | 'Done' | 'Incomplete';
 
 export type Repeat_type = null | 'Daily' | 'Weekly'
 

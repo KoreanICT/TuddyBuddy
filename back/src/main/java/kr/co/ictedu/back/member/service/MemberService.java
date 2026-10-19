@@ -7,6 +7,7 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.http.HttpStatus;
@@ -270,6 +271,42 @@ public class MemberService {
 		return true;
 	}
 
+    @Transactional
+    public void withdrawManagedMember(Long memberNum) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()
+                || "anonymousUser".equals(authentication.getPrincipal())) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
+        }
+        MemberVO actor = memberDao.getMemberByEmail(authentication.getName());
+        if (actor == null || !MemberRoles.ADMIN.equals(actor.getAuthority())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "최고 관리자만 회원을 탈퇴 처리할 수 있습니다.");
+        }
+        if (memberNum == null || memberNum <= 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "회원 번호가 올바르지 않습니다.");
+        }
+        if (memberNum.equals(actor.getMember_num())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "관리 화면에서 본인을 탈퇴 처리할 수 없습니다.");
+        }
+        MemberVO target = memberDao.lockMemberByNum(memberNum);
+        if (target == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "회원을 찾을 수 없습니다.");
+        }
+        if (!MemberRoles.MEMBER.equals(target.getAuthority()) && !MemberRoles.SUB_ADMIN.equals(target.getAuthority())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "해당 계정은 DB 관리자만 관리할 수 있습니다.");
+        }
+        try {
+            if (memberDao.deleteMember(memberNum) != 1) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "회원 탈퇴 처리에 실패했습니다.");
+            }
+        } catch (DataIntegrityViolationException e) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "연관 데이터로 인해 탈퇴 처리할 수 없습니다. 관련 데이터의 처리 상태를 확인해주세요.");
+        }
+        refreshTokens.revokeAll(memberNum);
+    }
+
+	// ==========================================
 	// 회원 전체 조회
 	public List<MemberVO> list(Map<String, String> map) {
 
