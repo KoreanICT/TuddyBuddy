@@ -10,6 +10,7 @@ import { configureSession } from './login/session';
 import { loginSuccess, logout } from './login/reducers/authReducer';
 
 import './styles/global.css';
+import { NotificationProvider } from './notification/NotificationProvider';
 
 configureSession(session => store.dispatch(session ? loginSuccess(session) : logout()));
 installAuthInterceptors(axios);
@@ -20,6 +21,8 @@ const root = ReactDOM.createRoot(
 
 root.render(
   <Provider store={store}>
-    <App />
+    <NotificationProvider>
+      <App />
+    </NotificationProvider>
   </Provider>
 );

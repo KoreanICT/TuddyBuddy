@@ -204,3 +204,8 @@
 .drawerFooter button:hover {
   color: var(--text);
 }
+
+/* 알림 */
+.notificationWrapper {
+  position: relative;
+}
