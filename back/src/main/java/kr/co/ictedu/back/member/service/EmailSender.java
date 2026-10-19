@@ -1,4 +1,4 @@
-
+// 최원철
 package kr.co.ictedu.back.member.service;
 
 import java.security.SecureRandom;
@@ -33,17 +33,13 @@ public class EmailSender {
 
     private final SecureRandom random = new SecureRandom();
 
-    // =========================
     // 이메일 중복 확인
-    // =========================
     public int duplicateEmail(String email) {
         int checkEmail = memberDao.countByEmail(email);
         return checkEmail > 0 ? 1 : 0;
     }
 
-    // =========================
     // 인증번호 생성
-    // =========================
     public String createAuthCode() {
 
         int length = 6;
@@ -62,9 +58,7 @@ public class EmailSender {
         return authCode.toString();
     }
 
-    // =========================
     // 이메일 인증번호 발송
-    // =========================
     public void sendEmail(String toEmail) {
 
         String authCode = createAuthCode();
@@ -73,7 +67,6 @@ public class EmailSender {
         System.out.println("이메일 인증 요청 시작");
         System.out.println("수신 이메일 : " + toEmail);
         System.out.println("====================================");
-
         MimeMessage mmsg = emailSender.createMimeMessage();
 
         try {
@@ -97,18 +90,14 @@ public class EmailSender {
 
             helper.setText(body.toString(), true);
 
-            // =========================
             // 1. SMTP 이메일 발송
-            // =========================
             System.out.println("[1] SMTP 이메일 발송 시도");
 
             emailSender.send(mmsg);
 
             System.out.println("[2] SMTP 서버 발송 요청 성공");
 
-            // =========================
             // 2. Redis 인증번호 저장
-            // =========================
             System.out.println("[3] Redis 인증번호 저장 시도");
 
             certiNumRedisDao.saveCertiNum(toEmail, authCode);
@@ -147,9 +136,7 @@ public class EmailSender {
         }
     }
 
-    // =========================
     // 이메일 인증번호 검증
-    // =========================
     public boolean isVerify(String email, String authCode) {
 
         final int MAX_ATTEMPT = 5;
