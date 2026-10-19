@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ExternalLink, Newspaper, RotateCw, Search } from 'lucide-react';
+import { BACKEND_URL } from '../../login/authHttp';
 import styles from './educationNews.module.css';
 
 interface EducationArticle {
@@ -9,14 +10,7 @@ interface EducationArticle {
   domain: string;
 }
 
-const RSS_URL = 'https://news.google.com/rss/search';
-const EDUCATION_QUERY = '교육 OR 학교 OR 대학 OR 교사 OR 학습';
 const PAGE_SIZE = 5;
-const RSS_PROXY_URLS = [
-  (feedUrl: string) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(feedUrl)}`,
-  (feedUrl: string) => `https://proxy.cors.dev/${feedUrl}`,
-  (feedUrl: string) => `https://api.allorigins.win/raw?url=${encodeURIComponent(feedUrl)}`,
-];
 
 const timeRanges = [
   { value: '1d', label: '오늘' },
@@ -32,32 +26,6 @@ const parseNewsDate = (value: string): Date | null => {
   return Number.isNaN(date.getTime()) ? null : date;
 };
 
-const loadRssDocument = async (feedUrl: string, signal: AbortSignal): Promise<Document> => {
-  const failures: string[] = [];
-
-  for (const buildProxyUrl of RSS_PROXY_URLS) {
-    try {
-      const response = await fetch(buildProxyUrl(feedUrl), {
-        signal,
-        credentials: 'omit',
-      });
-      if (!response.ok) {
-        failures.push(String(response.status));
-        continue;
-      }
-
-      const document = new DOMParser().parseFromString(await response.text(), 'application/xml');
-      if (!document.querySelector('parsererror')) return document;
-      failures.push('잘못된 RSS 형식');
-    } catch (error) {
-      if (signal.aborted) throw error;
-      failures.push('연결 실패');
-    }
-  }
-
-  throw new Error(`뉴스 RSS를 불러오지 못했습니다. (${failures.join(', ')})`);
-};
-
 const EducationNews: React.FC = () => {
   const [articles, setArticles] = useState<EducationArticle[]>([]);
   const [timeRange, setTimeRange] = useState('7d');
@@ -69,43 +37,24 @@ const EducationNews: React.FC = () => {
 
   useEffect(() => {
     const controller = new AbortController();
-    const feedParams = new URLSearchParams({
-      q: `${EDUCATION_QUERY} when:${timeRange}`,
-      hl: 'ko',
-      gl: 'KR',
-      ceid: 'KR:ko',
-    });
-    const feedUrl = `${RSS_URL}?${feedParams.toString()}`;
     setLoading(true);
     setError('');
 
-    loadRssDocument(feedUrl, controller.signal)
-      .then((document) => {
+    fetch(`${BACKEND_URL}/api/education-news?range=${encodeURIComponent(timeRange)}`, {
+      signal: controller.signal,
+      credentials: 'omit',
+    })
+      .then(async (response) => {
+        if (!response.ok) throw new Error(`교육 뉴스를 불러오지 못했습니다. (${response.status})`);
+        return response.json() as Promise<EducationArticle[]>;
+      })
+      .then((loadedArticles) => {
         const seen = new Set<string>();
-        const normalized = Array.from(document.querySelectorAll('item'))
-          .map((item) => ({
-            url: item.querySelector('link')?.textContent?.trim() ?? '',
-            title: item.querySelector('title')?.textContent?.trim() ?? '',
-            publishedAt: item.querySelector('pubDate')?.textContent?.trim() ?? '',
-            domain: item.querySelector('source')?.textContent?.trim() ?? '',
-          }))
-          .filter((article) => article.url.startsWith('https://') && article.title)
-          .filter((article) => {
-            if (seen.has(article.url)) return false;
-            seen.add(article.url);
-            return true;
-          })
-          .map((article) => {
-            const title = article.title;
-            const sourceMatch = title.match(/\s[-–]\s(.+)$/);
-            return {
-              url: article.url,
-              title: sourceMatch ? title.slice(0, sourceMatch.index).trim() : title,
-              publishedAt: article.publishedAt,
-              domain: article.domain || sourceMatch?.[1] || 'Google 뉴스',
-            };
-          });
-        setArticles(normalized);
+        setArticles(loadedArticles.filter((article) => {
+          if (!article.url?.startsWith('https://') || !article.title || seen.has(article.url)) return false;
+          seen.add(article.url);
+          return true;
+        }));
       })
       .catch((requestError: unknown) => {
         if (controller.signal.aborted) return;
