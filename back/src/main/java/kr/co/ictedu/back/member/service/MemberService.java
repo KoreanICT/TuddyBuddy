@@ -62,7 +62,7 @@ public class MemberService {
 		vo.setMember_code(memberCode);
 
 		System.out.println("생성된 회원코드 : " + memberCode);
-
+		
 		memberDao.insertMember(vo);
 
 		System.out.println("5");
