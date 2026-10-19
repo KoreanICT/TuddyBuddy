@@ -152,7 +152,7 @@ const normalizeResponse = (data: any): SavedQuizResponse => ({
 const resolveImageUrl = (value?: string): string | null => {
   if (!value?.trim()) return null;
 
-  const path = value.trim();
+  const path = value.trim().replace(/(^|\/)quiz-images\//, '$1imgfile/quiz/');
 
   if (/^https?:\/\//i.test(path)) {
     return path;
