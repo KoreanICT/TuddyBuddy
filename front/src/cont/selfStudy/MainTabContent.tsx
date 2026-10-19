@@ -284,14 +284,14 @@ export const MainTabContent: React.FC<Props> = ({
 
                         <p>
                           <strong>
-                            정답 (quiz_correct_answer):
+                            정답 :
                           </strong>{' '}
                           {quiz.quizCorrectAnswer}
                         </p>
 
                         <p>
                           <strong>
-                            해설 (quiz_explanation):
+                            해설 :
                           </strong>{' '}
                           {quiz.quizExplanation}
                         </p>
