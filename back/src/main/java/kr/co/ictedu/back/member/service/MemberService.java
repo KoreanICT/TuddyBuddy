@@ -62,7 +62,6 @@ public class MemberService {
 		String memberCode = UUID.randomUUID().toString();
 		vo.setMember_code(memberCode);
 
-		System.out.println("생성된 회원코드 : " + memberCode);
 
 		memberDao.insertMember(vo);
 
@@ -168,7 +167,6 @@ public class MemberService {
 
 		System.out.println("===== 카카오 회원가입 완료 =====");
 
-		System.out.println("회원번호: " + savedMember.getMember_num());
 
 		return savedMember;
 	}

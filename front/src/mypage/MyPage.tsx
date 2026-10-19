@@ -22,6 +22,8 @@ interface MemberVO {
     member_phone: string;
     authority: string;
     regdate?: string;
+    last_login_at?: string | null;
+    last_login_lookup_failed?: boolean;
     member_code?: string;
     point: number | null;
     member_login_type?: string;
@@ -156,6 +158,16 @@ const MyPage: React.FC = () => {
 
         if (!formattedYear || !formattedMonth || !formattedDay) return '-';
         return `${formattedYear}년 ${formattedMonth}월 ${formattedDay}일`;
+    };
+
+    // DB에 기록된 시각은 시간대 변환 없이 표시
+    const formatLastLogin = (lastLogin?: string | null, lookupFailed?: boolean) => {
+        if (lookupFailed) return '조회할 수 없습니다';
+        if (typeof lastLogin !== 'string') return '-';
+        const match = /^(\d{4}-\d{2}-\d{2})T((?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d)$/.exec(lastLogin);
+        if (!match) return '-';
+        const date = formatRegdate(match[1]);
+        return date === '-' ? '-' : `${date} ${match[2]}`;
     };
 
     // 프로필 대표 문자
@@ -406,6 +418,20 @@ const MyPage: React.FC = () => {
                                                 id="mypage-regdate"
                                                 type="text"
                                                 value={formatRegdate(member.regdate)}
+                                                readOnly
+                                            />
+                                        </div>
+
+                                        {/* 최근 로그인 */}
+                                        <div className="form-group">
+                                            <label htmlFor="mypage-last-login">
+                                                최근 로그인
+                                            </label>
+
+                                            <input
+                                                id="mypage-last-login"
+                                                type="text"
+                                                value={formatLastLogin(member.last_login_at, member.last_login_lookup_failed)}
                                                 readOnly
                                             />
                                         </div>

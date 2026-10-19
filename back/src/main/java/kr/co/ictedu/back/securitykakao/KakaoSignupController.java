@@ -317,7 +317,9 @@ public class KakaoSignupController {
                     );
 
             refreshTokens.revoke(authCookies.read(servletRequest));
-            authCookies.set(servletRequest, servletResponse, refreshTokens.issue(member));
+            String refreshToken = refreshTokens.issue(member);
+            authCookies.set(servletRequest, servletResponse, refreshToken);
+            refreshTokens.recordLogin(member, refreshToken, servletRequest);
 
             System.out.println(
                 "===== 카카오 신규 회원가입 및 JWT 발급 성공 ====="
@@ -342,10 +344,7 @@ public class KakaoSignupController {
             throw e;
         } catch (IllegalArgumentException e) {
 
-            System.err.println(
-                "카카오 회원가입 입력 오류: "
-                + e.getMessage()
-            );
+            System.err.println("카카오 회원가입 입력 오류");
 
             return badRequest(e.getMessage());
 
@@ -375,7 +374,6 @@ public class KakaoSignupController {
                 + e.getClass().getSimpleName()
             );
 
-            e.printStackTrace();
 
             return ResponseEntity.internalServerError().body(
                 Map.of(

@@ -31,6 +31,7 @@ import jakarta.servlet.http.HttpSession;
 import kr.co.ictedu.back.common.service.PagingService;
 import kr.co.ictedu.back.common.vo.PageVO;
 import kr.co.ictedu.back.member.service.MemberService;
+import kr.co.ictedu.back.member.service.LoginLogService;
 import kr.co.ictedu.back.member.service.MemberService.PasswordChangeResult;
 import kr.co.ictedu.back.member.vo.MemberVO;
 
@@ -50,6 +51,9 @@ public class MemberController {
 
     @Autowired
     private AuthCookies authCookies;
+
+    @Autowired
+    private LoginLogService loginLogs;
 
     // ==========================================
     // 관리자 회원가입
@@ -201,6 +205,11 @@ public class MemberController {
             "member_login_type",
             member.getMember_login_type()
         );
+
+        LoginLogService.LatestLogin latestLogin =
+            loginLogs.findLatestSuccessfulLogin(member.getMember_num());
+        response.put("last_login_at", latestLogin.lastLoginAt());
+        response.put("last_login_lookup_failed", latestLogin.lookupFailed());
 
         System.out.println(
             "===== 마이페이지 회원정보 조회 성공 ====="
