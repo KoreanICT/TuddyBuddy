@@ -9,10 +9,14 @@ interface EducationArticle {
   domain: string;
 }
 
-const CORS_PROXY_URL = 'https://proxy.cors.dev';
 const RSS_URL = 'https://news.google.com/rss/search';
 const EDUCATION_QUERY = '교육 OR 학교 OR 대학 OR 교사 OR 학습';
 const PAGE_SIZE = 5;
+const RSS_PROXY_URLS = [
+  (feedUrl: string) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(feedUrl)}`,
+  (feedUrl: string) => `https://proxy.cors.dev/${feedUrl}`,
+  (feedUrl: string) => `https://api.allorigins.win/raw?url=${encodeURIComponent(feedUrl)}`,
+];
 
 const timeRanges = [
   { value: '1d', label: '오늘' },
@@ -26,6 +30,32 @@ const parseNewsDate = (value: string): Date | null => {
     ? new Date(`${match[1]}-${match[2]}-${match[3]}T${match[4]}:${match[5]}:${match[6]}Z`)
     : new Date(value);
   return Number.isNaN(date.getTime()) ? null : date;
+};
+
+const loadRssDocument = async (feedUrl: string, signal: AbortSignal): Promise<Document> => {
+  const failures: string[] = [];
+
+  for (const buildProxyUrl of RSS_PROXY_URLS) {
+    try {
+      const response = await fetch(buildProxyUrl(feedUrl), {
+        signal,
+        credentials: 'omit',
+      });
+      if (!response.ok) {
+        failures.push(String(response.status));
+        continue;
+      }
+
+      const document = new DOMParser().parseFromString(await response.text(), 'application/xml');
+      if (!document.querySelector('parsererror')) return document;
+      failures.push('잘못된 RSS 형식');
+    } catch (error) {
+      if (signal.aborted) throw error;
+      failures.push('연결 실패');
+    }
+  }
+
+  throw new Error(`뉴스 RSS를 불러오지 못했습니다. (${failures.join(', ')})`);
 };
 
 const EducationNews: React.FC = () => {
@@ -45,24 +75,12 @@ const EducationNews: React.FC = () => {
       gl: 'KR',
       ceid: 'KR:ko',
     });
+    const feedUrl = `${RSS_URL}?${feedParams.toString()}`;
     setLoading(true);
     setError('');
 
-    fetch(`${CORS_PROXY_URL}/${RSS_URL}?${feedParams.toString()}`, {
-      signal: controller.signal,
-      credentials: 'omit',
-    })
-      .then(async (response) => {
-        if (!response.ok) {
-          throw new Error(`뉴스 검색 요청이 실패했습니다. (${response.status})`);
-        }
-        return response.text();
-      })
-      .then((xml) => {
-        const document = new DOMParser().parseFromString(xml, 'application/xml');
-        if (document.querySelector('parsererror')) {
-          throw new Error('뉴스 RSS를 읽을 수 없습니다.');
-        }
+    loadRssDocument(feedUrl, controller.signal)
+      .then((document) => {
         const seen = new Set<string>();
         const normalized = Array.from(document.querySelectorAll('item'))
           .map((item) => ({
