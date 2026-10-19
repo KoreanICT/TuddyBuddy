@@ -1,241 +1,174 @@
-import React, { useMemo, useState, useRef } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { BACKEND_URL } from "../../login/authHttp";
+import { useAuth } from "../../login/hooks/useAuth";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 interface Post {
-  id: number;
-  title: string;
+  postNum: number;
+  title: string | null;
   content: string;
   category: string;
   author: string;
-  date: string;
-  views: number;
 }
 
-interface Draft {
-  id: number;
-  title: string;
-  content: string;
-  date: string;
-}
-
-interface Comment {
-  id: number;
-  author: string;
-  content: string;
-  date: string;
+interface PostsResponse {
+  data: Post[];
+  totalItems: number;
+  totalPages: number;
+  currentPage: number;
+  startPage: number;
+  endPage: number;
 }
 
 const Community: React.FC = () => {
-  // 카테고리 (글쓰기용 카테고리는 "전체" 제외)
   const categories = ["전체", "자유게시판", "합격후기", "꿀팁"];
   const writeCategories = ["자유게시판", "합격후기", "꿀팁"];
-
-  // 게시글
-  const [posts, setPosts] = useState<Post[]>([
-    {
-      id: 1,
-      title: "안녕하세요! 처음 가입했습니다.",
-      content: "커뮤니티에 처음 가입했어요. 잘 부탁드립니다! 앞으로 많은 교류 나누었으면 좋겠습니다.",
-      category: "자유게시판",
-      author: "홍길동",
-      date: "2026-09-05",
-      views: 124,
-    },
-    {
-      id: 2,
-      title: "이번에 드디어 합격했습니다!",
-      content: "열심히 준비한 끝에 합격했어요. 제가 준비했던 공부 패턴과 서류 준비 방법을 공유합니다.",
-      category: "합격후기",
-      author: "김민수",
-      date: "2026-09-04",
-      views: 352,
-    },
-    {
-      id: 3,
-      title: "면접 준비할 때 도움이 되는 팁",
-      content: "제가 면접을 준비하면서 도움이 되었던 방법들을 상세히 정리했습니다. 1:1 모의면접 추천해요.",
-      category: "꿀팁",
-      author: "이영희",
-      date: "2026-09-03",
-      views: 215,
-    },
-    {
-      id: 4,
-      title: "요즘 공부 어떻게 하고 계세요?",
-      content: "다른 분들은 어떤 방식으로 공부시간을 배분하고 계시는지 궁금합니다. 스터디 모집도 환영해요.",
-      category: "자유게시판",
-      author: "박철수",
-      date: "2026-09-02",
-      views: 89,
-    },
-    {
-      id: 5,
-      title: "합격까지 6개월 걸렸습니다.",
-      content: "처음에는 정말 막막했는데 꾸준히 루틴을 지키니까 결과가 나왔습니다. 포기하지 마세요!",
-      category: "합격후기",
-      author: "최유진",
-      date: "2026-09-01",
-      views: 410,
-    },
-    {
-      id: 6,
-      title: "공부 계획표 만드는 방법",
-      content: "하루 공부량을 무리하지 않게 정하고 꾸준히 지키는 체계적인 타임테이블 노하우를 공개합니다.",
-      category: "꿀팁",
-      author: "정다은",
-      date: "2026-08-31",
-      views: 178,
-    },
-  ]);
-
-  // 임시글
-  const [drafts] = useState<Draft[]>([
-    { id: 1, title: "작성하다 저장한 글입니다.", content: "아직 작성 중인 내용입니다.", date: "2026-09-05" },
-    { id: 2, title: "면접 후기 작성 중", content: "면접에서 받은 질문들을 상세하게 정리하고 있습니다.", date: "2026-09-04" },
-    { id: 3, title: "공부 방법 정리", content: "제가 단기 합격에 사용했던 핵심 노하우를 수집 중입니다.", date: "2026-09-03" },
-    { id: 4, title: "자격증 준비 후기", content: "자격증 실기 시험 공부하면서 느꼈던 점을 작성하고 있습니다.", date: "2026-09-02" },
-    { id: 5, title: "취업 준비 이야기", content: "상반기 취업 준비 과정에서 있었던 일들을 회고하며 정리 중입니다.", date: "2026-09-01" },
-  ]);
-
-  // State
+  const { isLoggedIn, memberNum } = useAuth();
+  const navigate = useNavigate();
+  const [page, setPage] = useState(1);
+  const [reload, setReload] = useState(0);
+  const [listing, setListing] = useState<PostsResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [listError, setListError] = useState("");
+  const [notice, setNotice] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("전체");
   const [searchKeyword, setSearchKeyword] = useState("");
   const [searchedKeyword, setSearchedKeyword] = useState("");
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
-
-  // 글쓰기 모달 State
   const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [newContent, setNewContent] = useState("");
   const [newWriteCategory, setNewWriteCategory] = useState("자유게시판");
-  const [newAuthor, setNewAuthor] = useState("나(사용자)");
+  const [saving, setSaving] = useState(false);
+  const [writeError, setWriteError] = useState("");
+  const saveLock = useRef(false);
+  const titleInputRef = useRef<HTMLInputElement>(null);
+  const saveController = useRef<AbortController | null>(null);
 
-  // 에디터 관련 Ref 및 툴바 상태
-  const editorRef = useRef<HTMLDivElement>(null);
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // 댓글 State
-  const [comments, setComments] = useState<{ [postId: number]: Comment[] }>({
-    1: [
-      { id: 101, author: "김민수", content: "반갑습니다! 자주 소통해요~", date: "2026-09-05 14:20" },
-      { id: 102, author: "이영희", content: "가입 축하드립니다!", date: "2026-09-05 15:10" },
-    ],
-  });
-  const [newCommentText, setNewCommentText] = useState("");
-
-  // 필터링
-  const filteredPosts = useMemo(() => {
-    return posts.filter((post) => {
-      const categoryMatch = selectedCategory === "전체" || post.category === selectedCategory;
-      const searchMatch =
-        searchedKeyword.trim() === "" ||
-        post.title.toLowerCase().includes(searchedKeyword.toLowerCase()) ||
-        post.content.toLowerCase().includes(searchedKeyword.toLowerCase());
-      return categoryMatch && searchMatch;
-    });
-  }, [posts, selectedCategory, searchedKeyword]);
-
-  // 핸들러
-  const handleSearch = () => setSearchedKeyword(searchKeyword);
-  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") handleSearch();
-  };
-
-  // 게시글 클릭 시 조회수 증가 및 상세 보기 오픈 핸들러
-  const handleOpenPost = (post: Post) => {
-    setPosts((prevPosts) =>
-      prevPosts.map((p) => (p.id === post.id ? { ...p, views: p.views + 1 } : p))
-    );
-    setSelectedPost({ ...post, views: post.views + 1 });
-    setNewCommentText("");
-  };
-
-  // 게시글 삭제 핸들러
-  const handleDeletePost = (postId: number) => {
-    if (window.confirm("정말 이 게시글을 삭제하시겠습니까?")) {
-      setPosts((prevPosts) => prevPosts.filter((post) => post.id !== postId));
-      setSelectedPost(null);
+  useEffect(() => {
+    const controller = new AbortController();
+    setListing(null);
+    setSelectedPost(null);
+    setListError("");
+    if (!isLoggedIn || memberNum === null) {
+      setLoading(false);
+      setListError("로그인 후 커뮤니티 게시글을 확인할 수 있습니다.");
+      return () => controller.abort();
     }
-  };
-
-  // 에디터 서식 명령어 실행
-  const executeCommand = (command: string, value: string = "") => {
-    document.execCommand(command, false, value);
-    if (editorRef.current) {
-      setNewContent(editorRef.current.innerHTML);
-    }
-  };
-
-  // 이미지 업로드
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-
-    const file = files[0];
-    const reader = new FileReader();
-    reader.onload = (uploadEvent) => {
-      const base64Image = uploadEvent.target?.result as string;
-      executeCommand("insertImage", base64Image);
+    setLoading(true);
+    const loadPosts = async () => {
+      try {
+        const response = await axios.get<PostsResponse>(`${BACKEND_URL}/api/community/posts`, {
+          params: { cPage: page }, signal: controller.signal
+        });
+        if (!controller.signal.aborted) setListing(response.data);
+      } catch (error) {
+        if (controller.signal.aborted || axios.isCancel(error)) return;
+        const status = axios.isAxiosError(error) ? error.response?.status : undefined;
+        setListError(status === 401 ? "로그인이 만료되었습니다. 다시 로그인해주세요."
+          : status === 403 ? "게시글 목록에 접근할 권한이 없습니다."
+            : "게시글을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.");
+      } finally {
+        if (!controller.signal.aborted) setLoading(false);
+      }
     };
-    reader.readAsDataURL(file);
-    e.target.value = "";
-  };
+    void loadPosts();
+    return () => controller.abort();
+  }, [isLoggedIn, memberNum, page, reload]);
 
-  // 이모티콘 삽입
-  const handleInsertEmoji = (emoji: string) => {
-    executeCommand("insertText", emoji);
-    setShowEmojiPicker(false);
-  };
+  useEffect(() => {
+    setIsWriteModalOpen(false);
+    setSelectedPost(null);
+    setSaving(false);
+    saveLock.current = false;
+    return () => {
+      saveController.current?.abort();
+      saveController.current = null;
+    };
+  }, [memberNum]);
 
-  // 게시글 등록 핸들러
-  const handleCreatePost = (e: React.FormEvent) => {
-    e.preventDefault();
-    const currentHtmlContent = editorRef.current ? editorRef.current.innerHTML : newContent;
+  useEffect(() => {
+    if (isWriteModalOpen) titleInputRef.current?.focus();
+    if (!isWriteModalOpen && !selectedPost) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !saveLock.current) {
+        setIsWriteModalOpen(false);
+        setSelectedPost(null);
+      }
+    };
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [isWriteModalOpen, selectedPost]);
 
-    if (!newTitle.trim() || !currentHtmlContent.trim() || currentHtmlContent === "<br>") {
-      alert("제목과 내용을 모두 입력해주세요.");
+  const filteredPosts = useMemo(() => (listing?.data || []).filter(post =>
+    (selectedCategory === "전체" || post.category === selectedCategory) &&
+    (!searchedKeyword.trim() || (post.title || "").toLowerCase().includes(searchedKeyword.toLowerCase()) ||
+      post.content.toLowerCase().includes(searchedKeyword.toLowerCase()))
+  ), [listing, selectedCategory, searchedKeyword]);
+
+  const openWriteModal = () => {
+    if (!isLoggedIn) {
+      navigate("/auth/member?redirect=%2Fcommunity");
       return;
     }
-
-    const todayStr = new Date().toISOString().slice(0, 10);
-    const newPost: Post = {
-      id: Date.now(),
-      title: newTitle.trim(),
-      content: currentHtmlContent,
-      category: newWriteCategory,
-      author: newAuthor.trim() || "익명",
-      date: todayStr,
-      views: 0,
-    };
-
-    setPosts([newPost, ...posts]);
-    setNewTitle("");
-    setNewContent("");
-    setNewWriteCategory("자유게시판");
-    setIsWriteModalOpen(false);
+    setWriteError("");
+    setIsWriteModalOpen(true);
   };
 
-  const handleAddComment = (postId: number) => {
-    if (!newCommentText.trim()) return;
-    const newComment: Comment = {
-      id: Date.now(),
-      author: "나(사용자)",
-      content: newCommentText.trim(),
-      date: new Date().toISOString().slice(0, 16).replace("T", " "),
-    };
-    setComments((prev) => ({
-      ...prev,
-      [postId]: [...(prev[postId] || []), newComment],
-    }));
-    setNewCommentText("");
-  };
-
-  const handleDeleteComment = (postId: number, commentId: number) => {
-    setComments((prev) => ({
-      ...prev,
-      [postId]: (prev[postId] || []).filter((c) => c.id !== commentId),
-    }));
+  const handleCreatePost = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (saveLock.current) return;
+    const title = newTitle.trim();
+    const content = newContent.trim();
+    if (!isLoggedIn) { setWriteError("로그인 후 글을 작성해주세요."); return; }
+    if (!title || !content) { setWriteError("제목과 내용을 모두 입력해주세요."); return; }
+    if (title.length > 30 || content.length > 250) {
+      setWriteError("제목은 30자, 내용은 250자 이내로 입력해주세요.");
+      return;
+    }
+    if (!writeCategories.includes(newWriteCategory)) { setWriteError("카테고리를 선택해주세요."); return; }
+    saveLock.current = true;
+    setSaving(true);
+    setWriteError("");
+    const controller = new AbortController();
+    saveController.current = controller;
+    try {
+      await axios.post(`${BACKEND_URL}/api/community/write`,
+        { title, content, category: newWriteCategory }, { signal: controller.signal });
+      if (controller.signal.aborted) return;
+      setNewTitle("");
+      setNewContent("");
+      setNewWriteCategory("자유게시판");
+      setIsWriteModalOpen(false);
+      setSelectedCategory("전체");
+      setSearchKeyword("");
+      setSearchedKeyword("");
+      setNotice("게시글이 등록되었습니다. 마이페이지의 나의 게시글에서도 확인할 수 있습니다.");
+      setPage(1);
+      setReload(value => value + 1);
+    } catch (error) {
+      if (controller.signal.aborted || axios.isCancel(error)) return;
+      const status = axios.isAxiosError(error) ? error.response?.status : undefined;
+      const serverMessage = axios.isAxiosError(error)
+        ? error.response?.data?.message || error.response?.data?.detail : undefined;
+      setWriteError(status === 401 ? "로그인이 만료되었습니다. 다시 로그인해주세요."
+        : status === 403 ? "게시글을 작성할 권한이 없습니다."
+          : status === 400 ? (typeof serverMessage === "string" ? serverMessage : "입력한 내용이 게시글 저장 형식 또는 길이 제한에 맞지 않습니다.")
+            : "게시글 등록 결과를 확인하지 못했습니다. 목록을 확인한 후 다시 시도해주세요.");
+    } finally {
+      if (saveController.current === controller) {
+        saveController.current = null;
+        saveLock.current = false;
+        if (!controller.signal.aborted) setSaving(false);
+      }
+    }
   };
 
   const getBadgeStyle = (category: string) => {
@@ -247,421 +180,130 @@ const Community: React.FC = () => {
     }
   };
 
-  // contenteditable 전용 placeholder CSS
-  const editorPlaceholderCss = `
-    .content-editor:empty:before {
-      content: "내용을 입력하세요...";
-      color: #adb5bd;
-      pointer-events: none;
-      display: block;
-    }
-  `;
-
   return (
     <div className="bg-light min-vh-100 py-4 py-md-5">
-      <style>{editorPlaceholderCss}</style>
-
       <div className="container" style={{ maxWidth: "1000px" }}>
-        {/* Header with Write Button */}
         <div className="d-flex align-items-center justify-content-between mb-4">
           <div>
             <h2 className="fw-bold text-dark mb-1">커뮤니티</h2>
             <p className="text-muted small mb-0">다양한 지식과 후기를 사람들과 공유해보세요.</p>
           </div>
-          <button
-            type="button"
-            className="btn btn-primary px-4 py-2 rounded-3 fw-semibold shadow-sm"
-            onClick={() => setIsWriteModalOpen(true)}
-          >
-            + 글쓰기
-          </button>
+          <button type="button" className="btn btn-primary px-4 py-2 rounded-3 fw-semibold shadow-sm" onClick={openWriteModal}>+ 글쓰기</button>
         </div>
-
-        {/* Category Tabs */}
+        {notice && <p className="alert alert-success" role="status">{notice}</p>}
         <div className="bg-white rounded-4 p-2 shadow-sm mb-4 border">
           <div className="nav nav-pills nav-fill gap-2">
-            {categories.map((category) => (
-              <button
-                key={category}
-                type="button"
-                className={`nav-link py-2.5 px-3 fw-semibold rounded-3 ${
-                  selectedCategory === category ? "active bg-primary text-white shadow-sm" : "text-secondary bg-transparent"
-                }`}
-                onClick={() => setSelectedCategory(category)}
-              >
-                {category}
-              </button>
+            {categories.map(category => (
+              <button key={category} type="button" aria-pressed={selectedCategory === category}
+                className={`nav-link py-2 px-3 fw-semibold rounded-3 ${selectedCategory === category ? "active bg-primary text-white shadow-sm" : "text-secondary bg-transparent"}`}
+                onClick={() => setSelectedCategory(category)}>{category}</button>
             ))}
           </div>
         </div>
-
-        {/* Search Bar */}
-        <div className="bg-white rounded-4 p-2 shadow-sm mb-4 border">
+        <div className="bg-white rounded-4 p-2 shadow-sm mb-2 border">
           <div className="input-group input-group-lg border-0">
-            <input
-              type="text"
-              className="form-control border-0 shadow-none fs-6 px-3"
-              placeholder="관심있는 글 내용이나 제목을 검색해보세요"
-              value={searchKeyword}
-              onChange={(e) => setSearchKeyword(e.target.value)}
-              onKeyDown={handleSearchKeyDown}
-            />
-            <button type="button" className="btn btn-primary rounded-3 px-4 fw-semibold" onClick={handleSearch}>
-              검색
-            </button>
+            <input type="search" className="form-control border-0 shadow-none fs-6 px-3"
+              placeholder="현재 페이지의 제목이나 내용 검색" aria-label="현재 페이지 게시글 검색"
+              value={searchKeyword} onChange={event => setSearchKeyword(event.target.value)}
+              onKeyDown={event => { if (event.key === "Enter") setSearchedKeyword(searchKeyword); }} />
+            <button type="button" className="btn btn-primary rounded-3 px-4 fw-semibold" onClick={() => setSearchedKeyword(searchKeyword)}>검색</button>
           </div>
         </div>
-
-        {/* Posts List */}
-        <div className="mb-5">
+        <p className="text-muted small mb-4">카테고리와 검색은 현재 페이지의 게시글에 적용됩니다.</p>
+        <section className="mb-5" aria-busy={loading} aria-label="게시글 목록">
           <div className="d-flex justify-content-between align-items-center mb-3 px-1">
             <h5 className="fw-bold mb-0 text-dark">{selectedCategory}</h5>
-            <span className="badge bg-primary-subtle text-primary rounded-pill">{filteredPosts.length}</span>
+            {listing && <span className="badge bg-primary-subtle text-primary rounded-pill">전체 {listing.totalItems}건 · 현재 페이지 {filteredPosts.length}건</span>}
           </div>
-          <div className="d-flex flex-column gap-3">
-            {filteredPosts.map((post) => (
-              <div
-                key={post.id}
-                className="card border-0 shadow-sm rounded-4 p-4"
-                style={{ cursor: "pointer" }}
-                onClick={() => handleOpenPost(post)}
-              >
-                <div className="d-flex justify-content-between align-items-start mb-2">
-                  <span className={`badge rounded-pill fw-semibold px-2.5 py-1 ${getBadgeStyle(post.category)}`}>
-                    {post.category}
-                  </span>
-                  {/* 날짜 및 조회수 우측 상단 영역 (조회수 크기 확답/강조) */}
-                  <div className="text-end">
-                    <small className="text-muted d-block">{post.date}</small>
-                    <span className="small text-secondary fw-semibold">조회 {post.views}</span>
-                  </div>
-                </div>
-                <h5 className="fw-bold text-dark mb-2">{post.title}</h5>
-                <p className="text-secondary mb-3 fs-6" style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
-                  {post.content.replace(/<[^>]*>?/gm, '')}
-                </p>
-                <div className="d-flex justify-content-between align-items-center pt-2 border-top">
-                  <span className="small fw-semibold text-dark">{post.author}</span>
-                  <span className="small text-primary fw-semibold">자세히 보기 →</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Drafts Section */}
-        <div className="bg-white rounded-4 p-4 shadow-sm border mb-4">
-          <h5 className="fw-bold text-dark mb-3">작성 중인 임시글</h5>
-          <div className="d-flex flex-column gap-2" style={{ maxHeight: "200px", overflowY: "auto" }}>
-            {drafts.map((draft) => (
-              <div key={draft.id} className="p-3 rounded-3 bg-light border border-light-subtle">
-                <div className="d-flex justify-content-between">
-                  <h6 className="fw-semibold text-dark mb-1">{draft.title}</h6>
-                  <span className="small text-muted">{draft.date}</span>
-                </div>
-                <p className="small text-muted mb-0 text-truncate">{draft.content}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Write Post Modal */}
+          {loading ? <p className="text-center py-5 text-muted" role="status">게시글을 불러오는 중입니다.</p>
+            : listError ? <div className="bg-white rounded-4 p-4 border text-center">
+              <p role="alert">{listError}</p>
+              {isLoggedIn ? <button type="button" className="btn btn-outline-primary" onClick={() => setReload(value => value + 1)}>다시 시도</button>
+                : <button type="button" className="btn btn-primary" onClick={() => navigate("/auth/member?redirect=%2Fcommunity")}>로그인</button>}
+            </div>
+              : filteredPosts.length === 0 ? <p className="bg-white rounded-4 p-5 text-center text-muted">{listing?.totalItems === 0 ? "아직 등록된 게시글이 없습니다." : "현재 페이지에 조건과 일치하는 게시글이 없습니다."}</p>
+                : <div className="d-flex flex-column gap-3">
+                  {filteredPosts.map(post => (
+                    <button key={post.postNum} type="button" className="card border-0 shadow-sm rounded-4 p-4 text-start w-100" onClick={() => setSelectedPost(post)}>
+                      <span className={`badge rounded-pill fw-semibold mb-2 ${getBadgeStyle(post.category)}`}>{post.category}</span>
+                      <span className="h5 fw-bold text-dark mb-2" style={{ overflowWrap: "anywhere" }}>{post.title || "제목 없음"}</span>
+                      <span className="text-secondary mb-3 fs-6" style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden", whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>{post.content}</span>
+                      <span className="d-flex justify-content-between align-items-center pt-2 border-top w-100">
+                        <span className="small fw-semibold text-dark">{post.author || "회원"}</span>
+                        <span className="small text-primary fw-semibold">자세히 보기 →</span>
+                      </span>
+                    </button>
+                  ))}
+                </div>}
+          {!loading && !listError && listing && listing.totalPages > 1 && (
+            <nav className="d-flex flex-wrap justify-content-center gap-2 mt-4" aria-label="커뮤니티 페이지">
+              {listing.startPage > 1 && <button type="button" className="btn btn-outline-primary btn-sm" onClick={() => setPage(listing.startPage - 1)}>이전</button>}
+              {Array.from({ length: Math.max(0, listing.endPage - listing.startPage + 1) }, (_, index) => listing.startPage + index).map(number => (
+                <button key={number} type="button" className={`btn btn-sm ${number === listing.currentPage ? "btn-primary" : "btn-outline-primary"}`}
+                  aria-current={number === listing.currentPage ? "page" : undefined} disabled={number === listing.currentPage} onClick={() => setPage(number)}>{number}</button>
+              ))}
+              {listing.endPage < listing.totalPages && <button type="button" className="btn btn-outline-primary btn-sm" onClick={() => setPage(listing.endPage + 1)}>다음</button>}
+            </nav>
+          )}
+        </section>
         {isWriteModalOpen && (
-          <div
-            className="modal fade show d-block"
-            tabIndex={-1}
-            style={{ backgroundColor: "rgba(15, 23, 42, 0.5)", backdropFilter: "blur(4px)" }}
-            onClick={() => setIsWriteModalOpen(false)}
-          >
-            <div className="modal-dialog modal-dialog-centered modal-lg" onClick={(e) => e.stopPropagation()}>
+          <div className="modal fade show d-block" role="dialog" aria-modal="true" aria-labelledby="community-write-title" tabIndex={-1}
+            style={{ backgroundColor: "rgba(15, 23, 42, 0.5)", backdropFilter: "blur(4px)" }} onClick={() => { if (!saving) setIsWriteModalOpen(false); }}>
+            <div className="modal-dialog modal-dialog-centered modal-lg" onClick={event => event.stopPropagation()}>
               <div className="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
                 <div className="modal-header border-bottom p-4 bg-light-subtle">
-                  <h4 className="modal-title fw-bold text-dark mb-0">새 글 작성</h4>
-                  <button type="button" className="btn-close" onClick={() => setIsWriteModalOpen(false)} />
+                  <h4 id="community-write-title" className="modal-title fw-bold text-dark mb-0">새 글 작성</h4>
+                  <button type="button" className="btn-close" aria-label="글쓰기 닫기" disabled={saving} onClick={() => setIsWriteModalOpen(false)} />
                 </div>
-                <form onSubmit={handleCreatePost}>
+                <form onSubmit={event => void handleCreatePost(event)} aria-busy={saving}>
                   <div className="modal-body p-4" style={{ maxHeight: "75vh", overflowY: "auto" }}>
-                    
-                    <div className="row g-3 mb-3">
-                      <div className="col-md-6">
-                        <label className="form-label fw-semibold text-dark">카테고리</label>
-                        <select
-                          className="form-select"
-                          value={newWriteCategory}
-                          onChange={(e) => setNewWriteCategory(e.target.value)}
-                        >
-                          {writeCategories.map((cat) => (
-                            <option key={cat} value={cat}>{cat}</option>
-                          ))}
-                        </select>
-                      </div>
-                      <div className="col-md-6">
-                        <label className="form-label fw-semibold text-dark">작성자</label>
-                        <input
-                          type="text"
-                          className="form-control"
-                          value={newAuthor}
-                          onChange={(e) => setNewAuthor(e.target.value)}
-                          placeholder="작성자 이름을 입력하세요"
-                        />
-                      </div>
-                    </div>
-
                     <div className="mb-3">
-                      <label className="form-label fw-semibold text-dark">제목</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        value={newTitle}
-                        onChange={(e) => setNewTitle(e.target.value)}
-                        placeholder="제목을 입력하세요"
-                        required
-                      />
+                      <label htmlFor="community-category" className="form-label fw-semibold text-dark">카테고리</label>
+                      <select id="community-category" className="form-select" value={newWriteCategory} disabled={saving} onChange={event => setNewWriteCategory(event.target.value)}>
+                        {writeCategories.map(category => <option key={category} value={category}>{category}</option>)}
+                      </select>
                     </div>
-
-                    {/* 에디터 영역 */}
                     <div className="mb-3">
-                      <label className="form-label fw-semibold text-dark">내용</label>
-                      
-                      <div className="border rounded-3 bg-white overflow-hidden shadow-sm">
-                        {/* 툴바 */}
-                        <div className="d-flex flex-wrap align-items-center gap-1 p-2 bg-light border-bottom">
-                          <button
-                            type="button"
-                            className="btn btn-sm btn-light border bg-white fw-semibold px-2 py-1"
-                            title="사진 올리기"
-                            onClick={() => fileInputRef.current?.click()}
-                          >
-                            📷 사진
-                          </button>
-                          <input
-                            type="file"
-                            ref={fileInputRef}
-                            style={{ display: "none" }}
-                            accept="image/*"
-                            onChange={handleImageUpload}
-                          />
-
-                          <div className="position-relative">
-                            <button
-                              type="button"
-                              className="btn btn-sm btn-light border bg-white fw-semibold px-2 py-1"
-                              title="이모티콘"
-                              onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                            >
-                              😊 이모티콘
-                            </button>
-                            {showEmojiPicker && (
-                              <div className="position-absolute bg-white border shadow rounded p-2 d-flex gap-2 z-3 mt-1" style={{ width: "200px", flexWrap: "wrap" }}>
-                                {["😀", "😂", "😍", "👍", "🔥", "❤️", "🙏", "💡", "🎉", "😢"].map((emoji) => (
-                                  <button
-                                    key={emoji}
-                                    type="button"
-                                    className="btn btn-sm btn-light p-1"
-                                    onClick={() => handleInsertEmoji(emoji)}
-                                  >
-                                    {emoji}
-                                  </button>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-
-                          <div className="vr mx-1"></div>
-
-                          <button
-                            type="button"
-                            className="btn btn-sm btn-light border bg-white px-2 py-1 fw-bold"
-                            onClick={() => executeCommand("bold")}
-                            title="굵게"
-                          >
-                            B
-                          </button>
-                          <button
-                            type="button"
-                            className="btn btn-sm btn-light border bg-white px-2 py-1 fst-italic"
-                            onClick={() => executeCommand("italic")}
-                            title="기울임"
-                          >
-                            I
-                          </button>
-                          <button
-                            type="button"
-                            className="btn btn-sm btn-light border bg-white px-2 py-1 text-decoration-underline"
-                            onClick={() => executeCommand("underline")}
-                            title="밑줄"
-                          >
-                            U
-                          </button>
-                          
-                          <div className="vr mx-1"></div>
-
-                          <button
-                            type="button"
-                            className="btn btn-sm btn-light border bg-white px-2 py-1 small"
-                            onClick={() => executeCommand("justifyLeft")}
-                            title="왼쪽 정렬"
-                          >
-                            왼쪽정렬
-                          </button>
-                          <button
-                            type="button"
-                            className="btn btn-sm btn-light border bg-white px-2 py-1 small"
-                            onClick={() => executeCommand("justifyCenter")}
-                            title="가운데 정렬"
-                          >
-                            가운데
-                          </button>
-                        </div>
-
-                        {/* 편집 영역 */}
-                        <div
-                          ref={editorRef}
-                          className="p-3 content-editor"
-                          contentEditable={true}
-                          style={{
-                            minHeight: "220px",
-                            maxHeight: "350px",
-                            overflowY: "auto",
-                            outline: "none",
-                          }}
-                          onInput={(e) => setNewContent(e.currentTarget.innerHTML)}
-                        />
-                      </div>
+                      <label htmlFor="community-post-title" className="form-label fw-semibold text-dark">제목</label>
+                      <input id="community-post-title" ref={titleInputRef} type="text" className="form-control" value={newTitle} maxLength={30}
+                        disabled={saving} onChange={event => setNewTitle(event.target.value)} placeholder="제목을 입력하세요" required />
+                      <p className="small text-muted mt-1 mb-0">{newTitle.length}/30자</p>
                     </div>
-
+                    <div className="mb-3">
+                      <label htmlFor="community-post-content" className="form-label fw-semibold text-dark">내용</label>
+                      <textarea id="community-post-content" className="form-control" rows={8} value={newContent} maxLength={250}
+                        disabled={saving} onChange={event => setNewContent(event.target.value)} placeholder="내용을 입력하세요" aria-describedby="community-content-help" required />
+                      <p id="community-content-help" className="small text-muted mt-1 mb-0">{newContent.length}/250자 · 글 내용은 일반 텍스트로 저장됩니다.</p>
+                    </div>
+                    {writeError && <p className="text-danger mb-0" role="alert">{writeError}</p>}
                   </div>
                   <div className="modal-footer border-top bg-light-subtle p-3">
-                    <button
-                      type="button"
-                      className="btn btn-secondary px-4 rounded-3 fw-semibold"
-                      onClick={() => setIsWriteModalOpen(false)}
-                    >
-                      취소
-                    </button>
-                    <button type="submit" className="btn btn-primary px-4 rounded-3 fw-semibold">
-                      등록하기
-                    </button>
+                    <button type="button" className="btn btn-secondary px-4 rounded-3 fw-semibold" disabled={saving} onClick={() => setIsWriteModalOpen(false)}>취소</button>
+                    <button type="submit" className="btn btn-primary px-4 rounded-3 fw-semibold" disabled={saving}>{saving ? "등록 중..." : "등록하기"}</button>
                   </div>
                 </form>
               </div>
             </div>
           </div>
         )}
-
-        {/* Modal with Comments & Delete Button */}
         {selectedPost && (
-          <div
-            className="modal fade show d-block"
-            tabIndex={-1}
-            style={{ backgroundColor: "rgba(15, 23, 42, 0.5)", backdropFilter: "blur(4px)" }}
-            onClick={() => setSelectedPost(null)}
-          >
-            <div className="modal-dialog modal-dialog-centered modal-lg" onClick={(e) => e.stopPropagation()}>
+          <div className="modal fade show d-block" role="dialog" aria-modal="true" aria-labelledby="community-detail-title" tabIndex={-1}
+            style={{ backgroundColor: "rgba(15, 23, 42, 0.5)", backdropFilter: "blur(4px)" }} onClick={() => setSelectedPost(null)}>
+            <div className="modal-dialog modal-dialog-centered modal-lg" onClick={event => event.stopPropagation()}>
               <div className="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
-                {/* Header */}
                 <div className="modal-header border-bottom p-4 bg-light-subtle">
                   <div>
-                    <span className={`badge rounded-pill fw-semibold px-2.5 py-1 mb-2 ${getBadgeStyle(selectedPost.category)}`}>
-                      {selectedPost.category}
-                    </span>
-                    <h4 className="modal-title fw-bold text-dark mb-0">{selectedPost.title}</h4>
+                    <span className={`badge rounded-pill fw-semibold mb-2 ${getBadgeStyle(selectedPost.category)}`}>{selectedPost.category}</span>
+                    <h4 id="community-detail-title" className="modal-title fw-bold text-dark mb-0" style={{ overflowWrap: "anywhere" }}>{selectedPost.title || "제목 없음"}</h4>
                   </div>
-                  <button type="button" className="btn-close" onClick={() => setSelectedPost(null)} />
+                  <button type="button" className="btn-close" aria-label="게시글 닫기" onClick={() => setSelectedPost(null)} />
                 </div>
-
-                {/* Body */}
                 <div className="modal-body p-4" style={{ maxHeight: "70vh", overflowY: "auto" }}>
-                  <div className="d-flex align-items-center justify-content-between mb-4 pb-3 border-bottom">
-                    <div className="d-flex align-items-center gap-2">
-                      <div className="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold" style={{ width: "36px", height: "36px" }}>
-                        {selectedPost.author.charAt(0)}
-                      </div>
-                      <div>
-                        <div className="fw-semibold text-dark">{selectedPost.author}</div>
-                        <small className="text-muted">{selectedPost.date}</small>
-                      </div>
-                    </div>
-                    {/* 모달 내부 조회수 크기 조절 */}
-                    <span className="small text-secondary fw-semibold">조회 {selectedPost.views}</span>
-                  </div>
-
-                  {/* Post Content */}
-                  <div 
-                    className="fs-6 text-dark leading-relaxed mb-5" 
-                    style={{ minHeight: "100px", wordBreak: "break-all" }}
-                    dangerouslySetInnerHTML={{ __html: selectedPost.content }}
-                  />
-
-                  {/* Comments Section */}
-                  <div className="pt-4 border-top">
-                    <div className="d-flex align-items-center gap-2 mb-3">
-                      <h6 className="fw-bold mb-0 text-dark">댓글</h6>
-                      <span className="badge bg-primary-subtle text-primary rounded-pill">
-                        {(comments[selectedPost.id] || []).length}
-                      </span>
-                    </div>
-
-                    {/* Add Comment Input */}
-                    <div className="input-group mb-4">
-                      <input
-                        type="text"
-                        className="form-control"
-                        placeholder="댓글을 작성해 보세요..."
-                        value={newCommentText}
-                        onChange={(e) => setNewCommentText(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") handleAddComment(selectedPost.id);
-                        }}
-                      />
-                      <button className="btn btn-primary px-4 fw-semibold" type="button" onClick={() => handleAddComment(selectedPost.id)}>
-                        등록
-                      </button>
-                    </div>
-
-                    {/* Comment List */}
-                    <div className="d-flex flex-column gap-2">
-                      {(comments[selectedPost.id] || []).length > 0 ? (
-                        comments[selectedPost.id].map((comment) => (
-                          <div key={comment.id} className="p-3 rounded-3 bg-light border border-light-subtle d-flex justify-content-between align-items-start">
-                            <div>
-                              <div className="d-flex align-items-center gap-2 mb-1">
-                                <span className="fw-semibold text-dark small">{comment.author}</span>
-                                <small className="text-muted" style={{ fontSize: "11px" }}>{comment.date}</small>
-                              </div>
-                              <p className="mb-0 text-secondary fs-6">{comment.content}</p>
-                            </div>
-                            <button
-                              type="button"
-                              className="btn btn-link text-danger p-0 border-0 text-decoration-none small ms-2"
-                              style={{ fontSize: "13px" }}
-                              onClick={() => handleDeleteComment(selectedPost.id, comment.id)}
-                            >
-                              삭제
-                            </button>
-                          </div>
-                        ))
-                      ) : (
-                        <div className="text-center py-4 text-muted small bg-light rounded-3">
-                          아직 작성된 댓글이 없습니다. 첫 번째 댓글을 남겨보세요!
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                  <div className="fw-semibold text-dark mb-4 pb-3 border-bottom">{selectedPost.author || "회원"}</div>
+                  <div className="fs-6 text-dark" style={{ minHeight: "100px", whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>{selectedPost.content}</div>
                 </div>
-
-                {/* Footer */}
-                <div className="modal-footer border-top bg-light-subtle p-3 justify-content-between">
-                  <button
-                    type="button"
-                    className="btn btn-outline-danger px-4 rounded-3 fw-semibold"
-                    onClick={() => handleDeletePost(selectedPost.id)}
-                  >
-                    글 삭제
-                  </button>
-                  <button type="button" className="btn btn-secondary px-4 rounded-3 fw-semibold" onClick={() => setSelectedPost(null)}>
-                    닫기
-                  </button>
+                <div className="modal-footer border-top bg-light-subtle p-3">
+                  <button type="button" className="btn btn-secondary px-4 rounded-3 fw-semibold" onClick={() => setSelectedPost(null)}>닫기</button>
                 </div>
               </div>
             </div>

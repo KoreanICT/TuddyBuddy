@@ -193,7 +193,46 @@
    모바일 화면
 ======================================== */
 
+.point-history-page .point-history-unconnected {
+  margin: 0;
+  padding: 24px 30px;
+  color: #737c94;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.point-history-page.point-history-embedded {
+  min-height: 0;
+  margin-bottom: 28px;
+  padding: 0;
+  background: transparent;
+}
+
+.point-history-embedded .point-history-container {
+  max-width: none;
+  box-shadow: none;
+}
+
+.point-history-embedded .point-history-header {
+  padding: 18px 24px;
+}
+
+.point-history-embedded .point-history-header h3 {
+  margin: 0;
+  color: #20283e;
+  font-size: 16px;
+  font-weight: 600;
+}
+
 @media (max-width: 600px) {
+
+  .point-history-page.point-history-embedded {
+    padding: 0;
+  }
+
+  .point-history-page .point-history-unconnected {
+    padding: 20px;
+  }
 
   .point-history-page {
     padding: 30px 15px;

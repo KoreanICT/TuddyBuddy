@@ -7,6 +7,8 @@ import axios from 'axios';
 import './MyPage.css';
 import MyReportList from './report/MyReportList';
 import MyFriend from './friend/MyFriend';
+import MyPosts from './posts/MyPosts';
+import PointHistory from './PointHistory';
 import { useAppDispatch } from '../login/reducers/store';
 import { logoutAction } from '../login/authActions/authActions';
 
@@ -37,13 +39,12 @@ const MyPage: React.FC = () => {
     const [withdrawing, setWithdrawing] = useState(false);
     const [withdrawError, setWithdrawError] = useState('');
     const withdrawLock = useRef(false);
-
     // 메뉴 상태
     const [activeMenu, setActiveMenu] = useState('info');
+    const [showPointHistory, setShowPointHistory] = useState(false);
 
     // 회원정보
     const [member, setMember] = useState<MemberVO | null>(null);
-
     // 조회 상태
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -239,17 +240,6 @@ const MyPage: React.FC = () => {
 
                     <button
                         className={
-                            activeMenu === 'point'
-                                ? 'sidebar-menu active'
-                                : 'sidebar-menu'
-                        }
-                        onClick={() => setActiveMenu('point')}
-                    >
-                        포인트 내역 - 준위 김진규
-                    </button>
-
-                    <button
-                        className={
                             activeMenu === 'report'
                                 ? 'sidebar-menu active'
                                 : 'sidebar-menu'
@@ -267,7 +257,7 @@ const MyPage: React.FC = () => {
                         }
                         onClick={() => setActiveMenu('example1')}
                     >
-                        나의 게시글 - 주화님
+                        나의 게시글
                     </button>
 
                     <button
@@ -278,7 +268,7 @@ const MyPage: React.FC = () => {
                         }
                         onClick={() => setActiveMenu('friend')}
                     >
-                        친구 목록 - 용센
+                        친구 목록
                     </button>
 
                     <button
@@ -344,11 +334,18 @@ const MyPage: React.FC = () => {
                                         </strong>
 
                                         <button
+                                            type="button"
                                             className="point-link"
-                                            onClick={() => setActiveMenu('point')}
+                                            aria-expanded={showPointHistory}
+                                            aria-controls="mypage-point-history"
+                                            onClick={() => setShowPointHistory(value => !value)}
                                         >
-                                            포인트 내역 &gt;
+                                            {showPointHistory ? '포인트 내역 접기' : '포인트 내역 보기'}
                                         </button>
+                                    </div>
+
+                                    <div id="mypage-point-history" hidden={!showPointHistory}>
+                                        <PointHistory embedded />
                                     </div>
 
                                     {/* 이메일 */}
@@ -508,30 +505,11 @@ const MyPage: React.FC = () => {
                         </div>
                     )}
 
-                    {/* 포인트 내역 */}
-                    {activeMenu === 'point' && (
-                        <div className="menu-panel">
-                            <h2>포인트 내역</h2>
-
-                            <p>
-                                여기에 포인트 내역 내용을 넣으면 됩니다.
-                            </p>
-                        </div>
-                    )}
-
                     {/* 나의 신고내역 */}
                     {activeMenu === 'report' && <MyReportList />}
 
                     {/* 나의 게시글 */}
-                    {activeMenu === 'example1' && (
-                        <div className="menu-panel">
-                            <h2>나의 게시글</h2>
-
-                            <p>
-                                나의 게시글을 눌렀을 때 보여줄 내용입니다.
-                            </p>
-                        </div>
-                    )}
+                    {activeMenu === 'example1' && <MyPosts />}
 
                     {/* 친구 목록 */}
                     {activeMenu === 'friend' && <MyFriend />}
