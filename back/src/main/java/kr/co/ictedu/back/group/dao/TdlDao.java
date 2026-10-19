@@ -15,5 +15,6 @@ public interface TdlDao {
 	List<TdlRequestDTO> getTdls(@Param("group_num") Long groupNum, @Param("member_num") Long memberNum);
 	void updateExpiredTdl(@Param("group_num") Long groupNum);
 	void updateTdlStatus(@Param("tdl_num") Long tdlNum, @Param("status") String status);
+	void updateTdl(TdlVO tdlvo);
 	void deleteTdl(@Param("tdl_num") Long tdlNum);
 }

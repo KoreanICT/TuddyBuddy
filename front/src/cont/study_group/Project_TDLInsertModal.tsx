@@ -3,14 +3,15 @@ import React, { useState } from 'react';
 import styles from './project.module.css';
 
 import { Repeat_type, TDLStatus } from './Type';
+import { TDLData } from './GroupAPI';
 
 
 interface TDLInsertModalProps {
 
     status: TDLStatus;
-
+    mode?: 'create' | 'edit';
     onClose: () => void;
-
+    initialData?: TDLData | null;
     onSubmit: (
         tdl_name: string,
         tdl_detail: string,
@@ -23,29 +24,31 @@ interface TDLInsertModalProps {
 export const Project_TDLInsertModal:
 React.FC<TDLInsertModalProps> = ({
     status,
+    mode = 'create',
+    initialData = null,
     onClose,
     onSubmit
 }) => {
 
 
     const [tdlName, setTdlName] =
-        useState<string>('');
+        useState<string>(initialData?.tdl_name ?? '');
 
     const [tdlDetail, setTdlDetail] =
-        useState<string>('');
+        useState<string>(initialData?.tdl_detail ?? '');
 
     const [repeatType, setRepeatType] =
-        useState<Repeat_type>(null);
+        useState<Repeat_type>(initialData?.repeat_type  ?? null);
 
     const [dueAt, setDueAt] =
-        useState<string>('');
+        useState<string>(initialData?.due_at ? initialData.due_at.slice(0,16) : '');
 
     const [isSubmitting, setIsSubmitting] =
         useState<boolean>(false);
 
 
     const handleSubmit = async (
-        e: React.FormEvent
+        e: React.SubmitEvent
     ): Promise<void> => {
 
         e.preventDefault();
@@ -92,7 +95,7 @@ React.FC<TDLInsertModalProps> = ({
                 <div className={styles.tdl_modal_header}>
 
                     <h3>
-                        TDL 등록
+                        {mode === 'edit' ? 'TDL 수정' : 'TDL 등록'}
                     </h3>
 
                     <button
@@ -251,9 +254,7 @@ React.FC<TDLInsertModalProps> = ({
                             className={styles.tdl_submit_button}
                             disabled={isSubmitting}
                         >
-                            {isSubmitting
-                                ? '등록 중...'
-                                : '등록'}
+                            {isSubmitting ? ( mode === 'edit' ? '수정 중...' : '등록 중...') : (mode === 'edit' ? '수정' : '등록')}
                         </button>
 
                     </div>

@@ -16,10 +16,6 @@
 		WHERE group_num = #{group_num}
 	</select> 
 	
-	<update id="updateTdl">
-		UPDATE tdl SET tdl_name = #{tdl_name}, tdl_detail = #{tdl_detail}, repeat_type = #{repeat_type}, updated_at = SYSDATE 
-	</update>
-	
 	<update id="updateExpiredTdl">
 		UPDATE tdl SET status = 'Incomplete', updated_at = SYSDATE
 		WHERE STATUS = 'In progress' AND due_at IS NOT NUll AND due_at &lt; SYSDATE 
@@ -34,6 +30,12 @@
 				THEN SYSDATE
 				ELSE NULL
 			END
+		WHERE tdl_num = #{tdl_num} AND status != 'Incomplete'
+	</update>
+	
+	<update id="updateTdl" parameterType="tdlvo">
+		UPDATE tdl SET tdl_name = #{tdl_name}, tdl_detail = #{tdl_detail}, repeat_type = #{repeat_type, jdbcType=VARCHAR},
+		updated_at = SYSDATE, due_at = #{due_at, jdbcType=TIMESTAMP} 
 		WHERE tdl_num = #{tdl_num} AND status != 'Incomplete'
 	</update>
 	

@@ -71,6 +71,7 @@ public class SecurityConfig {
 						.requestMatchers("/api/auth/**").permitAll() // /api/auth/** 에서 오는 모든 요청은 허용
 						.requestMatchers("/api/notice/noticeList","/api/notice/noticeDetail").permitAll() // 공지사항 비회원도 접근 가능하게 변경
 						.requestMatchers("/api/chatbot/session", "/api/chatbot/ai", "/api/chatbot/message/session/*").permitAll() // Chatbot 회원/비회원 공통 API
+						.requestMatchers(HttpMethod.GET,"/api/group/tags/search","/api/group/getpublicrooms","/api/group/thumbnail/**").permitAll()
 						.requestMatchers("/api/member/admin/signup").denyAll().requestMatchers("/api/member/admin/**")
 						.hasAuthority(MemberRoles.ADMIN)
 						.requestMatchers("/api/admin/dashboard", "/api/member/memberList", "/api/selfstudy/admin/**", "/api/notice/noticeAdd",
@@ -79,11 +80,9 @@ public class SecurityConfig {
 								"/api/report/reportReplyUpdate", "/api/report/reportReplyDelete",
 								"/api/report/reportDelete")
 						.hasAnyAuthority(MemberRoles.ADMIN, MemberRoles.SUB_ADMIN)
-						.requestMatchers("/api/member/withdraw").authenticated()
-            .requestMatchers("/api/member/**").permitAll()
+						.requestMatchers("/api/member/withdraw").authenticated().requestMatchers("/api/member/**").permitAll()
 						.requestMatchers("/uploads/**").permitAll() // 이미지 경로도 열어줘야 한다.
 						.requestMatchers("/imgfile/**").permitAll()
-            .requestMatchers(HttpMethod.GET,"/api/group/tags/search","/api/group/getpublicrooms","/api/group/thumbnail/**").permitAll()
 //                        .requestMatchers("/**").permitAll()
 						.anyRequest().authenticated()) // 모든 요청에 대해 인증을 요구
 				// JWT 토큰 필터 추가: JwtTokenFilter를 BasicAuthenticationFilter 전에 추가하여 JWT 토큰을 검증
@@ -117,5 +116,4 @@ public class SecurityConfig {
 		BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 		System.out.println(encoder.encode("1122"));
 	}
-
 }
