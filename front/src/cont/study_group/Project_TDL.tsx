@@ -67,9 +67,10 @@ export const Project_TDL: React.FC<GetGroupNum> = ({ groupNum }) => {
         if (window.confirm("정말로 삭제하시겠습니까?")) {
             try {
                 await api.delete(
-                    `/detail/tdl/${tdlNum}`
+                    `/detail/tdl/deleteTdl/${tdlNum}`
                 );
                 setTdls((prev) => prev.filter((tdl) => tdl.tdl_num !== tdlNum));
+                getTdls();
             } catch (error) {
                 console.error('TDL 삭제 중 오류가 발생했습니다.', error);
             }
@@ -90,6 +91,7 @@ export const Project_TDL: React.FC<GetGroupNum> = ({ groupNum }) => {
                 tdl_name, tdl_detail, status: createStatus, repeat_type, due_at
             })
             alert("등록에 성공했습니다.")
+            getTdls();
         } catch (error) {
             alert("등록에 실패했습니다.");
             console.error("등록에 실패했습니다.", error);
@@ -101,6 +103,14 @@ export const Project_TDL: React.FC<GetGroupNum> = ({ groupNum }) => {
 
     const handlePatchTdl = async (tdl: TDLData): Promise<void> => {
 
+        try{
+            setIsSaving(true);
+            await api.post(
+                `/detail/tdl/`
+            )
+        } catch(error) {
+            console.error('변경 실패.', error);
+        }
     }
 
     return (

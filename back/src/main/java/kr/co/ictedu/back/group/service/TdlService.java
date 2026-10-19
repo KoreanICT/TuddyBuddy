@@ -41,6 +41,12 @@ public class TdlService {
 	}
 	
 	@Transactional
+	public void updateTdl(Long tdlNum, TdlVO tdlvo) {
+		tdlvo.setTdl_num(tdlNum);
+		dao.updateTdl(tdlvo);
+	}
+	
+	@Transactional
 	public void deleteTdl(Long tdlNum) {
 		dao.deleteTdl(tdlNum);
 	}

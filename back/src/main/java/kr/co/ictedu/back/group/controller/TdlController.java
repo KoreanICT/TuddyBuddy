@@ -49,9 +49,14 @@ public class TdlController {
 		return ResponseEntity.ok("변경 완료.");
 	}
 	
+	@PatchMapping("/patchTdl/{tdlNum}")
+	public ResponseEntity<String> updateTdl(@PathVariable("tdlNum") Long tdlNum, @RequestBody TdlVO tdlvo) {
+		service.updateTdl(tdlNum, tdlvo);
+		return ResponseEntity.ok("TDL 변경 완료.");
+	}
 	@Delete("/deleteTdl/{tdlNum}")
-	public ResponseEntity<String> deleteTdl(@RequestHeader("memberNum") Long memberNum, @PathVariable("groupNum") Long groupNum) {
-		service.deleteTdl(groupNum);
+	public ResponseEntity<String> deleteTdl(@RequestHeader("memberNum") Long memberNum, @PathVariable("tdlNum") Long tdlNum) {
+		service.deleteTdl(tdlNum);
 		return ResponseEntity.ok("삭제 완료.");
 	}
 }

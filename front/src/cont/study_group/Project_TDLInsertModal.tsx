@@ -3,14 +3,15 @@ import React, { useState } from 'react';
 import styles from './project.module.css';
 
 import { Repeat_type, TDLStatus } from './Type';
+import { TDLData } from './GroupAPI';
 
 
 interface TDLInsertModalProps {
 
     status: TDLStatus;
-
+    mode?: 'create' | 'edit';
     onClose: () => void;
-
+    initialData?: TDLData | null;
     onSubmit: (
         tdl_name: string,
         tdl_detail: string,
@@ -23,22 +24,24 @@ interface TDLInsertModalProps {
 export const Project_TDLInsertModal:
 React.FC<TDLInsertModalProps> = ({
     status,
+    mode = 'create',
+    initialData = null,
     onClose,
     onSubmit
 }) => {
 
 
     const [tdlName, setTdlName] =
-        useState<string>('');
+        useState<string>(initialData?.tdl_name ?? '');
 
     const [tdlDetail, setTdlDetail] =
-        useState<string>('');
+        useState<string>(initialData?.tdl_detail ?? '');
 
     const [repeatType, setRepeatType] =
-        useState<Repeat_type>(null);
+        useState<Repeat_type>(initialData?.repeat_type  ?? null);
 
     const [dueAt, setDueAt] =
-        useState<string>('');
+        useState<string>(initialData?.due_at ? initialData.due_at.slice(0,16) : '');
 
     const [isSubmitting, setIsSubmitting] =
         useState<boolean>(false);
