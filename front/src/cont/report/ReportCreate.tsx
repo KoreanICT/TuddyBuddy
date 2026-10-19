@@ -1,12 +1,12 @@
 // 주용현
 
 import React, { useCallback, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import styles from './report.module.css';
 import { useAuth } from '../../login/hooks/useAuth';
 
-import { readReportTarget } from './reportTarget';
+import { readReportTarget, REPORT_TYPE_LABELS } from './reportTarget';
 
 interface ReportForm {
     reason: string;
@@ -15,6 +15,10 @@ interface ReportForm {
 
 const ReportCreate: React.FC = () => {
     const navigate = useNavigate();
+    const location = useLocation();
+    const previousPath = (location.state as { reportReturnTo?: unknown } | null)?.reportReturnTo;
+    const returnTo = typeof previousPath === 'string' && previousPath.startsWith('/')
+        && !previousPath.startsWith('//') && !previousPath.includes('\\') ? previousPath : '/';
     const [searchParams] = useSearchParams();
     const target = readReportTarget(searchParams);
     const { memberNum, token } = useAuth();
@@ -68,7 +72,6 @@ const ReportCreate: React.FC = () => {
 
             const formData = new FormData();
 
-            formData.append('member_num', String(memberNum));
             formData.append('type', target.type);
             formData.append('target_num', String(target.targetNum));
             formData.append('category', form.reason.trim());
@@ -82,7 +85,7 @@ const ReportCreate: React.FC = () => {
 
             console.log('신고 등록 결과:', response.data);
             alert('신고가 정상적으로 접수되었습니다.');
-            navigate('/');
+            navigate(returnTo, { replace: true });
 
         } catch (error) {
             console.error('신고 등록 실패:', error);
@@ -106,7 +109,7 @@ const ReportCreate: React.FC = () => {
             if (!confirmCancel) return;
         }
 
-        navigate(-1);
+        navigate(returnTo, { replace: true });
     };
 
     return (
@@ -128,9 +131,9 @@ const ReportCreate: React.FC = () => {
                     <span className={styles.label}>신고 대상</span>
                     <div className={styles.formContent}>
                         {target ? (
-                            target.type === 'community'
-                                ? `커뮤니티 게시글 #${target.targetNum}`
-                                : '일반 신고'
+                            target.type === 'report'
+                                ? REPORT_TYPE_LABELS[target.type]
+                                : `${REPORT_TYPE_LABELS[target.type]} #${target.targetNum}`
                         ) : '대상 정보 오류'}
                     </div>
                 </div>
@@ -169,7 +172,7 @@ const ReportCreate: React.FC = () => {
                 {/* 버튼 */}
                 <div className={styles.actions}>
                     <button type="button" className={styles.cancelButton} onClick={handleCancel} disabled={submitting}>
-                        취소
+                        이전 화면으로 돌아가기
                     </button>
                     <button type="submit" className={styles.submitButton} disabled={submitting || !target}>
                         {submitting ? '접수 중...' : '신고 접수'}

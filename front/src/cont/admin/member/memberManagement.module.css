@@ -1,267 +1,314 @@
 .member {
-    width: 100%;
+  width: 100%;
 }
 
 .header {
-    margin-bottom: 24px;
+  margin-bottom: 24px;
 }
 
 .header h1 {
-    margin-bottom: 6px;
+  margin-bottom: 6px;
 
-    color: var(--text);
-    font-size: 28px;
-    font-weight: 700;
+  color: var(--text);
+
+  font-size: 28px;
+  font-weight: 700;
 }
 
 .header p {
-    color: var(--text-secondary);
-    font-size: 14px;
-}
+  color: var(--text-secondary);
 
+  font-size: 14px;
+}
 
 /* =========================
    Filter
 ========================= */
 
 .filter {
-    display: flex;
-    gap: 4px;
+  display: flex;
+  gap: 4px;
 
-    margin-bottom: 16px;
+  margin-bottom: 16px;
 }
 
 .filter button {
-    padding: 9px 18px;
+  padding: 9px 18px;
 
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
 
-    color: var(--text-secondary);
-    background-color: var(--background);
+  color: var(--text-secondary);
+  background-color: var(--background);
 
-    font-size: 14px;
+  font-size: 14px;
 
-    transition:
-        background-color 0.2s,
+  transition: background-color 0.2s,
         color 0.2s,
         border-color 0.2s;
 }
 
 .filter button:hover {
-    background-color: var(--background-secondary);
+  background-color: var(--background-secondary);
 }
 
 .filter .activeFilter {
-    background-color: var(--admin-primary);
-    border-color: var(--admin-primary);
+  background-color: var(--admin-primary);
 
-    color: var(--admin-text);
+  border-color: var(--admin-primary);
+
+  color: var(--admin-text);
 }
-
 
 /* =========================
    Search
 ========================= */
 
 .search {
-    display: flex;
-    justify-content: flex-end;
-    gap: 8px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
 
-    margin-bottom: 20px;
+  margin-bottom: 20px;
 }
 
 .search input {
-    width: 280px;
+  width: 280px;
 
-    padding: 10px 12px;
+  padding: 10px 12px;
 
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  outline: none;
 
-    outline: none;
-
-    color: var(--text);
-    background-color: var(--background);
+  color: var(--text);
+  background-color: var(--background);
 }
 
 .search input:focus {
-    border-color: var(--admin-primary);
+  border-color: var(--admin-primary);
 }
 
 .search button {
-    padding: 10px 18px;
+  padding: 10px 18px;
 
-    background-color: var(--admin-primary);
-    border-radius: var(--radius-sm);
+  background-color: var(--admin-primary);
 
-    color: var(--admin-text);
+  border-radius: var(--radius-sm);
 
-    font-size: 14px;
+  color: var(--admin-text);
+
+  font-size: 14px;
 }
-
 
 /* =========================
    Table
 ========================= */
 
 .tableWrapper {
-    overflow: hidden;
+  overflow-x: auto;
 
-    background-color: var(--admin-card);
+  background-color: var(--admin-card);
 
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
 }
 
 .table {
-    width: 100%;
+  width: 100%;
 
-    border-collapse: collapse;
+  border-collapse: collapse;
 
-    font-size: 14px;
+  font-size: 14px;
 }
 
 .table th,
 .table td {
-    padding: 14px 16px;
+  padding: 14px 16px;
 
-    border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
 
-    text-align: center;
+  text-align: center;
 }
 
 .table th {
-    background-color: var(--admin-background);
+  background-color: var(--admin-background);
+  color: var(--text-secondary);
 
-    color: var(--text-secondary);
-
-    font-weight: 600;
+  font-weight: 600;
 }
 
 .table td {
-    color: var(--text);
+  color: var(--text);
 }
 
 .table tbody tr:last-child td {
-    border-bottom: 0;
+  border-bottom: 0;
 }
-
 
 /* =========================
    Select
 ========================= */
 
 .select {
-    min-width: 90px;
+  min-width: 90px;
 
-    padding: 6px 8px;
+  padding: 6px 8px;
 
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
 
-    background-color: var(--background);
+  background-color: var(--background);
+  color: var(--text);
 
-    color: var(--text);
+  font-size: 13px;
 
-    font-size: 13px;
-
-    cursor: pointer;
+  cursor: pointer;
 }
-
 
 /* =========================
    Apply Button
 ========================= */
 
 .applyButton {
-    padding: 6px 14px;
+  padding: 6px 14px;
 
-    border-radius: var(--radius-sm);
+  border-radius: var(--radius-sm);
 
-    background-color: var(--admin-primary);
+  background-color: var(--admin-primary);
+  color: var(--admin-text);
 
-    color: var(--admin-text);
+  font-size: 13px;
 
-    font-size: 13px;
-
-    transition: background-color 0.2s;
+  transition: background-color 0.2s;
 }
 
 .applyButton:hover {
-    background-color: var(--admin-primary-hover);
+  background-color: var(--admin-primary-hover);
 }
-
 
 /* =========================
    Empty
 ========================= */
 
 .empty {
-    height: 150px;
+  height: 150px;
 
-    color: var(--text-secondary) !important;
+  color: var(--text-secondary) !important;
 }
 
 /* 페이지네이션 */
+
 .pagination {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 6px;
-    margin-top: 24px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+
+  margin-top: 24px;
 }
 
 /* 페이지 번호 */
+
 .pageButton {
-    min-width: 36px;
-    height: 36px;
-    padding: 0 10px;
+  min-width: 36px;
+  height: 36px;
 
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
+  padding: 0 10px;
 
-    background-color: var(--background);
-    color: var(--text-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
 
-    font-size: 14px;
+  background-color: var(--background);
+  color: var(--text-secondary);
 
-    transition: 0.2s;
+  font-size: 14px;
+
+  transition: 0.2s;
 }
 
 .pageButton:hover {
-    background-color: var(--background-secondary);
+  background-color: var(--background-secondary);
 }
 
 /* 현재 페이지 */
+
 .activePage {
-    background-color: var(--primary);
-    border-color: var(--primary);
-    color: var(--background);
-    font-weight: 600;
+  background-color: var(--primary);
+
+  border-color: var(--primary);
+
+  color: var(--background);
+
+  font-weight: 600;
 }
 
 .activePage:hover {
-    background-color: var(--primary-hover);
-    border-color: var(--primary-hover);
+  background-color: var(--primary-hover);
+
+  border-color: var(--primary-hover);
 }
 
 /* 이전 / 다음 */
+
 .pageArrow {
-    min-width: 50px;
-    height: 36px;
-    padding: 0 12px;
+  min-width: 50px;
+  height: 36px;
 
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
+  padding: 0 12px;
 
-    background-color: var(--background);
-    color: var(--text-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
 
-    font-size: 14px;
+  background-color: var(--background);
+  color: var(--text-secondary);
+
+  font-size: 14px;
 }
 
 .pageArrow:hover {
-    background-color: var(--background-secondary);
+  background-color: var(--background-secondary);
+}
+
+.memberCode {
+  max-width: 240px;
+
+  overflow-wrap: anywhere;
+  font-family: ui-monospace, monospace;
+  font-size: 12px;
+}
+
+.managementActions {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.authorityActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  white-space: nowrap;
+}
+
+.withdrawButton {
+  padding: 8px 12px;
+
+  border: 1px solid #fecaca;
+  border-radius: var(--radius-sm);
+
+  color: #b91c1c;
+  background: #fff1f2;
+
+  white-space: nowrap;
+
+  cursor: pointer;
+}
+
+.withdrawButton:disabled {
+  opacity: .5;
+
+  cursor: default;
 }

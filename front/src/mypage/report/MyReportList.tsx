@@ -1,3 +1,4 @@
+import { BACKEND_URL } from '../../login/authHttp';
 // 주용현
 
 import axios from 'axios';
@@ -6,8 +7,9 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './myReportList.module.css';
 
+import { ReportType, REPORT_TYPE_LABELS } from '../../cont/report/reportTarget';
+
 type ReportStatus = 'PENDING' | 'REVIEWING' | 'COMPLETED' | 'REJECTED';
-type ReportType = 'POST' | 'COMMENT' | 'USER' | 'STUDY' | 'community' | 'report';
 
 interface ReportVO {
     num: number;
@@ -55,7 +57,7 @@ const MyReportList: React.FC = () => {
                 setLoading(true);
 
                 const response = await axios.get<ReportListResponse>(
-                    'http://localhost:80/back/api/report/myReportList',
+                    `${BACKEND_URL}/api/report/myReportList`,
                     {
                         headers: getAuthHeaders(),
                         params: {
@@ -77,7 +79,7 @@ const MyReportList: React.FC = () => {
             } catch (error) {
                 if (!active) return;
 
-                console.error('나의 신고 목록 조회 실패:', error);
+                console.error('나의 신고 목록 조회 실패:');
                 setReportList([]);
                 setTotalItems(0);
                 setTotalPages(0);
@@ -92,21 +94,6 @@ const MyReportList: React.FC = () => {
             active = false;
         };
     }, [currentPage, memberNum, getAuthHeaders]);
-
-    // =========================
-    // 신고 유형 출력
-    // =========================
-    const getTypeText = (type: ReportType) => {
-        switch (type) {
-            case 'POST': return '게시글';
-            case 'COMMENT': return '댓글';
-            case 'USER': return '회원';
-            case 'STUDY': return '스터디';
-            case 'community': return '커뮤니티 게시글';
-            case 'report': return '일반 신고';
-            default: return type;
-        }
-    };
 
     // =========================
     // 신고 상태 출력
@@ -175,7 +162,7 @@ const MyReportList: React.FC = () => {
                                     style={{ cursor: 'pointer' }}
                                 >
                                     <td>{report.num}</td>
-                                    <td>{getTypeText(report.type)}</td>
+                                    <td>{REPORT_TYPE_LABELS[report.type]}</td>
                                     <td>{report.content}</td>
                                     <td>{getStatusText(report.status)}</td>
                                     <td>{report.created_date}</td>

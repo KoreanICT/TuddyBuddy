@@ -1,17 +1,24 @@
 // 주용현
 
 import axios from 'axios';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import styles from './report.module.css';
 import { useAuth } from '../../../login/hooks/useAuth';
 
+import { ReportType, REPORT_TYPE_LABELS } from '../../report/reportTarget';
+import ReportTargetPreview from './ReportTargetPreview';
+
 type ReportStatus = 'PENDING' | 'REVIEWING' | 'COMPLETED' | 'REJECTED';
-type ReportType = 'POST' | 'COMMENT' | 'USER' | 'STUDY' | 'community' | 'report';
+
+const canApplyStatus = (current: ReportStatus, next: ReportStatus) =>
+    current === next || current === 'PENDING' ||
+    (current === 'REVIEWING' && (next === 'COMPLETED' || next === 'REJECTED'));
 
 interface ReportVO {
     num: number;
     member_num: number;
+    target_num: number;
     type: ReportType;
     category: string;
     content: string;
@@ -29,6 +36,10 @@ const ReportReply: React.FC = () => {
     const [status, setStatus] = useState<ReportStatus>('COMPLETED');
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
+    const [hasReply, setHasReply] = useState(false);
+    const [loadError, setLoadError] = useState('');
+    const [revision, setRevision] = useState(0);
+    const mutationRef = useRef(false);
 
     const { memberNum, token } = useAuth();
 
@@ -49,20 +60,33 @@ const ReportReply: React.FC = () => {
 
             try {
                 setLoading(true);
+                setLoadError('');
+                setReport(null);
+                setHasReply(false);
+                setReply('');
+                setStatus('COMPLETED');
 
-                const response = await axios.get<ReportVO>(
+                const [response, replyResponse] = await Promise.all([axios.get<ReportVO>(
                     'http://localhost:80/back/api/report/reportDetail',
                     { headers: getAuthHeaders(), params: { num: id } }
-                );
+                ), axios.get<{ num: number } | null>(
+                    'http://localhost:80/back/api/report/reportReplyDetail',
+                    { headers: getAuthHeaders(), params: { report_num: id } }
+                )]);
 
                 if (!active) return;
                 setReport(response.data);
+                setHasReply(Boolean(replyResponse.data?.num));
+                if (response.data.status === 'COMPLETED' || response.data.status === 'REJECTED') {
+                    setStatus(response.data.status);
+                }
 
             } catch (error) {
                 if (!active) return;
 
                 console.error('신고 상세 조회 실패:', error);
                 setReport(null);
+                setLoadError('신고 또는 기존 답변을 불러오지 못했습니다. 다시 시도해주세요.');
             } finally {
                 if (active) setLoading(false);
             }
@@ -73,22 +97,7 @@ const ReportReply: React.FC = () => {
         return () => {
             active = false;
         };
-    }, [id, getAuthHeaders]);
-
-    // =========================
-    // 신고 유형 출력
-    // =========================
-    const getTypeText = (type: ReportType) => {
-        switch (type) {
-            case 'POST': return '게시글';
-            case 'COMMENT': return '댓글';
-            case 'USER': return '회원';
-            case 'STUDY': return '스터디';
-            case 'community': return '커뮤니티 게시글';
-            case 'report': return '일반 신고';
-            default: return type;
-        }
-    };
+    }, [id, getAuthHeaders, revision]);
 
     // =========================
     // 신고 상태 출력
@@ -107,13 +116,24 @@ const ReportReply: React.FC = () => {
     // 답변 등록
     // =========================
     const handleSubmit = async () => {
-        if (!report || submitting) return;
+        if (!report || mutationRef.current || hasReply) return;
+
+        if (!token || memberNum == null) {
+            alert('로그인이 필요합니다.');
+            return;
+        }
+
+        if (!canApplyStatus(report.status, status)) {
+            alert('현재 신고 상태에서 선택한 상태로 변경할 수 없습니다.');
+            return;
+        }
 
         if (!reply.trim()) {
             alert('답변 내용을 입력해주세요.');
             return;
         }
 
+        mutationRef.current = true;
         try {
             setSubmitting(true);
 
@@ -122,28 +142,13 @@ const ReportReply: React.FC = () => {
             replyFormData.append('content', reply.trim());
             replyFormData.append('report_num', String(report.num));
 
-            replyFormData.append('admin_num', String(memberNum));
+            replyFormData.append('status', status);
 
             await axios.post(
                 'http://localhost:80/back/api/report/reportReplyAdd',
                 replyFormData,
                 { headers: getAuthHeaders() }
             );
-
-            // 신고 상태 변경
-            const statusFormData = new FormData();
-            statusFormData.append('num', String(report.num));
-            statusFormData.append('status', status);
-
-            const response = await axios.put<number>(
-                'http://localhost:80/back/api/report/reportStatusUpdate',
-                statusFormData,
-                { headers: getAuthHeaders() }
-            );
-
-            if (response.data < 1) {
-                throw new Error('신고 상태가 변경되지 않았습니다.');
-            }
 
             // TODO: 알림 기능 구현 후 연결
             if (sendNotification) {
@@ -155,8 +160,14 @@ const ReportReply: React.FC = () => {
 
         } catch (error) {
             console.error('신고 답변 등록 실패:', error);
-            alert('신고 답변 등록 또는 상태 변경 중 오류가 발생했습니다.');
+            const message = axios.isAxiosError(error) && typeof error.response?.data === 'string'
+                ? error.response.data : '신고 답변 등록 중 오류가 발생했습니다.';
+            alert(message);
+            if (axios.isAxiosError(error) && error.response?.status === 409) {
+                setRevision(value => value + 1);
+            }
         } finally {
+            mutationRef.current = false;
             setSubmitting(false);
         }
     };
@@ -184,7 +195,8 @@ const ReportReply: React.FC = () => {
                 <div className={styles.header}>
                     <h1>신고 답변</h1>
                 </div>
-                <div className={styles.notFound}>존재하지 않는 신고 내역입니다.</div>
+                <div className={styles.notFound} role="alert">{loadError || '존재하지 않는 신고 내역입니다.'}</div>
+                <button type="button" onClick={() => setRevision(value => value + 1)}>다시 시도</button>
                 <div className={styles.actions}>
                     <button className={styles.listButton} onClick={() => navigate('/admin/reportList')}>
                         목록
@@ -193,6 +205,15 @@ const ReportReply: React.FC = () => {
             </div>
         );
     }
+
+    if (hasReply) return (
+        <div className={styles.reportReply}>
+            <h1>이미 답변이 등록된 신고입니다.</h1>
+            <p>상세 화면에서 기존 답변을 확인하고 수정하거나 삭제할 수 있습니다.</p>
+            <button type="button" className={styles.listButton}
+                onClick={() => navigate(`/admin/reportDetail/${report.num}`)}>신고 상세로 돌아가기</button>
+        </div>
+    );
 
     return (
         <div className={styles.reportReply}>
@@ -212,7 +233,7 @@ const ReportReply: React.FC = () => {
 
                 <div className={styles.detailRow}>
                     <div className={styles.label}>신고 유형</div>
-                    <div className={styles.value}>{getTypeText(report.type)}</div>
+                    <div className={styles.value}>{REPORT_TYPE_LABELS[report.type]}</div>
                 </div>
 
                 <div className={styles.detailRow}>
@@ -224,7 +245,17 @@ const ReportReply: React.FC = () => {
                     <div className={styles.label}>신고 사유</div>
                     <div className={styles.value}>{report.category}</div>
                 </div>
+                <div className={styles.detailRow}>
+                    <div className={styles.label}>신고 대상 번호</div>
+                    <div className={styles.value}>{report.target_num}</div>
+                </div>
+                <div className={styles.detailContent}>
+                    <div className={styles.label}>신고 내용</div>
+                    <div className={styles.contentBox}>{report.content}</div>
+                </div>
             </div>
+
+            <ReportTargetPreview reportNum={report.num} type={report.type} targetNum={report.target_num} />
 
             {/* 답변 작성 */}
             <div className={styles.replyCard}>
@@ -249,9 +280,9 @@ const ReportReply: React.FC = () => {
                         onChange={(e) => setStatus(e.target.value as ReportStatus)}
                         disabled={submitting}
                     >
-                        <option value="REVIEWING">처리중</option>
-                        <option value="COMPLETED">처리완료</option>
-                        <option value="REJECTED">반려</option>
+                        <option value="REVIEWING" disabled={!canApplyStatus(report.status, 'REVIEWING')}>처리중</option>
+                        <option value="COMPLETED" disabled={!canApplyStatus(report.status, 'COMPLETED')}>처리완료</option>
+                        <option value="REJECTED" disabled={!canApplyStatus(report.status, 'REJECTED')}>반려</option>
                     </select>
 
                     <span className={styles.statusDescription}>

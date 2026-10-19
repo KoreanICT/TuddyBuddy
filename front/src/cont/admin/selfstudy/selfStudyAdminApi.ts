@@ -1,5 +1,6 @@
 //최솔
 import axios from 'axios';
+import { BACKEND_URL, installAuthInterceptors } from '../../../login/authHttp';
 
 export interface Category {
   categoryId: number;
@@ -17,13 +18,9 @@ type CategoryDto = { category_id: number; category_name: string; category_status
 type SubjectDto = { subject_id: number; category_id: number; subject_name: string; subject_status: 'Y' | 'N' };
 type Status = 'Y' | 'N';
 
-const BASE_URL = `${(process.env.REACT_APP_BACK_END_URL || 'http://192.168.0.19/back').replace(/\/$/, '')}/api/selfstudy/admin`;
+const BASE_URL = `${BACKEND_URL}/api/selfstudy/admin`;
 const client = axios.create({ baseURL: BASE_URL });
-client.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) config.headers.set('Authorization', `Bearer ${token}`);
-  return config;
-});
+installAuthInterceptors(client);
 
 const mapCategory = (c: CategoryDto): Category => ({ categoryId: c.category_id, categoryName: c.category_name, categoryStatus: c.category_status });
 const mapSubject = (s: SubjectDto): Subject => ({ subjectId: s.subject_id, categoryId: s.category_id, subjectName: s.subject_name, subjectStatus: s.subject_status });

@@ -24,7 +24,8 @@ public class ReportVO {
     @Schema(description = "신고 대상 번호", example = "15")
     private Long target_num;
 
-    @Schema(description = "신고 대상 유형", example = "POST")
+    @Schema(description = "신고 대상 유형", example = "community",
+            allowableValues = {"report", "community", "user", "study", "document"})
     private String type;
 
     @Schema(description = "신고 사유 분류", example = "SPAM")

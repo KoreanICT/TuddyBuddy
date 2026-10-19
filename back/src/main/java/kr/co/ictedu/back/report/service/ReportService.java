@@ -6,9 +6,13 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import kr.co.ictedu.back.report.dao.ReportDao;
+import kr.co.ictedu.back.report.dao.ReportReplyDao;
 import kr.co.ictedu.back.report.vo.ReportVO;
 
 @Service
@@ -16,7 +20,11 @@ public class ReportService {
 	
 	@Autowired
 	private ReportDao reportDao;
+
+	@Autowired
+	private ReportReplyDao reportReplyDao;
 	
+	@Transactional
 	public void add(ReportVO vo) {
 		validateAdd(vo);
 		reportDao.add(vo);
@@ -25,22 +33,29 @@ public class ReportService {
 	private void validateAdd(ReportVO vo) {
 		String type = vo.getType();
 		Long targetNum = vo.getTarget_num();
-		if (type == null || !List.of("community", "report", "POST", "COMMENT", "USER", "STUDY").contains(type)) {
-			throw new IllegalArgumentException("올바른 신고 유형을 선택해주세요.");
+		if (type == null || !List.of("report", "community", "user", "study", "document").contains(type)) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "올바른 신고 유형을 선택해주세요.");
 		}
 		if ("report".equals(type)) {
 			if (targetNum == null || targetNum != 0L) {
-				throw new IllegalArgumentException("서비스 신고의 대상 번호는 0이어야 합니다.");
+				throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "서비스 신고의 대상 번호는 0이어야 합니다.");
 			}
 		} else if (targetNum == null || targetNum <= 0L || targetNum > 9007199254740991L) {
-			throw new IllegalArgumentException("신고 대상 번호는 올바른 양의 정수여야 합니다.");
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "신고 대상 번호는 올바른 양의 정수여야 합니다.");
 		}
+		validateContent(vo);
+		if (!"report".equals(type) && reportDao.targetExists(type, targetNum) == 0) {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "신고 대상을 찾을 수 없습니다.");
+		}
+	}
+
+	private void validateContent(ReportVO vo) {
 		if (vo.getCategory() == null || vo.getCategory().isBlank()
 				|| vo.getCategory().trim().length() > 255) {
-			throw new IllegalArgumentException("신고 사유를 255자 이내로 입력해주세요.");
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "신고 사유를 255자 이내로 입력해주세요.");
 		}
 		if (vo.getContent() == null || vo.getContent().isBlank()) {
-			throw new IllegalArgumentException("상세 내용을 입력해주세요.");
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "상세 내용을 입력해주세요.");
 		}
 		vo.setCategory(vo.getCategory().trim());
 		vo.setContent(vo.getContent().trim());
@@ -65,18 +80,82 @@ public class ReportService {
     }
 
     public ReportVO detail(Long num) {
-        return reportDao.detail(num);
+        ReportVO report = reportDao.detail(num);
+        if (report == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "신고를 찾을 수 없습니다.");
+        }
+        return report;
     }
 
+    private ReportVO lockReport(Long num) {
+        ReportVO report = reportDao.lockDetail(num);
+        if (report == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "신고를 찾을 수 없습니다.");
+        }
+        return report;
+    }
+
+    public Map<String, Object> targetDetail(Long reportNum) {
+        ReportVO report = detail(reportNum);
+        if ("report".equals(report.getType())) return Map.of("available", true, "general", true);
+        Map<String, Object> target = reportDao.targetDetail(report.getType(), report.getTarget_num());
+        if (target == null) return Map.of("available", false);
+        Map<String, Object> result = new java.util.HashMap<>(target);
+        result.put("available", true);
+        return result;
+    }
+
+    @Transactional
     public void del(Long num) {
-        reportDao.del(num);
+        lockReport(num);
+        reportReplyDao.deleteByReport(num);
+        if (reportDao.del(num) != 1) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "신고 삭제에 실패했습니다.");
+        }
     }
 
+    @Transactional
     public int update(ReportVO vo) {
-        return reportDao.update(vo);
+        ReportVO report = lockReport(vo.getNum());
+        if (!"PENDING".equals(report.getStatus()) || reportReplyDao.countByReport(report.getNum()) > 0) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "접수 상태이며 답변이 없는 신고만 수정할 수 있습니다.");
+        }
+        validateContent(vo);
+        vo.setType(report.getType());
+        vo.setTarget_num(report.getTarget_num());
+        if (reportDao.update(vo) != 1) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "신고 수정에 실패했습니다.");
+        }
+        return 1;
     }
 
+    @Transactional
     public int updateStatus(ReportVO vo) {
-        return reportDao.updateStatus(vo);
+        ReportVO report = lockReport(vo.getNum());
+        validateTransition(report.getStatus(), vo.getStatus());
+        if (report.getStatus().equals(vo.getStatus())) {
+            return 1;
+        }
+        if (reportDao.updateStatus(vo) != 1) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "신고 상태 변경에 실패했습니다.");
+        }
+        return 1;
+    }
+
+    public void validateTransition(String current, String next) {
+        if (next == null || !List.of("PENDING", "REVIEWING", "COMPLETED", "REJECTED").contains(next)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "올바른 신고 처리 상태를 선택해주세요.");
+        }
+        if (next.equals(current)) {
+            return;
+        }
+        if ("PENDING".equals(current)
+                && List.of("REVIEWING", "COMPLETED", "REJECTED").contains(next)) {
+            return;
+        }
+        if ("REVIEWING".equals(current) && List.of("COMPLETED", "REJECTED").contains(next)) {
+            return;
+        }
+        throw new ResponseStatusException(HttpStatus.CONFLICT, "현재 상태에서 해당 상태로 변경할 수 없습니다.");
     }
 }

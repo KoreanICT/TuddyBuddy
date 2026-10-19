@@ -39,6 +39,24 @@ export interface QuizSession {
   quizzes?: Quiz[];
   quizSelections: string[]
 }
+// DB에 저장된 회원별 학습 결과
+export interface SelfStudyResult {
+  selfstudyResultsId: number;
+  quizSessionId: number;
+  memberNum?: number;
+  selfstudyTotalScore: number;
+  submittedAt?: string;
+}
+
+// DB에 저장된 문제별 사용자 답안
+export interface SavedQuizResponse {
+  quizResponsesId?: number;
+  selfstudyResultsId?: number;
+  quizId: number;
+  quizUserResponse: string;
+  quizCorrect: 'Y' | 'N';
+  submittedAt?: string;
+}
 
 export type MainTabType = 'quiz' | 'wrongNotes';
 export type RightTabType = 'my' | 'public' | 'create';

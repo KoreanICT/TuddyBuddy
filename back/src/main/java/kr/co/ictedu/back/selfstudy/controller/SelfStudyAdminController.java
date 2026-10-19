@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.co.ictedu.back.selfstudy.service.SelfStudyAdminService;
 import kr.co.ictedu.back.selfstudy.vo.CategoryVO;
 import kr.co.ictedu.back.selfstudy.vo.SubjectVO;
+import kr.co.ictedu.back.selfstudy.service.AuthenticatedMember;
 
 @Tag(name = "셀프스터디 관리자", description = "카테고리 및 과목 관리 API")
 @RestController
@@ -23,20 +24,27 @@ import kr.co.ictedu.back.selfstudy.vo.SubjectVO;
 public class SelfStudyAdminController {
 
     private final SelfStudyAdminService selfStudyAdminService;
+    private final AuthenticatedMember authenticatedMember;
 
-    public SelfStudyAdminController(SelfStudyAdminService selfStudyAdminService) {
+    public SelfStudyAdminController(
+            SelfStudyAdminService selfStudyAdminService,
+            AuthenticatedMember authenticatedMember
+    ) {
         this.selfStudyAdminService = selfStudyAdminService;
+        this.authenticatedMember = authenticatedMember;
     }
 
     @Operation(summary = "전체 카테고리 조회", description = "비활성 카테고리 포함")
     @GetMapping("/categories")
     public ResponseEntity<List<CategoryVO>> getCategories() {
+        authenticatedMember.requireAdmin();
         return ResponseEntity.ok(selfStudyAdminService.getCategories());
     }
 
     @Operation(summary = "카테고리 등록")
     @PostMapping("/categories")
     public ResponseEntity<?> createCategory(@RequestBody CategoryVO vo) {
+        authenticatedMember.requireAdmin();
         selfStudyAdminService.createCategory(vo);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(Map.of("message", "카테고리가 등록되었습니다."));
@@ -47,6 +55,7 @@ public class SelfStudyAdminController {
     public ResponseEntity<?> updateCategory(
             @PathVariable("categoryId") Long categoryId,
             @RequestBody CategoryVO vo) {
+        authenticatedMember.requireAdmin();
 
         selfStudyAdminService.updateCategory(categoryId, vo);
         return ResponseEntity.ok(Map.of("message", "카테고리가 수정되었습니다."));
@@ -57,6 +66,7 @@ public class SelfStudyAdminController {
     public ResponseEntity<?> updateCategoryStatus(
             @PathVariable("categoryId") Long categoryId,
             @RequestBody Map<String, String> request) {
+        authenticatedMember.requireAdmin();
 
         selfStudyAdminService.updateCategoryStatus(
                 categoryId, request.get("status"));
@@ -67,12 +77,14 @@ public class SelfStudyAdminController {
     @Operation(summary = "전체 과목 조회", description = "비활성 과목 포함")
     @GetMapping("/subjects")
     public ResponseEntity<List<SubjectVO>> getSubjects() {
+        authenticatedMember.requireAdmin();
         return ResponseEntity.ok(selfStudyAdminService.getSubjects());
     }
 
     @Operation(summary = "과목 등록")
     @PostMapping("/subjects")
     public ResponseEntity<?> createSubject(@RequestBody SubjectVO vo) {
+        authenticatedMember.requireAdmin();
         selfStudyAdminService.createSubject(vo);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(Map.of("message", "과목이 등록되었습니다."));
@@ -83,6 +95,7 @@ public class SelfStudyAdminController {
     public ResponseEntity<?> updateSubject(
             @PathVariable("subjectId") Long subjectId,
             @RequestBody SubjectVO vo) {
+        authenticatedMember.requireAdmin();
 
         selfStudyAdminService.updateSubject(subjectId, vo);
         return ResponseEntity.ok(Map.of("message", "과목이 수정되었습니다."));
@@ -93,6 +106,7 @@ public class SelfStudyAdminController {
     public ResponseEntity<?> updateSubjectStatus(
             @PathVariable("subjectId") Long subjectId,
             @RequestBody Map<String, String> request) {
+        authenticatedMember.requireAdmin();
 
         selfStudyAdminService.updateSubjectStatus(
                 subjectId, request.get("status"));

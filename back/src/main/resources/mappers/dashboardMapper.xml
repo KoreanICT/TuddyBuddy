@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.ictedu.back.admin.dao.DashboardDao">
+    <select id="summary" resultType="map">
+        SELECT
+            (SELECT COUNT(*) FROM member) AS "totalMembers",
+            (SELECT COUNT(*) FROM community_section) AS "totalPosts",
+            (SELECT COUNT(*) FROM report WHERE status = 'PENDING') AS "pendingReports",
+            (SELECT COUNT(*) FROM member
+             WHERE regdate &gt;= TRUNC(SYSDATE) AND regdate &lt; TRUNC(SYSDATE) + 1) AS "todayMembers",
+            TO_CHAR(SYSDATE, 'YYYY-MM-DD HH24:MI:SS') AS "updatedAt"
+        FROM dual
+    </select>
+
+    <select id="recentMembers" resultType="map">
+        SELECT member_num AS "memberNum", member_nick AS "nickname", authority AS "authority"
+        FROM member
+        ORDER BY regdate DESC, member_num DESC
+        FETCH FIRST 5 ROWS ONLY
+    </select>
+
+    <select id="recentPosts" resultType="map">
+        SELECT c.community_id AS "postNum", c.community_title AS "title", c.community_content AS "content",
+               c.community_category AS "category",
+               COALESCE(m.member_nick, c.community_nickname, '탈퇴 회원') AS "nickname"
+        FROM community_section c
+        LEFT JOIN member m ON m.member_num = c.member_num
+        ORDER BY c.community_id DESC
+        FETCH FIRST 5 ROWS ONLY
+    </select>
+    <!-- 오늘을 포함한 14일. 가입자가 없는 날짜도 0으로 반환합니다. -->
+    <select id="signupTrend" resultType="map">
+        SELECT TO_CHAR(d.day, 'YYYY-MM-DD') AS "date", NVL(m.cnt, 0) AS "count"
+        FROM (SELECT TRUNC(SYSDATE) - 14 + LEVEL AS day FROM dual CONNECT BY LEVEL &lt;= 14) d
+        LEFT JOIN (
+            SELECT TRUNC(regdate) AS day, COUNT(*) AS cnt
+            FROM member
+            WHERE regdate &gt;= TRUNC(SYSDATE) - 13 AND regdate &lt; TRUNC(SYSDATE) + 1
+            GROUP BY TRUNC(regdate)
+        ) m ON m.day = d.day
+        ORDER BY d.day
+    </select>
+
+    <select id="reportStatusCounts" resultType="map">
+        SELECT status AS "status", COUNT(*) AS "count" FROM report GROUP BY status ORDER BY status
+    </select>
+</mapper>

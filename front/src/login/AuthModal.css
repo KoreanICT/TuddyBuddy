@@ -19,6 +19,17 @@
   z-index: 9999;
 }
 
+.tb-auth-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  min-height: 100vh;
+  padding: 112px 20px 40px;
+  box-sizing: border-box;
+  background: var(--background-secondary);
+}
+
 /* 팝업 본체 */
 .tb-auth-modal {
   position: relative;
@@ -42,6 +53,13 @@
 }
 
 /* 팝업 등장 */
+.tb-auth-modal.tb-auth-page-card {
+  max-height: none;
+  overflow: visible;
+  box-sizing: border-box;
+  animation: none;
+}
+
 @keyframes tbAuthShow {
   from {
     opacity: 0;

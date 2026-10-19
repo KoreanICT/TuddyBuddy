@@ -18,6 +18,7 @@ interface FacePanelProps {
     stopDetection: () => void;
 
     onClose?: () => void;
+    managed?: boolean;
 }
 
 const FacePanel: React.FC<FacePanelProps> = ({
@@ -31,7 +32,8 @@ const FacePanel: React.FC<FacePanelProps> = ({
     stopCamera,
     startDetection,
     stopDetection,
-    onClose
+    onClose,
+    managed = false
 }) => {
 
     return (
@@ -124,7 +126,7 @@ const FacePanel: React.FC<FacePanelProps> = ({
                 )}
 
                 {/* 버튼 */}
-                <div className={styles.actions}>
+                {!managed && <div className={styles.actions}>
                     {!cameraActive ? (
                         <button onClick={startCamera}>
                             카메라 시작
@@ -144,7 +146,7 @@ const FacePanel: React.FC<FacePanelProps> = ({
                             감지 중지
                         </button>
                     )}
-                </div>
+                </div>}
 
             </div>
         </div>
