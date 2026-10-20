@@ -1,0 +1,278 @@
+.page {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 24px;
+    color: #29324a;
+}
+
+.intro {
+    margin-bottom: 26px;
+}
+
+.eyebrow {
+    margin: 0 0 12px;
+    color: #7260ac;
+    font-size: 12px;
+    font-weight: 650;
+}
+
+.intro h1 {
+    margin: 0 0 12px;
+    font-size: 30px;
+    letter-spacing: -1px;
+}
+
+.intro > p:last-child {
+    color: #697287;
+    font-size: 14px;
+    line-height: 1.8;
+}
+
+.layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 250px;
+    align-items: start;
+    gap: 22px;
+}
+
+.calendar {
+    min-width: 0;
+    padding: 26px;
+    border: 1px solid #e6e7f0;
+    border-radius: 20px;
+    background: #fff;
+}
+
+.calendarHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.calendarHeader h2 {
+    margin: 0;
+    font-size: 22px;
+}
+
+.controls {
+    display: flex;
+    gap: 6px;
+}
+
+.controls button,
+.error button {
+    padding: 8px 10px;
+    border: 1px solid #dedfed;
+    border-radius: 8px;
+    background: #fff;
+    color: #625785;
+    font: inherit;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.weekdays,
+.days {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 6px;
+}
+
+.weekdays {
+    margin-bottom: 12px;
+    color: #788094;
+    font-size: 12px;
+    text-align: center;
+}
+
+.day {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    height: 70px;
+    padding: 10px 3px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    background: #f8f9fc;
+    color: #788094;
+    font: inherit;
+    font-size: 13px;
+}
+
+.dayState {
+    min-height: 15px;
+    font-size: 10px;
+}
+
+.today {
+    border-color: #a99bd2;
+    background: #f6f2ff;
+    color: #65519b;
+    font-weight: 700;
+}
+
+.checked {
+    background: #eae4f9;
+    color: #65519b;
+}
+
+.day:not(:disabled) {
+    cursor: pointer;
+}
+
+.day:not(:disabled):hover {
+    background: #eae4f9;
+}
+
+.legend,
+.empty {
+    margin: 20px 0 0;
+    color: #727b8e;
+    font-size: 12px;
+    line-height: 1.7;
+}
+
+.legend {
+    padding-top: 16px;
+    border-top: 1px solid #eeeff5;
+}
+
+.summary {
+    padding: 26px 22px;
+    border: 1px solid #e1dcf0;
+    border-radius: 20px;
+    background: linear-gradient(150deg, #f2effb, #fdfcff);
+}
+
+.summary h2 {
+    margin: 0 0 12px;
+    font-size: 21px;
+}
+
+.serverDate,
+.checkState,
+.reward {
+    color: #75698d;
+    font-size: 12px;
+    line-height: 1.7;
+}
+
+.checkState {
+    margin: 24px 0 16px;
+}
+
+.checkButton {
+    width: 100%;
+    padding: 12px;
+    border: 0;
+    border-radius: 10px;
+    background: #7560b6;
+    color: #fff;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.checkButton:disabled {
+    background: #e0d9ed;
+    color: #6f6389;
+    cursor: default;
+}
+
+.controls button:disabled {
+    opacity: .5;
+    cursor: default;
+}
+
+.monthCount {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 28px;
+    padding-top: 22px;
+    border-top: 1px solid #e1dcec;
+    font-size: 12px;
+}
+
+.monthCount strong {
+    color: #65519b;
+    font-size: 25px;
+}
+
+.notice {
+    min-height: 22px;
+    margin-top: 18px;
+    color: #65519b;
+    font-size: 13px;
+    line-height: 1.8;
+}
+
+.loading {
+    color: #726587;
+    font-size: 13px;
+}
+
+.error {
+    margin-bottom: 20px;
+    padding: 16px;
+    border: 1px solid #edd2d6;
+    border-radius: 10px;
+    background: #fff7f7;
+    color: #9c4e5b;
+    font-size: 13px;
+    line-height: 1.7;
+}
+
+.error p {
+    margin-top: 0;
+}
+
+.page button:focus-visible {
+    outline: 3px solid #a5a2e9;
+    outline-offset: 3px;
+}
+
+@media (max-width: 800px) {
+    .layout {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .summary {
+        max-width: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .page {
+        padding: 28px 12px;
+    }
+
+    .calendar {
+        padding: 20px 12px;
+    }
+
+    .calendarHeader h2 {
+        font-size: 19px;
+    }
+
+    .controls {
+        gap: 4px;
+    }
+
+    .controls button {
+        padding: 7px;
+    }
+
+    .days {
+        gap: 3px;
+    }
+
+    .day {
+        height: 60px;
+    }
+}
