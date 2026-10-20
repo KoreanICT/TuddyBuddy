@@ -28,13 +28,13 @@ public class NotificationController {
 	}
 	
 	@GetMapping("/unread")
-	public ResponseEntity<List<NotificationDTO>> getUnreadNotifications(@RequestHeader("membe_num") Long memberNum) {
+	public ResponseEntity<List<NotificationDTO>> getUnreadNotifications(@RequestHeader("member_num") Long memberNum) {
 		List<NotificationDTO> list = service.getUnreadNotifications(memberNum);
 		return ResponseEntity.ok(list);
 	}
 	
 	@GetMapping("/getAllNotification")
-	public ResponseEntity<List<NotificationDTO>> getAllNotification(@RequestHeader("membe_num") Long memberNum) {
+	public ResponseEntity<List<NotificationDTO>> getAllNotification(@RequestHeader("member_num") Long memberNum) {
 		List<NotificationDTO> list = service.getNotifications(memberNum);
 		return ResponseEntity.ok(list);
 	}
@@ -46,7 +46,7 @@ public class NotificationController {
 	}
 	
 	@PatchMapping("/readAll")
-	public ResponseEntity<String> readAll(@RequestHeader("memberNum") Long memberNum) {
+	public ResponseEntity<String> readAll(@RequestHeader("member_num") Long memberNum) {
 		service.readAll(memberNum);
 		return ResponseEntity.ok("전체 읽음 처리 완료");
 	}
