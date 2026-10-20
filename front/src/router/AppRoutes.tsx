@@ -46,6 +46,7 @@ import KakaoSignup from "../login/KakaoSignup";
 import Login from "../login/Login";
 import RequireAuth from "../login/auth/RequireAuthProps";
 import { ROLE_ACCESS } from "../login/auth/roles";
+import ActivityLogManagement from "../cont/admin/activity/ActivityLogManagement";
 
 interface RouteItem {
     path: string;
@@ -105,6 +106,7 @@ const AppRoutes: React.FC = () => {
         { path: "/admin/notice/add", element: <AdminNoticeForm /> },
         { path: "/admin/notice/edit/:num", element: <AdminNoticeForm /> },
         { path: "/admin/selfstudy", element: <RequireAuth allowedRoles={ROLE_ACCESS.manageSelfStudy}><SelfStudyManagement /></RequireAuth> },
+        { path: "/admin/activityLogs", element: <ActivityLogManagement /> },
 
         // auth
         { path: '/auth/member', element: <Login /> },
