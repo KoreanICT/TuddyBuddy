@@ -46,7 +46,7 @@ public class NotificationController {
 	}
 	
 	@PatchMapping("/readAll")
-	public ResponseEntity<String> readAll(@RequestHeader("memberNum") Long memberNum) {
+	public ResponseEntity<String> readAll(@RequestHeader("member_num") Long memberNum) {
 		service.readAll(memberNum);
 		return ResponseEntity.ok("전체 읽음 처리 완료");
 	}
