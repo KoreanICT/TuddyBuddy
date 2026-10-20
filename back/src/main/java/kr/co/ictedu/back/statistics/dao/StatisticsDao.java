@@ -7,7 +7,6 @@ import java.util.Map;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
-import kr.co.ictedu.back.selfstudy.vo.SelfStudyResultVO;
 
 @Mapper
 public interface StatisticsDao {
@@ -16,13 +15,9 @@ public interface StatisticsDao {
     List<String> selectCategories_Statistics(
     		@Param("memberNum") Long memberNum);
     
-    // 세션id 조회
-    Long selectSessionId_Statistics(
+    // 회원의 모든 카테고리별 풀이 로그 조회
+    List<Map<String, Object>> selectQuizLogsByMember_Statistics(
     		@Param("memberNum") Long memberNum);
-    
-    // 정답을 맞춘 문제 목록 조회
-    List<Map<String, Object>> selectIncorrectQuizzesByResultId_Statistics(
-    		@Param("resultId") Long resultId);
     
     // 히스토리 데이터 조회 (회차별 점수 및 날짜)
     List<Map<String, Object>> selectHistoryStatistics(
@@ -35,8 +30,4 @@ public interface StatisticsDao {
     // 과목별 비중/분포 데이터 조회
     List<Map<String, Object>> selectSubjectShareStatistics(
     		@Param("memberNum") Long memberNum);
-    
-    // 결과 1개만 조회
-    SelfStudyResultVO selectResult(
-            @Param("resultId") Long resultId);
 }

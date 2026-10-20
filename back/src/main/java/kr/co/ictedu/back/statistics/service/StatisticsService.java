@@ -1,25 +1,16 @@
 //김진규
 package kr.co.ictedu.back.statistics.service;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
-import io.swagger.v3.oas.models.PathItem.HttpMethod;
-import kr.co.ictedu.back.selfstudy.dao.SelfStudyDao;
-import kr.co.ictedu.back.selfstudy.vo.QuizResponseVO;
-import kr.co.ictedu.back.selfstudy.vo.QuizVO;
-import kr.co.ictedu.back.selfstudy.vo.SelfStudyResultVO;
 import kr.co.ictedu.back.statistics.dao.StatisticsDao;
 import kr.co.ictedu.back.statistics.dto.PredictionDTO;
 import kr.co.ictedu.back.statistics.dto.StatisticsDTO;
@@ -27,10 +18,6 @@ import kr.co.ictedu.back.point.service.PointService;
 
 @Service
 public class StatisticsService {
-	// 1. @Autowired를 이용한 필드 주입 방식 적용
-	@Autowired
-	private SelfStudyDao selfStudyDao;
-
 	@Autowired
 	private StatisticsDao statisticsDao;
 
@@ -79,36 +66,23 @@ public class StatisticsService {
 	 * 2. DB 조인 쿼리를 활용한 LLM 피드백 데이터 추출 및 FastAPI 통신 메서드
 	 */
 	private StatisticsDTO getLlmFeedbackData(Long memberNum) {
-		// (1) 세션 ID 추출
-		//역할: 세션 조회 결과 null 검증
-		Long sessionId = validateSessionId(statisticsDao.selectSessionId_Statistics(memberNum));
-
-		// (2) 학습 결과 단건 조회 (결과 존재 여부 검증 및 selfstudy_results_id 확보용)
-		//역할: 학습 결과 조회 결과 null 검증
-		SelfStudyResultVO result = validateStudyResult(statisticsDao.selectResult(sessionId));
-		//역할: 학습 결과 ID null 검증
-		Long resultId = validateResultId(result.getSelfstudy_results_id());
-		//역할: 학습 결과 회원번호 null 검증
-		Long resultMemberNum = validateMemberNum(result.getMember_num());
-
-		// (3) 최적화된 조인 쿼리를 통해 해당 결과의 오답 로그 목록을 곧바로 조회
-		// (더미 데이터 기준으로 selfstudy_results_id를 전달하여 오답 'N'만 추출)
-		//역할: 오답 로그 조회 결과 null 검증
+		// (1) 모든 제출 결과에서 회원의 전체 카테고리 풀이 로그 조회
+		//역할: 전체 카테고리 풀이 로그 목록 검증
 		List<Map<String, Object>> quizLogs = validateQuizLogs(
-				statisticsDao.selectIncorrectQuizzesByResultId_Statistics(resultId));
+				statisticsDao.selectQuizLogsByMember_Statistics(memberNum));
 
-		// (4) FastAPI로 보낼 최종 요청 Payload(Body) 구성
+		// (2) FastAPI AnalyzeRequest 요청 Payload 구성
 		Map<String, Object> requestPayload = new HashMap<>();
-		requestPayload.put("user_id", resultMemberNum);
+		requestPayload.put("user_id", memberNum);
 		requestPayload.put("quiz_logs", quizLogs);
 
-		// (5) RestTemplate을 통해 FastAPI 서버로 POST 요청 전송
+		// (3) FastAPI의 카테고리별 피드백 응답 수신
 		RestTemplate restTemplate = new RestTemplate();
-		//역할: LLM 응답 및 필수 필드 null 검증
+		//역할: 카테고리별 LLM 응답과 필수 필드 검증
 		StatisticsDTO llmFeedback = validateStatisticsFeedback(
 				restTemplate.postForObject(fastapiUrl + "/statistics", requestPayload, StatisticsDTO.class));
 
-		System.out.println("llm데이터 수신 성공: " + llmFeedback.getMentorComment());
+		System.out.println("카테고리별 평가분석 응답 수신: " + llmFeedback.getCategoryAnalyses().size());
 		return llmFeedback;
 	}
 
@@ -141,7 +115,7 @@ public class StatisticsService {
 
 	private PredictionDTO prediction_llm(Long memberNum) {
 		// 카테고리별 통계점수
-		//역할: 카테고리별 통계 조회 결과 null 검증
+		//역할: 카테고리별 통계 조회 결과 검증
 		List<Map<String, Object>> categoryStatsList = validateCategoryStatsList(
 				statisticsDao.selectCategoryStatisticsList(memberNum));
 
@@ -152,11 +126,11 @@ public class StatisticsService {
 		 * type:'predict' }, ]
 		 */
 		RestTemplate restTemplate = new RestTemplate();
-		//역할: 예측 LLM 응답 및 필수 필드 null 검증
+		//역할: 카테고리별 예측 LLM 응답 및 필수 필드 검증
 		PredictionDTO llmFeedback = validatePredictionFeedback(
 				restTemplate.postForObject(fastapiUrl + "/prediction", categoryStatsList, PredictionDTO.class));
 
-		System.out.println("llm데이터 수신 성공: " + llmFeedback.getMentorComment());
+		System.out.println("카테고리별 성적예측 응답 수신: " + llmFeedback.getCategoryPredictions().size());
 		return llmFeedback;
 	
 	}
@@ -177,30 +151,6 @@ public class StatisticsService {
 		return description;
 	}
 
-	//역할: 회원의 세션 조회 결과가 null인지 검증
-	private Long validateSessionId(Long sessionId) {
-		if (sessionId == null) {
-			throw new IllegalArgumentException("회원의 학습 세션을 찾을 수 없습니다.");
-		}
-		return sessionId;
-	}
-
-	//역할: 학습 결과 조회 결과가 null인지 검증
-	private SelfStudyResultVO validateStudyResult(SelfStudyResultVO result) {
-		if (result == null) {
-			throw new IllegalArgumentException("존재하지 않는 학습 결과입니다.");
-		}
-		return result;
-	}
-
-	//역할: 학습 결과 ID가 null인지 검증
-	private Long validateResultId(Long resultId) {
-		if (resultId == null) {
-			throw new IllegalArgumentException("학습 결과 번호가 없습니다.");
-		}
-		return resultId;
-	}
-
 	//역할: 카테고리 조회 결과가 null인지 검증
 	private List<String> validateCategories(List<String> categories) {
 		if (categories == null) {
@@ -209,10 +159,10 @@ public class StatisticsService {
 		return categories;
 	}
 
-	//역할: 오답 로그 조회 결과가 null인지 검증
+	//역할: 전체 카테고리 풀이 로그 목록이 null이거나 비었는지 검증
 	private List<Map<String, Object>> validateQuizLogs(List<Map<String, Object>> quizLogs) {
-		if (quizLogs == null) {
-			throw new IllegalArgumentException("오답 로그 조회 결과가 없습니다.");
+		if (quizLogs == null || quizLogs.isEmpty()) {
+			throw new IllegalArgumentException("분석할 풀이 로그가 없습니다.");
 		}
 		return quizLogs;
 	}
@@ -233,27 +183,60 @@ public class StatisticsService {
 		return subjectShareList;
 	}
 
-	//역할: 카테고리별 통계 조회 결과가 null인지 검증
+	//역할: 카테고리별 통계 조회 결과가 null이거나 비었는지 검증
 	private List<Map<String, Object>> validateCategoryStatsList(List<Map<String, Object>> categoryStatsList) {
-		if (categoryStatsList == null) {
-			throw new IllegalArgumentException("카테고리별 통계 조회 결과가 없습니다.");
+		if (categoryStatsList == null || categoryStatsList.isEmpty()) {
+			throw new IllegalArgumentException("예측할 카테고리별 통계가 없습니다.");
 		}
 		return categoryStatsList;
 	}
 
-	//역할: 평가분석 LLM 응답 객체와 필수 필드가 null인지 검증
+	//역할: 평가분석 LLM의 카테고리별 응답 객체와 필수 필드를 검증
 	private StatisticsDTO validateStatisticsFeedback(StatisticsDTO feedback) {
-		if (feedback == null || feedback.getMentorComment() == null || feedback.getWeaknesses() == null
-				|| feedback.getConsultingPath() == null) {
+		if (feedback == null || feedback.getCategoryAnalyses() == null
+				|| feedback.getCategoryAnalyses().isEmpty()) {
 			throw new IllegalArgumentException("평가분석 LLM 응답 데이터가 올바르지 않습니다.");
+		}
+		for (StatisticsDTO.CategoryAnalysisDTO analysis : feedback.getCategoryAnalyses()) {
+			if (analysis == null || analysis.getCategoryIds() == null || analysis.getCategoryIds().isEmpty()
+					|| analysis.getCategoryName() == null || analysis.getCategoryName().isBlank()
+					|| analysis.getMentorComment() == null || analysis.getMentorComment().isBlank()
+					|| analysis.getWeaknesses() == null || analysis.getConsultingPath() == null
+					|| analysis.getConsultingPath().size() != 3) {
+				throw new IllegalArgumentException("카테고리별 평가분석 응답 필드가 올바르지 않습니다.");
+			}
 		}
 		return feedback;
 	}
 
-	//역할: 성적 예측 LLM 응답 객체와 예측 목록이 null인지 검증
+	//역할: 성적 예측 LLM의 카테고리별 응답과 예측 항목을 검증
 	private PredictionDTO validatePredictionFeedback(PredictionDTO feedback) {
-		if (feedback == null || feedback.getPrediction() == null) {
+		if (feedback == null || feedback.getCategoryPredictions() == null
+				|| feedback.getCategoryPredictions().isEmpty()) {
 			throw new IllegalArgumentException("성적 예측 LLM 응답 데이터가 올바르지 않습니다.");
+		}
+		for (PredictionDTO.CategoryPredictionDTO categoryPrediction : feedback.getCategoryPredictions()) {
+			if (categoryPrediction == null || categoryPrediction.getCategoryIds() == null
+					|| categoryPrediction.getCategoryIds().isEmpty()
+					|| categoryPrediction.getCategoryName() == null || categoryPrediction.getCategoryName().isBlank()
+					|| categoryPrediction.getMentorComment() == null || categoryPrediction.getMentorComment().isBlank()
+					|| categoryPrediction.getPrediction() == null || categoryPrediction.getPrediction().size() != 2) {
+				throw new IllegalArgumentException("카테고리별 성적 예측 응답 필드가 올바르지 않습니다.");
+			}
+			List<PredictionDTO.PredictionItemDTO> items = categoryPrediction.getPrediction();
+			if (items.get(0) == null || items.get(1) == null
+					|| !"최근 평균".equals(items.get(0).getName())
+					|| !"actual".equals(items.get(0).getType())
+					|| !"다음 시험 예측".equals(items.get(1).getName())
+					|| !"predict".equals(items.get(1).getType())) {
+				throw new IllegalArgumentException("성적 예측 항목 순서 또는 유형이 올바르지 않습니다.");
+			}
+			for (PredictionDTO.PredictionItemDTO item : items) {
+				if (item == null || item.getName() == null || item.getScore() == null
+						|| item.getScore() < 0 || item.getScore() > 100 || item.getType() == null) {
+					throw new IllegalArgumentException("성적 예측 항목이 올바르지 않습니다.");
+				}
+			}
 		}
 		return feedback;
 	}

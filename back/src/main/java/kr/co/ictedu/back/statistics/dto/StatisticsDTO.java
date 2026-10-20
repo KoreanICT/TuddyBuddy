@@ -1,4 +1,3 @@
-//김진규
 package kr.co.ictedu.back.statistics.dto;
 
 import java.util.List;
@@ -6,18 +5,19 @@ import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 
+/** Root response returned by FastAPI /statistics. */
 @Getter
 @Setter
 public class StatisticsDTO {
-    private String mentorComment;
-    private List<String> weaknesses;
-    private List<String> consultingPath;
+    private List<CategoryAnalysisDTO> categoryAnalyses;
 
-    // Getters and Setters
-    public String getMentorComment() { return mentorComment; }
-    public void setMentorComment(String mentorComment) { this.mentorComment = mentorComment; }
-    public List<String> getWeaknesses() { return weaknesses; }
-    public void setWeaknesses(List<String> weaknesses) { this.weaknesses = weaknesses; }
-    public List<String> getConsultingPath() { return consultingPath; }
-    public void setConsultingPath(List<String> consultingPath) { this.consultingPath = consultingPath; }
+    @Getter
+    @Setter
+    public static class CategoryAnalysisDTO {
+        private List<Long> categoryIds;
+        private String categoryName;
+        private String mentorComment;
+        private List<String> weaknesses;
+        private List<String> consultingPath;
+    }
 }

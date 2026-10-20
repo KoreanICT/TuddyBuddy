@@ -5,7 +5,7 @@ import {
     LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell, Legend
 } from 'recharts';
 import { AlertTriangle, Award, BookOpen, Brain, Clock, MessageSquareQuote, TrendingUp } from 'lucide-react';
-import { ChartDataState, LLMFeedbackState } from './types';
+import { ChartDataState, LLMFeedbackState, StatisticsApiResponse } from './types';
 import './PerformanceAnalytics.css';
 import { json } from 'stream/consumers';
 import { useAuth } from '../../login/hooks/useAuth';
@@ -55,20 +55,28 @@ export default function PerformanceAnalytics() {
             setSubjects(categoriesResponse.data);
             setCategories(categoriesResponse.data[0]);
 
-            const response = await axios.post(`${process.env.REACT_APP_BACK_END_URL}/api/statistics/getStatistics`, {
+            const response = await axios.post<StatisticsApiResponse>(`${process.env.REACT_APP_BACK_END_URL}/api/statistics/getStatistics`, {
                 memberNum,
                 description: '평가분석 및 성적예측 이용',
             }, { headers });
 
             const responseChartData = response.data.chartData;
-            const predictionResponse = responseChartData?.prediction;
-            const prediction = Array.isArray(predictionResponse)
-                ? predictionResponse
-                : Array.isArray(predictionResponse?.prediction)
-                    ? predictionResponse.prediction
-                    : [];
+            // 카테고리마다 나뉜 예측 항목들을 기존 차트가 받는 단일 배열로 평탄화합니다.
+            // 각 항목의 원래 점수와 유형은 유지하고, 카테고리명은 차트 라벨에 붙여 구분합니다.
+            const prediction = responseChartData.prediction.categoryPredictions.flatMap((category) =>
+                category.prediction.map((item) => ({
+                    ...item,
+                    name: `${category.categoryName} · ${item.name}`,
+                    categoryIds: category.categoryIds,
+                    categoryName: category.categoryName,
+                }))
+            );
 
-            setChartData({ ...responseChartData, prediction });
+            setChartData({
+                history: responseChartData.history,
+                prediction,
+                subjectShare: responseChartData.subjectShare,
+            });
             setLlmFeedback(response.data.llmFeedback);
             setAnalysisUnlocked(true);
         } catch (error) {
@@ -205,59 +213,46 @@ export default function PerformanceAnalytics() {
                 {/* 2. LLM 평가 컨설팅 영역 */}
                 {llmFeedback && (
                     <section className="card feedback-card">
+                        {llmFeedback.categoryAnalyses.map((analysis) => (
+                            <div className="feedback-section" key={analysis.categoryIds.join('-')}>
+                                <div className="card-header danger">
+                                    <MessageSquareQuote size={22} />
+                                    <h2>{analysis.categoryName} 평가분석</h2>
+                                </div>
+                                <div className="mentor-speech-box">
+                                    <p>"{analysis.mentorComment}"</p>
+                                </div>
 
-                        <div className="feedback-section">
-                            <div className="card-header danger">
-                                <MessageSquareQuote size={22} />
-                                <h2>AI 1타 강사의 팩트폭격 멘토링</h2>
-                            </div>
-                            <div className="mentor-speech-box">
-                                <p>"{llmFeedback.mentorComment}"</p>
-                            </div>
-                        </div>
-
-                        <div className="consulting-grid">
-
-                            {/* 집중 보완 영역 */}
-                            <div className="consulting-col">
-                                <h3 className="section-title">
-                                    <AlertTriangle className="icon warning" size={16} /> 집중 보완 단원 및 원인 분석
-                                </h3>
-                                <div className="weakness-list">
-                                    {llmFeedback.weaknesses.map((item, idx) => (
-                                        <div key={idx} className="weakness-item">
-                                            {typeof item === 'string' ? (
-                                                <p className="reason">{item}</p>
-                                            ) : (
-                                                <>
-                                                    <div className="weakness-head">
-                                                        <span className="subject">{item.subjectName}</span>
-                                                    </div>
-                                                    <p className="reason">{item.reason}</p>
-                                                </>
-                                            )}
+                                <div className="consulting-grid">
+                                    <div className="consulting-col">
+                                        <h3 className="section-title">
+                                            <AlertTriangle className="icon warning" size={16} /> 집중 보완 단원 및 원인 분석
+                                        </h3>
+                                        <div className="weakness-list">
+                                            {analysis.weaknesses.map((weakness, idx) => (
+                                                <div key={idx} className="weakness-item">
+                                                    <p className="reason">{weakness}</p>
+                                                </div>
+                                            ))}
                                         </div>
-                                    ))}
+                                    </div>
+
+                                    <div className="consulting-col">
+                                        <h3 className="section-title">
+                                            <Brain className="icon primary" size={16} /> 맞춤형 성적 탈출 컨설팅 경로
+                                        </h3>
+                                        <ol className="consulting-path">
+                                            {analysis.consultingPath.map((step, idx) => (
+                                                <li key={idx}>
+                                                    <span className="step-num">{idx + 1}</span>
+                                                    <span className="step-text">{step}</span>
+                                                </li>
+                                            ))}
+                                        </ol>
+                                    </div>
                                 </div>
                             </div>
-
-                            {/* 컨설팅 경로 */}
-                            <div className="consulting-col">
-                                <h3 className="section-title">
-                                    <Brain className="icon primary" size={16} /> 맞춤형 성적 탈출 컨설팅 경로
-                                </h3>
-                                <ol className="consulting-path">
-                                    {llmFeedback.consultingPath.map((step, idx) => (
-                                        <li key={idx}>
-                                            <span className="step-num">{idx + 1}</span>
-                                            <span className="step-text">{step}</span>
-                                        </li>
-                                    ))}
-                                </ol>
-                            </div>
-
-                        </div>
-
+                        ))}
                     </section>
                 )}
 
