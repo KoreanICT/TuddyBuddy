@@ -39,12 +39,14 @@ public class PointService {
 	//추천인 코드 포인트 적립 메서드 : 1000 point로 고정
 	@Transactional
 	public void addReferralReward(String referralCode, String description) {
+		long amount;
 		//역할: 추천인 코드가 미입력인지 확인하고 입력된 코드를 정규화
 		referralCode = validateReferralCode(referralCode);
 		//역할: 미입력이면 조회 없이, 입력된 코드는 회원 조회 결과를 검증
 		Long memberNum = validateReferralMemberNumber(
 				referralCode == null ? null : dao.select_member_num_by_code(referralCode), referralCode);
 		if (memberNum == null) {
+			amount = 0L;
 			return;
 		}
 		//역할: 설명 검증
@@ -53,7 +55,7 @@ public class PointService {
 		validateMemberNumber(memberNum);
 
 		//추천인 코드 적립 포인트 1000
-		long amount = 1_000L;
+		amount = 1_000L;
 		//역할: 추천 보상 포인트 양수 검증
 		validatePositiveAmount(amount, "추천 보상 포인트");
 		insertPointChange(memberNum, amount, 0L, "PAYMENT", description);

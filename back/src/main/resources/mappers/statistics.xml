@@ -5,47 +5,47 @@
 
 	<!-- 카테고리 목록 조회 -->
 	<select id="selectCategories_Statistics" resultType="string">
-		SELECT c.CATEGORY_NAME FROM
-		CATEGORIES c, QUIZ_SESSIONS qs,SUBJECTS s,MEMBER m
-		WHERE c.CATEGORY_ID = s.CATEGORY_ID AND qs.SUBJECT_ID = s.SUBJECT_ID AND
-		qs.MEMBER_NUM = #{memberNum}
+		SELECT DISTINCT c.CATEGORY_NAME
+		FROM QUIZ_SESSIONS qs
+		JOIN SUBJECTS s ON qs.SUBJECT_ID = s.SUBJECT_ID
+		JOIN CATEGORIES c ON s.CATEGORY_ID = c.CATEGORY_ID
+		WHERE qs.MEMBER_NUM = #{memberNum}
+		ORDER BY c.CATEGORY_NAME
 	</select>
 
-	<!-- 세션id 조회 -->
-	<select id="selectSessionId_Statistics" resultType="long">
-		SELECT qs.QUIZ_SESSION_ID FROM
-	    QUIZ_SESSIONS qs, MEMBER M
-	    WHERE qs.MEMBER_NUM = #{memberNum}
-	</select>
-
-	<resultMap id="incorrectQuizMap" type="map">
+	<resultMap id="quizLogMap" type="map">
 		<id property="quiz_id" column="quiz_id"/>
+		<result property="answer" column="answer"/>
+		<result property="is_correct" column="is_correct"
+				javaType="boolean" jdbcType="NUMERIC"/>
 		<result property="question" column="question"
 				javaType="string" jdbcType="CLOB"
 				typeHandler="org.apache.ibatis.type.ClobTypeHandler"/>
-		<result property="options" column="options"/>
-		<result property="user_answer" column="user_answer"/>
-		<result property="correct_answer" column="correct_answer"/>
-		<result property="is_correct" column="is_correct"/>
-		<result property="explanation" column="explanation"
-				javaType="string" jdbcType="CLOB"
-				typeHandler="org.apache.ibatis.type.ClobTypeHandler"/>
+		<result property="categoryId" column="categoryId"/>
+		<result property="categoryName" column="categoryName"/>
 	</resultMap>
 
-	<!-- 정답을 맞춘 문제 목록 조회 -->
-	<select id="selectIncorrectQuizzesByResultId_Statistics" resultMap="incorrectQuizMap">
+	<!-- 회원의 모든 제출 이력에서 전체 카테고리 풀이 로그 조회 -->
+	<select id="selectQuizLogsByMember_Statistics" resultMap="quizLogMap">
 		SELECT
-		q.quiz_id AS "quiz_id",
-		q.quiz_question AS "question",
-		q.quiz_selections AS "options",
-		qr.quiz_user_response AS "user_answer",
-		q.quiz_correct_answer AS "correct_answer",
-		'false' AS "is_correct",
-		q.quiz_explanation AS "explanation"
+			q.QUIZ_ID AS "quiz_id",
+			qr.QUIZ_USER_RESPONSE AS "answer",
+			CASE WHEN qr.QUIZ_CORRECT = 'Y' THEN 1 ELSE 0 END AS "is_correct",
+			q.QUIZ_QUESTION AS "question",
+			c.CATEGORY_ID AS "categoryId",
+			c.CATEGORY_NAME AS "categoryName"
 		FROM quiz_responses qr
-		JOIN quizzes q ON qr.quiz_id = q.quiz_id
-		WHERE qr.selfstudy_results_id = #{resultId}
-		AND qr.quiz_correct = 'N'
+		JOIN selfstudy_results sr
+			ON qr.selfstudy_results_id = sr.selfstudy_results_id
+		JOIN quiz_sessions qs
+			ON sr.quiz_session_id = qs.quiz_session_id
+		JOIN quizzes q
+			ON q.quiz_id = qr.quiz_id
+			AND q.quiz_session_id = qs.quiz_session_id
+		JOIN subjects s ON qs.subject_id = s.subject_id
+		JOIN categories c ON s.category_id = c.category_id
+		WHERE sr.member_num = #{memberNum}
+		ORDER BY c.category_id, sr.submitted_at, qr.quiz_responses_id
 	</select>
 
 	<!-- 히스토리 조회 (snake_case 컬럼명 및 실제 테이블 구조 반영) -->
@@ -100,19 +100,4 @@
 			  AND qr.QUIZ_CORRECT = 'N'
 			GROUP BY s.SUBJECT_ID, s.SUBJECT_NAME
 	</select>
-	
-	<select id="selectResult"
-		resultType="selfStudyResultVO">
-
-		SELECT
-		selfstudy_results_id,
-		quiz_session_id,
-		member_num,
-		selfstudy_total_score,
-		submitted_at
-		FROM selfstudy_results
-		WHERE quiz_session_id = #{resultId}
-
-	</select>
-
 </mapper>
