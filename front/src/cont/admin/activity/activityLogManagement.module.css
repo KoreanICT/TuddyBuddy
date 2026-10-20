@@ -1,0 +1,272 @@
+/* 관리자 로그 화면 전체
+   CSS Module의 container이므로 글로벌 .container와는 별개입니다. */
+.container {
+    width: 100%;
+    padding: 24px;
+    color: var(--text);
+}
+
+/* 화면 제목 */
+.container h2 {
+    margin-bottom: 8px;
+    font-size: 24px;
+    font-weight: 700;
+}
+
+/* 제목 아래 설명 */
+.description {
+    margin-bottom: 24px;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+/* 검색 영역
+   공간이 부족하면 검색 항목을 다음 줄로 넘깁니다. */
+.searchForm {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 14px;
+
+    padding: 20px;
+    margin-bottom: 20px;
+
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background-color: var(--admin-background);
+}
+
+/* 검색 항목 이름 아래 입력창 배치 */
+.searchForm label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    min-width: 140px;
+
+    font-size: 14px;
+    font-weight: 600;
+}
+
+/* 입력창과 선택창
+   글꼴과 box-sizing은 글로벌 CSS를 그대로 사용합니다. */
+.searchForm input,
+.searchForm select {
+    width: 100%;
+    min-height: 40px;
+    padding: 8px 12px;
+
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+
+    color: var(--text);
+    background-color: var(--admin-card);
+}
+
+/* 입력 안내 문구 */
+.searchForm input::placeholder {
+    color: var(--text-secondary);
+}
+
+/* 검색·초기화 버튼 묶음 */
+.buttons {
+    display: flex;
+    gap: 8px;
+}
+
+/* 화면 안 버튼 공통 스타일
+   글로벌 CSS에서 제거된 테두리·배경·여백을 지정합니다. */
+.container button {
+    min-height: 40px;
+    padding: 8px 14px;
+
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+
+    color: var(--text);
+    background-color: var(--admin-card);
+
+    font-size: 14px;
+    font-weight: 500;
+}
+
+/* 일반 버튼에 마우스를 올렸을 때 */
+.container button:not(:disabled):hover {
+    background-color: var(--background-secondary);
+}
+
+/* 검색 버튼은 관리자 기본 색상 사용 */
+.buttons button[type='submit'] {
+    border-color: var(--admin-primary);
+    color: var(--admin-text);
+    background-color: var(--admin-primary);
+}
+
+/* 검색 버튼 hover */
+.buttons button[type='submit']:not(:disabled):hover {
+    border-color: var(--admin-primary-hover);
+    background-color: var(--admin-primary-hover);
+}
+
+/* 비활성 버튼 */
+.container button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+/* 키보드로 이동했을 때 현재 선택 위치 표시 */
+.container button:focus-visible,
+.searchForm input:focus-visible,
+.searchForm select:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+/* 조회 건수·로딩 안내
+   기존 JSX에서 별도 클래스 없이 출력하는 p 요소입니다. */
+.container > p:not(.description):not(.error) {
+    margin-bottom: 12px;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+/* 오류 안내
+   글로벌 변수에 오류 전용 색상이 없어 직접 지정합니다. */
+.error {
+    margin-bottom: 12px;
+    color: #b91c1c;
+    font-size: 14px;
+}
+
+/* 표 바깥 영역
+   작은 화면에서는 가로 스크롤을 사용합니다. */
+.tableWrap {
+    overflow-x: auto;
+
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+
+    background-color: var(--admin-card);
+}
+
+/* 로그 목록 표 */
+.boardTable {
+    width: 100%;
+    min-width: 800px;
+    border-collapse: collapse;
+}
+
+/* 표 설명 */
+.boardTable caption {
+    padding: 14px 16px;
+
+    border-bottom: 1px solid var(--border);
+
+    color: var(--text-secondary);
+    background-color: var(--admin-card);
+
+    text-align: left;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+/* 표 제목과 데이터 공통 */
+.boardTable th,
+.boardTable td {
+    padding: 14px 16px;
+
+    border-bottom: 1px solid var(--border);
+
+    text-align: center;
+    vertical-align: middle;
+    font-size: 14px;
+}
+
+/* 표 제목 행 */
+.boardTable th {
+    color: var(--text);
+    background-color: var(--background-secondary);
+
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* 마지막 데이터 행의 하단 선 제거 */
+.boardTable tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+/* 데이터 행에 마우스를 올렸을 때 */
+.boardTable tbody tr:hover {
+    background-color: var(--background-secondary);
+}
+
+/* 발생 시각은 한 줄로 표시 */
+.boardTable td:nth-child(3) {
+    white-space: nowrap;
+}
+
+/* 성공·실패는 색상과 글자를 함께 사용합니다.
+   글로벌 변수에 상태 전용 색상이 없어 직접 지정합니다. */
+.success {
+    color: #15803d;
+    font-weight: 700;
+}
+
+.failure {
+    color: #b91c1c;
+    font-weight: 700;
+}
+
+/* 페이지 이동 버튼 영역 */
+.pagination {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
+
+    margin-top: 20px;
+}
+
+/* 현재 페이지 강조 */
+.pagination button.activePage {
+    border-color: var(--primary);
+    color: var(--background);
+    background-color: var(--primary);
+}
+
+/* 현재 페이지 hover */
+.pagination button.activePage:not(:disabled):hover {
+    border-color: var(--primary-hover);
+    background-color: var(--primary-hover);
+}
+
+/* 모바일 화면 */
+@media (max-width: 640px) {
+    .container {
+        padding: 16px;
+    }
+
+    .container h2 {
+        font-size: 20px;
+    }
+
+    .searchForm {
+        padding: 16px;
+    }
+
+    /* 검색 항목을 한 줄에 하나씩 표시 */
+    .searchForm label {
+        width: 100%;
+        min-width: 0;
+    }
+
+    /* 검색·초기화 버튼을 같은 너비로 표시 */
+    .buttons {
+        width: 100%;
+    }
+
+    .buttons button {
+        flex: 1;
+    }
+}

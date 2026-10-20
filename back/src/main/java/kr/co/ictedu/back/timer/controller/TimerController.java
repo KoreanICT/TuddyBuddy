@@ -9,6 +9,7 @@ import kr.co.ictedu.back.timer.service.TimerService;
 import kr.co.ictedu.back.timer.service.TimerAuthenticatedMember;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "타이머", description = "타이머 API")
@@ -29,13 +30,13 @@ public class TimerController {
 
     @Operation(summary = "타이머 세션 생성")
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public TimerDto.Session create(
+    public ResponseEntity<TimerDto.Session> create(
             @RequestBody TimerDto.Create request) {
 
         Long memberNum = authenticatedMember.requireMemberNum();
 
-        return service.create(memberNum, request);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(service.create(memberNum, request));
     }
 
     @Operation(summary = "타이머 기록 저장")

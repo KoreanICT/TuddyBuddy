@@ -75,6 +75,14 @@ const AdminSidebar: React.FC = () => {
                 </NavLink>
                 </RoleGate>
                 <NavLink
+                    to="/admin/activityLogs"
+                    className={({ isActive }) =>
+                        `${styles.menuItem} ${isActive ? styles.active : ''}`
+                    }
+                >
+                    사용자 활동 로그
+                </NavLink>
+                <NavLink
                     to="/"
                     className={({ isActive }) =>
                         `${styles.menuItem} ${isActive ? styles.active : ''}`

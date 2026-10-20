@@ -109,8 +109,7 @@ public class SelfStudyAdminService {
                 selfStudyAdminDao.selectSubjectUsageRanking(fromDateTime, toDateExclusive).stream()
                         .map(subject -> new SelfStudyUsageResponse.SubjectRanking(
                                 subject.getSubject_id(), subject.getSubject_name(), subject.getCategory_name(),
-                                value(subject.getGenerated_count())))
-                        .toList());
+                                value(subject.getGenerated_count()))).toList());
     }
 
     private long value(Long value) {
