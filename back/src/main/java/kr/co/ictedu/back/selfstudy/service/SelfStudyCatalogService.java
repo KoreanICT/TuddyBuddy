@@ -39,7 +39,6 @@ public class SelfStudyCatalogService {
                                 .map(subject -> Map.of(
                                         "subjectId", subject.getSubject_id(),
                                         "subjectName", subject.getSubject_name()))
-                                .toList()))
-                .toList();
+                                .toList())).toList();
     }
 }

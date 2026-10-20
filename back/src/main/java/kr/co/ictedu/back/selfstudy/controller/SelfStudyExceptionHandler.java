@@ -2,15 +2,23 @@
 package kr.co.ictedu.back.selfstudy.controller;
 
 import java.util.Map;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import kr.co.ictedu.back.selfstudy.exception.QuizGenerationException;
 
 @RestControllerAdvice(assignableTypes = SelfStudyController.class)
 public class SelfStudyExceptionHandler {
 	@ExceptionHandler(IllegalArgumentException.class)
 	public ResponseEntity<?> invalid(IllegalArgumentException e) {
 		return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+	}
+
+	@ExceptionHandler(QuizGenerationException.class)
+	public ResponseEntity<?> generation(QuizGenerationException e) {
+		return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+				.body(Map.of("message", e.getMessage()));
 	}
 
 	@ExceptionHandler(ResponseStatusException.class)

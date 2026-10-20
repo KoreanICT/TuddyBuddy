@@ -43,6 +43,7 @@ public class SelfStudyService {
     private final SelfStudySubmissionService submissionService;
     private final SelfStudyHistoryService historyService;
     private final SelfStudyCatalogService catalogService;
+    private final QuizGenerationValidator quizGenerationValidator;
     public SelfStudyService(
             SelfStudyDao selfStudyDao,
             QuizAiClient aiClient,
@@ -51,7 +52,8 @@ public class SelfStudyService {
             @Value("${quiz.image.directory:./upload/quiz}") String directory,
             SelfStudySubmissionService submissionService,
             SelfStudyHistoryService historyService,
-            SelfStudyCatalogService catalogService
+            SelfStudyCatalogService catalogService,
+            QuizGenerationValidator quizGenerationValidator
     ) {
         this.selfStudyDao = selfStudyDao;
         this.aiClient = aiClient;
@@ -61,6 +63,7 @@ public class SelfStudyService {
         this.submissionService = submissionService;
         this.historyService = historyService;
         this.catalogService = catalogService;
+        this.quizGenerationValidator = quizGenerationValidator;
     }
     // =========================================================
     // 1. AI 문제 생성
@@ -80,16 +83,11 @@ public class SelfStudyService {
         // -----------------------------------------------------
 
         if (request == null) {
-            throw new IllegalArgumentException(
-                    "문제 생성 요청 정보가 없습니다."
-            );
+            throw new IllegalArgumentException("문제 생성 요청 정보가 없습니다.");
         }
 
         if (request.getMember_num() == null) {
-
-            throw new IllegalArgumentException(
-                    "로그인 정보가 필요합니다."
-            );
+            throw new IllegalArgumentException("로그인 정보가 필요합니다.");
         }
 
         if (request.getSubject_id() != null
@@ -97,47 +95,24 @@ public class SelfStudyService {
             throw new IllegalArgumentException("과목 번호가 올바르지 않습니다.");
         }
 
-        if (!Set.of(
-                "MULTIPLE_CHOICE",
-                "SHORT_ANSWER",
-                "OX"
-        ).contains(
-                Objects.toString(request.getQuiz_type(), "")
+        if (!Set.of("MULTIPLE_CHOICE","SHORT_ANSWER","OX")
+        		.contains(Objects.toString(request.getQuiz_type(), "")
         )) {
-
-            throw new IllegalArgumentException(
-                    "문제 유형이 올바르지 않습니다."
-            );
+            throw new IllegalArgumentException("문제 유형이 올바르지 않습니다.");
         }
 
-        if (!Set.of(
-                "EASY",
-                "MEDIUM",
-                "HARD"
-        ).contains(
-                Objects.toString(request.getQuiz_difficulty(), "")
-        )) {
-
-            throw new IllegalArgumentException(
-                    "문제 난이도가 올바르지 않습니다."
-            );
+        if (!Set.of("EASY","MEDIUM","HARD").contains(
+                Objects.toString(request.getQuiz_difficulty(), ""))) 
+        { 
+        	throw new IllegalArgumentException("문제 난이도가 올바르지 않습니다.");
         }
 
-        if (request.getQuiz_count() == null
-                || request.getQuiz_count() < 1
-                || request.getQuiz_count() > 10) {
-
-            throw new IllegalArgumentException(
-                    "문항 수는 1~10개여야 합니다."
-            );
-        }
+        quizGenerationValidator.validateRequestedCount(
+                request.getQuiz_count() == null ? 0 : request.getQuiz_count());
 
         if (request.getQuiz_prompt() != null
                 && request.getQuiz_prompt().length() > 1000) {
-
-            throw new IllegalArgumentException(
-                    "추가 요청사항은 1000자 이내로 입력해주세요."
-            );
+            throw new IllegalArgumentException("추가 요청사항은 1000자 이내로 입력해주세요.");
         }
 
         var file = request.getFile();
@@ -145,27 +120,17 @@ public class SelfStudyService {
         if (file == null
                 || file.isEmpty()
                 || file.getSize() > 10 * 1024 * 1024
-                || !Set.of(
-                        "image/jpeg",
-                        "image/png",
-                        "image/webp"
-                ).contains(
-                        Objects.toString(
-                                file.getContentType(), ""
-                        )
+                || !Set.of("image/jpeg","image/png","image/webp"
+                ).contains(Objects.toString(file.getContentType(), "")
                 )) {
 
-            throw new IllegalArgumentException(
-                    "10MB 이하의 JPG, PNG, WebP 이미지를 선택해주세요."
-            );
+            throw new IllegalArgumentException("10MB 이하의 JPG, PNG, WebP 이미지를 선택해주세요.");
         }
 
         if (request.getSubject_id() != null
                 && selfStudyDao.selectSubject(request.getSubject_id()) == null) {
 
-            throw new IllegalArgumentException(
-                    "존재하지 않는 과목입니다."
-            );
+            throw new IllegalArgumentException("존재하지 않는 과목입니다.");
         }
 
         // -----------------------------------------------------
@@ -179,10 +144,7 @@ public class SelfStudyService {
 
         } catch (IOException e) {
 
-            throw new IllegalStateException(
-                    "이미지를 읽지 못했습니다. 다시 시도해주세요.",
-                    e
-            );
+            throw new IllegalStateException("이미지를 읽지 못했습니다. 다시 시도해주세요.", e);
         }
 
         // -----------------------------------------------------
@@ -200,23 +162,9 @@ public class SelfStudyService {
         // 1-4. AI 생성 결과 검증
         // -----------------------------------------------------
 
-        if (generated == null
-                || generated.quizzes() == null
-                || generated.quizzes().isEmpty()) {
-
-            throw new IllegalStateException(
-                    "AI 문제 생성에 실패했습니다. 다시 시도해주세요."
-            );
-        }
-
-        if (generated.quizzes().size()
-                != request.getQuiz_count()) {
-
-            throw new IllegalStateException(
-                    "요청한 개수만큼 문제가 생성되지 않았습니다. "
-                    + "다시 시도해주세요."
-            );
-        }
+        quizGenerationValidator.validate(
+                generated == null ? null : generated.quizzes(),
+                request.getQuiz_count());
 
         for (var quiz : generated.quizzes()) {
 

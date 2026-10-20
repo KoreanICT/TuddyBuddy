@@ -9,6 +9,9 @@ import styles from './selfstudy.module.css';
 
 interface Props {
   onSubmit: () => void;
+  onStartQuiz: () => void;
+  quizStarted: boolean;
+  quizElapsedSeconds: number;
   submitting: boolean;
   submitted: boolean;
   score: number | null;
@@ -34,6 +37,9 @@ interface Props {
 
 export const MainTabContent: React.FC<Props> = ({
   onSubmit,
+  onStartQuiz,
+  quizStarted,
+  quizElapsedSeconds,
   submitting,
   submitted,
   score,
@@ -55,6 +61,12 @@ export const MainTabContent: React.FC<Props> = ({
     submitting ||
     restoring ||
     deleting;
+
+  const timerMinutes = Math.floor(quizElapsedSeconds / 60);
+  const timerSeconds = quizElapsedSeconds % 60;
+  const formattedQuizTime =
+    `${String(timerMinutes).padStart(2, '0')}:` +
+    `${String(timerSeconds).padStart(2, '0')}`;
 
   return (
     <main className={styles.mainContainer}>
@@ -189,7 +201,7 @@ export const MainTabContent: React.FC<Props> = ({
                         onSubmit={(e) => {
                           e.preventDefault();
 
-                          if (submitted || busy) return;
+                          if (!quizStarted || submitted || busy) return;
 
                           const answer = new FormData(
                             e.currentTarget
@@ -213,14 +225,14 @@ export const MainTabContent: React.FC<Props> = ({
                           defaultValue={
                             quiz.quizUserResponse ?? ''
                           }
-                          disabled={submitted || busy}
+                          disabled={!quizStarted || submitted || busy}
                           required
                           maxLength={1000}
                         />
 
                         <button
                           type="submit"
-                          disabled={submitted || busy}
+                          disabled={!quizStarted || submitted || busy}
                         >
                           답 확인
                         </button>
@@ -241,7 +253,7 @@ export const MainTabContent: React.FC<Props> = ({
                                 : ''
                             }`}
                             onClick={() => {
-                              if (!submitted && !busy) {
+                              if (quizStarted && !submitted && !busy) {
                                 handleSelectAnswer(
                                   quiz.quizId,
                                   opt
@@ -250,7 +262,7 @@ export const MainTabContent: React.FC<Props> = ({
                             }}
                             style={{
                               cursor:
-                                submitted || busy
+                                !quizStarted || submitted || busy
                                   ? 'default'
                                   : 'pointer',
                             }}
@@ -357,6 +369,12 @@ export const MainTabContent: React.FC<Props> = ({
 
         {quizList.length > 0 && (
           <div className={styles.actionBar}>
+            {activeTab === 'quiz' && (!submitted || quizStarted) && (
+              <strong style={{ marginRight: 'auto', alignSelf: 'center' }}>
+                풀이 시간: {formattedQuizTime}
+              </strong>
+            )}
+
             {score !== null && (
               <strong>
                 점수: {score}점
@@ -365,7 +383,7 @@ export const MainTabContent: React.FC<Props> = ({
 
             <button
               className={styles.actionPrimaryBtn}
-              disabled={submitting || submitted || restoring}
+              disabled={!quizStarted || submitting || submitted || restoring}
               onClick={onSubmit}
             >
               {submitted
@@ -391,6 +409,31 @@ export const MainTabContent: React.FC<Props> = ({
           </div>
         )}
       </div>
+
+      {quizList.length > 0 && !quizStarted && !submitted && (
+        <div className={styles.modalOverlay}>
+          <div
+            className={styles.modalContent}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="quizStartTitle"
+          >
+            <div className={styles.modalHeader}>
+              <h3 id="quizStartTitle">문제가 준비됐어요</h3>
+            </div>
+            <p>시험 시작을 누르면 풀이 시간 측정이 시작됩니다.</p>
+            <div className={styles.modalFooter}>
+              <button
+                type="button"
+                className={styles.submitBtn}
+                onClick={onStartQuiz}
+              >
+                시험 시작
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 };
