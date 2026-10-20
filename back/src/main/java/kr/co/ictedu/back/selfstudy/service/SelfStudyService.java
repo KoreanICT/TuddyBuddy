@@ -656,7 +656,8 @@ public class SelfStudyService {
             );
         }
 
-        return selfStudyDao.selectQuizSessions(memberNum);
+        List<QuizSessionVO> sessions = selfStudyDao.selectQuizSessions(memberNum);
+        return sessions == null ? List.of() : sessions;
     }
 
     // =========================================================
@@ -929,7 +930,8 @@ public class SelfStudyService {
             );
         }
 
-        return selfStudyDao.selectResults(memberNum);
+        List<SelfStudyResultVO> results = selfStudyDao.selectResults(memberNum);
+        return results == null ? List.of() : results;
     }
 
     // =========================================================

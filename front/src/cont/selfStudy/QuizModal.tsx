@@ -95,6 +95,7 @@ export const QuizModal: React.FC<QuizModalProps> = ({
 
             <input
               type="file"
+              name="quizImage"
               ref={fileInputRef}
               accept="image/jpeg,image/png,image/webp"
               onChange={handleFileChange}
@@ -158,6 +159,7 @@ export const QuizModal: React.FC<QuizModalProps> = ({
                   <label className={styles.label}>카테고리</label>
                   <select
                     className={styles.selectInput}
+                    name="categoryId"
                     value={selectedCategoryId ?? ''}
                     disabled={loading}
                     onChange={(event) => {
@@ -181,6 +183,7 @@ export const QuizModal: React.FC<QuizModalProps> = ({
                   <label className={styles.label}>과목</label>
                   <select
                     className={styles.selectInput}
+                    name="subjectId"
                     value={selectedSubjectId ?? ''}
                     disabled={loading || selectedCategoryId === null}
                     onChange={(event) => {
@@ -211,6 +214,7 @@ export const QuizModal: React.FC<QuizModalProps> = ({
 
             <select
               className={styles.selectInput}
+              name="quizType"
               value={quizType}
               disabled={loading}
               onChange={(e) =>
@@ -241,6 +245,7 @@ export const QuizModal: React.FC<QuizModalProps> = ({
 
               <select
                 className={styles.selectInput}
+                name="quizDifficulty"
                 value={quizDifficulty}
                 disabled={loading}
                 onChange={(e) =>
@@ -268,6 +273,7 @@ export const QuizModal: React.FC<QuizModalProps> = ({
 
               <select
                 className={styles.selectInput}
+                name="quizCount"
                 value={quizCount}
                 disabled={loading}
                 onChange={(e) =>
@@ -290,6 +296,7 @@ export const QuizModal: React.FC<QuizModalProps> = ({
             <input
               type="text"
               className={styles.textInput}
+              name="quizPrompt"
               placeholder="예: 개념 위주로 문제 내줘, 해설을 자세히 적어줘"
               maxLength={1000}
               value={quizPrompt}

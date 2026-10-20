@@ -82,21 +82,21 @@ export const Group_List: React.FC<GroupPublicProps> = ({ mode, searchType, searc
         loadGroups();
     }, [mode]);
 
-    const currentList = Array.isArray(mode === 'my' ? mygroups : groups)
-        ? (mode === 'my' ? mygroups : groups)
-        : [];
+    const currentList = Array.isArray(mode === 'my' ? mygroups : groups) 
+    ? (mode === 'my' ? mygroups : groups) 
+    : [];
 
-    const filteredGroups = currentList.filter(group => {
-        if (!searchTerm.trim()) {
-            return true;
-        }
-        const keyword = searchTerm.toLowerCase();
-        if (searchType === 'name') {
-            return group.group_title?.toLowerCase().includes(keyword);
-        }
+const filteredGroups = currentList.filter(group => {
+    if (!searchTerm.trim()) {
+        return true;
+    }
+    const keyword = searchTerm.toLowerCase();
+    if (searchType === 'name') {
+        return group.group_title?.toLowerCase().includes(keyword);
+    }
 
-        return group.tags?.some(tag => tag.tag_name?.toLowerCase().includes(keyword));
-    });
+    return group.tags?.some(tag => tag.tag_name?.toLowerCase().includes(keyword));
+});
 
     // 내 스터디룸
     const getMyGroups = async (): Promise<GroupListItem[]> => {

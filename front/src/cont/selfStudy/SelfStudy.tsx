@@ -52,6 +52,24 @@ const parseSelections = (value: unknown): string[] => {
   }
 };
 
+const parseArrayResponse = (value: unknown): unknown[] | null => {
+  let parsed = value;
+
+  for (let depth = 0; depth < 2 && typeof parsed === 'string'; depth += 1) {
+    if (!parsed.trim()) {
+      return [];
+    }
+
+    try {
+      parsed = JSON.parse(parsed);
+    } catch {
+      return null;
+    }
+  }
+
+  return Array.isArray(parsed) ? parsed : null;
+};
+
 const normalizeQuiz = (data: any): Quiz => ({
   quizId: Number(getValue(data, 'quizId', 'quiz_id')),
   quizSessionId: Number(
@@ -335,17 +353,29 @@ const SelfStudy: React.FC = () => {
           ),
         ]);
 
+      const sessionsData = parseArrayResponse(sessionsResponse.data);
+      const resultsData = parseArrayResponse(resultsResponse.data);
+
       if (
-        !Array.isArray(sessionsResponse.data) ||
-        !Array.isArray(resultsResponse.data)
+        !sessionsData ||
+        !resultsData
       ) {
+        const describeResponse = (value: unknown) => {
+          if (Array.isArray(value)) return 'array';
+          if (value === null) return 'null';
+          if (typeof value === 'object') {
+            return `object(${Object.keys(value).join(', ')})`;
+          }
+          return typeof value;
+        };
+
         throw new Error(
-          '학습 기록 응답 형식이 올바르지 않습니다.'
+          `학습 기록 응답 형식이 올바르지 않습니다. sessions=${describeResponse(sessionsResponse.data)}, results=${describeResponse(resultsResponse.data)}`
         );
       }
 
       const sessions: QuizSession[] =
-        sessionsResponse.data
+        sessionsData
           .map(normalizeSession)
           .filter(
             (session: QuizSession) =>
@@ -354,7 +384,7 @@ const SelfStudy: React.FC = () => {
           );
 
       const results: SelfStudyResult[] =
-        resultsResponse.data
+        resultsData
           .map(normalizeResult)
           .filter(
             (result: SelfStudyResult) =>
@@ -365,7 +395,7 @@ const SelfStudy: React.FC = () => {
       setSavedSessions(sessions);
       setSavedResults(results);
     } catch (error) {
-      console.error('학습 기록 조회 실패:');
+      console.error('학습 기록 조회 실패:', error);
       setHistoryError(
         '저장된 학습 기록을 불러오지 못했습니다.'
       );

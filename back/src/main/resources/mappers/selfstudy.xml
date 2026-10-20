@@ -60,8 +60,8 @@
 	</select>
 
 	<insert id="insertSubject" parameterType="subjectVO">
-		INSERT INTO subjects (subject_id, category_id, subject_name, subject_status)
-		VALUES (subjects_seq.NEXTVAL, #{category_id}, #{subject_name}, 'Y')
+		INSERT INTO subjects (subject_id, category_id, subject_name, subject_status, created_at)
+		VALUES (subjects_seq.NEXTVAL, #{category_id}, #{subject_name}, 'Y', SYSTIMESTAMP)
 	</insert>
 
 
