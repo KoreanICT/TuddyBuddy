@@ -73,6 +73,14 @@ const AdminSidebar: React.FC = () => {
                 >
                     셀프스터디 관리
                 </NavLink>
+                <NavLink
+                    to="/admin/activityLogs"
+                    className={({ isActive }) =>
+                        `${styles.menuItem} ${isActive ? styles.active : ''}`
+                    }
+                >
+                    사용자 활동 로그
+                </NavLink>
                 </RoleGate>
                 <NavLink
                     to="/"
