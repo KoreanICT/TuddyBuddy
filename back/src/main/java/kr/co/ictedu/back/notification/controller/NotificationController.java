@@ -28,13 +28,13 @@ public class NotificationController {
 	}
 	
 	@GetMapping("/unread")
-	public ResponseEntity<List<NotificationDTO>> getUnreadNotifications(@RequestHeader("membe_num") Long memberNum) {
+	public ResponseEntity<List<NotificationDTO>> getUnreadNotifications(@RequestHeader("member_num") Long memberNum) {
 		List<NotificationDTO> list = service.getUnreadNotifications(memberNum);
 		return ResponseEntity.ok(list);
 	}
 	
 	@GetMapping("/getAllNotification")
-	public ResponseEntity<List<NotificationDTO>> getAllNotification(@RequestHeader("membe_num") Long memberNum) {
+	public ResponseEntity<List<NotificationDTO>> getAllNotification(@RequestHeader("member_num") Long memberNum) {
 		List<NotificationDTO> list = service.getNotifications(memberNum);
 		return ResponseEntity.ok(list);
 	}
