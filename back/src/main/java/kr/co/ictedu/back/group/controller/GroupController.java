@@ -57,9 +57,12 @@ public class GroupController {
     @GetMapping("/getmyrooms")
     public ResponseEntity<List<GroupListDTO>> getMyGroups(
             @RequestHeader("memberNum") Long memberNum) {
-
+    	
+    	System.out.println("멤버 번호" + memberNum);
+    	List<GroupListDTO> list = service.getMyGroups(memberNum);
+    	System.out.println("응답 :" + list);
         return ResponseEntity.ok(
-                service.getMyGroups(memberNum)
+                list
         );
     }
     

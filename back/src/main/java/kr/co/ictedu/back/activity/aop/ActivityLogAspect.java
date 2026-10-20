@@ -1,3 +1,5 @@
+// 허승표
+
 package kr.co.ictedu.back.activity.aop;
 
 import java.time.OffsetDateTime;
@@ -243,44 +245,134 @@ public class ActivityLogAspect {
 		};
 		return recordSelectedActivity(jp, "NOTICE", action);
 	}
-
 	
-	private Object recordSelectedActivity(ProceedingJoinPoint jp, String string, String action) {
-		// TODO Auto-generated method stub
-		return null;
+    // =====================================================
+    // 12. 회원 정보·관리자 회원 관리
+    // 로그인·로그아웃·가입·본인 탈퇴는 기록하지 않음
+    // =====================================================	
+	@Around(
+			"execution(* kr.co.ictedu.back.member.controller.MemberController.*(..))"
+	)
+	public Object memberActivities(ProceedingJoinPoint jp) throws Throwable {
+		String action = switch (jp.getSignature().getName()) {
+			case "getMyInfo" -> "MEMBER_INFO_VIEW";
+			case "updateMyInfo" -> "MEMBER_PROFILE_UPDATE";
+			case "changePassword" -> "MEMBER_PASSWORD_CHANGE";
+			case "memberCodeSerach" -> "MEMBER_CODE_SEARCH";
+			case "memberProfile" -> "MEMBER_PROFILE_VIEW";
+			case "memberList" -> "ADMIN_MEMBER_LIST";
+			case "withdrawManagedMember" -> "ADMIN_MEMBER_WITHDRAW";
+			case "updateAuthority" -> "ADMIN_MEMBER_AUTHORITY_CHANGE";
+			default -> null;
+		};
+		return recordSelectedActivity(jp, "MEMBER", action);
+	}
+	
+    // =====================================================
+    // 13. 통계 조회
+    // =====================================================	
+	@Around(
+			"execution(* kr.co.ictedu.back.statistics.controller.StatisticsController.getStatistics(..))"
+	)
+	public Object statisticsView(ProceedingJoinPoint jp) throws Throwable {
+		
+		return recordActivity(jp, "STATISTICS", "STATISTICS_VIEW");
 	}
 
-	// 공통 실행 처리
-	private Object recordActivity(ProceedingJoinPoint jp, String category, String action) throws Throwable {
+	
+
+	// =====================================================
+    //  14. 관리자 학습 설정
+    // =====================================================	
+	@Around(
+			"execution(* kr.co.ictedu.back.selfstudy.controller.SelfStudyAdminController.*(..))"
+	)
+	public Object selfStudyAdminActivities(ProceedingJoinPoint jp) throws Throwable {
+		String action = switch (jp.getSignature().getName()) {
+			case "createCategory" -> "ADMIN_CATEGORY_CREATE";
+			case "updateCategory" -> "ADMIN_CATEGORY_UPDATE";
+			case "updateCategoryStatus" -> "ADMIN_CATEGORY_STATUS_CHANGE";
+			case "createSubject" -> "ADMIN_SUBJECT_CREATE";
+			case "updateSubject" -> "ADMIN_SUBJECT_UPDATE";
+			case "updateSubjectStatus" -> "ADMIN_SUBJECT_STATUS_CHANGE";
+			default -> null;
+		};
+		return recordSelectedActivity(jp, "SELFSTUDY", action);
+	}
+	
+    // =====================================================
+    // 15. 포인트
+    // 현재 Controller가 실패도 문자열로 반환하므로 별도 판정
+    // =====================================================	
+	@Around(
+			"execution(* kr.co.ictedu.back.point.controller.PointContoller.pointAdd(..))"
+	)
+	public Object pointPayment(ProceedingJoinPoint jp) throws Throwable {
 		Long memberNum = findMemberNum();
-
+		
 		Object response;
-
+		
 		try {
-			// 기존 Controller와 업무 Service 실행
 			response = jp.proceed();
-
 		} catch (Throwable e) {
-			saveLog(memberNum, category, action, "FAILURE");
-
-			// 원래 업무 응답 유지
+			saveLog(memberNum, "POINT", "POINT_PAYMENT", "FAILURE");
 			throw e;
 		}
-
-		// 정상 반환한 응답도 HTTP 상태를 확인
-		String result = "SUCCESS";
-
-		if (response instanceof ResponseEntity<?> entity && !entity.getStatusCode().is2xxSuccessful()) {
-			result = "FAILURE";
+		
+		String result = "FAILURE";
+		
+		if (response instanceof String text && text.endsWith("처리 완료")) {
+			result = "SUCCESS";
 		}
-
-		saveLog(memberNum, category, action, result);
-
-		// 원래 업무 응답 유지
+		
+		saveLog(memberNum, "POINT", "POINT_PAYMENT", result);
+		
 		return response;
 	}
+
+    // =====================================================
+    // 공통 처리 1: 기록 대상 여부 확인
+    // =====================================================
+	private Object recordSelectedActivity(ProceedingJoinPoint jp, String category, String action) throws Throwable {
+		// switch에 지정하지 않은 메서드는 로그 없이 원래 실행
+		if (action == null) {
+			return jp.proceed();
+		}
+		return recordActivity(jp, category, action);
+	}
+
+    // =====================================================
+    // 공통 처리 2: 기존 기능 실행 및 성공·실패 판단
+    // =====================================================
+    private Object recordActivity(ProceedingJoinPoint jp, String category, String action) throws Throwable {
+    	Long memberNum = findMemberNum();
+    	
+    	Object response;
+    	
+    	try {
+			// 기존 controller와 업무 service 실행
+    		response = jp.proceed();
+		} catch (Throwable e) {
+			saveLog(memberNum, category, action, "FAILURE");
+			// 원래 업무 예외를 그대로 전달
+			throw e;
+		}
+    	
+    	String result = "SUCCESS";
+    	
+    	if (response instanceof ResponseEntity<?> entity && !entity.getStatusCode().is2xxSuccessful()) {
+    		result = "FAILURE";
+    	}
+    	saveLog(memberNum, category, action, result);
+    	
+    	// 원래 업무 응답 유지
+		return response;
+	}	
+
 	
-	// 서버 인증 정보에서 회원 번호 조회
+    // =====================================================
+    // 공통 처리 3: 인증된 회원 번호 확인
+    // =====================================================
 	private Long findMemberNum() {
 		try {
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -296,14 +388,18 @@ public class ActivityLogAspect {
 			return member == null
 					? null : member.getMember_num();
 		} catch (Exception e) {
+			// 회원 확인 실패가 기존 기능을 막지 않도록 처리
 			log.warn("활동 로그 회원 확인 실패");
 			return null;
 		}
 	}
 	
-	// 로그 데이터 구성 및 비동기 전달
+    // =====================================================
+    // 공통 처리 4: VO 생성 및 비동기 저장 요청
+    // =====================================================
 	private void saveLog(Long memberNum, String category, String action, String result) {
 		try {
+			// 비회원, 회원 식별 불가 요청은 저장하지 않음
 			if (memberNum == null || memberNum <= 0) {
 				return;
 			}
@@ -318,10 +414,11 @@ public class ActivityLogAspect {
 			vo.setActivity_action(action);
 			vo.setActivity_result(result);
 			
+			// activity_log_num은 DB 시퀀스에서 생성
 			activityLogService.save(vo);
 			
 		} catch (Exception e) {
-			// 작업 전달 실패도 원래 업무에 전파하지 않음
+			// 로그 작업 전달 실패가 기능에 영향을 주지 않음
 			log.warn("활동 로그 전달 실패");
 		}
 	}

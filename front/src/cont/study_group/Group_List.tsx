@@ -53,34 +53,31 @@ export const Group_List: React.FC<GroupPublicProps> = ({ mode, searchType, searc
     const [mygroups, setMygroups] = useState<GroupListItem[]>([]);
     const [loading, setLoading] = useState(false);
 
-
     useEffect(() => {
-        const loadGroups = async () => {
 
-            if (mode === 'my') {
-                try {
-                    setLoading(true);
+        const loadGroups = async () => {
+            setLoading(true);
+
+            try {
+                if (mode === 'my') {
                     const data = await getMyGroups();
+                    console.log('내 스터디룸 응답:', data);
                     setMygroups(data);
-                } catch (error) {
-                    console.error('스터디룸 조회 실패', error)
-                } finally {
-                    setLoading(false);
-                }
-            } else if (mode === 'public') {
-                try {
-                    setLoading(true);
+                } else {
                     const data = await getPublicGroups();
+                    console.log('공개 스터디룸 응답:', data);
                     setGroups(data);
-                } catch (error) {
-                    console.error('스터디룸 조회 실패', error)
-                } finally {
-                    setLoading(false);
                 }
-            };
-        }
+            } catch (error) {
+                console.error('스터디룸 조회 실패:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
         loadGroups();
     }, [mode]);
+
+
 
     const currentList = Array.isArray(mode === 'my' ? mygroups : groups)
         ? (mode === 'my' ? mygroups : groups)

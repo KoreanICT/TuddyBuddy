@@ -1,88 +1,46 @@
 // 작성자 : 오진석
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import styles from "./project.module.css";
 //import { useAuth } from "../../hooks/useAuth"
-import { GetGroupNum, formatDate } from './GroupAPI'
-interface Schedule {
+import { GetGroupNum, TDLData, formatDate } from './GroupAPI'
+import api from "./api";
+
+interface ScheduleData {
     schedule_num: number;
     group_num: number;
     member_num: number;
     schedule_name: string;
     schedule_date: string;
     schedule_detail?: string;
-    created_at?: string;
+    created_at: string;
     updated_at?: string;
+    start_at?: string;
+    end_at: string;
+    can_manage: number;
+}
+
+interface ScheduleRequest {
+    group_num: number;
+    schedule_name: string;
+    schedule_date: string;
+    schedule_detail?: string;
     start_at?: string;
     end_at?: string;
 }
 
-interface Tdl {
-    tdl_num: number;
-    title: string;
-    expired_at: string;
-}
-
-/**
- * 테스트용 일정 데이터
- *
- * 이후 Spring Boot API 데이터로 교체
- */
-const initialSchedules: Schedule[] = [
-    {
-        schedule_num: 1,
-        group_num: 1,
-        member_num: 100,
-        schedule_name: "프로젝트 회의",
-        schedule_date: "2026-09-30",
-        schedule_detail: "프론트엔드 진행상황 공유",
-        start_at: "2026-09-30T14:00",
-        end_at: "2026-09-30T15:00",
-    },
-    {
-        schedule_num: 2,
-        group_num: 1,
-        member_num: 200,
-        schedule_name: "스터디",
-        schedule_date: "2026-09-30",
-        schedule_detail: "Spring Boot 공부",
-    },
-];
-
-/**
- * 테스트용 To Do List
- *
- * 이후 TDL API 데이터로 교체
- */
-const initialTdls: Tdl[] = [
-    {
-        tdl_num: 1,
-        title: "React 컴포넌트 완성",
-        expired_at: "2026-09-30",
-    },
-    {
-        tdl_num: 2,
-        title: "Spring Boot API 구현",
-        expired_at: "2026-10-03",
-    },
-];
-
-interface MemberData {
-    member_num: number,
-    pwd: string,
+interface SchedulePatchRequest {
+    schedule_num: number;
+    schedule_name: string;
+    schedule_date: string;
+    schedule_detail?: string;
+    start_at?: string;
+    end_at?: string;
 }
 
 export const Project_Calendar: React.FC<GetGroupNum> = ({ groupNum }) => {
 
     const today = new Date();
-
-    const [member,setMember] = useState<MemberData>();
-    const getMember = () => {
-        setMember({
-            member_num: 0,
-            pwd: "0"
-        })
-    }
-    const currentMemberNum = member?.member_num;
+    const [isLoading, setIsLoading] = useState(false);
     /*
      * 현재 달력에서 보고 있는 년 / 월
      */
@@ -91,14 +49,9 @@ export const Project_Calendar: React.FC<GetGroupNum> = ({ groupNum }) => {
      * 사용자가 선택한 날짜
      */
     const [selectedDate, setSelectedDate] = useState<string>(formatDate(today));
-    /*
-     * 일정
-     */
-    const [schedules, setSchedules] = useState<Schedule[]>(initialSchedules);
-    /*
-     * TDL
-     */
-    const [tdls] = useState<Tdl[]>(initialTdls);
+
+    const [schedules, setSchedules] = useState<ScheduleData[]>([]);
+    const [tdls, setTdls] = useState<TDLData[]>([]);
     /*
      * 일정 등록 Modal
      */
@@ -151,54 +104,59 @@ export const Project_Calendar: React.FC<GetGroupNum> = ({ groupNum }) => {
      *     1 2 3 4
      * 5 6 7 8 9 10 11
      */
+    const loadData = async () => {
+
+        try {
+            setIsLoading(true);
+            const response = await api.get(
+                `/detail/schedule/getEvents/${groupNum}`
+            )
+            if (!response) {
+                return;
+            }
+            setSchedules(response.data.schedules)
+            setTdls(response.data.tdls);
+
+        } catch (error) {
+
+        } finally {
+            setIsLoading(false);
+        }
+    }
+
+    useEffect(() => {
+        loadData();
+    }, [groupNum])
+
     const calendarDays = useMemo(() => {
         const days: Array<number | null> = [];
 
-        /*
-         * 1일 이전의 빈 공간
-         */
         for (let i = 0; i < startDayOfWeek; i++) {
             days.push(null);
         }
 
-        /*
-         * 실제 날짜
-         */
         for (let day = 1; day <= totalDays; day++) {
             days.push(day);
         }
 
-        /*
-         * 마지막 줄 채우기
-         */
         while (days.length % 7 !== 0) {
             days.push(null);
         }
-
         return days;
     }, [year, month]);
 
-    /**
-     * 이전 달
-     */
     const movePrevMonth = () => {
         setCurrentDate(
             new Date(year, month - 1, 1)
         );
     };
 
-    /**
-     * 다음 달
-     */
     const moveNextMonth = () => {
         setCurrentDate(
             new Date(year, month + 1, 1)
         );
     };
 
-    /**
-     * 오늘로 이동
-     */
     const moveToday = () => {
         const now = new Date();
 
@@ -209,7 +167,6 @@ export const Project_Calendar: React.FC<GetGroupNum> = ({ groupNum }) => {
                 1
             )
         );
-
         setSelectedDate(formatDate(now));
     };
 
@@ -248,20 +205,8 @@ export const Project_Calendar: React.FC<GetGroupNum> = ({ groupNum }) => {
         setIsRegisterOpen(true);
     };
 
-    /**
-     * 일정 등록
-     *
-     * 나중에는 이 부분을
-     *
-     * await api.post(...)
-     *
-     * 로 변경하면 된다.
-     */
-    const handleRegisterSchedule = () => {
-        if (currentMemberNum === undefined) {
-            alert("로그인 사용자 정보를 확인할 수 없습니다.");
-            return;
-        }
+
+    const handleRegisterSchedule = async () => {
 
         if (!selectedDate) {
             alert("날짜를 선택해주세요.");
@@ -273,16 +218,8 @@ export const Project_Calendar: React.FC<GetGroupNum> = ({ groupNum }) => {
             return;
         }
 
-        const newSchedule: Schedule = {
-            schedule_num: Date.now(),
-
-            /*
-             * 임시 group_num
-             *
-             * 나중에는 현재 스터디 그룹 번호 사용
-             */
-            group_num: 1,
-            member_num: currentMemberNum,
+        const newSchedule: ScheduleRequest = {
+            group_num: groupNum,
             schedule_name: scheduleName,
             schedule_date: selectedDate,
             schedule_detail: scheduleDetail,
@@ -297,12 +234,22 @@ export const Project_Calendar: React.FC<GetGroupNum> = ({ groupNum }) => {
                     : `${selectedDate}T${endAt}`,
         };
 
-        setSchedules((prev) => [
-            ...prev,
-            newSchedule,
-        ]);
+        try {
+            setIsLoading(true);
+            await api.post(
+                `/detail/schedule/addSchedule/${groupNum}`,
+                newSchedule
+            )
+            alert("등록 성공.");
+        } catch (error) {
+            console.log('등록 실패', error);
+            alert("등록에 실패하였습니다.");
+        } finally {
+            setIsLoading(false);
+        }
 
         setIsRegisterOpen(false);
+        loadData();
     };
 
     /**
@@ -310,69 +257,89 @@ export const Project_Calendar: React.FC<GetGroupNum> = ({ groupNum }) => {
      *
      * 본인의 일정만 삭제 가능
      */
-    const handleDeleteSchedule = (
-        schedule: Schedule
-    ) => {
-        if (
-            schedule.member_num !==
-            currentMemberNum
-        ) {
-            alert(
-                "본인이 등록한 일정만 삭제할 수 있습니다."
-            );
+    const handleDeleteSchedule = async (scheduleNum: number) => {
 
-            return;
+        if (window.confirm("해당 일정을 삭제하시겠습니까?")) {
+            try {
+                await api.delete(
+                    `/detail/schedule/deleteSchedule/${scheduleNum}`
+                )
+                alert("삭제 완료.");
+                setIsDetailOpen(false);
+                loadData();
+            } catch (error) {
+                console.error("삭제 실패.", error);
+            }
         }
 
-        const result = window.confirm(
-            "해당 일정을 삭제하시겠습니까?"
-        );
-
-        if (!result) {
-            return;
-        }
-
-        setSchedules((prev) =>
-            prev.filter(
-                (item) =>
-                    item.schedule_num !== schedule.schedule_num
-            )
-        );
     };
 
+    const handleUpdateSchedule = async (scheduleNum: number) => {
+
+        if (!selectedDate) {
+            alert("날짜를 선택해주세요.");
+            return;
+        }
+
+        if (!scheduleName.trim()) {
+            alert("일정 이름을 입력해주세요.");
+            return;
+        }
+
+        const newSchedule: SchedulePatchRequest = {
+            schedule_num: scheduleNum,
+            schedule_name: scheduleName,
+            schedule_date: selectedDate,
+            schedule_detail: scheduleDetail,
+            start_at:
+                startAt === ""
+                    ? undefined
+                    : `${selectedDate}T${startAt}`,
+
+            end_at:
+                endAt === ""
+                    ? undefined
+                    : `${selectedDate}T${endAt}`,
+        };
+
+        try {
+            setIsLoading(true);
+            await api.post(
+                `/detail/schedule/addSchedule/${groupNum}`,
+                newSchedule
+            )
+            alert("등록 성공.");
+        } catch (error) {
+            console.log('등록 실패', error);
+            alert("등록에 실패하였습니다.");
+        } finally {
+            setIsLoading(false);
+        }
+
+        setIsRegisterOpen(false);
+        loadData();
+    }
     /**
      * 특정 날짜 일정 검색
      */
     const getSchedulesByDate = (
         date: string
     ) => {
-        return schedules.filter(
-            (schedule) =>
-                schedule.schedule_date === date
-        );
+        return schedules.filter((schedule) => schedule.schedule_date?.substring(0, 10) === date);
     };
 
     /**
      * 특정 날짜 TDL 검색
      */
-    const getTdlsByDate = (
-        date: string
-    ) => {
-        return tdls.filter(
-            (tdl) =>
-                tdl.expired_at.substring(0, 10) ===
-                date
-        );
+    const getTdlsByDate = (date: string) => {
+        return tdls.filter((tdl) => tdl.due_at?.substring(0, 10) === date);
     };
 
     /*
      * 선택한 날짜 데이터
      */
-    const selectedSchedules =
-        getSchedulesByDate(selectedDate);
-
-    const selectedTdls =
-        getTdlsByDate(selectedDate);
+    const selectedSchedules = getSchedulesByDate(selectedDate);
+    const selectedTdls = getTdlsByDate(selectedDate);
 
     return (
         <div className={styles.detail_content_wrapper}>
@@ -475,17 +442,13 @@ export const Project_Calendar: React.FC<GetGroupNum> = ({ groupNum }) => {
                                 const date =
                                     createDateString(day);
 
-                                const daySchedules =
-                                    getSchedulesByDate(date);
+                                const daySchedules = getSchedulesByDate(date);
 
-                                const dayTdls =
-                                    getTdlsByDate(date);
+                                const dayTdls = getTdlsByDate(date);
 
-                                const isToday =
-                                    date === formatDate(today);
+                                const isToday = date === formatDate(today);
 
-                                const dayOfWeek =
-                                    index % 7;
+                                const dayOfWeek = index % 7;
 
                                 return (
                                     <button
@@ -541,14 +504,14 @@ export const Project_Calendar: React.FC<GetGroupNum> = ({ groupNum }) => {
 
                                             {dayTdls
                                                 .slice(0, 2)
-                                                .map((tdl) => (
+                                                .map((tdls) => (
                                                     <div
-                                                        key={tdl.tdl_num}
+                                                        key={tdls.tdl_num}
                                                         className={
                                                             styles.tdlItem
                                                         }
                                                     >
-                                                        ✓ {tdl.title}
+                                                        ✓ {tdls.tdl_name}
                                                     </div>
                                                 ))}
 
@@ -598,12 +561,8 @@ export const Project_Calendar: React.FC<GetGroupNum> = ({ groupNum }) => {
 
                                     <button
                                         type="button"
-                                        className={
-                                            styles.closeButton
-                                        }
-                                        onClick={() =>
-                                            setIsDetailOpen(false)
-                                        }
+                                        className={styles.closeButton}
+                                        onClick={() => setIsDetailOpen(false)}
                                     >
                                         ×
                                     </button>
@@ -611,16 +570,8 @@ export const Project_Calendar: React.FC<GetGroupNum> = ({ groupNum }) => {
 
                                 {/* 일반 일정 */}
 
-                                <section
-                                    className={
-                                        styles.scheduleSection
-                                    }
-                                >
-                                    <div
-                                        className={
-                                            styles.sectionTitle
-                                        }
-                                    >
+                                <section className={styles.scheduleSection} >
+                                    <div className={styles.sectionTitle}>
                                         <h4>일정</h4>
 
                                         <button
@@ -639,29 +590,19 @@ export const Project_Calendar: React.FC<GetGroupNum> = ({ groupNum }) => {
 
                                     {selectedSchedules.length ===
                                         0 ? (
-                                        <p
-                                            className={
-                                                styles.emptyMessage
-                                            }
-                                        >
+                                        <p className={styles.emptyMessage}>
                                             등록된 일정이 없습니다.
                                         </p>
                                     ) : (
                                         selectedSchedules.map(
                                             (schedule) => (
                                                 <div
-                                                    key={
-                                                        schedule.schedule_num
-                                                    }
-                                                    className={
-                                                        styles.detailItem
-                                                    }
+                                                    key={schedule.schedule_num}
+                                                    className={styles.detailItem}
                                                 >
                                                     <div>
                                                         <strong>
-                                                            {
-                                                                schedule.schedule_name
-                                                            }
+                                                            {schedule.schedule_name}
                                                         </strong>
 
                                                         {schedule.schedule_detail && (
@@ -699,22 +640,29 @@ export const Project_Calendar: React.FC<GetGroupNum> = ({ groupNum }) => {
                                                             )}
                                                     </div>
 
-                                                    {schedule.member_num ===
-                                                        currentMemberNum && (
+                                                    {/* can_manage 조회하여 수정 및 삭제 버튼 구현*/}
+                                                    {schedule.can_manage === 1 && (
+                                                        <>
                                                             <button
                                                                 type="button"
-                                                                className={
-                                                                    styles.deleteButton
-                                                                }
-                                                                onClick={() =>
-                                                                    handleDeleteSchedule(
-                                                                        schedule
-                                                                    )
-                                                                }
+                                                                className={styles.updateButton}
+                                                                onClick={() => {
+                                                                    handleUpdateSchedule(schedule.schedule_num);
+
+                                                                }}
+                                                            >
+                                                                수정
+                                                            </button>
+
+                                                            <button
+                                                                type="button"
+                                                                className={styles.deleteButton}
+                                                                onClick={() => handleDeleteSchedule(schedule.schedule_num)}
                                                             >
                                                                 삭제
                                                             </button>
-                                                        )}
+                                                        </>
+                                                    )}
                                                 </div>
                                             )
                                         )
@@ -722,35 +670,24 @@ export const Project_Calendar: React.FC<GetGroupNum> = ({ groupNum }) => {
                                 </section>
 
                                 {/* TDL */}
-
-                                <section
-                                    className={
-                                        styles.scheduleSection
-                                    }
-                                >
+                                <section className={styles.scheduleSection}>
                                     <h4>To Do List 마감</h4>
 
                                     {selectedTdls.length === 0 ? (
-                                        <p
-                                            className={
-                                                styles.emptyMessage
-                                            }
-                                        >
+                                        <p className={styles.emptyMessage}>
                                             마감 예정인 To Do List가
                                             없습니다.
                                         </p>
                                     ) : (
                                         selectedTdls.map(
-                                            (tdl) => (
+                                            (tdls) => (
                                                 <div
-                                                    key={tdl.tdl_num}
-                                                    className={
-                                                        styles.detailTdlItem
-                                                    }
+                                                    key={tdls.tdl_num}
+                                                    className={styles.detailTdlItem}
                                                 >
                                                     <span>✓</span>
 
-                                                    <span>{tdl.title}</span>
+                                                    <span>{tdls.tdl_name}</span>
                                                 </div>
                                             )
                                         )
@@ -903,12 +840,8 @@ export const Project_Calendar: React.FC<GetGroupNum> = ({ groupNum }) => {
 
                                     <button
                                         type="button"
-                                        className={
-                                            styles.registerButton
-                                        }
-                                        onClick={
-                                            handleRegisterSchedule
-                                        }
+                                        className={styles.registerButton}
+                                        onClick={handleRegisterSchedule}
                                     >
                                         등록
                                     </button>
