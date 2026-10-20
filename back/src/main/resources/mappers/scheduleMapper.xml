@@ -4,7 +4,32 @@
 
 	<insert id="addSchedule" parameterType="schedulevo">
 		INSERT INTO schedule (schedule_num, group_num, member_num, schedule_name, schedule_date, schedule_detail, created_at, start_at, end_at)
-		VALUES (schedule_seq.NEXTVAL, #{group_num}, #{member_num}, #{schedule_name}, #{schedule_date}, #schedul3)
+		VALUES (schedule_seq.NEXTVAL, #{group_num}, #{member_num}, #{schedule_name,jdbcType=VARCHAR}, #{schedule_date}, #{schedule_detail}, SYSDATE, #{start_at, jdbcType=DATE}, #{end_at, jdbcType=DATE})
 	</insert>
 
+	<select id="getSchedules" resultType="scheduledto">
+		SELECT s.schedule_num,  m.member_nick, s.schedule_name, s.schedule_date, s.schedule_detail, s.created_at, s.updated_at, s.start_at, s.end_at,
+		FN_GROUP_RESOURCE_PERMISSION(s.group_num, s.member_num, #{member_num}) AS can_manage
+		FROM schedule s JOIN member m ON s.member_num = m.member_num 
+		WHERE s.group_num = #{group_num}
+		ORDER BY s.schedule_date DESC
+	</select>
+	
+	<select id="getTdls" resultType="tdldto">
+		SELECT t.tdl_num, m.member_nick, t.tdl_name, t.tdl_detail, t.due_at
+		FROM tdl t JOIN member m On t.member_num = m.member_num 
+		WHERE t.group_num = #{group_num} AND due_at IS NOT NUll
+		ORDER BY t.due_at DESC
+	</select>
+	
+	<update id="updateSchedule" parameterType="schedulevo">
+		UPDATE schedule SET schedule_name = #{schedule_name}, schedule_date = #{schedule_date, jdbcType=DATE}, schedule_detail = #{schedule_detail}, 
+		updated_at = SYSDATE, start_at = #{start_at, jdbcType=DATE}, end_at = #{end_at, jdbcType=DATE}
+		WHERE schedule_num = #{schedule_num}
+	</update>
+	
+	<delete id="deleteSchedule">
+		DELETE FROM schedule WHERE schedule_num = #{schedule_num}	
+	</delete>
+	
 </mapper>

@@ -579,7 +579,21 @@
     font-size: 13px;
 }
 
-.deleteButton:hover {
+.updateButton {
+    flex-shrink: 0;
+
+    padding: 5px 9px;
+
+    border-radius: var(--radius-sm);
+
+    color: #184fe7;
+
+    font-size: 13px;
+}
+
+
+
+.deleteButton:hover, .updateButton:hover {
     background-color: #fef2f2;
 }
 
