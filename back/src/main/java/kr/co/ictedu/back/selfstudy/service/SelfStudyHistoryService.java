@@ -18,7 +18,6 @@ import kr.co.ictedu.back.selfstudy.vo.SelfStudyResultVO;
 @Transactional(readOnly = true)
 public class SelfStudyHistoryService {
     private final SelfStudyDao selfStudyDao;
-
     public SelfStudyHistoryService(SelfStudyDao selfStudyDao) {
         this.selfStudyDao = selfStudyDao;
     }
@@ -26,16 +25,10 @@ public class SelfStudyHistoryService {
             Long sessionId,
             Long memberNum) 
     {
-
         if (!Objects.equals(
-                getSession(sessionId).getMember_num(),
-                memberNum
-        )) {
-
+                getSession(sessionId).getMember_num(),memberNum)) {
             throw new ResponseStatusException(
-                    HttpStatus.FORBIDDEN,
-                    "본인의 학습 세션만 사용할 수 있습니다."
-            );
+                    HttpStatus.FORBIDDEN,"본인의 학습 세션만 사용할 수 있습니다.");
         }
     }
 
@@ -45,30 +38,20 @@ public class SelfStudyHistoryService {
 
     public void requireResultOwner(
             Long resultId,
-            Long memberNum
-    ) {
-
+            Long memberNum) 
+    {
         if (!Objects.equals(
-                getResult(resultId).getMember_num(),
-                memberNum
-        )) {
-
+                getResult(resultId).getMember_num(),memberNum)) {
             throw new ResponseStatusException(
-                    HttpStatus.FORBIDDEN,
-                    "본인의 학습 결과만 사용할 수 있습니다."
-            );
+                    HttpStatus.FORBIDDEN,"본인의 학습 결과만 사용할 수 있습니다.");
         }
     }
 
     public List<QuizSessionVO> getSessions(
             Long memberNum
     ) {
-
         if (memberNum == null) {
-
-            throw new IllegalArgumentException(
-                    "회원 정보가 없습니다."
-            );
+            throw new IllegalArgumentException("회원 정보가 없습니다.");
         }
 
         List<QuizSessionVO> sessions = selfStudyDao.selectQuizSessions(memberNum);
@@ -82,24 +65,14 @@ public class SelfStudyHistoryService {
     public QuizSessionVO getSession(
             Long quizSessionId
     ) {
-
         if (quizSessionId == null) {
-
-            throw new IllegalArgumentException(
-                    "퀴즈 세션 정보가 없습니다."
-            );
+            throw new IllegalArgumentException("퀴즈 세션 정보가 없습니다.");
         }
-
         QuizSessionVO session =
                 selfStudyDao.selectQuizSession(quizSessionId);
-
         if (session == null) {
-
-            throw new IllegalArgumentException(
-                    "존재하지 않는 학습 세션입니다."
-            );
+            throw new IllegalArgumentException("존재하지 않는 학습 세션입니다.");
         }
-
         return session;
     }
 
@@ -110,28 +83,18 @@ public class SelfStudyHistoryService {
     public List<QuizVO> getQuizzes(
             Long quizSessionId
     ) {
-
         if (quizSessionId == null) {
-
-            throw new IllegalArgumentException(
-                    "퀴즈 세션 정보가 없습니다."
-            );
+            throw new IllegalArgumentException("퀴즈 세션 정보가 없습니다.");
         }
-
         return selfStudyDao.selectQuizzes(quizSessionId);
     }
 
     public List<SelfStudyResultVO> getResults(
             Long memberNum
     ) {
-
         if (memberNum == null) {
-
-            throw new IllegalArgumentException(
-                    "회원 정보가 없습니다."
-            );
+            throw new IllegalArgumentException("회원 정보가 없습니다.");
         }
-
         List<SelfStudyResultVO> results = selfStudyDao.selectResults(memberNum);
         return results == null ? List.of() : results;
     }
@@ -143,24 +106,14 @@ public class SelfStudyHistoryService {
     public SelfStudyResultVO getResult(
             Long resultId
     ) {
-
         if (resultId == null) {
-
-            throw new IllegalArgumentException(
-                    "결과 정보가 없습니다."
-            );
+            throw new IllegalArgumentException("결과 정보가 없습니다.");
         }
-
         SelfStudyResultVO result =
                 selfStudyDao.selectResult(resultId);
-
         if (result == null) {
-
-            throw new IllegalArgumentException(
-                    "존재하지 않는 결과입니다."
-            );
+            throw new IllegalArgumentException("존재하지 않는 결과입니다.");
         }
-
         return result;
     }
 
@@ -171,14 +124,9 @@ public class SelfStudyHistoryService {
     public List<QuizResponseVO> getResponses(
             Long resultId
     ) {
-
         if (resultId == null) {
-
-            throw new IllegalArgumentException(
-                    "결과 정보가 없습니다."
-            );
+            throw new IllegalArgumentException("결과 정보가 없습니다.");
         }
-
         return selfStudyDao.selectQuizResponses(resultId);
     }
 
@@ -186,43 +134,26 @@ public class SelfStudyHistoryService {
     public void deleteSession(
             Long quizSessionId
     ) {
-
         QuizSessionVO session =
                 selfStudyDao.selectQuizSession(quizSessionId);
 
         if (session == null) {
-
-            throw new IllegalArgumentException(
-                    "존재하지 않는 학습 세션입니다."
-            );
+            throw new IllegalArgumentException("존재하지 않는 학습 세션입니다.");
         }
 
         // 1. 사용자 답안 삭제
-        selfStudyDao.deleteQuizResponsesBySession(
-                quizSessionId
-        );
+        selfStudyDao.deleteQuizResponsesBySession(quizSessionId);
 
         // 2. 학습 결과 삭제
-        selfStudyDao.deleteResultsBySession(
-                quizSessionId
-        );
+        selfStudyDao.deleteResultsBySession(quizSessionId);
 
         // 3. 문제 삭제
-        selfStudyDao.deleteQuizzesBySession(
-                quizSessionId
-        );
+        selfStudyDao.deleteQuizzesBySession(quizSessionId);
 
         // 4. 세션 삭제
-        int deleteResult =
-                selfStudyDao.deleteQuizSession(
-                        quizSessionId
-                );
-
+        int deleteResult =selfStudyDao.deleteQuizSession(quizSessionId);
         if (deleteResult != 1) {
-
-            throw new IllegalStateException(
-                    "학습 세션 삭제에 실패했습니다."
-            );
+            throw new IllegalStateException("학습 세션 삭제에 실패했습니다.");
         }
     }
 }

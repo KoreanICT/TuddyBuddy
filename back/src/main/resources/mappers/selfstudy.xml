@@ -175,8 +175,7 @@
 		resultType="quizVO">
 
 		SELECT quiz_id, quiz_session_id, quiz_question, quiz_selections,
-		quiz_correct_answer, quiz_explanation,
-		created_at
+		quiz_correct_answer, quiz_explanation, created_at
 		FROM quizzes
 		WHERE quiz_id = #{quizId}
 
@@ -210,12 +209,8 @@
 	<select id="selectResult"
 		resultType="selfStudyResultVO">
 
-		SELECT
-		selfstudy_results_id,
-		quiz_session_id,
-		member_num,
-		selfstudy_total_score,
-		submitted_at
+		SELECT selfstudy_results_id, quiz_session_id, member_num,
+		selfstudy_total_score, submitted_at
 		FROM selfstudy_results
 		WHERE selfstudy_results_id = #{resultId}
 
@@ -226,12 +221,8 @@
 	<select id="selectResults"
 		resultType="selfStudyResultVO">
 
-		SELECT
-		selfstudy_results_id,
-		quiz_session_id,
-		member_num,
-		selfstudy_total_score,
-		submitted_at
+		SELECT selfstudy_results_id, quiz_session_id, member_num,
+		selfstudy_total_score, submitted_at
 		FROM selfstudy_results
 		WHERE member_num = #{memberNum}
 		ORDER BY submitted_at DESC
@@ -266,13 +257,8 @@
 	<select id="selectQuizResponses"
 		resultType="quizResponseVO">
 
-		SELECT
-		quiz_responses_id,
-		selfstudy_results_id,
-		quiz_id,
-		quiz_user_response,
-		quiz_correct,
-		submitted_at
+		SELECT quiz_responses_id, selfstudy_results_id, quiz_id,
+		quiz_user_response, quiz_correct, submitted_at
 		FROM quiz_responses
 		WHERE selfstudy_results_id = #{resultId}
 		ORDER BY quiz_responses_id

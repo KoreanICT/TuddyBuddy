@@ -215,6 +215,11 @@ const SelfStudy: React.FC = () => {
   const [quizSessionId, setQuizSessionId] =
     useState<number | null>(null);
 
+  const [quizTimerStartedAt, setQuizTimerStartedAt] =
+    useState<number | null>(null);
+  const [quizTimerRunning, setQuizTimerRunning] = useState(false);
+  const [quizElapsedSeconds, setQuizElapsedSeconds] = useState(0);
+
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [score, setScore] = useState<number | null>(null);
@@ -271,6 +276,41 @@ const SelfStudy: React.FC = () => {
 
   // 오래된 비동기 응답이 현재 학습을 덮어쓰지 않도록 관리
   const restoreRequestRef = useRef(0);
+
+  const resetQuizTimer = useCallback(() => {
+    setQuizTimerStartedAt(null);
+    setQuizTimerRunning(false);
+    setQuizElapsedSeconds(0);
+  }, []);
+
+  useEffect(() => {
+    if (quizTimerStartedAt === null || !quizTimerRunning) return;
+
+    const updateElapsedTime = () => {
+      setQuizElapsedSeconds(
+        Math.floor((Date.now() - quizTimerStartedAt) / 1000)
+      );
+    };
+
+    updateElapsedTime();
+    const intervalId = window.setInterval(updateElapsedTime, 1000);
+    return () => window.clearInterval(intervalId);
+  }, [quizTimerStartedAt, quizTimerRunning]);
+
+  const handleStartQuiz = () => {
+    if (
+      quizSessionId === null ||
+      quizList.length === 0 ||
+      quizTimerStartedAt !== null ||
+      submitted
+    ) {
+      return;
+    }
+
+    setQuizTimerStartedAt(Date.now());
+    setQuizElapsedSeconds(0);
+    setQuizTimerRunning(true);
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -413,6 +453,7 @@ const SelfStudy: React.FC = () => {
     restoreRequestRef.current += 1;
 
     setQuizSessionId(null);
+    resetQuizTimer();
     setQuizList([]);
     setWrongNotes([]);
     setSubmitted(false);
@@ -424,7 +465,7 @@ const SelfStudy: React.FC = () => {
       URL.revokeObjectURL(studyImageUrlRef.current);
       studyImageUrlRef.current = null;
     }
-  }, [token, member_num]);
+  }, [token, member_num, resetQuizTimer]);
 
   // =========================================================
   // 4. 저장된 세션 복원
@@ -530,6 +571,7 @@ const SelfStudy: React.FC = () => {
       }
 
       setQuizSessionId(sessionId);
+      resetQuizTimer();
       setGeneratedCategoryName('');
       setGeneratedSubjectName('');
       setQuizList(restoredQuizzes);
@@ -595,6 +637,7 @@ const SelfStudy: React.FC = () => {
         restoreRequestRef.current += 1;
 
         setQuizSessionId(null);
+        resetQuizTimer();
         setGeneratedCategoryName('');
         setGeneratedSubjectName('');
         setQuizList([]);
@@ -752,6 +795,7 @@ const SelfStudy: React.FC = () => {
     // 정상 생성된 경우에만 학습 상태 변경
     setQuizList(data.quizzes);
     setQuizSessionId(data.quizSessionId);
+    resetQuizTimer();
     setGeneratedCategoryName(String(data.categoryName));
     setGeneratedSubjectName(String(data.subjectName));
     setSubmitted(false);
@@ -793,10 +837,13 @@ const SelfStudy: React.FC = () => {
       error instanceof Error
         ? error.message
         : '알 수 없는 오류가 발생했습니다.';
+    const pointNotice = message.includes('포인트')
+      ? ''
+      : '\n\n포인트는 차감되지 않았습니다.';
 
     alert(
       `문제 생성 요청을 완료하지 못했습니다.\n\n` +
-      `${message}\n\n` +
+      `${message}${pointNotice}\n\n` +
       `입력한 내용은 유지됩니다.`
     );
 
@@ -876,6 +923,11 @@ const SelfStudy: React.FC = () => {
       return;
     }
 
+    if (quizTimerStartedAt === null) {
+      alert('시험 시작 버튼을 먼저 눌러주세요.');
+      return;
+    }
+
     if (
       quizList.some(
         (quiz) => !quiz.quizUserResponse?.trim()
@@ -887,6 +939,10 @@ const SelfStudy: React.FC = () => {
 
     if (!requireLogin()) return;
 
+    setQuizElapsedSeconds(
+      Math.floor((Date.now() - quizTimerStartedAt) / 1000)
+    );
+    setQuizTimerRunning(false);
     setSubmitting(true);
 
     try {
@@ -965,6 +1021,9 @@ const SelfStudy: React.FC = () => {
       <div className={styles.layoutWrapper}>
         <MainTabContent
           onSubmit={handleSubmitQuiz}
+          onStartQuiz={handleStartQuiz}
+          quizStarted={quizTimerStartedAt !== null}
+          quizElapsedSeconds={quizElapsedSeconds}
           submitting={submitting}
           submitted={submitted}
           score={score}
