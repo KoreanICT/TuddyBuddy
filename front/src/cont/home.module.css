@@ -1,14 +1,87 @@
 .home {
+  position: relative;
+
   width: 100%;
+  height: calc(100vh - var(--home-top-offset, 72px));
+  height: calc(100dvh - var(--home-top-offset, 72px));
+
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scroll-snap-type: y mandatory;
+  scrollbar-width: thin;
 
   color: var(--text);
 }
 
-.home :global(.fp-overflow) {
-  width: 100%;
+.scrollLocked {
+  overflow: hidden;
 }
 
-:global(body.homeFullpageActive #fp-nav ul li .fp-tooltip) {
+.snapSection {
+  display: flex;
+  align-items: center;
+
+  width: 100%;
+  min-height: 100%;
+
+  box-sizing: border-box;
+
+  scroll-snap-align: start;
+}
+
+.snapFooter {
+  scroll-snap-align: end;
+}
+
+.sectionNav {
+  position: fixed;
+  top: 50%;
+  right: 10px;
+  z-index: 100;
+
+  display: flex;
+  flex-direction: column;
+
+  transform: translateY(-50%);
+}
+
+.sectionNav button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 28px;
+  height: 30px;
+  padding: 0;
+
+  border: 0;
+
+  background: transparent;
+
+  cursor: pointer;
+}
+
+.sectionDot {
+  width: 5px;
+  height: 5px;
+
+  border-radius: 50%;
+
+  background-color: #475569;
+}
+
+.currentSection .sectionDot {
+  width: 11px;
+  height: 11px;
+
+  background-color: var(--primary);
+}
+
+.sectionTooltip {
+  position: absolute;
+  right: 32px;
+
   padding: 5px 9px;
 
   border: 1px solid #dbeef8;
@@ -19,8 +92,31 @@
 
   font-size: 12px;
   line-height: 1.4;
+  white-space: nowrap;
 
   box-shadow: 0 2px 8px rgb(15 23 42 / 8%);
+
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.sectionNav button:hover .sectionTooltip,
+.sectionNav button:focus-visible .sectionTooltip {
+  visibility: visible;
+  opacity: 1;
+}
+
+.sectionNav button:focus-visible {
+  border-radius: 6px;
+
+  outline: 2px solid var(--primary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home {
+    scroll-snap-type: y proximity;
+  }
 }
 
 .hero, .noticeSection, .howTo {
@@ -609,7 +705,7 @@
   max-width: var(--max-width);
 
   margin: 0 auto;
-  padding: 24px 24px calc(20px + var(--home-top-offset, 0px));
+  padding: 24px 24px 20px;
 
   box-sizing: border-box;
 }
@@ -730,6 +826,6 @@
 
 @media (max-width: 480px) {
   .footerInner {
-    padding: 20px 20px calc(20px + var(--home-top-offset, 0px));
+    padding: 20px;
   }
 }

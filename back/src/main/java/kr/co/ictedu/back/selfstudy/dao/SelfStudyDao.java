@@ -19,6 +19,20 @@ public interface SelfStudyDao {
 
 	SubjectVO selectSubject(@Param("subjectId") Long subjectId);
     List<CategoryVO> selectCategories();
+
+    CategoryVO selectCategoryByName(@Param("categoryName") String categoryName);
+
+    CategoryVO selectCategoryById(@Param("categoryId") Long categoryId);
+
+    int insertCategory(CategoryVO category);
+
+    SubjectVO selectSubjectByName(
+            @Param("categoryId") Long categoryId,
+            @Param("subjectName") String subjectName);
+
+    SubjectVO selectAnySubjectByName(@Param("subjectName") String subjectName);
+
+    int insertSubject(SubjectVO subject);
     
     List<SubjectVO> selectSubjects(
             @Param("categoryId") Long categoryId);

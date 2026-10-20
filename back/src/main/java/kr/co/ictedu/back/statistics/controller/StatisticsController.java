@@ -36,7 +36,8 @@ public class StatisticsController {
 			 HttpServletRequest httpRequest) {
 		System.out.println("평가분석 테스트");
 		Long memberNum = ((Number) request.get("memberNum")).longValue();
-		Map<String, Object> statisticsMap = statisticsService.selectStatistics(memberNum);
+		String description = (String) request.get("description");
+		Map<String, Object> statisticsMap = statisticsService.selectStatistics(memberNum, description);
 		System.out.println("statisticsMap: " + statisticsMap);
 		System.out.println("요청 경로: " + httpRequest.getRequestURI());
 		return statisticsMap;

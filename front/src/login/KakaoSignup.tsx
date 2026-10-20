@@ -60,6 +60,7 @@ const KakaoSignup: React.FC = () => {
     // 닉네임 중복확인
     const [verifiedNick, setVerifiedNick] = useState('');
     const [nickStatus, setNickStatus] = useState<NickStatus>('idle');
+    const [nickMessage, setNickMessage] = useState('');
     const [nickChecking, setNickChecking] = useState(false);
 
     // 약관 동의
@@ -121,7 +122,7 @@ const KakaoSignup: React.FC = () => {
         const validationError = validateNickname(nickname);
 
         if (validationError) {
-            setMessage(validationError);
+            setNickMessage(validationError);
             setNickStatus('error');
             setVerifiedNick('');
             return;
@@ -130,7 +131,7 @@ const KakaoSignup: React.FC = () => {
         setNickChecking(true);
         setNickStatus('idle');
         setVerifiedNick('');
-        setMessage('');
+        setNickMessage('');
 
         try {
             const response = await axios.get(
@@ -146,18 +147,18 @@ const KakaoSignup: React.FC = () => {
             if (count === 0) {
                 setVerifiedNick(nickname);
                 setNickStatus('available');
-                setMessage('사용 가능한 닉네임입니다.');
+                setNickMessage('사용 가능한 닉네임입니다.');
             } else if (Number.isFinite(count) && count > 0) {
                 setNickStatus('duplicate');
-                setMessage('이미 사용 중인 닉네임입니다.');
+                setNickMessage('이미 사용 중인 닉네임입니다.');
             } else {
                 setNickStatus('error');
-                setMessage('닉네임 중복확인 결과를 확인할 수 없습니다.');
+                setNickMessage('닉네임 중복확인 결과를 확인할 수 없습니다.');
             }
         } catch (error) {
             console.error('닉네임 중복확인 오류:');
             setNickStatus('error');
-            setMessage('닉네임 중복확인 중 오류가 발생했습니다.');
+            setNickMessage('닉네임 중복확인 중 오류가 발생했습니다.');
         } finally {
             setNickChecking(false);
         }
@@ -168,7 +169,7 @@ const KakaoSignup: React.FC = () => {
         setNick(value);
         setVerifiedNick('');
         setNickStatus('idle');
-        setMessage('');
+        setNickMessage('');
     };
 
     // 이메일 인증번호 발송
@@ -299,7 +300,7 @@ const KakaoSignup: React.FC = () => {
             return;
         }
 
-        if (!email.trim() || !name.trim() || !nick.trim() || !phone.trim()) {
+        if (!email.trim() || !name.trim() || !phone.trim()) {
             setMessage('필수 정보를 모두 입력해주세요.');
             return;
         }
@@ -307,12 +308,15 @@ const KakaoSignup: React.FC = () => {
         const validationError = validateNickname(nick);
 
         if (validationError) {
-            setMessage(validationError);
+            setNickMessage(validationError);
+            setNickStatus('error');
+            setVerifiedNick('');
             return;
         }
 
         if (nickStatus !== 'available' || verifiedNick !== nick.trim()) {
-            setMessage('닉네임 중복확인을 완료해주세요.');
+            setNickMessage('닉네임 중복확인을 완료해주세요.');
+            setNickStatus('error');
             return;
         }
 
@@ -534,6 +538,8 @@ const KakaoSignup: React.FC = () => {
                                 maxLength={12}
                                 onChange={(e) => handleNickChange(e.target.value)}
                                 disabled={nickChecking || signupLoading}
+                                aria-describedby={`kakao-nick-help${nickMessage ? ' kakao-nick-message' : ''}`}
+                                aria-invalid={nickStatus === 'error' || nickStatus === 'duplicate'}
                                 required
                             />
                             <button
@@ -545,15 +551,17 @@ const KakaoSignup: React.FC = () => {
                             </button>
                         </div>
 
-                        {nickStatus === 'available' && verifiedNick === nick.trim() && (
-                            <p className={styles.successText}>사용 가능한 닉네임입니다.</p>
+                        {nickMessage && (
+                            <p
+                                id="kakao-nick-message"
+                                className={nickStatus === 'available' ? styles.successText : styles.errorText}
+                                role={nickStatus === 'available' ? 'status' : 'alert'}
+                            >
+                                {nickMessage}
+                            </p>
                         )}
 
-                        {nickStatus === 'duplicate' && (
-                            <p className={styles.errorText}>이미 사용 중인 닉네임입니다.</p>
-                        )}
-
-                        <p className={styles.helpText}>
+                        <p id="kakao-nick-help" className={styles.helpText}>
                             2~12자, 완성형 한글·영문·숫자 사용 가능
                         </p>
                     </div>

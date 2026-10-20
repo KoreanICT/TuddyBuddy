@@ -22,6 +22,7 @@ import kr.co.ictedu.back.member.dao.MemberDAO;
 import kr.co.ictedu.back.member.vo.MemberVO;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import kr.co.ictedu.back.member.service.LoginLogService;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -43,14 +44,13 @@ public class AuthController {
     @Autowired
     private AuthCookies authCookies;
 
+    @Autowired
+    private LoginLogService loginLogs;
+
     @PostMapping("/login")
     public ResponseEntity<?> authUser(
             @RequestBody AuthRequest authRequest,
             HttpServletRequest request, HttpServletResponse response) {
-
-        System.out.println("===== 로그인 컨트롤러 진입 =====");
-        System.out.println("로그인 이메일 : "
-                + authRequest.getUsername());
 
         try {
 
@@ -88,12 +88,12 @@ public class AuthController {
             String authority = member.getAuthority();
 
             refreshTokens.revoke(authCookies.read(request));
-            authCookies.set(request, response, refreshTokens.issue(member));
+            String refreshToken = refreshTokens.issue(member);
+            authCookies.set(request, response, refreshToken);
+            refreshTokens.recordLogin(member, refreshToken, request);
 
             // 로그인 성공 로그
             System.out.println("===== 로그인 성공 =====");
-            System.out.println("회원번호 : " + member_num);
-            System.out.println("권한 : " + authority);
 
             // JWT + 회원번호 + 권한 반환
             return ResponseEntity.ok(
@@ -107,6 +107,8 @@ public class AuthController {
         } catch (
             org.springframework.security.core.AuthenticationException e
         ) {
+
+            loginLogs.failure(authRequest.getUsername(), request);
 
             System.out.println("인증 실패 예외 : "
                     + e.getClass().getSimpleName());

@@ -6,7 +6,6 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -209,11 +208,10 @@ public class ChatController {
 	@ApiResponse(responseCode = "200", description = "AI 답변 생성 성공")
 	@ApiResponse(responseCode = "400", description = "잘못된 AI 질문 요청")
 	@ApiResponse(responseCode = "500", description = "AI 답변 처리 중 서버 오류")
+	@ApiResponse(responseCode = "503", description = "AI 서버 연결 실패, 응답 시간 초과 또는 빈 AI 답변으로 서비스 이용 불가")
 	@PostMapping("/ai")
 	public ChatAIResponse askAI(@RequestBody ChatAIRequest request, Authentication authentication,
 			HttpServletRequest httpRequest) {
-//    	System.out.println("question = " + request.getQuestion());
-//    	System.out.println("user_type = " + request.getUser_type());
 		
 		// 요청한 채팅 세션 조회
 		ChatSessionVO session = sessionService.detail(request.getChat_num());
@@ -242,9 +240,6 @@ public class ChatController {
 			// 비회원 세션
 			request.setUser_type("guest");
 		}
-		
-		// 서버에서 최종 결정한 회원 유형 확인
-		System.out.println("챗봇 최종 user_type : " + request.getUser_type());
 		
 		// 서버에서 결정한 user_type으로 AI 서비스 호출
 		return chatBotService.chat(request);

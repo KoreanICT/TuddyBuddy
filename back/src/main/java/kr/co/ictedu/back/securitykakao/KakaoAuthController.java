@@ -266,7 +266,9 @@ public class KakaoAuthController {
 			String accessToken = jwtTokenProvider.createToken(authentication);
 
 			refreshTokens.revoke(authCookies.read(servletRequest));
-			authCookies.set(servletRequest, servletResponse, refreshTokens.issue(member));
+			String refreshToken = refreshTokens.issue(member);
+			authCookies.set(servletRequest, servletResponse, refreshToken);
+			refreshTokens.recordLogin(member, refreshToken, servletRequest);
 
 			System.out.println("===== 카카오 회원 JWT 발급 성공 =====");
 

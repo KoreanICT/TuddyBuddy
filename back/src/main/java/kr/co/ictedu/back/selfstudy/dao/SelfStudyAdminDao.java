@@ -7,6 +7,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import kr.co.ictedu.back.selfstudy.vo.CategoryVO;
+import kr.co.ictedu.back.selfstudy.vo.SelfStudyUsageVO;
 import kr.co.ictedu.back.selfstudy.vo.SubjectVO;
 
 @Mapper
@@ -31,4 +32,20 @@ public interface SelfStudyAdminDao {
     int updateSubjectStatus(
             @Param("subjectId") Long subjectId,
             @Param("status") String status);
+
+    SelfStudyUsageVO.Summary selectUsageSummary(
+            @Param("fromDate") java.time.LocalDateTime fromDate,
+            @Param("toDateExclusive") java.time.LocalDateTime toDateExclusive);
+
+    List<SelfStudyUsageVO.DailyTrend> selectDailyUsageTrend(
+            @Param("fromDate") java.time.LocalDateTime fromDate,
+            @Param("toDateExclusive") java.time.LocalDateTime toDateExclusive);
+
+    List<SelfStudyUsageVO.CategoryRanking> selectCategoryUsageRanking(
+            @Param("fromDate") java.time.LocalDateTime fromDate,
+            @Param("toDateExclusive") java.time.LocalDateTime toDateExclusive);
+
+    List<SelfStudyUsageVO.SubjectRanking> selectSubjectUsageRanking(
+            @Param("fromDate") java.time.LocalDateTime fromDate,
+            @Param("toDateExclusive") java.time.LocalDateTime toDateExclusive);
 }

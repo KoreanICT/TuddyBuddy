@@ -50,21 +50,25 @@
 	
 	<insert id="insertPoint" parameterType="povo">
 	    INSERT INTO POINT (
+	        POINT_NUM,
 	        MEMBER_NUM,
 	        AMOUNT,
 	        BALANCE_BEFORE,
 	        BALANCE_AFTER,
 	        PAYMENT_PRICE,
 	        POINT_TYPE,
-	        DESCRIPTION
+	        DESCRIPTION,
+	        REGDATE
 	    ) VALUES (
+	        POINT_SEQ.NEXTVAL,
 	        #{member_num},
 	        #{amount},
 	        #{balance_before},
 	        #{balance_after},
 	        #{payment_price},
 	        #{point_type},
-	        #{description}
+	        #{description},
+	        SYSDATE
 	    )
 	</insert>
 	
