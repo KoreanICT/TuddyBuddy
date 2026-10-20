@@ -17,9 +17,7 @@
 	<select id="selectCategories"
 		resultType="categoryVO">
 
-		SELECT
-		category_id,
-		category_name
+		SELECT category_id, category_name
 		FROM categories
 		WHERE category_status = 'Y'
 		ORDER BY category_id
@@ -30,7 +28,7 @@
 		SELECT category_id, category_name, category_status
 		FROM categories
 		WHERE category_status = 'Y'
-		  AND UPPER(TRIM(category_name)) = UPPER(TRIM(#{categoryName}))
+		AND UPPER(TRIM(category_name)) = UPPER(TRIM(#{categoryName}))
 	</select>
 
 	<select id="selectCategoryById" resultType="categoryVO">
@@ -48,8 +46,8 @@
 		SELECT subject_id, category_id, subject_name, subject_status, usage_count, created_at
 		FROM subjects
 		WHERE category_id = #{categoryId}
-		  AND subject_status = 'Y'
-		  AND UPPER(TRIM(subject_name)) = UPPER(TRIM(#{subjectName}))
+		AND subject_status = 'Y'
+		AND UPPER(TRIM(subject_name)) = UPPER(TRIM(#{subjectName}))
 	</select>
 
 	<select id="selectAnySubjectByName" resultType="subjectVO">
@@ -60,8 +58,8 @@
 	</select>
 
 	<insert id="insertSubject" parameterType="subjectVO">
-		INSERT INTO subjects (subject_id, category_id, subject_name, subject_status)
-		VALUES (subjects_seq.NEXTVAL, #{category_id}, #{subject_name}, 'Y')
+		INSERT INTO subjects (subject_id, category_id, subject_name, subject_status, created_at)
+		VALUES (subjects_seq.NEXTVAL, #{category_id}, #{subject_name}, 'Y', SYSTIMESTAMP)
 	</insert>
 
 
@@ -73,21 +71,14 @@
 	<select id="selectSubjects"
 		resultType="subjectVO">
 
-		SELECT
-        subject_id,
-        category_id,
-        subject_name,
-        subject_status,
-        usage_count,
-        created_at
-    FROM subjects
-    WHERE category_id = #{categoryId}
-      AND subject_status = 'Y'
-      AND category_id IN (
+		SELECT subject_id, category_id, subject_name, subject_status, usage_count,created_at
+    	FROM subjects
+    	WHERE category_id = #{categoryId}
+      	AND subject_status = 'Y'
+      	AND category_id IN (
           SELECT category_id
           FROM categories
-          WHERE category_status = 'Y'
-      )
+          WHERE category_status = 'Y')
     ORDER BY subject_id
 
 	</select>
@@ -121,16 +112,8 @@
 	<select id="selectQuizSessions"
 		resultType="quizSessionVO">
 
-		SELECT
-		quiz_session_id,
-		subject_id,
-		member_num,
-		quiz_image_url,
-		quiz_type,
-		quiz_difficulty,
-		quiz_count,
-		quiz_prompt,
-		created_at
+		SELECT quiz_session_id, subject_id, member_num, quiz_image_url, quiz_type,
+		quiz_difficulty, quiz_count, quiz_prompt, created_at
 		FROM quiz_sessions
 		WHERE member_num = #{memberNum}
 		ORDER BY created_at DESC
@@ -143,15 +126,8 @@
 		resultType="quizSessionVO">
 
 		SELECT
-		quiz_session_id,
-		subject_id,
-		member_num,
-		quiz_image_url,
-		quiz_type,
-		quiz_difficulty,
-		quiz_count,
-		quiz_prompt,
-		created_at
+		quiz_session_id, subject_id, member_num, quiz_image_url, quiz_type,
+		quiz_difficulty, quiz_count, quiz_prompt, created_at
 		FROM quiz_sessions
 		WHERE quiz_session_id = #{quizSessionId}
 
@@ -185,14 +161,8 @@
 	<select id="selectQuizzes"
 		resultType="quizVO">
 
-		SELECT
-		quiz_id,
-		quiz_session_id,
-		quiz_question,
-		quiz_selections,
-		quiz_correct_answer,
-		quiz_explanation,
-		created_at
+		SELECT quiz_id, quiz_session_id, quiz_question, quiz_selections, quiz_correct_answer,
+		quiz_explanation, created_at
 		FROM quizzes
 		WHERE quiz_session_id = #{quizSessionId}
 		ORDER BY quiz_id
@@ -204,13 +174,8 @@
 	<select id="selectQuiz"
 		resultType="quizVO">
 
-		SELECT
-		quiz_id,
-		quiz_session_id,
-		quiz_question,
-		quiz_selections,
-		quiz_correct_answer,
-		quiz_explanation,
+		SELECT quiz_id, quiz_session_id, quiz_question, quiz_selections,
+		quiz_correct_answer, quiz_explanation,
 		created_at
 		FROM quizzes
 		WHERE quiz_id = #{quizId}

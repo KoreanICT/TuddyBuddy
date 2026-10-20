@@ -71,7 +71,7 @@ interface MemberData {
     pwd: string,
 }
 
-export const Project_Calendar: React.FC<GetGroupNum> = (groupNum) => {
+export const Project_Calendar: React.FC<GetGroupNum> = ({ groupNum }) => {
 
     const today = new Date();
 

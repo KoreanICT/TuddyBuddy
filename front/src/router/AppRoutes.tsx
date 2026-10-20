@@ -27,6 +27,7 @@ import AuthLayout from "../layout/auth/AuthLayout";
 import SelfStudy from "../cont/selfStudy/SelfStudy";
 import Community from "../cont/community/Community";
 import EducationNews from "../cont/educationNews/EducationNews";
+import AttendanceCalendar from "../cont/attendance/AttendanceCalendar";
 
 import PointHistory from "../mypage/PointHistory";
 import Member_Edit from "../mypage/Member_edit";
@@ -70,6 +71,7 @@ const AppRoutes: React.FC = () => {
         // contents
         { path: '/community', element: <Community /> },
         { path: '/education-news', element: <EducationNews /> },
+        { path: '/attendance', element: <RequireAuth allowedRoles={ROLE_ACCESS.member}><AttendanceCalendar /></RequireAuth> },
 
         { path: '/group', element: <RequireAuth allowedRoles={ROLE_ACCESS.member}><Group_Home /></RequireAuth> },
         { path: '/group/detail/:groupNum', element: <RequireAuth allowedRoles={ROLE_ACCESS.member}><Group_Detail /></RequireAuth> },

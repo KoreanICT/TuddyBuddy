@@ -5,27 +5,22 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
-import org.springframework.web.server.ResponseStatusException;
 
 import kr.co.ictedu.back.selfstudy.dao.SelfStudyDao;
 import kr.co.ictedu.back.selfstudy.dto.QuizGenerateRequestDto;
 import kr.co.ictedu.back.selfstudy.dto.QuizGenerateResponseDto;
-import kr.co.ictedu.back.selfstudy.dto.QuizResponseDto;
 import kr.co.ictedu.back.selfstudy.dto.QuizSubmitRequestDto;
 import kr.co.ictedu.back.selfstudy.vo.CategoryVO;
 import kr.co.ictedu.back.selfstudy.vo.QuizResponseVO;
@@ -34,6 +29,8 @@ import kr.co.ictedu.back.selfstudy.vo.QuizVO;
 import kr.co.ictedu.back.selfstudy.vo.SelfStudyResultVO;
 import kr.co.ictedu.back.selfstudy.vo.SubjectVO;
 import tools.jackson.databind.json.JsonMapper;
+
+//AI 문제 생성과 기존 호출 메서드 연결
 @Service
 @Transactional(readOnly = true)
 public class SelfStudyService {
@@ -43,23 +40,28 @@ public class SelfStudyService {
     private final TransactionTemplate transactions;
     private final JsonMapper json;
     private final Path imageDirectory;
-
+    private final SelfStudySubmissionService submissionService;
+    private final SelfStudyHistoryService historyService;
+    private final SelfStudyCatalogService catalogService;
     public SelfStudyService(
             SelfStudyDao selfStudyDao,
             QuizAiClient aiClient,
             PlatformTransactionManager transactionManager,
             JsonMapper json,
-            @Value("${quiz.image.directory:./upload/quiz}") String directory
+            @Value("${quiz.image.directory:./upload/quiz}") String directory,
+            SelfStudySubmissionService submissionService,
+            SelfStudyHistoryService historyService,
+            SelfStudyCatalogService catalogService
     ) {
         this.selfStudyDao = selfStudyDao;
         this.aiClient = aiClient;
-        this.transactions =
-                new TransactionTemplate(transactionManager);
+        this.transactions = new TransactionTemplate(transactionManager);
         this.json = json;
-        this.imageDirectory =
-                Path.of(directory).toAbsolutePath().normalize();
+        this.imageDirectory = Path.of(directory).toAbsolutePath().normalize();
+        this.submissionService = submissionService;
+        this.historyService = historyService;
+        this.catalogService = catalogService;
     }
-
     // =========================================================
     // 1. AI 문제 생성
     //
@@ -190,16 +192,7 @@ public class SelfStudyService {
         // 현재 포인트 차감 코드가 없으므로 차감도 없습니다.
         // -----------------------------------------------------
 
-        List<Map<String, Object>> catalog = selfStudyDao.selectCategories().stream()
-                .map(category -> Map.<String, Object>of(
-                        "categoryId", category.getCategory_id(),
-                        "categoryName", category.getCategory_name(),
-                        "subjects", selfStudyDao.selectSubjects(category.getCategory_id()).stream()
-                                .map(subject -> Map.of(
-                                        "subjectId", subject.getSubject_id(),
-                                        "subjectName", subject.getSubject_name()))
-                                .toList()))
-                .toList();
+        List<Map<String, Object>> catalog = catalogService.getAiCatalog();
 
         var generated = aiClient.generate(request, bytes, catalog);
 
@@ -498,78 +491,6 @@ public class SelfStudyService {
     private String normalizeTaxonomyName(String value) {
         return value == null ? "" : value.strip().replaceAll("\\s+", " ");
     }
-
-    // =========================================================
-    // 2. 학습 세션 소유자 검증
-    // =========================================================
-
-    public void requireSessionOwner(
-            Long sessionId,
-            Long memberNum
-    ) {
-
-        if (!Objects.equals(
-                getSession(sessionId).getMember_num(),
-                memberNum
-        )) {
-
-            throw new ResponseStatusException(
-                    HttpStatus.FORBIDDEN,
-                    "본인의 학습 세션만 사용할 수 있습니다."
-            );
-        }
-    }
-
-    // =========================================================
-    // 3. 학습 결과 소유자 검증
-    // =========================================================
-
-    public void requireResultOwner(
-            Long resultId,
-            Long memberNum
-    ) {
-
-        if (!Objects.equals(
-                getResult(resultId).getMember_num(),
-                memberNum
-        )) {
-
-            throw new ResponseStatusException(
-                    HttpStatus.FORBIDDEN,
-                    "본인의 학습 결과만 사용할 수 있습니다."
-            );
-        }
-    }
-
-    // =========================================================
-    // 4. 카테고리 조회
-    // =========================================================
-
-    public List<CategoryVO> getCategories() {
-
-        return selfStudyDao.selectCategories();
-    }
-
-    // =========================================================
-    // 5. 과목 조회
-    // =========================================================
-
-    public List<SubjectVO> getSubjects(Long categoryId) {
-
-        if (categoryId == null) {
-
-            throw new IllegalArgumentException(
-                    "카테고리 정보가 없습니다."
-            );
-        }
-
-        return selfStudyDao.selectSubjects(categoryId);
-    }
-
-    // =========================================================
-    // 6. 퀴즈 세션 저장
-    // =========================================================
-
     @Transactional
     public QuizSessionVO saveQuizSession(
             QuizSessionVO session
@@ -640,389 +561,53 @@ public class SelfStudyService {
 
         return quiz;
     }
-
-    // =========================================================
-    // 8. 회원별 학습 세션 목록
-    // =========================================================
-
-    public List<QuizSessionVO> getSessions(
-            Long memberNum
-    ) {
-
-        if (memberNum == null) {
-
-            throw new IllegalArgumentException(
-                    "회원 정보가 없습니다."
-            );
-        }
-
-        return selfStudyDao.selectQuizSessions(memberNum);
+    public void requireSessionOwner(Long sessionId, Long memberNum) {
+        historyService.requireSessionOwner(sessionId, memberNum);
     }
 
-    // =========================================================
-    // 9. 학습 세션 상세
-    // =========================================================
-
-    public QuizSessionVO getSession(
-            Long quizSessionId
-    ) {
-
-        if (quizSessionId == null) {
-
-            throw new IllegalArgumentException(
-                    "퀴즈 세션 정보가 없습니다."
-            );
-        }
-
-        QuizSessionVO session =
-                selfStudyDao.selectQuizSession(quizSessionId);
-
-        if (session == null) {
-
-            throw new IllegalArgumentException(
-                    "존재하지 않는 학습 세션입니다."
-            );
-        }
-
-        return session;
+    public void requireResultOwner(Long resultId, Long memberNum) {
+        historyService.requireResultOwner(resultId, memberNum);
     }
 
-    // =========================================================
-    // 10. 학습 세션의 문제 목록
-    // =========================================================
-
-    public List<QuizVO> getQuizzes(
-            Long quizSessionId
-    ) {
-
-        if (quizSessionId == null) {
-
-            throw new IllegalArgumentException(
-                    "퀴즈 세션 정보가 없습니다."
-            );
-        }
-
-        return selfStudyDao.selectQuizzes(quizSessionId);
+    public List<CategoryVO> getCategories() {
+        return catalogService.getCategories();
     }
 
-    // =========================================================
-    // 11. 답안 제출 및 채점
-    // =========================================================
+    public List<SubjectVO> getSubjects(Long categoryId) {
+        return catalogService.getSubjects(categoryId);
+    }
+
+    public List<QuizSessionVO> getSessions(Long memberNum) {
+        return historyService.getSessions(memberNum);
+    }
+
+    public QuizSessionVO getSession(Long quizSessionId) {
+        return historyService.getSession(quizSessionId);
+    }
+
+    public List<QuizVO> getQuizzes(Long quizSessionId) {
+        return historyService.getQuizzes(quizSessionId);
+    }
+
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public SelfStudyResultVO submitQuiz(QuizSubmitRequestDto request) {
+        return submissionService.submitQuiz(request);
+    }
+
+    public List<SelfStudyResultVO> getResults(Long memberNum) {
+        return historyService.getResults(memberNum);
+    }
+
+    public SelfStudyResultVO getResult(Long resultId) {
+        return historyService.getResult(resultId);
+    }
+
+    public List<QuizResponseVO> getResponses(Long resultId) {
+        return historyService.getResponses(resultId);
+    }
 
     @Transactional
-    public SelfStudyResultVO submitQuiz(
-            QuizSubmitRequestDto request
-    ) {
-
-        if (request == null) {
-
-            throw new IllegalArgumentException(
-                    "제출 정보가 없습니다."
-            );
-        }
-
-        if (request.getQuiz_sessionid() == null) {
-
-            throw new IllegalArgumentException(
-                    "퀴즈 세션 정보가 없습니다."
-            );
-        }
-
-        if (request.getMember_num() == null) {
-
-            throw new IllegalArgumentException(
-                    "회원 정보가 없습니다."
-            );
-        }
-
-        if (request.getResponses() == null
-                || request.getResponses().isEmpty()) {
-
-            throw new IllegalArgumentException(
-                    "제출할 답안이 없습니다."
-            );
-        }
-
-        // 세션 확인
-        QuizSessionVO session =
-                selfStudyDao.selectQuizSession(
-                        request.getQuiz_sessionid()
-                );
-
-        if (session == null) {
-
-            throw new IllegalArgumentException(
-                    "존재하지 않는 퀴즈 세션입니다."
-            );
-        }
-
-        requireSessionOwner(
-                request.getQuiz_sessionid(),
-                request.getMember_num()
-        );
-
-        var expectedQuizzes =
-                selfStudyDao.selectQuizzes(
-                        request.getQuiz_sessionid()
-                );
-
-        var answerIds = new HashSet<Long>();
-
-        for (var answer : request.getResponses()) {
-
-            if (answer == null
-                    || answer.getQuiz_id() == null
-                    || !answerIds.add(answer.getQuiz_id())
-                    || answer.getQuiz_user_response() == null
-                    || answer.getQuiz_user_response().isBlank()
-                    || answer.getQuiz_user_response().length() > 1000) {
-
-                throw new IllegalArgumentException(
-                        "답안이 누락되거나 중복되었습니다."
-                );
-            }
-        }
-
-        var expectedIds = expectedQuizzes.stream()
-                .map(QuizVO::getQuiz_id)
-                .collect(Collectors.toSet());
-
-        if (!answerIds.equals(expectedIds)) {
-
-            throw new IllegalArgumentException(
-                    "세션의 모든 문제에 답해주세요."
-            );
-        }
-
-        // 채점
-        int correctCount = 0;
-
-        for (QuizResponseDto answer : request.getResponses()) {
-
-            QuizVO quiz =
-                    selfStudyDao.selectQuiz(
-                            answer.getQuiz_id()
-                    );
-
-            if (quiz == null) {
-
-                throw new IllegalArgumentException(
-                        "존재하지 않는 문제입니다. quizId="
-                        + answer.getQuiz_id()
-                );
-            }
-
-            if (!quiz.getQuiz_session_id().equals(
-                    request.getQuiz_sessionid()
-            )) {
-
-                throw new IllegalArgumentException(
-                        "해당 학습 세션의 문제가 아닙니다."
-                );
-            }
-
-            boolean correct =
-                    quiz.getQuiz_correct_answer() != null
-                    && answer.getQuiz_user_response() != null
-                    && quiz.getQuiz_correct_answer()
-                            .trim()
-                            .equalsIgnoreCase(
-                                    answer.getQuiz_user_response().trim()
-                            );
-
-            if (correct) {
-                correctCount++;
-            }
-        }
-
-        // 점수 계산
-        int totalQuestion = request.getResponses().size();
-
-        int totalScore = (int) Math.round(
-                correctCount * 100.0 / totalQuestion
-        );
-
-        // 학습 결과 저장
-        SelfStudyResultVO result = new SelfStudyResultVO();
-
-        result.setQuiz_session_id(
-                request.getQuiz_sessionid()
-        );
-
-        result.setMember_num(
-                request.getMember_num()
-        );
-
-        result.setSelfstudy_total_score(totalScore);
-
-        int insertResult =
-                selfStudyDao.insertSelfStudyResult(result);
-
-        if (insertResult != 1) {
-
-            throw new IllegalStateException(
-                    "학습 결과 저장에 실패했습니다."
-            );
-        }
-
-        // 문제별 답안 저장
-        for (QuizResponseDto answer : request.getResponses()) {
-
-            QuizVO quiz =
-                    selfStudyDao.selectQuiz(
-                            answer.getQuiz_id()
-                    );
-
-            boolean correct =
-                    quiz.getQuiz_correct_answer() != null
-                    && answer.getQuiz_user_response() != null
-                    && quiz.getQuiz_correct_answer()
-                            .trim()
-                            .equalsIgnoreCase(
-                                    answer.getQuiz_user_response().trim()
-                            );
-
-            QuizResponseVO response = new QuizResponseVO();
-
-            response.setSelfstudy_results_id(
-                    result.getSelfstudy_results_id()
-            );
-
-            response.setQuiz_id(
-                    answer.getQuiz_id()
-            );
-
-            response.setQuiz_user_response(
-                    answer.getQuiz_user_response()
-            );
-
-            response.setQuiz_correct(
-                    correct ? "Y" : "N"
-            );
-
-            int insertResponse =
-                    selfStudyDao.insertQuizResponse(response);
-
-            if (insertResponse != 1) {
-
-                throw new IllegalStateException(
-                        "문제 답안 저장에 실패했습니다."
-                );
-            }
-        }
-
-        return result;
-    }
-
-    // =========================================================
-    // 12. 회원별 학습 결과 목록
-    // =========================================================
-
-    public List<SelfStudyResultVO> getResults(
-            Long memberNum
-    ) {
-
-        if (memberNum == null) {
-
-            throw new IllegalArgumentException(
-                    "회원 정보가 없습니다."
-            );
-        }
-
-        return selfStudyDao.selectResults(memberNum);
-    }
-
-    // =========================================================
-    // 13. 학습 결과 상세
-    // =========================================================
-
-    public SelfStudyResultVO getResult(
-            Long resultId
-    ) {
-
-        if (resultId == null) {
-
-            throw new IllegalArgumentException(
-                    "결과 정보가 없습니다."
-            );
-        }
-
-        SelfStudyResultVO result =
-                selfStudyDao.selectResult(resultId);
-
-        if (result == null) {
-
-            throw new IllegalArgumentException(
-                    "존재하지 않는 결과입니다."
-            );
-        }
-
-        return result;
-    }
-
-    // =========================================================
-    // 14. 학습 결과별 답안 조회
-    // =========================================================
-
-    public List<QuizResponseVO> getResponses(
-            Long resultId
-    ) {
-
-        if (resultId == null) {
-
-            throw new IllegalArgumentException(
-                    "결과 정보가 없습니다."
-            );
-        }
-
-        return selfStudyDao.selectQuizResponses(resultId);
-    }
-
-    // =========================================================
-    // 15. 학습 세션 삭제
-    // =========================================================
-
-    @Transactional
-    public void deleteSession(
-            Long quizSessionId
-    ) {
-
-        QuizSessionVO session =
-                selfStudyDao.selectQuizSession(quizSessionId);
-
-        if (session == null) {
-
-            throw new IllegalArgumentException(
-                    "존재하지 않는 학습 세션입니다."
-            );
-        }
-
-        // 1. 사용자 답안 삭제
-        selfStudyDao.deleteQuizResponsesBySession(
-                quizSessionId
-        );
-
-        // 2. 학습 결과 삭제
-        selfStudyDao.deleteResultsBySession(
-                quizSessionId
-        );
-
-        // 3. 문제 삭제
-        selfStudyDao.deleteQuizzesBySession(
-                quizSessionId
-        );
-
-        // 4. 세션 삭제
-        int deleteResult =
-                selfStudyDao.deleteQuizSession(
-                        quizSessionId
-                );
-
-        if (deleteResult != 1) {
-
-            throw new IllegalStateException(
-                    "학습 세션 삭제에 실패했습니다."
-            );
-        }
+    public void deleteSession(Long quizSessionId) {
+        historyService.deleteSession(quizSessionId);
     }
 }
