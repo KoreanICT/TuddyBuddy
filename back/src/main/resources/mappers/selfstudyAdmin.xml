@@ -12,16 +12,8 @@
 
 	<!-- 카테고리 등록_admin -->
 	<insert id="insertCategory" parameterType="categoryVO">
-		INSERT INTO categories (
-		category_id,
-		category_name,
-		category_status
-		)
-		VALUES (
-		categories_seq.NEXTVAL,
-		#{category_name},
-		'Y'
-		)
+		INSERT INTO categories (category_id,category_name,category_status)
+		VALUES (categories_seq.NEXTVAL,#{category_name},'Y')
 	</insert>
 
 	<!-- 카테고리 이름 수정 -->
@@ -40,31 +32,15 @@
 
 	<!-- 관리자 전체 과목 조회 -->
 	<select id="selectAllSubjects" resultType="subjectVO">
-		SELECT
-		subject_id,
-		category_id,
-		subject_name,
-		subject_status,
-		usage_count,
-		created_at
+		SELECT subject_id, category_id, subject_name, subject_status, usage_count,created_at
 		FROM subjects
 		ORDER BY category_id, subject_id
 	</select>
 
 	<!-- 과목 등록 -->
 	<insert id="insertSubject" parameterType="subjectVO">
-		INSERT INTO subjects (
-		subject_id,
-		category_id,
-		subject_name,
-		subject_status
-		)
-		VALUES (
-		subjects_seq.NEXTVAL,
-		#{category_id},
-		#{subject_name},
-		'Y'
-		)
+		INSERT INTO subjects (subject_id, category_id, subject_name, subject_status,created_at)
+		VALUES (subjects_seq.NEXTVAL, #{category_id}, #{subject_name},'Y', SYSTIMESTAMP)
 	</insert>                                
 
 	<!-- 과목 이름 수정 -->
