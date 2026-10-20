@@ -11,6 +11,16 @@ interface Post {
   content: string;
   category: string;
   author: string;
+  likeCount?: number;
+  isLiked?: boolean;
+}
+
+interface Comment {
+  commentNum?: number;
+  postId?: number;
+  author?: string;
+  content: string;
+  createdAt?: string;
 }
 
 interface PostsResponse {
@@ -43,6 +53,13 @@ const Community: React.FC = () => {
   const [newWriteCategory, setNewWriteCategory] = useState("자유게시판");
   const [saving, setSaving] = useState(false);
   const [writeError, setWriteError] = useState("");
+
+  // 댓글 및 좋아요 관련 상태
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [commentsLoading, setCommentsLoading] = useState(false);
+  const [newCommentContent, setNewCommentContent] = useState("");
+  const [commentSubmitting, setCommentSubmitting] = useState(false);
+
   const saveLock = useRef(false);
   const titleInputRef = useRef<HTMLInputElement>(null);
   const saveController = useRef<AbortController | null>(null);
@@ -77,6 +94,30 @@ const Community: React.FC = () => {
     void loadPosts();
     return () => controller.abort();
   }, [isLoggedIn, memberNum, page, reload]);
+
+  // 댓글 목록 조회 함수
+  const fetchComments = async (postId: number) => {
+    setCommentsLoading(true);
+    try {
+      const res = await axios.get<Comment[]>(`${BACKEND_URL}/api/community/comment/list`, {
+        params: { postId }
+      });
+      setComments(Array.isArray(res.data) ? res.data : []);
+    } catch (error) {
+      console.error("댓글을 불러오지 못했습니다.", error);
+    } finally {
+      setCommentsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!selectedPost) {
+      setComments([]);
+      setNewCommentContent("");
+      return;
+    }
+    void fetchComments(selectedPost.postNum);
+  }, [selectedPost]);
 
   useEffect(() => {
     setIsWriteModalOpen(false);
@@ -171,6 +212,144 @@ const Community: React.FC = () => {
     }
   };
 
+  // 좋아요 기능
+  const handleToggleLike = async () => {
+    if (!selectedPost) return;
+
+    if (!isLoggedIn) {
+      alert("로그인 후 이용해주세요.");
+      return;
+    }
+
+    try {
+      const postNum = Number(selectedPost.postNum);
+      
+      // CommunityVO를 Request Body로 전송
+      await axios.post(
+        `${BACKEND_URL}/api/community/like`,
+        {
+          postNum: postNum,
+        }
+      );
+
+      // 프론트 화면 좋아요 수 +1
+      setSelectedPost((prev) =>
+        prev
+          ? {
+            ...prev,
+            likeCount: (prev.likeCount ?? 0) + 1,
+            isLiked: true,
+          }
+          : null
+      );
+
+      // 게시글 목록에도 좋아요 수 반영
+      setListing((prev) => {
+        if (!prev) return prev;
+
+        return {
+          ...prev,
+          data: prev.data.map((post) =>
+            post.postNum === postNum
+              ? {
+                ...post,
+                likeCount: (post.likeCount ?? 0) + 1,
+                isLiked: true,
+              }
+              : post
+          ),
+        };
+      });
+
+    } catch (error) {
+      console.error("좋아요 처리 실패:", error);
+
+      if (axios.isAxiosError(error)) {
+        console.error("상태 코드:", error.response?.status);
+        console.error("서버 응답:", error.response?.data);
+      }
+
+      alert("좋아요 처리에 실패했습니다.");
+    }
+  };
+
+  // 댓글 작성 기능 (타입 꼬임 방지를 위해 쿼리 파라미터와 분리 전송)
+  const handleCreateComment = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!selectedPost) return;
+    if (!isLoggedIn) {
+      alert("로그인 후 댓글을 작성해주세요.");
+      return;
+    }
+    const commentText = newCommentContent.trim();
+    if (!commentText) return;
+
+    setCommentSubmitting(true);
+    try {
+      const postIdVal = Number(selectedPost.postNum);
+
+      // 💡 1. 쿼리 파라미터 대신 Body(본문)에 postId와 content를 함께 객체로 전송
+      await axios.post(`${BACKEND_URL}/api/community/comment/write`, {
+        content: commentText // 본문(Body)에는 내용만
+      }, {
+        params: { postId: postIdVal } // 쿼리 파라미터로 postId 전송
+      });
+
+      setNewCommentContent("");
+      await fetchComments(selectedPost.postNum);
+    } catch (error) {
+      console.error("댓글 작성 실패", error);
+      // 💡 2. 에러 발생 시 구체적인 원인(서버 메시지 또는 상태코드)을 알럿으로 출력
+      if (axios.isAxiosError(error)) {
+        const errorMsg = error.response?.data?.message || error.response?.data?.error || error.message;
+        alert(`댓글 작성 실패 (상태코드: ${error.response?.status}): ${errorMsg}`);
+      } else {
+        alert("댓글 작성에 실패했습니다. 다시 시도해 주세요.");
+      }
+    } finally {
+      setCommentSubmitting(false);
+    }
+  };
+
+  // 댓글 삭제 기능
+  const handleDeleteComment = async (commentNum: number) => {
+    if (!selectedPost) return;
+
+    if (!window.confirm("댓글을 삭제하시겠습니까?")) {
+      return;
+    }
+
+    try {
+      await axios.delete(
+        `${BACKEND_URL}/api/community/comment/delete`,
+        {
+          params: {
+            commentNum: commentNum
+          }
+        }
+      );
+
+      alert("댓글이 삭제되었습니다.");
+
+      // 삭제 후 댓글 목록 다시 불러오기
+      await fetchComments(selectedPost.postNum);
+
+    } catch (error) {
+      console.error("댓글 삭제 실패:", error);
+
+      if (axios.isAxiosError(error)) {
+        const errorMsg =
+          error.response?.data?.message ||
+          error.response?.data?.error ||
+          error.message;
+
+        alert(`댓글 삭제 실패: ${errorMsg}`);
+      } else {
+        alert("댓글 삭제에 실패했습니다.");
+      }
+    }
+  };
+
   const getBadgeStyle = (category: string) => {
     switch (category) {
       case "합격후기": return "bg-success-subtle text-success border border-success-subtle";
@@ -246,6 +425,8 @@ const Community: React.FC = () => {
             </nav>
           )}
         </section>
+
+        {/* 글쓰기 모달 */}
         {isWriteModalOpen && (
           <div className="modal fade show d-block" role="dialog" aria-modal="true" aria-labelledby="community-write-title" tabIndex={-1}
             style={{ backgroundColor: "rgba(15, 23, 42, 0.5)", backdropFilter: "blur(4px)" }} onClick={() => { if (!saving) setIsWriteModalOpen(false); }}>
@@ -286,6 +467,8 @@ const Community: React.FC = () => {
             </div>
           </div>
         )}
+
+        {/* 게시글 상세 모달 */}
         {selectedPost && (
           <div className="modal fade show d-block" role="dialog" aria-modal="true" aria-labelledby="community-detail-title" tabIndex={-1}
             style={{ backgroundColor: "rgba(15, 23, 42, 0.5)", backdropFilter: "blur(4px)" }} onClick={() => setSelectedPost(null)}>
@@ -299,8 +482,99 @@ const Community: React.FC = () => {
                   <button type="button" className="btn-close" aria-label="게시글 닫기" onClick={() => setSelectedPost(null)} />
                 </div>
                 <div className="modal-body p-4" style={{ maxHeight: "70vh", overflowY: "auto" }}>
-                  <div className="fw-semibold text-dark mb-4 pb-3 border-bottom">{selectedPost.author || "회원"}</div>
-                  <div className="fs-6 text-dark" style={{ minHeight: "100px", whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>{selectedPost.content}</div>
+                  <div className="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
+                    <span className="fw-semibold text-dark">{selectedPost.author || "회원"}</span>
+                    <button
+                      type="button"
+                      className={`btn btn-sm rounded-pill px-3 fw-semibold ${selectedPost.isLiked ? "btn-danger" : "btn-outline-danger"}`}
+                      onClick={handleToggleLike}
+                    >
+                      ❤️ 좋아요 {selectedPost.likeCount ?? 0}
+                    </button>
+                  </div>
+
+                  <div className="fs-6 text-dark mb-5" style={{ minHeight: "80px", whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>{selectedPost.content}</div>
+
+                  {/* 댓글 영역 */}
+                  <div className="border-top pt-4">
+                    <h5 className="fw-bold text-dark mb-3">댓글 {comments.length}개</h5>
+
+                    {commentsLoading ? (
+                      <p className="text-muted small text-center py-3">댓글을 불러오는 중...</p>
+                    ) : comments.length === 0 ? (
+                      <p className="text-muted small text-center py-3 bg-light rounded-3">아직 작성된 댓글이 없습니다. 첫 댓글을 남겨보세요!</p>
+                    ) : (
+                      <div className="d-flex flex-column gap-2 mb-4">
+
+                        {comments.map((comment, index) => (
+                          <div
+                            key={comment.commentNum || index}
+                            className="p-3 bg-light rounded-3"
+                          >
+                            <div className="d-flex justify-content-between align-items-center mb-1">
+
+                              <span className="fw-bold small text-dark">
+                                {comment.author || "회원"}
+                              </span>
+
+                              <div className="d-flex align-items-center gap-2">
+                                <span
+                                  className="text-muted"
+                                  style={{ fontSize: "0.75rem" }}
+                                >
+                                  {comment.createdAt
+                                    ? new Date(comment.createdAt).toLocaleString()
+                                    : ""}
+                                </span>
+
+                                {/* 댓글 삭제 버튼 */}
+                                {comment.commentNum != null && (
+                                  <button
+                                    type="button"
+                                    className="btn btn-sm btn-outline-danger py-0 px-2"
+                                    style={{ fontSize: "0.75rem" }}
+                                    onClick={() =>
+                                      handleDeleteComment(comment.commentNum!)
+                                    }
+                                  >
+                                    삭제
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+
+                            <p
+                              className="mb-0 text-secondary small"
+                              style={{
+                                whiteSpace: "pre-wrap",
+                                overflowWrap: "anywhere"
+                              }}
+                            >
+                              {comment.content}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    <form onSubmit={event => void handleCreateComment(event)}>
+                      <div className="input-group">
+                        <textarea
+                          className="form-control"
+                          rows={2}
+                          placeholder="댓글을 남겨주세요..."
+                          value={newCommentContent}
+                          onChange={e => setNewCommentContent(e.target.value)}
+                          disabled={commentSubmitting}
+                          required
+                        />
+                        <button type="submit" className="btn btn-primary px-4 fw-semibold" disabled={commentSubmitting}>
+                          {commentSubmitting ? "등록 중..." : "등록하기"}
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+
                 </div>
                 <div className="modal-footer border-top bg-light-subtle p-3">
                   <button type="button" className="btn btn-secondary px-4 rounded-3 fw-semibold" onClick={() => setSelectedPost(null)}>닫기</button>
