@@ -1,7 +1,6 @@
 //작성자 : 오진석
-import axios from "axios";
 import { AppEdge, AppNode, DetailTab, Repeat_type, TDLStatus } from "./Type";
-export { default } from './api';
+import api from "./api";
 
 /* 공개 스터디룸 컴포넌트 관련 API */
 
@@ -68,8 +67,8 @@ export interface GroupData {
 export const searchGroupTags = async (
     keyword: string
 ): Promise<TagItem[]> => {
-    const response = await axios.get<TagItem[]>(
-        `http://localhost/back/api/group/tags/search`,
+    const response = await api.get<TagItem[]>(
+        `/group/tags/search`,
         {
             params: {
                 keyword
@@ -100,8 +99,8 @@ export const patchGroup = async (groupNum: number, requestData: GroupUpdateReque
     if (thumbnail) {
         formData.append('thumbnail', thumbnail);
     }
-    const response = await axios.patch(
-        `http://localhost/back/api/group/detail/patchGroup/${groupNum}`,
+    const response = await api.patch(
+        `/group/detail/patchGroup/${groupNum}`,
         formData
     );
     return response.data;
@@ -134,8 +133,8 @@ export interface GroupSidebarProps {
 export const joinGroupByInviteCode = async (
     inviteCode: string
 ) => {
-    const response = await axios.post(
-        `http://localhost/back/api/group/join/invite`,
+    const response = await api.post(
+        `/group/join/invite`,
         {
             inviteCode
         }
@@ -220,16 +219,17 @@ export interface MemoUpdateRequest {
  * 해야할 일(TDL) 관련 API
  */
 export interface TDLData {
-    tdlid: number;
-    member: string;
-    name: string;
-    detail: string;
+    tdl_num: number;
+    member_nick: string;
+    tdl_name: string;
+    tdl_detail: string;
     status: TDLStatus;
     repeat_type: Repeat_type;
     created_at: string;
     updated_at?: string;
     completed_at?: string;
     due_at?: string;
+    can_manage:number;
 }
 
 /**
@@ -258,8 +258,8 @@ export const getDiagram = async (
     groupNum: number
 ): Promise<DiagramResponse | null> => {
 
-    const response = await axios.get<DiagramResponse | null>(
-        `http://localhost/back/api/detail/diagram/${groupNum}`
+    const response = await api.get<DiagramResponse | null>(
+        `/detail/diagram/${groupNum}`
     );
 
     return response.data;

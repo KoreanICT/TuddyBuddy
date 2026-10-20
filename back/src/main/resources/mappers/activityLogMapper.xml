@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 허승표 -->
+
+<mapper namespace="kr.co.ictedu.back.activity.dao.ActivityLogDAO">
+	
+	<!-- 회원의 기능 실행 결과를 한 건 저장 -->
+	<insert id="insertActivityLog" parameterType="alvo">
+		INSERT INTO user_activity_log (
+			activity_log_num,
+			member_num,
+			activity_occurred_at,
+			activity_category,
+			activity_action,
+			activity_result
+			)
+		VALUES (
+			user_activity_log_seq.NEXTVAL,
+			#{member_num},
+			#{activity_occurred_at, jdbcType=TIMESTAMP_WITH_TIMEZONE},
+			#{activity_category},
+			#{activity_action},
+			#{activity_result}
+			)
+	</insert>
+
+</mapper>

@@ -1,7 +1,7 @@
 // 주용현
 
 import React, { useCallback, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import styles from './report.module.css';
 import { useAuth } from '../../login/hooks/useAuth';
@@ -13,8 +13,14 @@ interface ReportForm {
     content: string;
 }
 
+const REPORT_REASON_MAX_BYTES = 50;
+
 const ReportCreate: React.FC = () => {
     const navigate = useNavigate();
+    const location = useLocation();
+    const previousPath = (location.state as { reportReturnTo?: unknown } | null)?.reportReturnTo;
+    const returnTo = typeof previousPath === 'string' && previousPath.startsWith('/')
+        && !previousPath.startsWith('//') && !previousPath.includes('\\') ? previousPath : '/';
     const [searchParams] = useSearchParams();
     const target = readReportTarget(searchParams);
     const { memberNum, token } = useAuth();
@@ -30,6 +36,7 @@ const ReportCreate: React.FC = () => {
     });
 
     const [submitting, setSubmitting] = useState(false);
+    const reasonBytes = new TextEncoder().encode(form.reason.trim()).length;
 
     // 입력값 변경
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -53,8 +60,8 @@ const ReportCreate: React.FC = () => {
             return;
         }
 
-        if (!form.reason.trim() || form.reason.trim().length > 255) {
-            alert('신고 사유를 255자 이내로 입력해주세요.');
+        if (!form.reason.trim() || reasonBytes > REPORT_REASON_MAX_BYTES) {
+            alert('신고 사유를 50바이트 이내로 입력해주세요. 한글은 보통 한 글자당 3바이트입니다.');
             return;
         }
 
@@ -81,7 +88,7 @@ const ReportCreate: React.FC = () => {
 
             console.log('신고 등록 결과:', response.data);
             alert('신고가 정상적으로 접수되었습니다.');
-            navigate('/');
+            navigate(returnTo, { replace: true });
 
         } catch (error) {
             console.error('신고 등록 실패:', error);
@@ -105,7 +112,7 @@ const ReportCreate: React.FC = () => {
             if (!confirmCancel) return;
         }
 
-        navigate(-1);
+        navigate(returnTo, { replace: true });
     };
 
     return (
@@ -139,10 +146,14 @@ const ReportCreate: React.FC = () => {
                     <label className={styles.label} htmlFor="reason">신고 사유</label>
                     <div className={styles.formContent}>
                         <input
-                            id="reason" name="reason" type="text" value={form.reason} maxLength={255}
+                            id="reason" name="reason" type="text" value={form.reason} maxLength={REPORT_REASON_MAX_BYTES}
+                            aria-describedby="report-reason-help" aria-invalid={reasonBytes > REPORT_REASON_MAX_BYTES}
                             onChange={handleChange} className={styles.input}
                             placeholder="신고 사유를 입력해주세요."
                         />
+                        <div id="report-reason-help" className={styles.textCount}>
+                            {reasonBytes} / {REPORT_REASON_MAX_BYTES}바이트 · 한글은 보통 한 글자당 3바이트
+                        </div>
                     </div>
                 </div>
 
@@ -168,7 +179,7 @@ const ReportCreate: React.FC = () => {
                 {/* 버튼 */}
                 <div className={styles.actions}>
                     <button type="button" className={styles.cancelButton} onClick={handleCancel} disabled={submitting}>
-                        취소
+                        이전 화면으로 돌아가기
                     </button>
                     <button type="submit" className={styles.submitButton} disabled={submitting || !target}>
                         {submitting ? '접수 중...' : '신고 접수'}

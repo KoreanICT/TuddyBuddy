@@ -1,6 +1,6 @@
 //최솔
 import axios from 'axios';
-import store from '../../../login/reducers/store';
+import { BACKEND_URL, installAuthInterceptors } from '../../../login/authHttp';
 
 export interface Category {
   categoryId: number;
@@ -13,19 +13,25 @@ export interface Subject {
   subjectName: string;
   subjectStatus: 'Y' | 'N';
 }
+export interface SelfStudyUsage {
+  summary: {
+    generatedCount: number;
+    participantCount: number;
+    submittedCount: number;
+    averageScore: number;
+  };
+  dailyTrend: { date: string; generatedCount: number; submittedCount: number }[];
+  categoryRanking: { categoryId: number; categoryName: string; generatedCount: number }[];
+  subjectRanking: { subjectId: number; subjectName: string; categoryName: string; generatedCount: number }[];
+}
 
 type CategoryDto = { category_id: number; category_name: string; category_status: 'Y' | 'N' };
 type SubjectDto = { subject_id: number; category_id: number; subject_name: string; subject_status: 'Y' | 'N' };
 type Status = 'Y' | 'N';
 
-const BASE_URL = `${(process.env.REACT_APP_BACK_END_URL || 'http://192.168.0.19/back').replace(/\/$/, '')}/api/selfstudy/admin`;
+const BASE_URL = `${BACKEND_URL}/api/selfstudy/admin`;
 const client = axios.create({ baseURL: BASE_URL });
-client.interceptors.request.use((config) => {
-  const token = store.getState().auth.token;
-  if (!token) return Promise.reject(new Error('로그인이 필요합니다.'));
-  config.headers.set('Authorization', `Bearer ${token}`);
-  return config;
-});
+installAuthInterceptors(client);
 
 const mapCategory = (c: CategoryDto): Category => ({ categoryId: c.category_id, categoryName: c.category_name, categoryStatus: c.category_status });
 const mapSubject = (s: SubjectDto): Subject => ({ subjectId: s.subject_id, categoryId: s.category_id, subjectName: s.subject_name, subjectStatus: s.subject_status });
@@ -45,6 +51,8 @@ export const adminErrorMessage = (error: unknown): string => {
 export const selfStudyAdminApi = {
   categories: async (): Promise<Category[]> => (await client.get<CategoryDto[]>('/categories')).data.map(mapCategory),
   subjects: async (): Promise<Subject[]> => (await client.get<SubjectDto[]>('/subjects')).data.map(mapSubject),
+  usage: async (from: string, to: string): Promise<SelfStudyUsage> =>
+    (await client.get<SelfStudyUsage>('/usage', { params: { from, to } })).data,
   createCategory: async (name: string): Promise<void> => { await client.post('/categories', { category_name: name }); },
   updateCategory: async (id: number, name: string): Promise<void> => { await client.put(`/categories/${id}`, { category_name: name }); },
   setCategoryStatus: async (id: number, status: Status): Promise<void> => { await client.patch(`/categories/${id}/status`, { status }); },

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public class CertiNumRedisDao {
+	
 	@Autowired
 	private StringRedisTemplate sRT;
 	public void saveCertiNum(String email, String authCode) {

@@ -3,6 +3,62 @@
 
 <mapper namespace="kr.co.ictedu.back.common.dao.CommunityDao">
 
+    <!-- 인증된 회원 정보로 실제 커뮤니티 게시글 저장 -->
+    <insert id="savePost">
+        <selectKey keyProperty="post.postNum" resultType="int" order="BEFORE">
+            SELECT community_section_seq.NEXTVAL FROM dual
+        </selectKey>
+        INSERT INTO community_section (
+            community_id, community_title, community_content,
+            community_nickname, community_category, member_num
+        ) VALUES (
+            #{post.postNum}, #{post.title, jdbcType=VARCHAR}, #{post.content, jdbcType=VARCHAR},
+            #{post.author, jdbcType=VARCHAR}, #{post.category, jdbcType=VARCHAR}, #{memberNum}
+        )
+    </insert>
+
+    <select id="countPosts" resultType="int">
+        SELECT COUNT(*) FROM community_section
+    </select>
+
+    <!-- 전체 게시글을 최신 번호순으로 페이지 조회 -->
+    <select id="findPosts" resultType="kr.co.ictedu.back.common.vo.MyPostVO">
+        SELECT community_id AS "postNum", community_title AS "title",
+               community_content AS "content", community_category AS "category",
+               community_nickname AS "author"
+        FROM (
+            SELECT community_id, community_title, community_content, community_category,
+                   community_nickname,
+                   ROW_NUMBER() OVER (ORDER BY community_id DESC) AS row_num
+            FROM community_section
+        )
+        WHERE row_num BETWEEN #{startRow} AND #{endRow}
+        ORDER BY row_num
+    </select>
+
+    <!-- 로그인한 회원이 작성한 게시글 수 -->
+    <select id="countMyPosts" resultType="int">
+        SELECT COUNT(*)
+        FROM community_section
+        WHERE member_num = #{memberNum}
+    </select>
+
+    <!-- 본인 게시글을 최신 번호순으로 페이지 조회 -->
+    <select id="findMyPosts" resultType="kr.co.ictedu.back.common.vo.MyPostVO">
+        SELECT community_id AS "postNum", community_title AS "title",
+               community_content AS "content", community_category AS "category",
+               community_nickname AS "author"
+        FROM (
+            SELECT community_id, community_title, community_content, community_category,
+                   community_nickname,
+                   ROW_NUMBER() OVER (ORDER BY community_id DESC) AS row_num
+            FROM community_section
+            WHERE member_num = #{memberNum}
+        )
+        WHERE row_num BETWEEN #{startRow} AND #{endRow}
+        ORDER BY row_num
+    </select>
+
     <!-- 1. 게시글 쓰기 -->
     <insert id="insertPost" parameterType="kr.co.ictedu.back.common.vo.CommunityVO" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO community (

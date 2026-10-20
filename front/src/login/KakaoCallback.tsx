@@ -7,11 +7,12 @@ import {
 
 import axios from 'axios';
 
-import { useAppDispatch } from './reducers/store';
-import { loginSuccess } from './reducers/authReducer';
+import { authPost, BACKEND_URL } from './authHttp';
+import { saveSession } from './session';
+import { consumeLoginDestination } from './loginRedirect';
 
 // 백엔드 서버 주소
-const API_URL = 'http://localhost:80/back';
+const API_URL = BACKEND_URL;
 
 // React StrictMode 개발 환경에서
 // 동일한 카카오 인가 코드로 중복 요청하지 않도록 관리
@@ -43,7 +44,7 @@ const KakaoCallback: React.FC = () => {
 
   const navigate = useNavigate();
 
-  const dispatch = useAppDispatch();
+
 
   const [message, setMessage] = useState(
     '카카오 로그인 처리 중...'
@@ -126,7 +127,7 @@ const KakaoCallback: React.FC = () => {
 
       try {
 
-        const response = await axios.post<KakaoLoginResponse>(
+        const response = await authPost<KakaoLoginResponse>(
           `${API_URL}/api/auth/kakao/callback`,
           { code }
         );
@@ -239,62 +240,15 @@ const KakaoCallback: React.FC = () => {
           // ==========================================
           // 8. localStorage 로그인 정보 저장
           // ==========================================
-          localStorage.setItem(
-            'token',
-            token
-          );
-
-          localStorage.setItem(
-            'username',
-            username
-          );
-
-          localStorage.setItem(
-            'member_num',
-            String(member_num)
-          );
-
-          localStorage.setItem(
-            'authority',
-            authority
-          );
-
-          // ==========================================
-          // 9. Redux 로그인 상태 업데이트
-          // ==========================================
-          dispatch(
-            loginSuccess({
-              username,
-              token,
-              member_num,
-              authority
-            })
-          );
-
+          if (!saveSession({ username, token, member_num, authority }, response.authTicket)) {
+            setMessage('로그인 상태가 변경되었습니다. 다시 로그인해주세요.');
+            return;
+          }
           // ==========================================
           // 10. 로그인 성공
           // ==========================================
-          console.log(
-            '===== 카카오 JWT 로그인 성공 ====='
-          );
-
-          console.log(
-            '회원번호:',
-            member_num
-          );
-
-          console.log(
-            '권한:',
-            authority
-          );
-
-          console.log(
-            'JWT 발급 여부:',
-            Boolean(token)
-          );
-
           setMessage(
-            '카카오 로그인 성공! 메인 페이지로 이동합니다.'
+            '카카오 로그인 성공! 요청한 화면으로 이동합니다.'
           );
 
           // 남아 있는 가입용 임시 토큰 제거
@@ -305,7 +259,7 @@ const KakaoCallback: React.FC = () => {
           // ==========================================
           // 11. 메인 페이지 이동
           // ==========================================
-          navigate('/', {
+          navigate(consumeLoginDestination(), {
             replace: true
           });
 
@@ -325,17 +279,9 @@ const KakaoCallback: React.FC = () => {
             error.response?.status
           );
 
-          console.error(
-            '서버 오류 메시지:',
-            error.response?.data?.message
-          );
-
         } else {
 
-          console.error(
-            '카카오 로그인 처리 오류:',
-            error
-          );
+          console.error('카카오 로그인 처리 오류');
 
         }
 
@@ -347,7 +293,7 @@ const KakaoCallback: React.FC = () => {
 
     void handleCallback();
 
-  }, [searchParams, navigate, dispatch]);
+  }, [searchParams, navigate]);
 
   // ==========================================
   // 카카오 로그인 처리 화면

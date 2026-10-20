@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
@@ -82,13 +83,16 @@ public class SelfStudyService {
             );
         }
 
-        if (request.getSubject_id() == null
-                || request.getSubject_id() <= 0
-                || request.getMember_num() == null) {
+        if (request.getMember_num() == null) {
 
             throw new IllegalArgumentException(
-                    "과목과 로그인 정보가 필요합니다."
+                    "로그인 정보가 필요합니다."
             );
+        }
+
+        if (request.getSubject_id() != null
+                && request.getSubject_id() <= 0) {
+            throw new IllegalArgumentException("과목 번호가 올바르지 않습니다.");
         }
 
         if (!Set.of(
@@ -154,9 +158,8 @@ public class SelfStudyService {
             );
         }
 
-        if (selfStudyDao.selectSubject(
-                request.getSubject_id()
-        ) == null) {
+        if (request.getSubject_id() != null
+                && selfStudyDao.selectSubject(request.getSubject_id()) == null) {
 
             throw new IllegalArgumentException(
                     "존재하지 않는 과목입니다."
@@ -187,7 +190,18 @@ public class SelfStudyService {
         // 현재 포인트 차감 코드가 없으므로 차감도 없습니다.
         // -----------------------------------------------------
 
-        var generated = aiClient.generate(request, bytes);
+        List<Map<String, Object>> catalog = selfStudyDao.selectCategories().stream()
+                .map(category -> Map.<String, Object>of(
+                        "categoryId", category.getCategory_id(),
+                        "categoryName", category.getCategory_name(),
+                        "subjects", selfStudyDao.selectSubjects(category.getCategory_id()).stream()
+                                .map(subject -> Map.of(
+                                        "subjectId", subject.getSubject_id(),
+                                        "subjectName", subject.getSubject_name()))
+                                .toList()))
+                .toList();
+
+        var generated = aiClient.generate(request, bytes, catalog);
 
         // -----------------------------------------------------
         // 1-4. AI 생성 결과 검증
@@ -277,6 +291,74 @@ public class SelfStudyService {
             QuizGenerateResponseDto result =
                     transactions.execute(status -> {
 
+                String categoryName = normalizeTaxonomyName(generated.categoryName());
+                String subjectName = normalizeTaxonomyName(generated.subjectName());
+                if (categoryName.isBlank() || subjectName.isBlank()) {
+                    throw new IllegalStateException("AI가 카테고리와 과목을 분류하지 못했습니다.");
+                }
+
+                CategoryVO category = null;
+                SubjectVO subject;
+                if (request.getSubject_id() == null) {
+                    category = selfStudyDao.selectCategoryByName(categoryName);
+                    subject = category == null
+                            ? null
+                            : selfStudyDao.selectSubjectByName(
+                                    category.getCategory_id(), subjectName);
+                    if (subject == null) {
+                        subject = selfStudyDao.selectAnySubjectByName(subjectName);
+                        if (subject != null) {
+                            category = selfStudyDao.selectCategoryById(subject.getCategory_id());
+                        }
+                    }
+                } else {
+                    subject = selfStudyDao.selectSubject(request.getSubject_id());
+                    category = subject == null
+                            ? null
+                            : selfStudyDao.selectCategoryById(subject.getCategory_id());
+                }
+
+                if (subject != null && category == null) {
+                    throw new IllegalStateException("기존 과목의 카테고리를 조회하지 못했습니다.");
+                }
+
+                if (subject != null) {
+                    categoryName = category.getCategory_name();
+                    subjectName = subject.getSubject_name();
+                } else {
+                    category = selfStudyDao.selectCategoryByName(categoryName);
+                    if (category == null) {
+                        category = new CategoryVO();
+                        category.setCategory_name(categoryName);
+                        if (selfStudyDao.insertCategory(category) != 1) {
+                            throw new IllegalStateException("카테고리 자동 등록에 실패했습니다.");
+                        }
+                        category = selfStudyDao.selectCategoryByName(categoryName);
+                    }
+                    if (category == null) {
+                        throw new IllegalStateException("자동 등록한 카테고리를 조회하지 못했습니다.");
+                    }
+                }
+
+                if (subject == null) {
+                    subject = selfStudyDao.selectSubjectByName(
+                            category.getCategory_id(), subjectName);
+                }
+                if (subject == null) {
+                    subject = new SubjectVO();
+                    subject.setCategory_id(category.getCategory_id());
+                    subject.setSubject_name(subjectName);
+                    if (selfStudyDao.insertSubject(subject) != 1) {
+                        throw new IllegalStateException("과목 자동 등록에 실패했습니다.");
+                    }
+                    subject = selfStudyDao.selectSubjectByName(
+                            category.getCategory_id(), subjectName);
+                }
+                if (subject == null) {
+                    throw new IllegalStateException("자동 등록한 과목을 조회하지 못했습니다.");
+                }
+                request.setSubject_id(subject.getSubject_id());
+
                 // 세션 저장
                 QuizSessionVO session = new QuizSessionVO();
 
@@ -289,7 +371,7 @@ public class SelfStudyService {
                 );
 
                 session.setQuiz_image_url(
-                        "/quiz-images/" + filename
+                        "/imgfile/quiz/" + filename
                 );
 
                 session.setQuiz_type(
@@ -377,6 +459,10 @@ public class SelfStudyService {
                 // 모든 DB 저장이 성공해야 정상 반환
                 return new QuizGenerateResponseDto(
                         session.getQuiz_session_id(),
+                        category.getCategory_id(),
+                        category.getCategory_name(),
+                        subject.getSubject_id(),
+                        subject.getSubject_name(),
                         items
                 );
             });
@@ -407,6 +493,10 @@ public class SelfStudyService {
                     e
             );
         }
+    }
+
+    private String normalizeTaxonomyName(String value) {
+        return value == null ? "" : value.strip().replaceAll("\\s+", " ");
     }
 
     // =========================================================

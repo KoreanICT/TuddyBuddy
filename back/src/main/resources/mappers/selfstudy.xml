@@ -26,6 +26,44 @@
 
 	</select>
 
+	<select id="selectCategoryByName" resultType="categoryVO">
+		SELECT category_id, category_name, category_status
+		FROM categories
+		WHERE category_status = 'Y'
+		  AND UPPER(TRIM(category_name)) = UPPER(TRIM(#{categoryName}))
+	</select>
+
+	<select id="selectCategoryById" resultType="categoryVO">
+		SELECT category_id, category_name, category_status
+		FROM categories
+		WHERE category_id = #{categoryId}
+	</select>
+
+	<insert id="insertCategory" parameterType="categoryVO">
+		INSERT INTO categories (category_id, category_name, category_status)
+		VALUES (categories_seq.NEXTVAL, #{category_name}, 'Y')
+	</insert>
+
+	<select id="selectSubjectByName" resultType="subjectVO">
+		SELECT subject_id, category_id, subject_name, subject_status, usage_count, created_at
+		FROM subjects
+		WHERE category_id = #{categoryId}
+		  AND subject_status = 'Y'
+		  AND UPPER(TRIM(subject_name)) = UPPER(TRIM(#{subjectName}))
+	</select>
+
+	<select id="selectAnySubjectByName" resultType="subjectVO">
+		SELECT subject_id, category_id, subject_name, subject_status, usage_count, created_at
+		FROM subjects
+		WHERE UPPER(TRIM(subject_name)) = UPPER(TRIM(#{subjectName}))
+		  AND ROWNUM = 1
+	</select>
+
+	<insert id="insertSubject" parameterType="subjectVO">
+		INSERT INTO subjects (subject_id, category_id, subject_name, subject_status)
+		VALUES (subjects_seq.NEXTVAL, #{category_id}, #{subject_name}, 'Y')
+	</insert>
+
 
 	<!-- =====================================================
          Subject

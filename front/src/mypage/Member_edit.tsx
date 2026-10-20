@@ -1,14 +1,14 @@
+import { BACKEND_URL } from '../login/authHttp';
 
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { clearSession } from '../login/session';
 
 import './Member_edit.css';
 
 // 백엔드 서버 주소
-const API_URL =
-    process.env.REACT_APP_BACK_END_URL ||
-    'http://localhost:80/back';
+const API_URL = BACKEND_URL;
 
 // 회원정보 타입
 interface MemberVO {
@@ -171,7 +171,7 @@ const Member_edit: React.FC = () => {
             } catch (err) {
                 if (axios.isCancel(err)) return;
 
-                console.error('회원정보 조회 실패:', err);
+                console.error('회원정보 조회 실패:');
 
                 if (axios.isAxiosError(err)) {
                     if (err.response?.status === 401) {
@@ -296,7 +296,7 @@ const Member_edit: React.FC = () => {
             }
 
         } catch (err) {
-            console.error('닉네임 중복확인 오류:', err);
+            console.error('닉네임 중복확인 오류:');
             setCheckedNickname('');
             setNicknameMessage('닉네임 중복확인 중 오류가 발생했습니다.');
         } finally {
@@ -369,7 +369,7 @@ const Member_edit: React.FC = () => {
             }
 
         } catch (err) {
-            console.error('회원정보 수정 오류:', err);
+            console.error('회원정보 수정 오류:');
 
             if (axios.isAxiosError(err)) {
                 if (err.response?.status === 401) {
@@ -468,7 +468,9 @@ const Member_edit: React.FC = () => {
             );
 
             if (response.data.success === true) {
-                setPasswordMessage('비밀번호가 정상적으로 변경되었습니다.');
+                clearSession();
+                window.alert('비밀번호가 변경되었습니다. 새 비밀번호로 다시 로그인해주세요.');
+                navigate('/auth/member?redirect=%2Fauth%2Fmypage', { replace: true });
 
                 // 비밀번호 입력값 초기화
                 setPasswordData({
@@ -485,7 +487,6 @@ const Member_edit: React.FC = () => {
             }
 
         } catch (err) {
-            console.error('비밀번호 변경 오류:', err);
 
             if (axios.isAxiosError(err)) {
                 if (err.response?.status === 401) {

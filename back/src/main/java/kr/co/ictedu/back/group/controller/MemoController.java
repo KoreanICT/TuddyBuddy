@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -31,13 +32,12 @@ public class MemoController {
 	@ApiResponse(responseCode = "200", description = "메모 데이터 저장 성공")
 	@ApiResponse(responseCode = "500", description = "메모 데이터 저장 실패")
 	@PostMapping("/addMemo/{groupNum}")
-	public ResponseEntity<MemoListDTO> addMemo(@PathVariable("groupNum") Long groupNum, @RequestBody MemoVO memovo) {
-		Long member_num = 1L;
+	public ResponseEntity<MemoListDTO> addMemo(@RequestHeader("memberNum") Long memberNum, @PathVariable("groupNum") Long groupNum, @RequestBody MemoVO memovo) {
 		
 		memovo.setGroup_num(groupNum);
-		memovo.setMember_num(member_num);
+		memovo.setMember_num(memberNum);
 		
-		MemoListDTO savedMemo = service.addMemo(memovo, member_num);
+		MemoListDTO savedMemo = service.addMemo(memovo, memberNum);
 		
 		return ResponseEntity.ok(savedMemo);
 	}
@@ -46,7 +46,7 @@ public class MemoController {
 	@ApiResponse(responseCode = "200", description = "메모 리스트 조회 성공")
 	@ApiResponse(responseCode = "500", description = "메모 리스트 조회 실패")
 	@GetMapping("/getMemos/{groupNum}")
-	public ResponseEntity<List<MemoListDTO>> getMemos(@PathVariable("groupNum") Long groupNum) {
+	public ResponseEntity<List<MemoListDTO>> getMemos(@RequestHeader("memberNum") Long memberNum, @PathVariable("groupNum") Long groupNum) {
 		Long member_num = 1L;
 		List<MemoListDTO> list = service.getMemos(groupNum, member_num);
 		return ResponseEntity.ok(list);
@@ -56,8 +56,7 @@ public class MemoController {
 	@ApiResponse(responseCode = "200", description = "메모 내용 수정 성공")
 	@ApiResponse(responseCode = "500", description = "메모 내용 수정 실패")
 	@PatchMapping("/patchMemo/{memoNum}")
-	public ResponseEntity<String> patchMemo(@PathVariable("memoNum") Long memoNum, @RequestBody MemoVO memovo) {
-		Long member_num = 1L;
+	public ResponseEntity<String> patchMemo(@RequestHeader("memberNum") Long memberNum, @PathVariable("memoNum") Long memoNum, @RequestBody MemoVO memovo) {
 		service.patchMemo(memoNum, memovo);
 		return ResponseEntity.ok("수정 완료");
 	}
@@ -66,7 +65,7 @@ public class MemoController {
 	@ApiResponse(responseCode = "200", description = "메모 데이터 삭제 성공")
 	@ApiResponse(responseCode = "500", description = "메모 데이터 삭제 실패")
 	@DeleteMapping("/deleteMemo/{memoNum}")
-	public ResponseEntity<String> deleteMemo(@PathVariable("memoNum") Long memoNum) {
+	public ResponseEntity<String> deleteMemo(@RequestHeader("memberNum") Long memberNum, @PathVariable("memoNum") Long memoNum) {
 		service.deleteMemo(memoNum);
 		return ResponseEntity.ok("삭제 완료");
 	}

@@ -4,7 +4,9 @@ import { User, UserPlus, Plus, X, Flag, Bot } from 'lucide-react';
 
 import styles from './floatingButton.module.css';
 import ChatBot from '../../cont/chatbot/ChatBot';
-import FocusButton from '../../cont/focusButton/FocusButton';
+import RoleGate from '../../login/auth/RoleGate';
+import { ROLE_ACCESS } from '../../login/auth/roles';
+import ReportButton from '../../cont/report/ReportButton';
 
 const FloatingButton: React.FC = () => {
 
@@ -25,8 +27,7 @@ const FloatingButton: React.FC = () => {
 
     // 마이페이지 이동
     const moveMyPage = () => {
-        // TODO: 마이페이지 완성 후 경로 변경
-        navigate('/auth/member');
+        navigate('/auth/mypage');
         setOpen(false);
     };
 
@@ -36,33 +37,13 @@ const FloatingButton: React.FC = () => {
         setOpen(false);
     };
 
-    const moveReportCreate = () => {
-        navigate('/reportCreate');
-        setOpen(false);
-    };
-
     return (
         <div className={styles.floatingWrapper}>
 
             {/* 펼쳐지는 메뉴 */}
+            <RoleGate allowedRoles={ROLE_ACCESS.member}>
             {open && (
                 <div className={styles.floatingMenu}>
-
-                    {/* 챗봇 */}
-                    <button
-                        type="button"
-                        className={styles.menuButton}
-                        onClick={openChatBot}
-                    >
-                        <span className={styles.menuIcon}>
-                            <Bot size={22} />
-                        </span>
-
-                        <span>
-                            버디봇
-                        </span>
-                    </button>
-
 
                     {/* 마이페이지 */}
                     <button
@@ -93,10 +74,10 @@ const FloatingButton: React.FC = () => {
                             친구 추가
                         </span>
                     </button>
-                    <button
-                        type="button"
+                    <ReportButton
+                        type="report" targetNum={0}
                         className={styles.menuButton}
-                        onClick={moveReportCreate}
+                        onClick={() => setOpen(false)}
                     >
                         <span className={styles.menuIcon}>
                             <Flag size={18} />
@@ -105,10 +86,11 @@ const FloatingButton: React.FC = () => {
                         <span>
                             신고하기
                         </span>
-                    </button>
+                    </ReportButton>
 
                 </div>
             )}
+            </RoleGate>
 
             {/* 챗봇 */}
             {chatOpen && (
@@ -116,13 +98,27 @@ const FloatingButton: React.FC = () => {
                     onClose={() => setChatOpen(false)} />
             )}
 
+            {/* 비회원도 사용할 수 있는 독립 챗봇 버튼 */}
+            <button
+                type="button"
+                className={`${styles.floatingButton} ${styles.chatButton}`}
+                onClick={openChatBot}
+                aria-label="버디봇 열기"
+                aria-haspopup="dialog"
+                aria-expanded={chatOpen}
+                title="버디봇"
+            >
+                <Bot />
+            </button>
 
-            {/* 메인 플로팅 버튼 */}
+            {/* 회원 전용 메뉴는 챗봇 바로 아래에 표시합니다. */}
+            <RoleGate allowedRoles={ROLE_ACCESS.member}>
             <button
                 type="button"
                 className={`${styles.floatingButton} ${open ? styles.open : ''
                     }`}
                 onClick={toggleMenu}
+                aria-expanded={open}
                 aria-label={
                     open
                         ? '플로팅 메뉴 닫기'
@@ -134,6 +130,7 @@ const FloatingButton: React.FC = () => {
                     : <Plus />
                 }
             </button>
+            </RoleGate>
 
         </div>
     );

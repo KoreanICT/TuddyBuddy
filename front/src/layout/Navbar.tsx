@@ -2,6 +2,8 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import styles from './navbar.module.css';
 import UserMenu from './UserMenu';
+import RoleGate from '../login/auth/RoleGate';
+import { ROLE_ACCESS } from '../login/auth/roles';
 
 const Navbar: React.FC = () => {
     // NavLink의 isActive를 이용해서 현재 활성화된 메뉴에 active 클래스 추가
@@ -27,7 +29,7 @@ const Navbar: React.FC = () => {
                     {/* Navigation */}
                     <ul className={styles.menu}>
                         <li>
-                            <NavLink to="/" className={linkClass}>
+                            <NavLink to="/" end className={linkClass}>
                                 홈
                             </NavLink>
                         </li>
@@ -42,7 +44,13 @@ const Navbar: React.FC = () => {
                                 커뮤니티
                             </NavLink>
                         </li>
+                        <li>
+                            <NavLink to="/education-news" className={linkClass}>
+                                교육 뉴스
+                            </NavLink>
+                        </li>
 
+                        <RoleGate allowedRoles={ROLE_ACCESS.member}>
                         <li>
                             <NavLink to="/group" className={linkClass}>
                                 스터디룸
@@ -50,7 +58,7 @@ const Navbar: React.FC = () => {
                         </li>
 
                         <li>
-                            <NavLink to="/SelfStudy" className={linkClass}>
+                            <NavLink to="/selfStudy" className={linkClass}>
                                 개인 스터디
                             </NavLink>
                         </li>
@@ -60,6 +68,7 @@ const Navbar: React.FC = () => {
                                 평가분석
                             </NavLink>
                         </li>
+                        </RoleGate>
                     </ul>
 
                     {/* User */}
