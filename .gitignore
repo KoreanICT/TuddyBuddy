@@ -8,6 +8,9 @@ back/.idea/
 back/*.iml
 .vscode/
 
+# Local Codex settings
+/.codex/
+
 # React
 front/node_modules/
 front/build/

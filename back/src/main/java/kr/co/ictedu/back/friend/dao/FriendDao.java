@@ -33,6 +33,8 @@ public interface FriendDao {
     // 친구 요청 거절
     int reject(@Param("num") Long num, @Param("response_num") Long response_num);
 
+    int cancel(@Param("num") Long num, @Param("request_num") Long request_num);
+
     // 친구 목록
     List<FriendVO> friendList(Long member_num);
 

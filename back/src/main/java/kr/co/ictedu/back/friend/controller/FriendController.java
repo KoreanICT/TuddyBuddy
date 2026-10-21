@@ -193,6 +193,18 @@ public class FriendController {
         return friendService.friendList(getLoginMemberNum(authentication));
     }
 
+    @Operation(summary = "보낸 친구 요청 취소", description = "로그인 회원이 보낸 대기 중 요청만 취소합니다.")
+    @DeleteMapping("/friendCancel")
+    public ResponseEntity<?> friendCancel(@RequestParam("num") Long num, Authentication authentication) {
+        Long memberNum = getLoginMemberNum(authentication);
+        try {
+            friendService.cancel(num, memberNum);
+            return ResponseEntity.ok("친구 요청을 취소했습니다.");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+        }
+    }
+
     // 친구 삭제
     @Operation(
         summary = "친구 삭제",

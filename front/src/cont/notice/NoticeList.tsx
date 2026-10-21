@@ -2,11 +2,12 @@
 
 import axios from 'axios';
 import { useAuth } from '../../login/hooks/useAuth';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, ChevronLeft, ChevronRight, Megaphone } from 'lucide-react';
 
 import styles from './noticeList.module.css';
+import FaqModal from '../modal/FaqModal';
 
 interface NoticeVO {
     num: number;
@@ -52,10 +53,15 @@ const NoticeList: React.FC = () => {
     const [searchField, setSearchField] = useState('1');
     const [searchKeyword, setSearchKeyword] = useState('');
     const [loading, setLoading] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
+    const requestVersion = useRef(0);
+    const [isFaqOpen, setIsFaqOpen] = useState(false);
 
     // 공지사항 목록 조회
     const fetchNoticeList = useCallback(async () => {
+        const version = ++requestVersion.current;
         setLoading(true);
+        setErrorMessage('');
 
         try {
             const urls = "http://localhost:80/back/api/notice/noticeList";
@@ -64,6 +70,7 @@ const NoticeList: React.FC = () => {
                 params: { cPage, searchType: searchField, searchValue: searchKeyword }
             });
 
+            if (version !== requestVersion.current) return;
             setNotices(response.data.data || []);
             setTotalCount(response.data.totalItems || 0);
             setPage({
@@ -72,17 +79,20 @@ const NoticeList: React.FC = () => {
                 endPage: response.data.endPage || 1
             });
         } catch (error) {
+            if (version !== requestVersion.current) return;
             console.error('공지사항 목록 조회 실패:', error);
+            setErrorMessage('공지사항을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.');
             setNotices([]);
             setTotalCount(0);
             setPage({ totalPage: 1, startPage: 1, endPage: 1 });
         } finally {
-            setLoading(false);
+            if (version === requestVersion.current) setLoading(false);
         }
     }, [cPage, searchField, searchKeyword, getAuthHeaders]);
 
     useEffect(() => {
-        fetchNoticeList();
+        void fetchNoticeList();
+        return () => { requestVersion.current += 1; };
     }, [fetchNoticeList]);
 
     // 검색
@@ -118,6 +128,8 @@ const NoticeList: React.FC = () => {
                     </div>
                     <h1>공지사항</h1>
                     <p>TuddyBuddy의 새로운 소식과 주요 안내사항을 확인하세요.</p>
+                    <button type="button" className={styles.faqButton} aria-haspopup="dialog"
+                        onClick={() => setIsFaqOpen(true)}>자주 묻는 질문</button>
                 </div>
 
                 {/* Search */}
@@ -133,7 +145,7 @@ const NoticeList: React.FC = () => {
                 {/* Notice List */}
                 <div className={styles.tableBox}>
                     <div className={styles.tableHeader}>
-                        <span>전체 <strong>{totalCount}</strong>건</span>
+                        <span>{errorMessage ? '조회 실패' : <>전체 <strong>{totalCount}</strong>건</>}</span>
                     </div>
 
                     <table className={styles.table}>
@@ -147,8 +159,16 @@ const NoticeList: React.FC = () => {
                         <tbody>
                             {loading ? (
                                 <tr><td colSpan={3} className={styles.empty}>공지사항을 불러오는 중입니다.</td></tr>
+                            ) : errorMessage ? (
+                                <tr><td colSpan={3} className={styles.empty}>
+                                    <div role="alert">{errorMessage}</div>
+                                    <button type="button" className={styles.retryButton}
+                                        onClick={() => void fetchNoticeList()}>다시 시도</button>
+                                </td></tr>
                             ) : notices.length === 0 ? (
-                                <tr><td colSpan={3} className={styles.empty}>등록된 공지사항이 없습니다.</td></tr>
+                                <tr><td colSpan={3} className={styles.empty}>
+                                    {searchKeyword ? '검색 결과가 없습니다.' : '등록된 공지사항이 없습니다.'}
+                                </td></tr>
                             ) : (
                                 notices.map(notice => (
                                     <tr key={notice.num} onClick={() => navigate(`/notice/${notice.num}`)} className={styles.noticeRow}>
@@ -163,7 +183,7 @@ const NoticeList: React.FC = () => {
                 </div>
 
                 {/* Pagination */}
-                <div className={styles.pagination}>
+                {!errorMessage && !loading && totalCount > 0 && <div className={styles.pagination}>
                     <button type="button" disabled={cPage <= 1} onClick={() => setCPage(cPage - 1)}>
                         <ChevronLeft size={18} />
                     </button>
@@ -177,8 +197,9 @@ const NoticeList: React.FC = () => {
                     <button type="button" disabled={cPage >= page.totalPage} onClick={() => setCPage(cPage + 1)}>
                         <ChevronRight size={18} />
                     </button>
-                </div>
+                </div>}
             </div>
+            {isFaqOpen && <FaqModal onClose={() => setIsFaqOpen(false)} />}
         </div>
     );
 };

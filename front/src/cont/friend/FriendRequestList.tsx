@@ -2,12 +2,13 @@
  // 주용현
 
 import axios from 'axios';
-import React, { useCallback, useEffect, useState } from 'react';
-import { UserRound, UserCheck, UserX, Users } from 'lucide-react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { UserCheck, UserX, Users } from 'lucide-react';
 
 import styles from './friendRequestList.module.css';
 import { useAuth } from '../../login/hooks/useAuth';
 import FriendMenu from './FriendMenu';
+import ProfileCard from '../profile/ProfileCard';
 
 interface FriendVO {
     num: number;
@@ -16,11 +17,14 @@ interface FriendVO {
     responsed_date: string | null;
     request_num: number;
     response_num: number;
+    counterpart_nick: string | null;
 }
 
 const FriendRequestList: React.FC = () => {
     const [requests, setRequests] = useState<FriendVO[]>([]);
     const { memberNum, token } = useAuth();
+    const processingRef = useRef(false);
+    const [processing, setProcessing] = useState<number | null>(null);
 
     const getAuthHeaders = useCallback(() => ({
         ...(token ? { Authorization: `Bearer ${token}` } : {})
@@ -54,11 +58,14 @@ const FriendRequestList: React.FC = () => {
 
     // 친구 요청 수락
     const handleAccept = async (friendNum: number) => {
+        if (processingRef.current) return;
         if (!token || memberNum == null) {
             alert('로그인 정보가 없습니다.');
             return;
         }
 
+        processingRef.current = true;
+        setProcessing(friendNum);
         try {
             const urls = "http://localhost:80/back/api/friend/friendAccept";
 
@@ -75,11 +82,16 @@ const FriendRequestList: React.FC = () => {
         } catch (error) {
             console.error('친구 요청 수락 실패:', error);
             alert('친구 요청 수락에 실패했습니다.');
+            await fetchRequestList();
+        } finally {
+            processingRef.current = false;
+            setProcessing(null);
         }
     };
 
     // 친구 요청 거절
     const handleReject = async (friendNum: number) => {
+        if (processingRef.current) return;
         if (!token || memberNum == null) {
             alert('로그인 정보가 없습니다.');
             return;
@@ -88,6 +100,8 @@ const FriendRequestList: React.FC = () => {
         const confirmed = window.confirm('친구 요청을 거절하시겠습니까?');
         if (!confirmed) return;
 
+        processingRef.current = true;
+        setProcessing(friendNum);
         try {
             const urls = "http://localhost:80/back/api/friend/friendReject";
 
@@ -104,6 +118,10 @@ const FriendRequestList: React.FC = () => {
         } catch (error) {
             console.error('친구 요청 거절 실패:', error);
             alert('친구 요청 거절에 실패했습니다.');
+            await fetchRequestList();
+        } finally {
+            processingRef.current = false;
+            setProcessing(null);
         }
     };
 
@@ -142,16 +160,13 @@ const FriendRequestList: React.FC = () => {
                         requests.map(request => (
                             <div key={request.num} className={styles.request}>
                                 <div className={styles.profile}>
-                                    <div className={styles.profileImage}>
-                                        <UserRound size={25} />
-                                    </div>
+                                    {request.counterpart_nick
+                                        ? <ProfileCard memberNum={request.request_num} />
+                                        : <div className={styles.profileImage} aria-hidden="true">?</div>}
 
                                     <div className={styles.info}>
-                                        {/* TODO: 회원 정보 API 연결 후 loginId 출력 */}
-                                        <strong>회원 #{request.request_num}</strong>
-
-                                        {/* TODO: 회원 정보 API 연결 후 name 출력 */}
-                                        <span>친구 요청</span>
+                                        <strong>{request.counterpart_nick || '탈퇴한 회원'}</strong>
+                                        <span>요청일 {request.requested_date}</span>
                                     </div>
                                 </div>
 
@@ -159,6 +174,7 @@ const FriendRequestList: React.FC = () => {
                                     <button
                                         type="button"
                                         className={styles.acceptButton}
+                                        disabled={processing !== null}
                                         onClick={() => handleAccept(request.num)}
                                     >
                                         <UserCheck size={16} />
@@ -168,6 +184,7 @@ const FriendRequestList: React.FC = () => {
                                     <button
                                         type="button"
                                         className={styles.rejectButton}
+                                        disabled={processing !== null}
                                         onClick={() => handleReject(request.num)}
                                     >
                                         <UserX size={16} />
