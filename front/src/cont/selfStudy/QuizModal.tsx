@@ -34,6 +34,7 @@ interface QuizModalProps {
   setSelectedCategoryId: (value: number | null) => void;
   selectedSubjectId: number | null;
   setSelectedSubjectId: (value: number | null) => void;
+  pointCost: number;
 
 }
 
@@ -60,6 +61,7 @@ export const QuizModal: React.FC<QuizModalProps> = ({
   setSelectedCategoryId,
   selectedSubjectId,
   setSelectedSubjectId,
+  pointCost,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -306,6 +308,10 @@ export const QuizModal: React.FC<QuizModalProps> = ({
               }
             />
           </div>
+
+          <p className={styles.pointCostNotice}>
+            문제 생성과 저장이 완료되면 1회당 {pointCost.toLocaleString()}P가 차감됩니다.
+          </p>
         </div>
 
         {/* 모달 하단 */}
@@ -333,7 +339,7 @@ export const QuizModal: React.FC<QuizModalProps> = ({
             )}
             {loading
               ? 'AI가 문제를 생성하는 중...'
-              : '문제 생성 시작'}
+              : `${pointCost.toLocaleString()}P로 문제 생성`}
           </button>
         </div>
       </div>

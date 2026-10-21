@@ -12,11 +12,13 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.web.server.ResponseStatusException;
 
 import kr.co.ictedu.back.selfstudy.dao.SelfStudyDao;
 import kr.co.ictedu.back.selfstudy.dto.QuizGenerateRequestDto;
@@ -28,6 +30,7 @@ import kr.co.ictedu.back.selfstudy.vo.QuizSessionVO;
 import kr.co.ictedu.back.selfstudy.vo.QuizVO;
 import kr.co.ictedu.back.selfstudy.vo.SelfStudyResultVO;
 import kr.co.ictedu.back.selfstudy.vo.SubjectVO;
+import kr.co.ictedu.back.point.service.PointService;
 import tools.jackson.databind.json.JsonMapper;
 
 //AI 문제 생성과 기존 호출 메서드 연결
@@ -35,8 +38,12 @@ import tools.jackson.databind.json.JsonMapper;
 @Transactional(readOnly = true)
 public class SelfStudyService {
 
+    private static final long QUIZ_GENERATION_POINT_COST = 1_000L;
+    private static final String QUIZ_GENERATION_POINT_DESCRIPTION = "셀프스터디 AI 문제 생성";
+
     private final SelfStudyDao selfStudyDao;
     private final QuizAiClient aiClient;
+    private final PointService pointService;
     private final TransactionTemplate transactions;
     private final JsonMapper json;
     private final Path imageDirectory;
@@ -47,6 +54,7 @@ public class SelfStudyService {
     public SelfStudyService(
             SelfStudyDao selfStudyDao,
             QuizAiClient aiClient,
+            PointService pointService,
             PlatformTransactionManager transactionManager,
             JsonMapper json,
             @Value("${quiz.image.directory:./upload/quiz}") String directory,
@@ -57,6 +65,7 @@ public class SelfStudyService {
     ) {
         this.selfStudyDao = selfStudyDao;
         this.aiClient = aiClient;
+        this.pointService = pointService;
         this.transactions = new TransactionTemplate(transactionManager);
         this.json = json;
         this.imageDirectory = Path.of(directory).toAbsolutePath().normalize();
@@ -237,6 +246,12 @@ public class SelfStudyService {
                 if (categoryName.isBlank() || subjectName.isBlank()) {
                     throw new IllegalStateException("AI가 카테고리와 과목을 분류하지 못했습니다.");
                 }
+
+                // AI 생성과 응답 검증이 끝난 뒤에만 과금하고, 퀴즈 저장과 같은 트랜잭션으로 처리합니다.
+                pointService.usePoint(
+                        request.getMember_num(),
+                        QUIZ_GENERATION_POINT_COST,
+                        QUIZ_GENERATION_POINT_DESCRIPTION);
 
                 CategoryVO category = null;
                 SubjectVO subject;
@@ -428,6 +443,13 @@ public class SelfStudyService {
                 e.addSuppressed(cleanup);
             }
 
+            if (hasInsufficientPointCause(e)) {
+                throw new ResponseStatusException(
+                        HttpStatus.PAYMENT_REQUIRED,
+                        "포인트 잔액이 부족합니다.",
+                        e);
+            }
+
             throw new IllegalStateException(
                     "문제 생성 결과 저장에 실패했습니다. "
                     + "다시 시도해주세요.",
@@ -439,6 +461,16 @@ public class SelfStudyService {
     private String normalizeTaxonomyName(String value) {
         return value == null ? "" : value.strip().replaceAll("\\s+", " ");
     }
+
+    private boolean hasInsufficientPointCause(Throwable error) {
+        for (Throwable cause = error; cause != null; cause = cause.getCause()) {
+            if ("포인트 잔액이 부족합니다.".equals(cause.getMessage())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     @Transactional
     public QuizSessionVO saveQuizSession(
             QuizSessionVO session
