@@ -44,7 +44,15 @@ public class MemberService {
 	}
 
 	// 일반 회원가입
+	@Transactional
 	public void create(MemberVO vo) {
+		create(vo, null);
+	}
+
+	// 회원 저장과 추천인 보상은 동일 트랜잭션으로 처리합니다.
+	@Transactional
+	public void create(MemberVO vo, String referralCode) {
+		String referrerCode = validateReferralCode(referralCode);
 		vo.setAuthority(MemberRoles.MEMBER);
 
 		System.out.println("1");
@@ -64,12 +72,10 @@ public class MemberService {
 		String memberCode = UUID.randomUUID().toString();
 		vo.setMember_code(memberCode);
 
-		System.out.println("생성된 회원코드 : " + memberCode);
-		
 		memberDao.insertMember(vo);
 		
-		//김진규 : 추천인코드 검증 후 1000point지급
-		pointService.addReferralReward(vo.getMember_code(), "작동 테스트");
+		// 입력한 기존 추천인의 코드로만 지급합니다. 본인의 새 코드를 전달하지 않습니다.
+		pointService.addReferralReward(referrerCode, "회원가입 추천인 보상");
 
 		System.out.println("5");
 	}
@@ -77,6 +83,13 @@ public class MemberService {
 	// 카카오 회원가입
 	@Transactional
 	public MemberVO createKakaoMember(String kakaoId, String email, String name, String nick, String phone) {
+		return createKakaoMember(kakaoId, email, name, nick, phone, null);
+	}
+
+	@Transactional
+	public MemberVO createKakaoMember(String kakaoId, String email, String name, String nick, String phone,
+			String referralCode) {
+		String referrerCode = validateReferralCode(referralCode);
 
 		// 필수 정보 검사
 		if (kakaoId == null || kakaoId.isBlank()) {
@@ -162,8 +175,7 @@ public class MemberService {
 		// Oracle 저장
 		memberDao.insertKakaoMember(vo);
 		
-		//김진규 : 추천인코드 검증 후 1000point지급
-		pointService.addReferralReward(vo.getMember_code(), "작동 테스트");
+		pointService.addReferralReward(referrerCode, "회원가입 추천인 보상");
 		
 		// 저장된 회원정보 재조회
 		MemberVO savedMember = memberDao.findBySocialLogin("KAKAO", kakaoId);
@@ -175,6 +187,16 @@ public class MemberService {
 		System.out.println("===== 카카오 회원가입 완료 =====");
 
 		return savedMember;
+	}
+
+	/** 선택 입력은 null로 통일하고, 신규 회원 저장 전에 기존 추천인인지 확인합니다. */
+	public String validateReferralCode(String referralCode) {
+		if (referralCode == null || referralCode.isBlank()) return null;
+		String normalized = referralCode.trim();
+		if (normalized.length() > 100 || memberDao.findByMemberCode(normalized) == null) {
+			throw new IllegalArgumentException("존재하지 않는 추천인 코드입니다.");
+		}
+		return normalized;
 	}
 
 	// 일반 회원 비밀번호 변경

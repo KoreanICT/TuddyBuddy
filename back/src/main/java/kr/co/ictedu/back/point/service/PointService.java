@@ -173,12 +173,10 @@ public class PointService {
 		return memberNum;
 	}
 
-	//역할: 추천인 코드 미입력을 허용하고, 입력된 코드는 공백 여부를 검증한 뒤 앞뒤 공백 제거
+	// 선택 입력이므로 null·빈 문자열·공백은 모두 추천인 없음으로 처리합니다.
 	private String validateReferralCode(String referralCode) {
-		if (referralCode == null) {
+		if (referralCode == null || referralCode.isBlank()) {
 			return null;
-		} else if (referralCode.isBlank()) {
-			throw new IllegalArgumentException("추천인 코드를 입력해야 합니다.");
 		}
 		return referralCode.trim();
 	}

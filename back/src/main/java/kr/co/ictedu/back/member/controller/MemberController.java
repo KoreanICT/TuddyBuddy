@@ -32,6 +32,7 @@ import kr.co.ictedu.back.member.service.LoginLogService;
 import kr.co.ictedu.back.member.service.MemberService;
 import kr.co.ictedu.back.member.service.MemberService.PasswordChangeResult;
 import kr.co.ictedu.back.member.vo.MemberVO;
+import kr.co.ictedu.back.member.dto.SignupRequest;
 import kr.co.ictedu.back.securityauth.AuthCookies;
 import kr.co.ictedu.back.securityauth.MemberRoles;
 
@@ -65,17 +66,15 @@ public class MemberController {
 
     // 일반 회원가입
     @PostMapping("/signup")
-    public ResponseEntity<?> memberjoin(@RequestBody MemberVO memberDTO) {
-
-        System.out.println("회원가입 요청 들어옴");
-        System.out.println("email = " + memberDTO.getMember_email());
-        System.out.println("nick = " + memberDTO.getMember_nick());
-
-        memberDTO.setAuthority(MemberRoles.MEMBER);
-
-        memberService.create(memberDTO);
-
-        return ResponseEntity.ok("회원가입이 완료되었습니다.");
+    public ResponseEntity<?> memberjoin(@RequestBody SignupRequest request) {
+        try {
+            memberService.create(request.toMember(), request.getReferral_code());
+            return ResponseEntity.ok("회원가입이 완료되었습니다.");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
+        } catch (DataIntegrityViolationException e) {
+            return ResponseEntity.status(409).body(Map.of("success", false, "message", "이미 사용 중인 정보이거나 저장 조건에 맞지 않습니다."));
+        }
     }
 
     // 이메일 중복 확인
