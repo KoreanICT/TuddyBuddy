@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import kr.co.ictedu.back.member.dao.MemberDAO;
 import kr.co.ictedu.back.member.vo.MemberVO;
+import kr.co.ictedu.back.point.service.PointService;
 
 @Service
 public class MemberService {
@@ -32,6 +33,9 @@ public class MemberService {
 
 	@Autowired
 	private RefreshTokenService refreshTokens;
+	
+	@Autowired
+	private PointService pointService;
 
 	// 비밀번호 변경 결과
 	public enum PasswordChangeResult {
@@ -54,7 +58,7 @@ public class MemberService {
 		}
 
 		System.out.println("4");
-
+		
 		vo.setMember_pwd(passwordEncoder.encode(vo.getMember_pwd()));
 
 		String memberCode = UUID.randomUUID().toString();
@@ -63,6 +67,9 @@ public class MemberService {
 		System.out.println("생성된 회원코드 : " + memberCode);
 		
 		memberDao.insertMember(vo);
+		
+		//김진규 : 추천인코드 검증 후 1000point지급
+		pointService.addReferralReward(vo.getMember_code(), "작동 테스트");
 
 		System.out.println("5");
 	}
@@ -132,7 +139,7 @@ public class MemberService {
 		if (memberDao.countByNick(normalizedNick) > 0) {
 			throw new IllegalArgumentException("이미 사용 중인 닉네임입니다.");
 		}
-
+		
 		// 카카오 회원정보 생성
 		MemberVO vo = new MemberVO();
 
@@ -154,10 +161,13 @@ public class MemberService {
 
 		// Oracle 저장
 		memberDao.insertKakaoMember(vo);
-
+		
+		//김진규 : 추천인코드 검증 후 1000point지급
+		pointService.addReferralReward(vo.getMember_code(), "작동 테스트");
+		
 		// 저장된 회원정보 재조회
 		MemberVO savedMember = memberDao.findBySocialLogin("KAKAO", kakaoId);
-
+		
 		if (savedMember == null) {
 			throw new IllegalStateException("카카오 회원정보 저장 후 조회에 실패했습니다.");
 		}
