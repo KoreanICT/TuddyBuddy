@@ -50,6 +50,7 @@ const KakaoSignup: React.FC = () => {
     const [name, setName] = useState(kakaoProfile?.name ?? '');
     const [nick, setNick] = useState(kakaoProfile?.nickname ?? '');
     const [phone, setPhone] = useState(kakaoProfile?.phone ?? '');
+    const [referralCode, setReferralCode] = useState('');
 
     // 이메일 인증
     const [emailCode, setEmailCode] = useState('');
@@ -337,6 +338,7 @@ const KakaoSignup: React.FC = () => {
                     name: name.trim(),
                     nick: nick.trim(),
                     phone: phone.trim(),
+                    referral_code: referralCode.trim(),
                     termsAgree,
                     privacyAgree,
                     marketingAgree
@@ -578,6 +580,19 @@ const KakaoSignup: React.FC = () => {
                             disabled={signupLoading}
                             className={styles.phoneInput}
                             required
+                        />
+                    </div>
+
+                    {/* 추천인 코드 (선택) */}
+                    <div className="signup-input-group">
+                        <label htmlFor="kakao-referral-code">추천인 코드 (선택)</label>
+                        <input
+                            id="kakao-referral-code"
+                            type="text"
+                            placeholder="추천인 코드를 입력해주세요"
+                            value={referralCode}
+                            onChange={(e) => setReferralCode(e.target.value)}
+                            disabled={signupLoading}
                         />
                     </div>
 
