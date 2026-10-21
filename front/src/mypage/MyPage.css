@@ -118,6 +118,78 @@
 
 .mypage-page .profile-info {
   min-width: 0;
+  flex: 1;
+}
+
+.mypage-page .profile-heading {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin-bottom: 6px;
+}
+
+.mypage-page .profile-heading h3 {
+  margin: 0;
+}
+
+.mypage-page .profile-referral {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  max-width: 100%;
+}
+
+.mypage-page .profile-referral label {
+  color: #737c94;
+  font-size: 12px;
+}
+
+.mypage-page .profile-referral input {
+  width: 290px;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border: 1px solid #e1e4f5;
+  border-radius: 8px;
+  background: #fff;
+  color: #5146b8;
+  font-family: ui-monospace, monospace;
+  font-size: 12px;
+}
+
+.mypage-page .profile-referral button {
+  padding: 8px 10px;
+  border: 1px solid #dcdff2;
+  border-radius: 8px;
+  background: #eeedff;
+  color: #4338ca;
+  font: inherit;
+  font-size: 12px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.mypage-page .profile-referral button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.mypage-page .profile-referral :focus-visible {
+  outline: 2px solid #7168ee;
+  outline-offset: 2px;
+}
+
+.mypage-page .profile-info .profile-referral-message {
+  margin-top: 8px;
+  color: #5146b8;
+  font-size: 12px;
+}
+
+.mypage-page .profile-referral-message:empty {
+  display: none;
 }
 
 .mypage-page .profile-info h3 {
