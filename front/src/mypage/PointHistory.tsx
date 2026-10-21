@@ -11,9 +11,9 @@ const PointHistory: React.FC<PointHistoryProps> = ({ embedded = false }) => {
   return (
     <section className={`point-history-page${embedded ? ' point-history-embedded' : ''}`} aria-label="포인트 내역">
       <div className="point-history-container">
-        <div className="point-history-header">
+        {!embedded && <div className="point-history-header">
           <Heading>포인트 내역</Heading>
-        </div>
+        </div>}
         <p className="point-history-unconnected">
           포인트 적립·사용 내역은 아직 연결되지 않았습니다.
         </p>
