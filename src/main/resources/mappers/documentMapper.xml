@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--작성자 : 오진석 -->
+<mapper namespace="kr.co.ictedu.back.group.dao.DocumentDao">
+
+	<insert id="addDocument" parameterType="documentvo">
+		INSERT INTO group_document (document_num, group_num, member_num, document_title, original_name, stored_name, 
+		document_path, document_type, document_size, hit, created_at)
+		VALUES (gdocument_seq.nextVal, #{group_num}, #{member_num}, #{document_title}, #{original_name}, #{stored_name},
+		#{document_path}, #{document_type}, #{document_size}, #{hit}, SYSDATE)
+	</insert>
+	
+	<select id="getDocuments" parameterType="documentvo" resultType="documentlistdto" >
+		SELECT d.document_num, d.document_title, m.member_nick, d.original_name, d.stored_name, d.document_path, d.document_type, d.document_size, d.hit, d.created_at, d.updated_at,
+		FN_GROUP_RESOURCE_PERMISSION(d.group_num, d.member_num, #{member_num}) AS can_manage
+		FROM group_document d JOIN member m ON d.member_num = m.member_num
+		WHERE d.group_num = #{group_num} 
+		ORDER BY d.created_at DESC
+	</select> 
+	
+	<select id="getDocumentById" resultType="documentvo">
+		SELECT document_num, group_num, member_num, document_title, original_name, stored_name, document_path, document_type, document_size, hit
+		FROM group_document 
+		WHERE document_num = #{document_num}
+	</select>
+	
+	<select id="getPatchDocument" parameterType="long" resultType="documentvo">
+		SELECT document_title, original_name FROM group_document 
+		WHERE document_num = #{document_num}
+	</select>
+	
+	<update id="increaseHit">
+		UPDATE group_document
+		SET hit = NVL(hit, 0) + 1
+		WHERE document_num = #{document_num}
+	</update>
+	
+	<update id="patchDocument" >
+		UPDATE group_document SET updated_at = SYSDATE, document_title = #{request.document_title}
+        <if test="request.document_path != null">
+            , original_name = #{request.original_name}, stored_name = #{request.stored_name}, document_path = #{request.document_path}, document_type = #{request.document_type}, document_size = #{request.document_size}
+        </if>
+    	WHERE document_num = #{document_num}
+	</update>
+	
+	<delete id="deleteDocument" parameterType="long">
+		DELETE FROM group_document WHERE document_num = #{document_num}
+	</delete>
+</mapper>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.ictedu.back.notification.dao.NotificationDao">
+
+	<insert id="insertNotification" parameterType="notificationdto">
+		INSERT INTO notification (notification_num, member_num, category, title, message, target_url, is_checked, created_at)
+		VALUES (notifiaction_seq.nextVal, #{member_num}, #{category}, #{title}, #{message}, #{target_url}, 0, SYSDATE)
+	</insert>
+	
+	<select id="getNotifications" resultType="notificationdto">
+		SELECT notification_num, category, title, message, target_url, created_at
+		FROM notification WHERE member_num = #{member_num}
+	</select>
+	
+	<select id="getUnreadNotifications">
+		SELECT notification_num, category, title, message, target_url, created_at
+		FROM notification WHERE member_num = #{member_num} AND is_checked = 0
+		ORDER BY created_at DESC
+	</select>
+	
+	<update id="readNotification">
+		UPDATE notification SET is_checked = 1
+		WHERE member_num = #{member_num} AND notification_num = #{notification_num}
+	</update>
+	
+	<update id="readAll">
+		UPDATE notification SET is_checked = 1
+		WHERE member_num = #{member_num}
+	</update>
+	
+	<delete id="deleteNotification">
+		DELETE FROM notification WHERE notification_num = #{notification_num}
+	</delete>
+	
+</mapper>

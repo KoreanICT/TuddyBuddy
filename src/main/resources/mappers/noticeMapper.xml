@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 주용현 -->
+<mapper namespace="kr.co.ictedu.back.notice.dao.NoticeDao">
+
+	<insert id="add" parameterType="novo">
+		INSERT INTO notice (num, title, content, imgn, hit, created_date,
+		updated_date, member_num)
+		VALUES (notice_seq.NEXTVAL, #{title}, #{content}, #{imgn}, 0, SYSDATE,
+		SYSDATE, #{member_num})
+	</insert>
+
+	<select id="list" parameterType="map" resultType="novo"> SELECT num, title,
+		content, imgn, hit, created_date, updated_date, member_num, row_num FROM
+		( SELECT num, title, content, imgn, hit, created_date, updated_date,
+		member_num, ROW_NUMBER() OVER(ORDER BY num DESC) AS row_num FROM notice <if
+			test="searchType != null and searchValue != null">
+			<where>
+				<choose>
+					<when test="searchType == 1">
+						title LIKE '%' || #{searchValue} || '%'
+					</when>
+					<when test="searchType == 2">
+						content LIKE '%' || #{searchValue} || '%'
+					</when>
+				</choose>
+			</where>
+		</if>
+		) numbered_rows WHERE row_num BETWEEN #{begin} AND #{end} </select>
+
+	<select id="totalCount" resultType="int" parameterType="map"> SELECT
+		COUNT(*) FROM notice <if
+			test="searchType != null and searchValue != null">
+			<where>
+				<choose>
+					<when test="searchType == 1">
+						title LIKE '%' || #{searchValue} || '%'
+					</when>
+					<when test="searchType == 2">
+						content LIKE '%' || #{searchValue} || '%'
+					</when>
+				</choose>
+			</where>
+		</if>
+	</select>
+
+	<update id="hit" parameterType="long">
+		UPDATE notice SET hit=hit+1 WHERE num=#{num}
+	</update>
+
+	<select id="detail" parameterType="long" resultType="novo">
+		SELECT num, title, content, imgn, hit, created_date, updated_date,
+		member_num
+		FROM notice WHERE num=#{num}
+	</select>
+
+	<delete id="del" parameterType="long">
+		DELETE FROM notice WHERE num=#{num}
+	</delete>
+
+	<update id="update" parameterType="novo">
+		UPDATE notice
+		SET title=#{title}, content=#{content}, imgn=#{imgn},
+		updated_date=SYSDATE
+		WHERE num=#{num}
+	</update>
+
+</mapper>
