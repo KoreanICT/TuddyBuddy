@@ -52,6 +52,24 @@ const parseSelections = (value: unknown): string[] => {
   }
 };
 
+const parseArrayResponse = (value: unknown): unknown[] | null => {
+  let parsed = value;
+
+  for (let depth = 0; depth < 2 && typeof parsed === 'string'; depth += 1) {
+    if (!parsed.trim()) {
+      return [];
+    }
+
+    try {
+      parsed = JSON.parse(parsed);
+    } catch {
+      return null;
+    }
+  }
+
+  return Array.isArray(parsed) ? parsed : null;
+};
+
 const normalizeQuiz = (data: any): Quiz => ({
   quizId: Number(getValue(data, 'quizId', 'quiz_id')),
   quizSessionId: Number(
@@ -197,6 +215,11 @@ const SelfStudy: React.FC = () => {
   const [quizSessionId, setQuizSessionId] =
     useState<number | null>(null);
 
+  const [quizTimerStartedAt, setQuizTimerStartedAt] =
+    useState<number | null>(null);
+  const [quizTimerRunning, setQuizTimerRunning] = useState(false);
+  const [quizElapsedSeconds, setQuizElapsedSeconds] = useState(0);
+
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [score, setScore] = useState<number | null>(null);
@@ -253,6 +276,41 @@ const SelfStudy: React.FC = () => {
 
   // 오래된 비동기 응답이 현재 학습을 덮어쓰지 않도록 관리
   const restoreRequestRef = useRef(0);
+
+  const resetQuizTimer = useCallback(() => {
+    setQuizTimerStartedAt(null);
+    setQuizTimerRunning(false);
+    setQuizElapsedSeconds(0);
+  }, []);
+
+  useEffect(() => {
+    if (quizTimerStartedAt === null || !quizTimerRunning) return;
+
+    const updateElapsedTime = () => {
+      setQuizElapsedSeconds(
+        Math.floor((Date.now() - quizTimerStartedAt) / 1000)
+      );
+    };
+
+    updateElapsedTime();
+    const intervalId = window.setInterval(updateElapsedTime, 1000);
+    return () => window.clearInterval(intervalId);
+  }, [quizTimerStartedAt, quizTimerRunning]);
+
+  const handleStartQuiz = () => {
+    if (
+      quizSessionId === null ||
+      quizList.length === 0 ||
+      quizTimerStartedAt !== null ||
+      submitted
+    ) {
+      return;
+    }
+
+    setQuizTimerStartedAt(Date.now());
+    setQuizElapsedSeconds(0);
+    setQuizTimerRunning(true);
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -335,17 +393,29 @@ const SelfStudy: React.FC = () => {
           ),
         ]);
 
+      const sessionsData = parseArrayResponse(sessionsResponse.data);
+      const resultsData = parseArrayResponse(resultsResponse.data);
+
       if (
-        !Array.isArray(sessionsResponse.data) ||
-        !Array.isArray(resultsResponse.data)
+        !sessionsData ||
+        !resultsData
       ) {
+        const describeResponse = (value: unknown) => {
+          if (Array.isArray(value)) return 'array';
+          if (value === null) return 'null';
+          if (typeof value === 'object') {
+            return `object(${Object.keys(value).join(', ')})`;
+          }
+          return typeof value;
+        };
+
         throw new Error(
-          '학습 기록 응답 형식이 올바르지 않습니다.'
+          `학습 기록 응답 형식이 올바르지 않습니다. sessions=${describeResponse(sessionsResponse.data)}, results=${describeResponse(resultsResponse.data)}`
         );
       }
 
       const sessions: QuizSession[] =
-        sessionsResponse.data
+        sessionsData
           .map(normalizeSession)
           .filter(
             (session: QuizSession) =>
@@ -354,7 +424,7 @@ const SelfStudy: React.FC = () => {
           );
 
       const results: SelfStudyResult[] =
-        resultsResponse.data
+        resultsData
           .map(normalizeResult)
           .filter(
             (result: SelfStudyResult) =>
@@ -365,7 +435,7 @@ const SelfStudy: React.FC = () => {
       setSavedSessions(sessions);
       setSavedResults(results);
     } catch (error) {
-      console.error('학습 기록 조회 실패:');
+      console.error('학습 기록 조회 실패:', error);
       setHistoryError(
         '저장된 학습 기록을 불러오지 못했습니다.'
       );
@@ -383,6 +453,7 @@ const SelfStudy: React.FC = () => {
     restoreRequestRef.current += 1;
 
     setQuizSessionId(null);
+    resetQuizTimer();
     setQuizList([]);
     setWrongNotes([]);
     setSubmitted(false);
@@ -394,7 +465,7 @@ const SelfStudy: React.FC = () => {
       URL.revokeObjectURL(studyImageUrlRef.current);
       studyImageUrlRef.current = null;
     }
-  }, [token, member_num]);
+  }, [token, member_num, resetQuizTimer]);
 
   // =========================================================
   // 4. 저장된 세션 복원
@@ -500,6 +571,7 @@ const SelfStudy: React.FC = () => {
       }
 
       setQuizSessionId(sessionId);
+      resetQuizTimer();
       setGeneratedCategoryName('');
       setGeneratedSubjectName('');
       setQuizList(restoredQuizzes);
@@ -565,6 +637,7 @@ const SelfStudy: React.FC = () => {
         restoreRequestRef.current += 1;
 
         setQuizSessionId(null);
+        resetQuizTimer();
         setGeneratedCategoryName('');
         setGeneratedSubjectName('');
         setQuizList([]);
@@ -722,6 +795,7 @@ const SelfStudy: React.FC = () => {
     // 정상 생성된 경우에만 학습 상태 변경
     setQuizList(data.quizzes);
     setQuizSessionId(data.quizSessionId);
+    resetQuizTimer();
     setGeneratedCategoryName(String(data.categoryName));
     setGeneratedSubjectName(String(data.subjectName));
     setSubmitted(false);
@@ -763,10 +837,13 @@ const SelfStudy: React.FC = () => {
       error instanceof Error
         ? error.message
         : '알 수 없는 오류가 발생했습니다.';
+    const pointNotice = message.includes('포인트')
+      ? ''
+      : '\n\n포인트는 차감되지 않았습니다.';
 
     alert(
       `문제 생성 요청을 완료하지 못했습니다.\n\n` +
-      `${message}\n\n` +
+      `${message}${pointNotice}\n\n` +
       `입력한 내용은 유지됩니다.`
     );
 
@@ -846,6 +923,11 @@ const SelfStudy: React.FC = () => {
       return;
     }
 
+    if (quizTimerStartedAt === null) {
+      alert('시험 시작 버튼을 먼저 눌러주세요.');
+      return;
+    }
+
     if (
       quizList.some(
         (quiz) => !quiz.quizUserResponse?.trim()
@@ -857,6 +939,10 @@ const SelfStudy: React.FC = () => {
 
     if (!requireLogin()) return;
 
+    setQuizElapsedSeconds(
+      Math.floor((Date.now() - quizTimerStartedAt) / 1000)
+    );
+    setQuizTimerRunning(false);
     setSubmitting(true);
 
     try {
@@ -935,6 +1021,9 @@ const SelfStudy: React.FC = () => {
       <div className={styles.layoutWrapper}>
         <MainTabContent
           onSubmit={handleSubmitQuiz}
+          onStartQuiz={handleStartQuiz}
+          quizStarted={quizTimerStartedAt !== null}
+          quizElapsedSeconds={quizElapsedSeconds}
           submitting={submitting}
           submitted={submitted}
           score={score}

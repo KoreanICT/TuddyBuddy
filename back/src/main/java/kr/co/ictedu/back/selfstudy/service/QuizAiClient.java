@@ -66,9 +66,9 @@ public class QuizAiClient {
 	}
 
 	private void validate(AiQuizResponseDto response, QuizGenerateRequestDto r) {
-		if (response == null || blank(response.categoryName()) || blank(response.subjectName())
-				|| response.quizzes() == null || response.quizzes().size() != r.getQuiz_count())
-			throw new ResponseStatusException(BAD_GATEWAY, "AI가 요청한 수의 문제를 반환하지 않았습니다.");
+		if (response == null || blank(response.categoryName()) || blank(response.subjectName()))
+			throw new ResponseStatusException(BAD_GATEWAY, "AI 응답에서 카테고리 또는 과목 분류를 받지 못했습니다.");
+		if (response.quizzes() == null) return;
 		for (var q : response.quizzes()) {
 			if (q == null || blank(q.quizQuestion()) || blank(q.quizCorrectAnswer()) || blank(q.quizExplanation())
 					|| q.quizSelections() == null || q.quizSelections().stream().anyMatch(this::blank))

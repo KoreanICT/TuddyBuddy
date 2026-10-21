@@ -68,6 +68,11 @@ const Navbar: React.FC = () => {
                                 평가분석
                             </NavLink>
                         </li>
+                        <li>
+                            <NavLink to="/attendance" className={linkClass}>
+                                출석체크
+                            </NavLink>
+                        </li>
                         </RoleGate>
                     </ul>
 
