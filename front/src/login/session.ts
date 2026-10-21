@@ -56,6 +56,10 @@ export function clearSession() {
   beginAuthAttempt();
   localStorage.setItem(BLOCKED_KEY, 'true');
   ['token', 'username', 'member_num', 'authority'].forEach(key => localStorage.removeItem(key));
+  // 로그아웃하면 결제된 평가분석 결과도 폐기하여 다음 로그인에서 다시 결제하도록 합니다.
+  Object.keys(localStorage)
+    .filter(key => key === 'tuddybuddy:statistics-analysis' || key.startsWith('tuddybuddy:statistics-analysis:'))
+    .forEach(key => localStorage.removeItem(key));
   publishSession(null);
 }
 

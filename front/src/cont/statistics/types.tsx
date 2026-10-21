@@ -1,24 +1,37 @@
 // PerformanceAnalytics에서 주고받는 API 및 화면 상태의 타입입니다.
 
+// /getCategories 응답과 카테고리 선택 상태에 사용하는 ID·이름 쌍입니다.
+export interface CategoryOption {
+    categoryId: number;
+    categoryName: string;
+}
+
 // 성적 추이 차트에 표시하는 제출 결과 한 건입니다.
 export interface HistoryItem {
+    categoryId: number;
     resultId: number;
     round: number | string;
     score: number;
     date: string;
 }
 
-// 카테고리별 예측 API의 개별 점수입니다.
-export interface PredictionItem {
+// 카테고리별 예측 API가 반환하는 개별 점수입니다.
+export interface PredictionScoreItem {
     name: string;
     score: number;
     type: 'actual' | 'predict';
+}
+
+// 현재 선택 카테고리의 예측 점수를 차트에 표시하는 항목입니다.
+export interface PredictionItem extends PredictionScoreItem {
+    categoryId: number;
     categoryIds?: number[];
     categoryName?: string;
 }
 
 // 과목/단원 비중 파이 차트에 표시하는 항목입니다.
 export interface SubjectShareItem {
+    categoryId: number;
     subjectId?: number;
     name: string;
     value: number;
@@ -37,7 +50,7 @@ export interface ChartDataState {
 export interface CategoryPrediction {
     categoryIds: number[];
     categoryName: string;
-    prediction: PredictionItem[];
+    prediction: PredictionScoreItem[];
     mentorComment: string;
 }
 
@@ -72,4 +85,13 @@ export interface StatisticsChartApiResponse {
 export interface StatisticsApiResponse {
     chartData: StatisticsChartApiResponse;
     llmFeedback: LLMFeedbackState;
+}
+
+// localStorage에서 현재 회원의 평가분석 응답과 마지막 카테고리를 확인·복원하기 위한 자료형입니다.
+export interface PersistedStatisticsAnalysis {
+    cacheVersion: 1;
+    memberNum: number;
+    selectedCategoryId: number;
+    categories: CategoryOption[];
+    response: StatisticsApiResponse;
 }

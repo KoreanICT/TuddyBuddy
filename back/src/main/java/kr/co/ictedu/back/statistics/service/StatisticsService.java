@@ -27,12 +27,12 @@ public class StatisticsService {
 	@Value("${fastapi.url}")
 	private String fastapiUrl;
 
-	public List<String> selectCategories(Long memberNum) {
+	public List<Map<String, Object>> selectCategories(Long memberNum) {
 		//역할: 회원번호 null 검증
 		validateMemberNum(memberNum);
 		// 카테고리 추출
 		//역할: 카테고리 조회 결과 null 검증
-		List<String> categories = validateCategories(statisticsDao.selectCategories_Statistics(memberNum));
+		List<Map<String, Object>> categories = validateCategories(statisticsDao.selectCategories_Statistics(memberNum));
 		return categories;
 	}
 
@@ -152,7 +152,7 @@ public class StatisticsService {
 	}
 
 	//역할: 카테고리 조회 결과가 null인지 검증
-	private List<String> validateCategories(List<String> categories) {
+	private List<Map<String, Object>> validateCategories(List<Map<String, Object>> categories) {
 		if (categories == null) {
 			throw new IllegalArgumentException("카테고리 조회 결과가 없습니다.");
 		}
