@@ -2,8 +2,6 @@
 
 package kr.co.ictedu.back.chatbot.dto;
 
-import java.util.List;
-
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -14,6 +12,5 @@ import lombok.NoArgsConstructor;
 public class ChatAIResponse {
 
 	private String answer;
-	// 출처가 여러개 올 수 있으므로 List
-	private List<ChatAISource> sources;
+
 }
