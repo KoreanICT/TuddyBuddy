@@ -85,6 +85,16 @@
 		</if>
 	</select>
 
+	<!-- 페이지와 무관한 신고 통계: 선택한 상태의 전체 신고를 집계한다. -->
+	<select id="countGroups" resultType="kr.co.ictedu.back.report.vo.ReportCountVO">
+		SELECT type, category, COUNT(*) AS count
+		FROM report
+		<where>
+			<if test="status != null">status = #{status}</if>
+		</where>
+		GROUP BY type, category
+	</select>
+
 	<!-- 신고 상세 -->
 	<select id="detail" parameterType="long" resultType="revo">
 		SELECT num, member_num, type, category, content, status, created_date,

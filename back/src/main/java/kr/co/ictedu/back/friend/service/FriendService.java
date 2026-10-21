@@ -67,6 +67,13 @@ public class FriendService {
 			throw new IllegalArgumentException("존재하지 않거나 거절할 수 없는 친구 요청입니다.");
 	}
 
+	// 보낸 대기 요청 취소
+	public void cancel(Long num, Long requestNum) {
+		if (num == null || num <= 0 || requestNum == null || friendDao.cancel(num, requestNum) != 1) {
+			throw new IllegalArgumentException("본인이 보낸 대기 중 요청만 취소할 수 있습니다. 요청 상태를 새로 확인해주세요.");
+		}
+	}
+
 	// 친구 목록
 	public List<FriendVO> friendList(Long member_num) {
 		return friendDao.friendList(member_num);

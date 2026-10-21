@@ -1,10 +1,24 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import axios from 'axios';
 import { ArrowRight, ChevronLeft, ChevronRight, Megaphone, Pause, Play } from 'lucide-react';
+import { BACKEND_URL } from '../../login/authHttp';
+import { useAuth } from '../../login/hooks/useAuth';
 import styles from './noticeBanner.module.css';
 
+interface BannerNotice {
+  num: number;
+  title: string;
+  created_date?: string;
+}
+
 interface NoticeBannerProps {
-  notices: { num: number; title: string; created_date?: string }[];
+  /** 표시할 최신 공지 수. 기본 3개이며 1~10 범위로 제한합니다. */
+  limit?: number;
+}
+
+interface NoticeBannerContentProps {
+  notices: BannerNotice[];
   loading: boolean;
   error: string;
   onRetry: () => void;
@@ -17,7 +31,7 @@ const LazyNoticeBanner = React.lazy(async () => {
   ]);
   type SwiperInstance = Parameters<NonNullable<React.ComponentProps<typeof Swiper>['onSwiper']>>[0];
 
-  const NoticeBannerContent: React.FC<NoticeBannerProps> = ({ notices, loading, error, onRetry }) => {
+  const NoticeBannerContent: React.FC<NoticeBannerContentProps> = ({ notices, loading, error, onRetry }) => {
     const swiperRef = useRef<SwiperInstance | null>(null);
     const focusWithinRef = useRef(false);
     const [activeIndex, setActiveIndex] = useState(0);
@@ -91,10 +105,46 @@ const LazyNoticeBanner = React.lazy(async () => {
   return { default: NoticeBannerContent };
 });
 
-const NoticeBanner: React.FC<NoticeBannerProps> = props => (
-  <React.Suspense fallback={<p className={styles.message} role="status">공지사항을 불러오는 중입니다.</p>}>
-    <LazyNoticeBanner {...props} />
-  </React.Suspense>
-);
+// 사용: <NoticeBanner /> 또는 <NoticeBanner limit={5} />.
+const NoticeBanner: React.FC<NoticeBannerProps> = ({ limit = 3 }) => {
+  const displayLimit = Number.isFinite(limit) ? Math.min(10, Math.max(1, Math.floor(limit))) : 3;
+  const { token } = useAuth();
+  const [notices, setNotices] = useState<BannerNotice[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [revision, setRevision] = useState(0);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    setLoading(true);
+    setError('');
+
+    void axios.get<{ data: BannerNotice[] }>(`${BACKEND_URL}/api/notice/noticeList`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      params: { cPage: 1 },
+      signal: controller.signal,
+      timeout: 15000,
+    }).then(response => {
+      if (controller.signal.aborted) return;
+      if (!Array.isArray(response.data.data)) throw new Error('Invalid notice list');
+      setNotices([...response.data.data].sort((a, b) => b.num - a.num).slice(0, 10));
+    }).catch(() => {
+      if (controller.signal.aborted) return;
+      setNotices([]);
+      setError('공지사항을 불러오지 못했습니다.');
+    }).finally(() => {
+      if (!controller.signal.aborted) setLoading(false);
+    });
+
+    return () => controller.abort();
+  }, [token, revision]);
+
+  return (
+    <React.Suspense fallback={<p className={styles.message} role="status">공지사항을 불러오는 중입니다.</p>}>
+      <LazyNoticeBanner notices={notices.slice(0, displayLimit)} loading={loading} error={error}
+        onRetry={() => setRevision(value => value + 1)} />
+    </React.Suspense>
+  );
+};
 
 export default NoticeBanner;

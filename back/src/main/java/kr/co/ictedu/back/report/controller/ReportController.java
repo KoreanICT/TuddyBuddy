@@ -94,6 +94,15 @@ public class ReportController {
         return ResponseEntity.status(exception.getStatusCode()).body(exception.getReason());
     }
 
+    @Operation(summary = "신고 전체 통계", description = "페이지와 무관하게 전체 또는 선택한 상태의 신고를 집계합니다.")
+    @GetMapping("/reportStatistics")
+    public Map<String, Object> reportStatistics(
+            @RequestParam(value = "status", required = false) String status,
+            Authentication authentication) {
+        requireManager(authentication);
+        return reportService.statistics(status);
+    }
+
     // 신고 등록
     @Operation(
         summary = "신고 등록",

@@ -8,9 +8,14 @@
   overflow-y: auto;
   overscroll-behavior-y: contain;
   scroll-snap-type: y mandatory;
-  scrollbar-width: thin;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 
   color: var(--text);
+}
+
+.home::-webkit-scrollbar {
+  display: none;
 }
 
 .scrollLocked {
@@ -630,8 +635,35 @@
 .bottomAction {
   display: flex;
   justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
 
   margin-top: 26px;
+}
+
+.faqButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 42px;
+  padding: 10px 16px;
+
+  border: 1px solid #bae6fd;
+  border-radius: 10px;
+
+  background: #fff;
+  color: var(--primary);
+
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.footerBrand .faqButton {
+  margin-left: auto;
 }
 
 .home a:focus-visible, .home button:focus-visible {

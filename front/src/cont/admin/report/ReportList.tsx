@@ -32,7 +32,13 @@ interface ReportListResponse {
     endPage: number;
 }
 
-const COLORS = ['#0d6efd', '#198754', '#ffc107', '#dc3545', '#6c757d', '#6610f2', '#fd7e14'];
+interface ReportStatistics {
+    total: number;
+    typeCounts: { name: string; count: number }[];
+    reasonCounts: { name: string; value: number }[];
+}
+
+const COLORS = ['#0284c7', '#38bdf8', '#0e7490', '#7dd3fc', '#0369a1', '#67e8f9', '#94a3b8'];
 
 const ReportList: React.FC = () => {
     const navigate = useNavigate();
@@ -51,6 +57,28 @@ const ReportList: React.FC = () => {
     const [statusFilter, setStatusFilter] = useState<ReportStatus | 'ALL'>('ALL');
     const [loading, setLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
+    const [statistics, setStatistics] = useState<ReportStatistics | null>(null);
+    const [statisticsLoading, setStatisticsLoading] = useState(true);
+    const [statisticsError, setStatisticsError] = useState('');
+    const [statisticsRetry, setStatisticsRetry] = useState(0);
+
+    useEffect(() => {
+        let active = true;
+        setStatistics(null);
+        setStatisticsLoading(true);
+        setStatisticsError('');
+        void axios.get<ReportStatistics>('http://localhost:80/back/api/report/reportStatistics', {
+            headers: getAuthHeaders(),
+            params: statusFilter === 'ALL' ? {} : { status: statusFilter }
+        }).then(response => {
+            if (active) setStatistics(response.data);
+        }).catch(() => {
+            if (active) setStatisticsError('신고 통계를 불러오지 못했습니다.');
+        }).finally(() => {
+            if (active) setStatisticsLoading(false);
+        });
+        return () => { active = false; };
+    }, [statusFilter, getAuthHeaders, statisticsRetry]);
 
     // =========================
     // 신고 목록 조회
@@ -115,34 +143,19 @@ const ReportList: React.FC = () => {
     // 신고 유형별 시각화
     // =========================
     const typeChartData = useMemo(() => {
-        const counts: Record<ReportType, number> = {
-            user: 0,
-            study: 0,
-            document: 0,
-            community: 0,
-            report: 0
-        };
-
-        reportList.forEach(report => {
-            if (report.type in counts) counts[report.type]++;
-        });
-
-        return REPORT_TYPES.map(type => ({ name: REPORT_TYPE_LABELS[type], count: counts[type] }));
-    }, [reportList]);
+        const counts = new Map<string, number>((statistics?.typeCounts ?? [])
+            .map(item => [item.name, item.count] as [string, number]));
+        const knownTypes = REPORT_TYPES.map(type => ({ name: REPORT_TYPE_LABELS[type], count: counts.get(type) ?? 0 }));
+        const otherCount = (statistics?.typeCounts ?? [])
+            .filter(item => !REPORT_TYPES.includes(item.name as ReportType))
+            .reduce((sum, item) => sum + item.count, 0);
+        return otherCount > 0 ? [...knownTypes, { name: '기타', count: otherCount }] : knownTypes;
+    }, [statistics]);
 
     // =========================
     // 신고 사유별 시각화
     // =========================
-    const reasonChartData = useMemo(() => {
-        const counts: Record<string, number> = {};
-
-        reportList.forEach(report => {
-            const reason = report.category || '기타';
-            counts[reason] = (counts[reason] || 0) + 1;
-        });
-
-        return Object.entries(counts).map(([name, value]) => ({ name, value }));
-    }, [reportList]);
+    const reasonChartData = statistics?.reasonCounts ?? [];
 
     // =========================
     // 페이지 변경
@@ -200,11 +213,15 @@ const ReportList: React.FC = () => {
             </div>
 
             {/* 시각화 차트 영역 */}
-            <div style={{ display: 'flex', gap: '20px', marginBottom: '30px', flexWrap: 'wrap' }}>
-                <div style={{ flex: 1, minWidth: '300px', background: '#fff', padding: '20px', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
-                    <h3 style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '5px', color: '#333' }}>📊 신고 유형별 현황</h3>
-                    <p style={{ fontSize: '12px', color: '#777', marginBottom: '15px' }}>현재 페이지 기준</p>
-                    <div style={{ width: '100%', height: '220px' }}>
+            {statisticsLoading ? <p role="status">신고 전체 통계를 불러오는 중입니다.</p>
+                : statisticsError ? <div className={styles.statisticsError} role="alert">
+                    <p>{statisticsError}</p>
+                    <button type="button" onClick={() => setStatisticsRetry(value => value + 1)}>통계 다시 시도</button>
+                </div> : <div className={styles.chartGrid}>
+                <div className={styles.chartCard}>
+                    <h3>신고 유형별 현황</h3>
+                    <p>{statusFilter === 'ALL' ? '전체 상태' : getStatusText(statusFilter)} · 전체 {statistics?.total ?? 0}건 기준</p>
+                    <div className={styles.chartCanvas}>
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={typeChartData}>
                                 <XAxis dataKey="name" tick={{ fontSize: 12 }} />
@@ -216,10 +233,10 @@ const ReportList: React.FC = () => {
                     </div>
                 </div>
 
-                <div style={{ flex: 1, minWidth: '300px', background: '#fff', padding: '20px', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
-                    <h3 style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '5px', color: '#333' }}>🥧 신고 사유별 비율</h3>
-                    <p style={{ fontSize: '12px', color: '#777', marginBottom: '15px' }}>현재 페이지 기준</p>
-                    <div style={{ width: '100%', height: '220px' }}>
+                <div className={styles.chartCard}>
+                    <h3>신고 사유별 비율</h3>
+                    <p>{statusFilter === 'ALL' ? '전체 상태' : getStatusText(statusFilter)} · 전체 {statistics?.total ?? 0}건 기준</p>
+                    <div className={styles.chartCanvas}>
                         {reasonChartData.length > 0 ? (
                             <ResponsiveContainer width="100%" height="100%">
                                 <PieChart>
@@ -233,13 +250,13 @@ const ReportList: React.FC = () => {
                                 </PieChart>
                             </ResponsiveContainer>
                         ) : (
-                            <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#777' }}>
+                            <div className={styles.chartEmpty}>
                                 표시할 데이터가 없습니다.
                             </div>
                         )}
                     </div>
                 </div>
-            </div>
+            </div>}
 
             {/* 신고 수 */}
             <div>전체 신고 {totalItems}건</div>

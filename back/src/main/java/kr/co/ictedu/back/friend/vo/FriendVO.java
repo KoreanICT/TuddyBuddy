@@ -31,4 +31,7 @@ public class FriendVO {
 
     @Schema(description = "친구 요청을 받은 회원 번호", example = "2")
     private Long response_num;
+
+    @Schema(description = "요청 목록에 표시할 상대 회원 닉네임")
+    private String counterpart_nick;
 }
