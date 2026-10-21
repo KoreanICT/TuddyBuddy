@@ -15,6 +15,7 @@ import org.springframework.web.server.ResponseStatusException;
 import kr.co.ictedu.back.report.dao.ReportDao;
 import kr.co.ictedu.back.report.dao.ReportReplyDao;
 import kr.co.ictedu.back.report.vo.ReportVO;
+import kr.co.ictedu.back.report.vo.ReportCountVO;
 
 @Service
 public class ReportService {
@@ -79,6 +80,29 @@ public class ReportService {
 
     public int totalCount(Map<String, String> map) {
         return reportDao.totalCount(map);
+    }
+
+    public Map<String, Object> statistics(String status) {
+        if (status != null && !List.of("PENDING", "REVIEWING", "COMPLETED", "REJECTED").contains(status)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "올바른 신고 처리 상태를 선택해주세요.");
+        }
+        Map<String, Long> types = new java.util.TreeMap<>();
+        Map<String, Long> reasons = new java.util.TreeMap<>();
+        long total = 0;
+        for (ReportCountVO group : reportDao.countGroups(status)) {
+            String type = group.getType() == null ? "unknown" : group.getType();
+            String reason = group.getCategory() == null || group.getCategory().isBlank()
+                    ? "기타" : group.getCategory().trim();
+            types.merge(type, group.getCount(), Long::sum);
+            reasons.merge(reason, group.getCount(), Long::sum);
+            total += group.getCount();
+        }
+        return Map.of("total", total,
+                "typeCounts", types.entrySet().stream()
+                        .map(entry -> Map.of("name", entry.getKey(), "count", entry.getValue())).toList(),
+                "reasonCounts", reasons.entrySet().stream()
+                        .sorted(Map.Entry.<String, Long>comparingByValue().reversed().thenComparing(Map.Entry.comparingByKey()))
+                        .map(entry -> Map.of("name", entry.getKey(), "value", entry.getValue())).toList());
     }
 
     public ReportVO detail(Long num) {

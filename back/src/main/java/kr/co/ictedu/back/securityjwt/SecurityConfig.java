@@ -77,7 +77,7 @@ public class SecurityConfig {
 						.hasAuthority(MemberRoles.ADMIN)
 						.requestMatchers("/api/admin/dashboard", "/api/member/memberList", "/api/selfstudy/admin/**", "/api/notice/noticeAdd",
 								"/api/notice/noticeUpdate", "/api/notice/noticeDelete", "/api/report/reportList",
-								"/api/report/reportStatusUpdate", "/api/report/reportReplyAdd",
+								"/api/report/reportStatistics", "/api/report/reportStatusUpdate", "/api/report/reportReplyAdd",
 								"/api/report/reportReplyUpdate", "/api/report/reportReplyDelete",
 								"/api/report/reportDelete")
 						.hasAnyAuthority(MemberRoles.ADMIN, MemberRoles.SUB_ADMIN)

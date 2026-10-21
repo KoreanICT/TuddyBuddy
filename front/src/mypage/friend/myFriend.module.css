@@ -108,6 +108,46 @@
   color: #555;
 }
 
+.friendActions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.inviteButton {
+  padding: 7px 12px;
+
+  border: 1px solid #bae6fd;
+  border-radius: 8px;
+
+  background: #f0f9ff;
+  color: var(--primary);
+
+  font: inherit;
+  font-size: 13px;
+  white-space: nowrap;
+
+  cursor: pointer;
+}
+
+.inviteButton:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+}
+
+@media (max-width: 600px) {
+  .friend {
+    flex-wrap: wrap;
+  }
+
+  .friendActions {
+    justify-content: flex-end;
+
+    width: 100%;
+  }
+}
+
 .info {
   flex: 1;
   min-width: 0;

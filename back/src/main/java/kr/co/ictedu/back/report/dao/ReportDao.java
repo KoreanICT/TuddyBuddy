@@ -9,6 +9,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import kr.co.ictedu.back.report.vo.ReportVO;
+import kr.co.ictedu.back.report.vo.ReportCountVO;
 
 @Mapper
 public interface ReportDao {
@@ -26,6 +27,8 @@ public interface ReportDao {
 
 	// 전체 신고 개수
 	int totalCount(Map<String, String> map);
+
+	List<ReportCountVO> countGroups(@Param("status") String status);
 
 	// 신고 상세 조회
 	ReportVO detail(Long num);
