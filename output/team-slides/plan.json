@@ -1,0 +1,23 @@
+{
+  "exemplar": "p6",
+  "method": "Duplicate p6 and reuse two card backgrounds, colored tabs, header bar and text boxes. Delete third card and unrelated folder/chart raster icons. No portrait placeholders. Four duplicated slides replace current positions 4–7; preserve all other slides.",
+  "slides": [
+    [
+      "주용현",
+      "김진규"
+    ],
+    [
+      "오진석",
+      "이주화"
+    ],
+    [
+      "최솔",
+      "최원철"
+    ],
+    [
+      "허승표",
+      "TuddyBuddy 역할 맵"
+    ]
+  ],
+  "sources": "Local author comments; user confirmed 이주화 커뮤니티 담당"
+}
