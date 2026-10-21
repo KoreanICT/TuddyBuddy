@@ -27,6 +27,7 @@ import {
 
 import styles from './selfstudy.module.css';
 
+const SELF_STUDY_GENERATION_POINT_COST = 1_000;
 
 
 const getValue = (
@@ -733,6 +734,12 @@ const SelfStudy: React.FC = () => {
 
   if (!requireLogin()) return;
 
+  const confirmed = window.confirm(
+    `AI 문제 생성 1회당 ${SELF_STUDY_GENERATION_POINT_COST.toLocaleString()}P가 사용됩니다.\n` +
+    '문제 생성과 저장이 완료된 경우에만 차감됩니다. 계속하시겠습니까?'
+  );
+  if (!confirmed) return;
+
   setLoading(true);
 
   const formData = new FormData();
@@ -837,9 +844,9 @@ const SelfStudy: React.FC = () => {
       error instanceof Error
         ? error.message
         : '알 수 없는 오류가 발생했습니다.';
-    const pointNotice = message.includes('포인트')
-      ? ''
-      : '\n\n포인트는 차감되지 않았습니다.';
+    const pointNotice = message.includes('포인트 잔액이 부족')
+      ? '\n\n포인트는 차감되지 않았습니다. 포인트를 충전한 뒤 다시 시도해주세요.'
+      : '';
 
     alert(
       `문제 생성 요청을 완료하지 못했습니다.\n\n` +
@@ -1077,6 +1084,7 @@ const SelfStudy: React.FC = () => {
         setSelectedCategoryId={setSelectedCategoryId}
         selectedSubjectId={selectedSubjectId}
         setSelectedSubjectId={setSelectedSubjectId}
+        pointCost={SELF_STUDY_GENERATION_POINT_COST}
       />
     </div>
   );
