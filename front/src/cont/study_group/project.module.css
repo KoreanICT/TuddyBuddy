@@ -1340,6 +1340,137 @@
     cursor: grabbing;
 }
 
+/* 기존 global.css 변수를 그대로 사용 */
+
+.chat_status {
+    margin-bottom: 16px;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.chat_error {
+    margin-bottom: 16px;
+    color: #b91c1c;
+    font-size: 14px;
+}
+
+.chat_window {
+    height: 360px;
+    overflow-y: auto;
+
+    padding: 16px;
+    margin-bottom: 16px;
+
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background-color: var(--background-secondary);
+}
+
+.chat_empty {
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.chat_message {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+
+    margin-bottom: 16px;
+}
+
+.chat_message_mine {
+    align-items: flex-end;
+}
+
+.chat_nickname {
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.chat_bubble {
+    max-width: 85%;
+    padding: 10px 14px;
+
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+
+    background-color: var(--background);
+    color: var(--text);
+
+    font-size: 14px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.chat_message_mine .chat_bubble {
+    border-color: var(--primary);
+    background-color: var(--primary);
+    color: #fff;
+}
+
+.chat_form {
+    display: flex;
+    gap: 8px;
+}
+
+.chat_input {
+    flex: 1;
+    min-width: 0;
+    min-height: 44px;
+    padding: 10px 12px;
+
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+
+    background-color: var(--background);
+    color: var(--text);
+    font-size: 14px;
+}
+
+.chat_input::placeholder {
+    color: var(--text-secondary);
+}
+
+.chat_input:disabled {
+    background-color: var(--background-secondary);
+    cursor: not-allowed;
+}
+
+.chat_send {
+    min-height: 44px;
+    padding: 10px 20px;
+
+    border: 1px solid var(--primary);
+    border-radius: var(--radius-sm);
+
+    background-color: var(--primary);
+    color: #fff;
+
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.chat_send:hover:not(:disabled) {
+    border-color: var(--primary-hover);
+    background-color: var(--primary-hover);
+}
+
+.chat_send:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.chat_input:focus-visible,
+.chat_send:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 3px;
+}
+
 /* ==============================
    Responsive
 ================================ */

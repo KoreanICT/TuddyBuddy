@@ -62,8 +62,8 @@ public class GroupDetailController {
     }
 	
 	@Operation(summary = "스터디룸 변경", description = "스터디룸의 데이터를 변경합니다.")
-	@ApiResponse(responseCode = "200", description = "헤더 데이터 조회 성공")
-	@ApiResponse(responseCode = "500", description = "헤더 데이터 조회 실패")
+	@ApiResponse(responseCode = "200", description = "데이터 변경 성공")
+	@ApiResponse(responseCode = "500", description = "데이터 변경 실패")
 	@PatchMapping(value="/patchGroup/{groupNum}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<Map<String, Object>> updateGroup(
 			@PathVariable("groupNum") Long groupNum, 

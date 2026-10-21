@@ -61,11 +61,11 @@ export const Group_List: React.FC<GroupPublicProps> = ({ mode, searchType, searc
             try {
                 if (mode === 'my') {
                     const data = await getMyGroups();
-                    console.log('내 스터디룸 응답:', data);
+                
                     setMygroups(data);
                 } else {
                     const data = await getPublicGroups();
-                    console.log('공개 스터디룸 응답:', data);
+                    
                     setGroups(data);
                 }
             } catch (error) {

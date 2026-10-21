@@ -4,7 +4,7 @@ export interface NotificationData {
     title: string;
     message: string;
     target_url: string;
-    is_read: number;
+    is_checked: number;
     created_at: string;
 }
 

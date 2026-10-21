@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.ictedu.back.groupchat.dao.GroupChatDao">
+
+	<insert id="insertMessage" parameterType="groupchatvo">
+		<selectKey keyProperty="chat_num" resultType="long" order="BEFORE">
+			SELECT gchat_seq.nextVal FROM dual
+		</selectKey>
+		INSERT INTO group_chat (chat_num, group_num, member_num, member_nick, message, created_at)
+		VALUES (#{chat_num}, #{group_num}, #{member_num, jdbcType=NUMERIC}, #{member_nick}, #{value}, SYSDATE)
+	</insert>
+	
+	<select id="getMessage" resultType="groupchatvo">
+		SELECT chat_num, group_num, member_num, member_nick, 1 AS state, message AS "value", created_at
+		FROM group_chat WHERE chat_num = #{chat_num} 
+	</select>
+	
+	<select id="getHistory" resultType="groupchatvo">
+		SELECT * FROM (
+			SELECT chat_num, group_num, member_num, member_nick, 1 AS state, message AS "value", created_at
+			FROM group_chat WHERE group_num = #{group_num}
+			<if test="before_chat_num != null">
+				AND chat_num &lt; #{before_chat_num}
+			</if>
+			ORDER BY created_at DESC, chat_num DESC
+			FETCH FIRST 100 ROWS ONLY
+		)
+		ORDER BY created_at ASC, chat_num ASC
+	</select>
+	
+	<select id="getMemberNick" resultType="string">
+		SELECT member_nick FROM member WHERE member_num = #{member_num}
+	</select>
+	
+	<select id="countGroupMember" resultType="int">
+		SELECT COUNT(*) FROM group_member WHERE group_num = #{group_num} AND member_num = #{member_num}
+	</select>
+	
+</mapper>
