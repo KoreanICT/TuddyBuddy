@@ -44,7 +44,7 @@ public class ScheduleController {
 	}
 	
 	@PatchMapping("/updateSchedule/{scheduleNum}")
-	public ResponseEntity<String> updateSchedule(@PathVariable("scheduleNum") Long scheduleNum, ScheduleVO schedulevo) {
+	public ResponseEntity<String> updateSchedule(@PathVariable("scheduleNum") Long scheduleNum, @RequestBody ScheduleVO schedulevo) {
 		service.updateSchedule(scheduleNum, schedulevo);
 		
 		return ResponseEntity.ok("변경 완료.");
