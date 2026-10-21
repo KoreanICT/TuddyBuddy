@@ -606,6 +606,74 @@
   flex: 1;
 }
 
+.quizCountControl {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 42px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: #fff;
+  box-sizing: border-box;
+}
+
+.quizCountButton {
+  display: inline-flex;
+  flex: 0 0 42px;
+  align-items: center;
+  justify-content: center;
+  align-self: stretch;
+  border: 0;
+  background: var(--background-secondary);
+  color: var(--text);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.quizCountButton:hover:not(:disabled) {
+  background: #e2e8f0;
+  color: var(--primary);
+}
+
+.quizCountButton:disabled {
+  color: #cbd5e1;
+  cursor: not-allowed;
+}
+
+.quizCountButton:focus-visible {
+  position: relative;
+  z-index: 1;
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+}
+
+.quizCountValue {
+  display: inline-flex;
+  flex: 1;
+  align-items: baseline;
+  justify-content: center;
+  gap: 5px;
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.quizCountValue span {
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.quizCountHint {
+  margin: 6px 0 0;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
 .pointCostNotice {
   margin: 4px 0 0;
   padding: 10px 12px;
