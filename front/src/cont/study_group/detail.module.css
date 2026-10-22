@@ -624,7 +624,35 @@
 
     transition: transform 0.2s, box-shadow 0.2s;
 }
+.memberHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 
+    margin-bottom: 16px;
+}
+.exitroombtn {
+    padding: 8px 14px;
+
+    background-color: var(--primary);
+    color: var(--background);
+
+    border-radius: var(--radius-sm);
+
+    font-size: 13px;
+    font-weight: 600;
+
+    transition: background-color 0.2s;
+}
+
+.exitroombtn:hover:not(:disabled) {
+    background-color: var(--primary-hover);
+}
+
+.exitroombtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
 .member_card:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
