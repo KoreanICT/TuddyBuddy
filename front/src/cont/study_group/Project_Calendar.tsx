@@ -41,6 +41,7 @@ export const Project_Calendar: React.FC<GetGroupNum> = ({ groupNum }) => {
 
     const today = new Date();
     const [isLoading, setIsLoading] = useState(false);
+    const [editingScheduleNum, setEditingScheduleNum] = useState<number | null>(null);
     /*
      * 현재 달력에서 보고 있는 년 / 월
      */
@@ -197,6 +198,9 @@ export const Project_Calendar: React.FC<GetGroupNum> = ({ groupNum }) => {
      * 일정 등록 버튼
      */
     const handleOpenRegister = () => {
+
+        setEditingScheduleNum(null);
+
         setScheduleName("");
         setScheduleDetail("");
         setStartAt("");
@@ -205,6 +209,17 @@ export const Project_Calendar: React.FC<GetGroupNum> = ({ groupNum }) => {
         setIsRegisterOpen(true);
     };
 
+    const handleOpenUpdate = (schedule: ScheduleData) => {
+        setEditingScheduleNum(schedule.schedule_num);
+        setScheduleName(schedule.schedule_name);
+        setScheduleDetail(schedule.schedule_detail ?? "");
+        setSelectedDate(schedule.schedule_date.substring(0, 10));
+        setStartAt(schedule.start_at ?.split("T")[1] ?.substring(0, 5) ?? "");
+        setEndAt(schedule.end_at ?.split("T")[1] ?.substring(0, 5) ?? "");
+
+        setIsDetailOpen(false);
+        setIsRegisterOpen(true);
+    };
 
     const handleRegisterSchedule = async () => {
 
@@ -241,15 +256,14 @@ export const Project_Calendar: React.FC<GetGroupNum> = ({ groupNum }) => {
                 newSchedule
             )
             alert("등록 성공.");
+            await loadData();
         } catch (error) {
             console.log('등록 실패', error);
             alert("등록에 실패하였습니다.");
         } finally {
             setIsLoading(false);
         }
-
-        setIsRegisterOpen(false);
-        loadData();
+        setIsRegisterOpen(false); 
     };
 
     /**
@@ -271,10 +285,12 @@ export const Project_Calendar: React.FC<GetGroupNum> = ({ groupNum }) => {
                 console.error("삭제 실패.", error);
             }
         }
-
     };
 
-    const handleUpdateSchedule = async (scheduleNum: number) => {
+    const handleUpdateSchedule = async () => {
+        if(editingScheduleNum === null) {
+            return;
+        }
 
         if (!selectedDate) {
             alert("날짜를 선택해주세요.");
@@ -286,8 +302,8 @@ export const Project_Calendar: React.FC<GetGroupNum> = ({ groupNum }) => {
             return;
         }
 
-        const newSchedule: SchedulePatchRequest = {
-            schedule_num: scheduleNum,
+        const updateSchedule: SchedulePatchRequest = {
+            schedule_num: editingScheduleNum,
             schedule_name: scheduleName,
             schedule_date: selectedDate,
             schedule_detail: scheduleDetail,
@@ -304,14 +320,18 @@ export const Project_Calendar: React.FC<GetGroupNum> = ({ groupNum }) => {
 
         try {
             setIsLoading(true);
-            await api.post(
-                `/detail/schedule/addSchedule/${groupNum}`,
-                newSchedule
+            await api.patch(
+                `/detail/schedule/updateSchedule/${editingScheduleNum}`,
+                updateSchedule
             )
-            alert("등록 성공.");
+            alert("수정 성공.");
+
+            setIsRegisterOpen(false);
+            setEditingScheduleNum(null);
+            await loadData();
         } catch (error) {
-            console.log('등록 실패', error);
-            alert("등록에 실패하였습니다.");
+            console.log('수정 실패', error);
+            alert("수정에 실패하였습니다.");
         } finally {
             setIsLoading(false);
         }
@@ -516,13 +536,8 @@ export const Project_Calendar: React.FC<GetGroupNum> = ({ groupNum }) => {
                                                 ))}
 
                                             {daySchedules.length +
-                                                dayTdls.length >
-                                                4 && (
-                                                    <div
-                                                        className={
-                                                            styles.moreItem
-                                                        }
-                                                    >
+                                                dayTdls.length > 4 && (
+                                                    <div className={styles.moreItem}>
                                                         +
                                                         {daySchedules.length +
                                                             dayTdls.length -
@@ -642,14 +657,11 @@ export const Project_Calendar: React.FC<GetGroupNum> = ({ groupNum }) => {
 
                                                     {/* can_manage 조회하여 수정 및 삭제 버튼 구현*/}
                                                     {schedule.can_manage === 1 && (
-                                                        <>
+                                                        <div className={styles.scheduleActions}>
                                                             <button
                                                                 type="button"
                                                                 className={styles.updateButton}
-                                                                onClick={() => {
-                                                                    handleUpdateSchedule(schedule.schedule_num);
-
-                                                                }}
+                                                                onClick={() => handleOpenUpdate(schedule)}
                                                             >
                                                                 수정
                                                             </button>
@@ -661,7 +673,7 @@ export const Project_Calendar: React.FC<GetGroupNum> = ({ groupNum }) => {
                                                             >
                                                                 삭제
                                                             </button>
-                                                        </>
+                                                        </div>
                                                     )}
                                                 </div>
                                             )
@@ -717,7 +729,7 @@ export const Project_Calendar: React.FC<GetGroupNum> = ({ groupNum }) => {
                                 <div
                                     className={styles.modalHeader}
                                 >
-                                    <h3>일정 등록</h3>
+                                    <h3>{editingScheduleNum === null ? "일정 등록" : "일정 수정"}</h3>
 
                                     <button
                                         type="button"
@@ -841,9 +853,9 @@ export const Project_Calendar: React.FC<GetGroupNum> = ({ groupNum }) => {
                                     <button
                                         type="button"
                                         className={styles.registerButton}
-                                        onClick={handleRegisterSchedule}
+                                        onClick={editingScheduleNum === null ? handleRegisterSchedule : handleUpdateSchedule}
                                     >
-                                        등록
+                                        {editingScheduleNum === null ? "등록" : "수정"}
                                     </button>
                                 </div>
                             </div>

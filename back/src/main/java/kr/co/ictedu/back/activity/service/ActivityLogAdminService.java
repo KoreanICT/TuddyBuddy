@@ -54,8 +54,14 @@ public class ActivityLogAdminService {
 		params.put("category", request.getCategory());
 		params.put("result", request.getResult());
 		
+		// 시작일 00:00 이상
 		if (request.getStartDate() != null) {
 			params.put("startAt", request.getStartDate().atStartOfDay(KOREA).toOffsetDateTime());
+		}
+		
+		// 종료일 다음날 00:00 미만
+		if (request.getEndDate() != null) {
+			params.put("endBefore", request.getEndDate().plusDays(1).atStartOfDay(KOREA).toOffsetDateTime());
 		}
 		
 		// 4. 검색 결과 전체 건수를 조회합니다.

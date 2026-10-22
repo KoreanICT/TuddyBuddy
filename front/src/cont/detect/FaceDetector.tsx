@@ -20,7 +20,8 @@ export interface FaceDetectorProps {
     autoStart?: boolean;
 }
 
-const DETECT_API = 'http://192.168.0.84:8000/ai/detect';
+const DETECT_SERVER = (process.env.REACT_APP_DETECT_API_URL || '').trim().replace(/\/+$/, '');
+const DETECT_API = `${DETECT_SERVER}/ai/detect`;
 
 const FaceDetector: React.FC<FaceDetectorProps> = ({
     onClose, onDetectionResult, onDetectionEnd, onDetectionError, autoStart = false
@@ -119,7 +120,10 @@ const FaceDetector: React.FC<FaceDetectorProps> = ({
         const deleteSession = (id: string) => {
             void fetch(`${DETECT_API}/sessions`, {
                 method: 'DELETE', headers: { 'X-Detect-Session': id }, keepalive: true
-            }).catch(() => { /* 실패 시 서버 TTL로 정리됩니다. */ });
+            }).catch(() => {
+                // 종료 실패 시 서버의 300초 세션 TTL로 정리됩니다. 세션 값은 로그에 남기지 않습니다.
+                console.warn('감지 세션 종료 요청을 확인하지 못했습니다. 서버 TTL 정리를 기다립니다.');
+            });
         };
         const cancel = () => {
             if (!active) return;
@@ -132,10 +136,13 @@ const FaceDetector: React.FC<FaceDetectorProps> = ({
         };
         cancelDetectionRef.current = cancel;
 
-        const fail = () => {
+        const fail = (error?: unknown) => {
             if (!active) return;
             stopCamera();
-            const message = '학습 집중 서버의 응답을 확인할 수 없습니다. 연결 상태를 확인하고 다시 시작해주세요.';
+            const message = error instanceof TypeError
+                ? '집중 감지 서버에 연결할 수 없습니다. 네트워크 또는 CORS 설정을 확인해주세요.'
+                : error instanceof Error ? error.message
+                    : '집중 감지 서버의 응답 또는 카메라 프레임을 확인할 수 없습니다. 다시 시작해주세요.';
             if (callbacksRef.current.onDetectionError) callbacksRef.current.onDetectionError(message);
             else alert(message);
             callbacksRef.current.onClose?.();
@@ -152,21 +159,23 @@ const FaceDetector: React.FC<FaceDetectorProps> = ({
                         canvas.toBlob(resolve, 'image/jpeg', 0.8));
                     if (!active) return;
                     if (!blob) throw new Error('이미지 변환 실패');
+                    if (blob.size > 5 * 1024 * 1024) throw new Error('감지 이미지는 5MB 이하여야 합니다.');
+                    if (!sessionId) throw new Error('감지 세션 없음');
                     const formData = new FormData();
                     formData.append('file', blob, 'frame.jpg');
                     const response = await fetch(`${DETECT_API}/focus`, {
-                        method: 'POST', headers: { 'X-Detect-Session': sessionId! },
+                        method: 'POST', headers: { 'X-Detect-Session': sessionId },
                         body: formData, signal: controller.signal
                     });
-                    if (!response.ok) throw new Error(`감지 서버 오류: ${response.status}`);
+                    if (!response.ok) throw new Error(`집중 감지 요청 실패 (HTTP ${response.status}). 세션이 만료됐다면 다시 시작해주세요.`);
                     const data: DetectResponse = await response.json();
                     if (!active) return;
-                    if (!data.success || typeof data.studying !== 'boolean'
-                        || typeof data.stopped !== 'boolean'
-                        || typeof data.face_detected !== 'boolean'
+                    if (!data || data.success !== true || typeof data.studying !== 'boolean'
+                        || typeof data.stopped !== 'boolean' || typeof data.face_detected !== 'boolean'
                         || typeof data.motion_detected !== 'boolean'
-                        || !Number.isFinite(data.not_studying_seconds)
-                        || data.not_studying_seconds < 0) throw new Error('감지 실패');
+                        || !Number.isFinite(data.not_studying_seconds) || data.not_studying_seconds < 0) {
+                        throw new Error('집중 감지 서버의 응답 형식이 올바르지 않습니다.');
+                    }
                     lastResponseAt = Date.now();
                     setFaceDetected(data.face_detected);
                     setMovementDetected(data.motion_detected);
@@ -176,27 +185,29 @@ const FaceDetector: React.FC<FaceDetectorProps> = ({
                 }
                 if (active) timer = window.setTimeout(detect, 1000);
             } catch (error) {
-                fail();
+                fail(error);
             }
         };
 
         const start = async () => {
             try {
                 // 종료 후 생성 응답이 오면 해당 세션도 삭제합니다.
+                if (!DETECT_SERVER) throw new Error('.env에 REACT_APP_DETECT_API_URL을 설정하고 프론트를 재시작해주세요.');
                 const response = await fetch(`${DETECT_API}/sessions`, { method: 'POST' });
-                if (!response.ok) throw new Error(`세션 생성 오류: ${response.status}`);
+                if (!response.ok) throw new Error(`감지 세션 생성 실패 (HTTP ${response.status})`);
                 const data = await response.json();
-                if (!data.success || typeof data.session_id !== 'string' || !data.session_id) {
-                    throw new Error('유효하지 않은 감지 세션');
+                if (!data || data.success !== true || typeof data.session_id !== 'string' || !data.session_id.trim()) {
+                    throw new Error('감지 세션 생성 응답이 올바르지 않습니다.');
                 }
+                const createdSessionId = data.session_id;
                 if (!active) {
-                    deleteSession(data.session_id);
+                    deleteSession(createdSessionId);
                     return;
                 }
-                sessionId = data.session_id;
+                sessionId = createdSessionId;
                 await detect();
             } catch (error) {
-                fail();
+                fail(error);
             }
         };
         // 통신 지연·카메라 프레임 중단 중에도 타이머가 무한히 실행되지 않도록 합니다.

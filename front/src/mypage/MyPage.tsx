@@ -9,6 +9,7 @@ import MyReportList from './report/MyReportList';
 import MyFriend from './friend/MyFriend';
 import MyPosts from './posts/MyPosts';
 import PointHistory from './PointHistory';
+import Modal from '../cont/modal/Modal';
 import { useAppDispatch } from '../login/reducers/store';
 import { logoutAction } from '../login/authActions/authActions';
 
@@ -42,9 +43,67 @@ const MyPage: React.FC = () => {
     // 메뉴 상태
     const [activeMenu, setActiveMenu] = useState('info');
     const [showPointHistory, setShowPointHistory] = useState(false);
+    const pointHistoryButton = useRef<HTMLButtonElement>(null);
+    const pointHistoryDialog = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (!showPointHistory) return;
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        pointHistoryDialog.current?.querySelector<HTMLButtonElement>('button')?.focus();
+        const onKeyDown = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') setShowPointHistory(false);
+            if (event.key === 'Tab') {
+                const buttons = pointHistoryDialog.current?.querySelectorAll<HTMLButtonElement>('button:not(:disabled)');
+                const first = buttons?.[0];
+                const last = buttons?.[buttons.length - 1];
+                if (event.shiftKey && document.activeElement === first) {
+                    event.preventDefault();
+                    last?.focus();
+                } else if (!event.shiftKey && document.activeElement === last) {
+                    event.preventDefault();
+                    first?.focus();
+                }
+            }
+        };
+        document.addEventListener('keydown', onKeyDown);
+        return () => {
+            document.body.style.overflow = previousOverflow;
+            document.removeEventListener('keydown', onKeyDown);
+            pointHistoryButton.current?.focus();
+        };
+    }, [showPointHistory]);
 
     // 회원정보
     const [member, setMember] = useState<MemberVO | null>(null);
+    const referralInput = useRef<HTMLInputElement>(null);
+    const [copyingReferral, setCopyingReferral] = useState(false);
+    const [referralCopyMessage, setReferralCopyMessage] = useState('');
+
+    const copyReferralCode = async () => {
+        const code = member?.member_code;
+        if (!code || copyingReferral) return;
+        setCopyingReferral(true);
+        setReferralCopyMessage('');
+        try {
+            if (window.isSecureContext && navigator.clipboard?.writeText) {
+                await navigator.clipboard.writeText(code);
+            } else {
+                // HTTP로 접속한 개발 환경에서도 가능한 경우 복사를 지원합니다.
+                referralInput.current?.focus();
+                referralInput.current?.select();
+                if (!document.execCommand('copy')) throw new Error('Clipboard unavailable');
+            }
+            setReferralCopyMessage('추천인 코드를 복사했습니다.');
+        } catch {
+            referralInput.current?.focus();
+            referralInput.current?.select();
+            setReferralCopyMessage('자동 복사가 제한되어 있습니다. 코드를 선택해 직접 복사해주세요.');
+        } finally {
+            setCopyingReferral(false);
+        }
+    };
+
     // 조회 상태
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -317,10 +376,35 @@ const MyPage: React.FC = () => {
                                         </div>
 
                                         <div className="profile-info">
-                                            <h3>{member.member_nick} 님</h3>
+                                            <div className="profile-heading">
+                                                <h3>{member.member_nick} 님</h3>
+                                                <div className="profile-referral">
+                                                    <label htmlFor="mypage-referral-code">나의 코드</label>
+                                                    <input
+                                                        id="mypage-referral-code"
+                                                        ref={referralInput}
+                                                        value={member.member_code || ''}
+                                                        placeholder="코드 없음"
+                                                        readOnly
+                                                        spellCheck={false}
+                                                        onFocus={event => event.target.select()}
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => void copyReferralCode()}
+                                                        disabled={!member.member_code || copyingReferral}
+                                                        aria-label="내 추천인 코드 복사"
+                                                    >
+                                                        {copyingReferral ? '복사 중…' : '복사하기'}
+                                                    </button>
+                                                </div>
+                                            </div>
 
                                             <p>
                                                 {member.member_email}
+                                            </p>
+                                            <p className="profile-referral-message" role="status" aria-live="polite">
+                                                {referralCopyMessage}
                                             </p>
                                         </div>
                                     </div>
@@ -336,16 +420,12 @@ const MyPage: React.FC = () => {
                                         <button
                                             type="button"
                                             className="point-link"
-                                            aria-expanded={showPointHistory}
-                                            aria-controls="mypage-point-history"
-                                            onClick={() => setShowPointHistory(value => !value)}
+                                            ref={pointHistoryButton}
+                                            aria-haspopup="dialog"
+                                            onClick={() => setShowPointHistory(true)}
                                         >
-                                            {showPointHistory ? '포인트 내역 접기' : '포인트 내역 보기'}
+                                            포인트 내역 보기
                                         </button>
-                                    </div>
-
-                                    <div id="mypage-point-history" hidden={!showPointHistory}>
-                                        <PointHistory embedded />
                                     </div>
 
                                     {/* 이메일 */}
@@ -526,6 +606,13 @@ const MyPage: React.FC = () => {
                     )}
 
                 </main>
+                {showPointHistory && (
+                    <div ref={pointHistoryDialog} role="dialog" aria-modal="true" aria-label="포인트 내역">
+                        <Modal isOpen={showPointHistory} onClose={() => setShowPointHistory(false)} title="포인트 내역">
+                            <PointHistory embedded />
+                        </Modal>
+                    </div>
+                )}
             </div>
         </div>
     );

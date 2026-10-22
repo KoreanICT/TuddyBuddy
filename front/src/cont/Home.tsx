@@ -1,14 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
 import { ArrowRight, Camera, Pause, Play, Upload, BookOpen, CheckCircle2, Bot } from 'lucide-react';
-import { BACKEND_URL } from '../login/authHttp';
-import { useAuth } from '../login/hooks/useAuth';
 import styles from './home.module.css';
 import Modal from './modal/Modal';
 import StudyRoomGuide from './modal/StudyRoomGuide';
 import NoticeBanner from './notice/NoticeBanner';
 import PrivacyPolicyContent from './modal/PrivacyPolicyContent';
+import FaqModal from './modal/FaqModal';
 
 const HOME_SECTIONS = [
   { id: 'home-intro', label: '공지 · 버디봇' },
@@ -18,26 +16,16 @@ const HOME_SECTIONS = [
   { id: 'home-footer', label: '서비스 안내' },
 ];
 
-interface HomeNotice {
-  num: number;
-  title: string;
-  created_date?: string;
-}
-
 const Home: React.FC = () => {
   const [isTermsOpen, setIsTermsOpen] = useState(false);
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
   const [isEmailPolicyOpen, setIsEmailPolicyOpen] = useState(false);
   const [isFocusInfoOpen, setIsFocusInfoOpen] = useState(false);
   const [isStudyRoomGuideOpen, setIsStudyRoomGuideOpen] = useState(false);
-  const [notices, setNotices] = useState<HomeNotice[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [revision, setRevision] = useState(0);
-  const { token } = useAuth();
+  const [isFaqOpen, setIsFaqOpen] = useState(false);
   const homeRef = useRef<HTMLDivElement | null>(null);
   const [activeSection, setActiveSection] = useState(0);
-  const isModalOpen = isFocusInfoOpen || isStudyRoomGuideOpen || isTermsOpen || isPrivacyOpen || isEmailPolicyOpen;
+  const isModalOpen = isFocusInfoOpen || isStudyRoomGuideOpen || isTermsOpen || isPrivacyOpen || isEmailPolicyOpen || isFaqOpen;
 
   const moveToSection = (index: number) => {
     const home = homeRef.current;
@@ -89,30 +77,13 @@ const Home: React.FC = () => {
     };
   }, []);
 
-  useEffect(() => {
-    let active = true;
-    setLoading(true);
-    setError('');
-    void axios.get<{ data: HomeNotice[] }>(`${BACKEND_URL}/api/notice/noticeList`, {
-      headers: token ? { Authorization: `Bearer ${token}` } : {}, params: { cPage: 1 }
-    }).then(response => {
-      if (active) setNotices([...response.data.data].sort((a, b) => b.num - a.num).slice(0, 3));
-    }).catch(() => {
-      if (active) {
-        setNotices([]);
-        setError('공지사항을 불러오지 못했습니다.');
-      }
-    }).finally(() => { if (active) setLoading(false); });
-    return () => { active = false; };
-  }, [token, revision]);
-
   return (
     <>
       <div ref={homeRef} className={`${styles.home} ${isModalOpen ? styles.scrollLocked : ''}`}
         tabIndex={0} aria-label="TuddyBuddy 홈" inert={isModalOpen}>
         <section id="home-intro" className={styles.snapSection} aria-labelledby="home-chatbot-title">
         <div className={styles.introSection}>
-        <NoticeBanner notices={notices} loading={loading} error={error} onRetry={() => setRevision(value => value + 1)} />
+        <NoticeBanner limit={4} />
         <div className={styles.hero}>
           <div className={styles.heroContent}>
             <span className={styles.eyebrow}>TUDDYBUDDY · 버디봇</span>
@@ -181,7 +152,10 @@ const Home: React.FC = () => {
             <li><div className={styles.howStepTop}><span>02</span><BookOpen size={25} /></div><h3>AI 문제 풀기</h3><p>문제 유형과 난이도를 선택하고, 생성된 문제로 배운 내용을 확인해요.</p></li>
             <li><div className={styles.howStepTop}><span>03</span><CheckCircle2 size={25} /></div><h3>결과 확인하고 복습하기</h3><p>제출 결과와 오답을 확인하고, 내 학습 기록에서 이전 학습을 다시 살펴봐요.</p></li>
           </ol>
-          <div className={styles.bottomAction}><Link className={styles.primaryButton} to="/selfStudy">첫 학습 시작하기 <ArrowRight size={18} /></Link></div>
+          <div className={styles.bottomAction}>
+            <Link className={styles.primaryButton} to="/selfStudy">첫 학습 시작하기 <ArrowRight size={18} /></Link>
+            <button type="button" className={styles.faqButton} aria-haspopup="dialog" onClick={() => setIsFaqOpen(true)}>자주 묻는 질문</button>
+          </div>
         </div>
         </section>
         <footer id="home-footer" className={styles.snapFooter} aria-label="TuddyBuddy 서비스 안내">
@@ -193,6 +167,7 @@ const Home: React.FC = () => {
                 <p><strong>TuddyBuddy</strong><span>대표자 : 춘식이</span></p>
                 <p>함께 공부하고 성장하는 교육 커뮤니티</p>
               </div>
+                <button type="button" className={styles.faqButton} aria-haspopup="dialog" onClick={() => setIsFaqOpen(true)}>자주 묻는 질문</button>
               </div>
               <div className={styles.footerBottom}>
                 <nav className={styles.footerLinks} aria-label="서비스 정책">
@@ -220,6 +195,7 @@ const Home: React.FC = () => {
         ))}
       </nav>
       <div className={styles.modalLayer}>
+      {isFaqOpen && <FaqModal onClose={() => setIsFaqOpen(false)} />}
       <StudyRoomGuide isOpen={isStudyRoomGuideOpen} onClose={() => setIsStudyRoomGuideOpen(false)} />
       <Modal isOpen={isFocusInfoOpen} onClose={() => setIsFocusInfoOpen(false)} title="학습을 돕는 집중 학습 모드">
         <div className={styles.focusGuide}>

@@ -1,0 +1,121 @@
+.dialog {
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+
+  border: 0;
+
+  background: transparent;
+}
+
+.dialog::backdrop {
+  background: transparent;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.intro,
+.note,
+.feedback {
+  margin: 0;
+
+  font-size: 14px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+.note {
+  padding: 12px 14px;
+
+  border-radius: 10px;
+
+  background: #f0f9ff;
+  color: var(--text-secondary);
+
+  font-size: 13px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.field input,
+.field textarea {
+  width: 100%;
+  padding: 10px 12px;
+
+  box-sizing: border-box;
+
+  border: 1px solid var(--border);
+  border-radius: 8px;
+
+  background: var(--background);
+  color: var(--text);
+
+  font: inherit;
+  font-weight: 400;
+}
+
+.field textarea {
+  min-height: 160px;
+
+  resize: vertical;
+}
+
+.feedback {
+  color: var(--primary);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.actions button {
+  min-height: 40px;
+  padding: 8px 16px;
+
+  border: 1px solid var(--border);
+  border-radius: 8px;
+
+  background: var(--background);
+  color: var(--text);
+
+  font: inherit;
+
+  cursor: pointer;
+}
+
+.actions .copyButton {
+  border-color: var(--primary);
+
+  background: var(--primary);
+  color: #fff;
+}
+
+.actions button:disabled {
+  opacity: 0.5;
+
+  cursor: default;
+}
+
+.form input:focus-visible,
+.form textarea:focus-visible,
+.actions button:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+}

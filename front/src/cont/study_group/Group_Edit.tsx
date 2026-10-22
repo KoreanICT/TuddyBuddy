@@ -57,7 +57,7 @@ export const Group_EditModal: React.FC<GroupEditProps> = ({ groupNum, isOpen, on
         const loadEditData = async () => {
             try {
                 const response = await api.get(
-                    `/group/detail/${groupNum}/edit`
+                    `/group/detail/edit/${groupNum}`
                 )
                 const data = response.data;
 

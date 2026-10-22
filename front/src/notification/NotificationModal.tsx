@@ -21,7 +21,7 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ notifications, on
 
     const handleNotificationClick = async (notification: NotificationData) => {
 
-        if (notification.is_read === 0) {
+        if (notification.is_checked === 0) {
             await markAsRead(
                 notification.notification_num
             );

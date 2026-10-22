@@ -139,6 +139,27 @@
   margin-left: 12px;
 }
 
+.inviteButton {
+  padding: 7px 12px;
+
+  border: 1px solid #bae6fd;
+  border-radius: 8px;
+
+  background: #f0f9ff;
+  color: var(--primary);
+
+  font: inherit;
+  font-size: 13px;
+  white-space: nowrap;
+
+  cursor: pointer;
+}
+
+.inviteButton:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+}
+
 /* =========================
    Profile
 ========================= */
@@ -301,7 +322,16 @@
   }
 
   .friend {
+    flex-wrap: wrap;
+    gap: 12px;
+
     padding: 13px 4px;
+  }
+
+  .actions {
+    flex-wrap: wrap;
+
+    margin-left: auto;
   }
 
   .profileImage {
