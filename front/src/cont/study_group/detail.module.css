@@ -119,17 +119,25 @@
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
+.study_thumbnail_img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
 .group_icon {
     width: 56px;
     height: 56px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
     border-radius: var(--radius-md);
-    background-color: #6366f1;
-    color: #fff;
+    background-color: var(--primary);
+    color: var(--background);
     font-size: 24px;
     font-weight: 700;
-    display: flex;
-    justify-content: center;
-    align-items: center;
 }
 
 .group_title {
@@ -1107,7 +1115,7 @@ document_delete_btn:hover {
 .overviewTdl h4,
 .overviewUpcoming h4 {
     margin-bottom: 16px;
-    font-size: 15px;
+    font-size: 12px;
     font-weight: 700;
     color: var(--text);
 }

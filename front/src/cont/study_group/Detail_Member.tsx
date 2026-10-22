@@ -113,7 +113,7 @@ export const Detail_Member: React.FC<GetGroupNum> = ({ groupNum }) => {
                 <h3 className={styles.section_title}>멤버 목록 ({members.length})</h3>
                 <button
                     type="button"
-                    className={styles.transferbtn}
+                    className={styles.exitroombtn}
                     disabled={!canQuit}
                     onClick={handleQuit}
                 >
