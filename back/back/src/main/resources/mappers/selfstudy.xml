@@ -1,0 +1,364 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--최솔-->
+<mapper namespace="kr.co.ictedu.back.selfstudy.dao.SelfStudyDao">
+	<select id="selectSubject"
+		resultType="subjectVO">
+		SELECT subject_id, category_id, subject_name, usage_count, created_at
+		FROM subjects WHERE subject_id = #{subjectId}
+	</select>
+
+
+	<!-- =====================================================
+         Category
+         ===================================================== -->
+
+	<!-- 카테고리 전체 조회 -->
+	<select id="selectCategories"
+		resultType="categoryVO">
+
+		SELECT
+		category_id,
+		category_name
+		FROM categories
+		WHERE category_status = 'Y'
+		ORDER BY category_id
+
+	</select>
+
+	<select id="selectCategoryByName" resultType="categoryVO">
+		SELECT category_id, category_name, category_status
+		FROM categories
+		WHERE category_status = 'Y'
+		  AND UPPER(TRIM(category_name)) = UPPER(TRIM(#{categoryName}))
+	</select>
+
+	<select id="selectCategoryById" resultType="categoryVO">
+		SELECT category_id, category_name, category_status
+		FROM categories
+		WHERE category_id = #{categoryId}
+	</select>
+
+	<insert id="insertCategory" parameterType="categoryVO">
+		INSERT INTO categories (category_id, category_name, category_status)
+		VALUES (categories_seq.NEXTVAL, #{category_name}, 'Y')
+	</insert>
+
+	<select id="selectSubjectByName" resultType="subjectVO">
+		SELECT subject_id, category_id, subject_name, subject_status, usage_count, created_at
+		FROM subjects
+		WHERE category_id = #{categoryId}
+		  AND subject_status = 'Y'
+		  AND UPPER(TRIM(subject_name)) = UPPER(TRIM(#{subjectName}))
+	</select>
+
+	<select id="selectAnySubjectByName" resultType="subjectVO">
+		SELECT subject_id, category_id, subject_name, subject_status, usage_count, created_at
+		FROM subjects
+		WHERE UPPER(TRIM(subject_name)) = UPPER(TRIM(#{subjectName}))
+		  AND ROWNUM = 1
+	</select>
+
+	<insert id="insertSubject" parameterType="subjectVO">
+		INSERT INTO subjects (subject_id, category_id, subject_name, subject_status, created_at)
+		VALUES (subjects_seq.NEXTVAL, #{category_id}, #{subject_name}, 'Y', SYSTIMESTAMP)
+	</insert>
+
+
+	<!-- =====================================================
+         Subject
+         ===================================================== -->
+
+	<!-- 카테고리별 과목 조회 -->
+	<select id="selectSubjects"
+		resultType="subjectVO">
+
+		SELECT
+        subject_id,
+        category_id,
+        subject_name,
+        subject_status,
+        usage_count,
+        created_at
+    FROM subjects
+    WHERE category_id = #{categoryId}
+      AND subject_status = 'Y'
+      AND category_id IN (
+          SELECT category_id
+          FROM categories
+          WHERE category_status = 'Y'
+      )
+    ORDER BY subject_id
+
+	</select>
+
+
+	<!-- =====================================================
+         Quiz Session
+         ===================================================== -->
+
+	<!-- 퀴즈 세션 등록 -->
+	<insert id="insertQuizSession"
+		parameterType="quizSessionVO">
+
+		<selectKey
+			keyProperty="quiz_session_id"
+			resultType="long"
+			order="BEFORE">
+
+			SELECT quiz_sessions_seq.NEXTVAL
+			FROM dual
+
+		</selectKey>
+		INSERT INTO quiz_sessions ( quiz_session_id, subject_id, member_num,
+		quiz_image_url, quiz_type, quiz_difficulty, quiz_count, quiz_prompt,
+		created_at ) VALUES ( #{quiz_session_id}, #{subject_id}, #{member_num},
+		#{quiz_image_url}, #{quiz_type}, #{quiz_difficulty}, #{quiz_count},
+		#{quiz_prompt, jdbcType=VARCHAR}, SYSDATE ) </insert>
+
+
+	<!-- 회원별 퀴즈 세션 목록 -->
+	<select id="selectQuizSessions"
+		resultType="quizSessionVO">
+
+		SELECT
+		quiz_session_id,
+		subject_id,
+		member_num,
+		quiz_image_url,
+		quiz_type,
+		quiz_difficulty,
+		quiz_count,
+		quiz_prompt,
+		created_at
+		FROM quiz_sessions
+		WHERE member_num = #{memberNum}
+		ORDER BY created_at DESC
+
+	</select>
+
+
+	<!-- 퀴즈 세션 1개 조회 -->
+	<select id="selectQuizSession"
+		resultType="quizSessionVO">
+
+		SELECT
+		quiz_session_id,
+		subject_id,
+		member_num,
+		quiz_image_url,
+		quiz_type,
+		quiz_difficulty,
+		quiz_count,
+		quiz_prompt,
+		created_at
+		FROM quiz_sessions
+		WHERE quiz_session_id = #{quizSessionId}
+
+	</select>
+
+
+	<!-- =====================================================
+         Quiz
+         ===================================================== -->
+
+	<!-- 생성된 문제 등록 -->
+	<insert id="insertQuiz"
+		parameterType="quizVO">
+
+		<selectKey
+			keyProperty="quiz_id"
+			resultType="long"
+			order="BEFORE">
+
+			SELECT quizzes_seq.NEXTVAL
+			FROM dual
+
+		</selectKey> INSERT
+		INTO quizzes ( quiz_id, quiz_session_id, quiz_question, quiz_selections,
+		quiz_correct_answer, quiz_explanation, created_at ) VALUES ( #{quiz_id},
+		#{quiz_session_id}, #{quiz_question}, #{quiz_selections},
+		#{quiz_correct_answer}, #{quiz_explanation}, SYSDATE ) </insert>
+
+
+	<!-- 세션별 문제 목록 -->
+	<select id="selectQuizzes"
+		resultType="quizVO">
+
+		SELECT
+		quiz_id,
+		quiz_session_id,
+		quiz_question,
+		quiz_selections,
+		quiz_correct_answer,
+		quiz_explanation,
+		created_at
+		FROM quizzes
+		WHERE quiz_session_id = #{quizSessionId}
+		ORDER BY quiz_id
+
+	</select>
+
+
+	<!-- 문제 1개 조회 -->
+	<select id="selectQuiz"
+		resultType="quizVO">
+
+		SELECT
+		quiz_id,
+		quiz_session_id,
+		quiz_question,
+		quiz_selections,
+		quiz_correct_answer,
+		quiz_explanation,
+		created_at
+		FROM quizzes
+		WHERE quiz_id = #{quizId}
+
+	</select>
+
+
+	<!-- =====================================================
+         Self Study Result
+         ===================================================== -->
+
+	<!-- 학습 결과 등록 -->
+	<insert id="insertSelfStudyResult"
+		parameterType="selfStudyResultVO">
+
+		<selectKey
+			keyProperty="selfstudy_results_id"
+			resultType="long"
+			order="BEFORE">
+
+			SELECT selfstudy_results_seq.NEXTVAL
+			FROM dual
+
+		</selectKey>
+		INSERT INTO selfstudy_results ( selfstudy_results_id, quiz_session_id,
+		member_num, selfstudy_total_score, submitted_at ) VALUES (
+		#{selfstudy_results_id}, #{quiz_session_id}, #{member_num},
+		#{selfstudy_total_score}, SYSDATE ) </insert>
+
+
+	<!-- 결과 1개 조회 -->
+	<select id="selectResult"
+		resultType="selfStudyResultVO">
+
+		SELECT
+		selfstudy_results_id,
+		quiz_session_id,
+		member_num,
+		selfstudy_total_score,
+		submitted_at
+		FROM selfstudy_results
+		WHERE selfstudy_results_id = #{resultId}
+
+	</select>
+
+
+	<!-- 회원별 결과 목록 -->
+	<select id="selectResults"
+		resultType="selfStudyResultVO">
+
+		SELECT
+		selfstudy_results_id,
+		quiz_session_id,
+		member_num,
+		selfstudy_total_score,
+		submitted_at
+		FROM selfstudy_results
+		WHERE member_num = #{memberNum}
+		ORDER BY submitted_at DESC
+
+	</select>
+
+
+	<!-- =====================================================
+         Quiz Response
+         ===================================================== -->
+
+	<!-- 문제별 사용자 답변 등록 -->
+	<insert id="insertQuizResponse"
+		parameterType="quizResponseVO">
+
+		<selectKey
+			keyProperty="quiz_responses_id"
+			resultType="long"
+			order="BEFORE">
+
+			SELECT quiz_responses_seq.NEXTVAL
+			FROM dual
+
+		</selectKey>
+		INSERT INTO quiz_responses ( quiz_responses_id, selfstudy_results_id,
+		quiz_id, quiz_user_response, quiz_correct, submitted_at ) VALUES (
+		#{quiz_responses_id}, #{selfstudy_results_id}, #{quiz_id},
+		#{quiz_user_response}, #{quiz_correct}, SYSDATE ) </insert>
+
+
+	<!-- 결과별 사용자 답변 조회 -->
+	<select id="selectQuizResponses"
+		resultType="quizResponseVO">
+
+		SELECT
+		quiz_responses_id,
+		selfstudy_results_id,
+		quiz_id,
+		quiz_user_response,
+		quiz_correct,
+		submitted_at
+		FROM quiz_responses
+		WHERE selfstudy_results_id = #{resultId}
+		ORDER BY quiz_responses_id
+
+	</select>
+
+
+	<!-- =====================================================
+         Delete
+         
+         자식 테이블 → 부모 테이블 순서로 삭제
+         ===================================================== -->
+
+	<!-- 세션에 속한 사용자 답변 삭제 -->
+	<delete id="deleteQuizResponsesBySession">
+
+		DELETE FROM quiz_responses
+		WHERE selfstudy_results_id IN (
+		SELECT selfstudy_results_id
+		FROM selfstudy_results
+		WHERE quiz_session_id = #{quizSessionId}
+		)
+
+	</delete>
+
+
+	<!-- 세션에 속한 결과 삭제 -->
+	<delete id="deleteResultsBySession">
+
+		DELETE FROM selfstudy_results
+		WHERE quiz_session_id = #{quizSessionId}
+
+	</delete>
+
+
+	<!-- 세션에 속한 문제 삭제 -->
+	<delete id="deleteQuizzesBySession">
+
+		DELETE FROM quizzes
+		WHERE quiz_session_id = #{quizSessionId}
+
+	</delete>
+
+
+	<!-- 마지막으로 퀴즈 세션 삭제 -->
+	<delete id="deleteQuizSession">
+
+		DELETE FROM quiz_sessions
+		WHERE quiz_session_id = #{quizSessionId}
+
+	</delete>
+
+
+</mapper>

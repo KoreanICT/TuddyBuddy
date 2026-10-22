@@ -1,0 +1,361 @@
+/* 전체 페이지 */
+
+.page {
+  min-height: 100vh;
+
+  background: #f8fafc;
+
+  padding: 60px 24px 100px;
+}
+
+.container {
+  width: 100%;
+  max-width: 1100px;
+
+  margin: 0 auto;
+}
+
+/* Header */
+
+.header {
+  text-align: center;
+
+  margin-bottom: 48px;
+}
+
+.headerIcon {
+  width: 56px;
+  height: 56px;
+
+  margin: 0 auto 18px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #e8f1ff;
+  color: #3478f6;
+
+  border-radius: 16px;
+}
+
+.header h1 {
+  margin: 0 0 12px;
+
+  font-size: 32px;
+  font-weight: 700;
+
+  color: #1e293b;
+}
+
+.header p {
+  margin: 0;
+
+  font-size: 15px;
+
+  color: #64748b;
+}
+
+/* 공지사항 상세 */
+
+.detailBox {
+  background: #ffffff;
+
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+
+  overflow: hidden;
+
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04);
+}
+
+/* 제목 및 작성 정보 */
+
+.detailHeader {
+  padding: 36px 40px 28px;
+
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.detailHeader h2 {
+  margin: 0 0 20px;
+
+  font-size: 25px;
+  font-weight: 700;
+  line-height: 1.5;
+
+  color: #1e293b;
+
+  overflow-wrap: anywhere;
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 24px;
+
+  font-size: 14px;
+
+  color: #94a3b8;
+}
+
+.meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+/* 본문 */
+
+.detailContent {
+  padding: 40px;
+
+  min-height: 300px;
+}
+
+.content {
+  font-size: 16px;
+  line-height: 1.9;
+
+  color: #334155;
+
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* 첨부 이미지 */
+
+.imageBox {
+  margin-top: 40px;
+  padding-top: 28px;
+
+  border-top: 1px solid #e2e8f0;
+}
+
+.imageLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  margin-bottom: 18px;
+
+  font-size: 15px;
+  font-weight: 600;
+
+  color: #475569;
+}
+
+.imageLabel svg {
+  color: #3478f6;
+}
+
+.noticeImage {
+  display: block;
+
+  max-width: 100%;
+  max-height: 650px;
+  width: auto;
+  height: auto;
+
+  object-fit: contain;
+
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+}
+
+/* 하단 버튼 */
+
+.actions {
+  display: flex;
+  justify-content: center;
+
+  padding: 26px 40px;
+
+  border-top: 1px solid #e2e8f0;
+
+  background: #ffffff;
+}
+
+.backButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  min-width: 150px;
+  height: 44px;
+
+  padding: 0 24px;
+
+  background: #3478f6;
+
+  border: 1px solid #3478f6;
+  border-radius: 8px;
+
+  color: #ffffff;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.backButton:hover {
+  background: #2563eb;
+
+  transform: translateY(-1px);
+}
+
+.backButton:active {
+  transform: translateY(0);
+}
+
+/* 로딩 및 오류 */
+
+.message {
+  padding: 100px 24px;
+
+  text-align: center;
+
+  background: #ffffff;
+
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+
+  color: #64748b;
+
+  font-size: 16px;
+}
+
+.message h2 {
+  margin: 0 0 12px;
+
+  color: #334155;
+
+  font-size: 22px;
+}
+
+.message p {
+  margin: 0 0 28px;
+
+  font-size: 15px;
+
+  color: #64748b;
+}
+
+.message button {
+  padding: 12px 24px;
+
+  background: #3478f6;
+  color: #ffffff;
+
+  border: none;
+  border-radius: 8px;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.message button:hover {
+  background: #2563eb;
+}
+
+/* 태블릿 */
+
+@media (max-width: 768px) {
+  .page {
+    padding: 40px 16px 70px;
+  }
+
+  .header {
+    margin-bottom: 32px;
+  }
+
+  .header h1 {
+    font-size: 27px;
+  }
+
+  .detailHeader {
+    padding: 28px 24px 24px;
+  }
+
+  .detailHeader h2 {
+    font-size: 22px;
+  }
+
+  .detailContent {
+    padding: 28px 24px;
+  }
+
+  .actions {
+    padding: 24px;
+  }
+}
+
+/* 모바일 */
+
+@media (max-width: 480px) {
+  .page {
+    padding: 28px 12px 50px;
+  }
+
+  .headerIcon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .header h1 {
+    font-size: 24px;
+  }
+
+  .header p {
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .detailBox {
+    border-radius: 12px;
+  }
+
+  .detailHeader {
+    padding: 24px 18px;
+  }
+
+  .detailHeader h2 {
+    font-size: 20px;
+  }
+
+  .meta {
+    gap: 12px;
+
+    font-size: 12px;
+  }
+
+  .detailContent {
+    padding: 24px 18px;
+
+    min-height: 220px;
+  }
+
+  .content {
+    font-size: 14px;
+    line-height: 1.8;
+  }
+
+  .imageBox {
+    margin-top: 28px;
+  }
+
+  .actions {
+    padding: 20px 18px;
+  }
+
+  .backButton {
+    width: 100%;
+  }
+}

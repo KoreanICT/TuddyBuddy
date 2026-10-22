@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.ictedu.back.common.dao.CommunityDao">
+
+    <!-- 인증된 회원 정보로 실제 커뮤니티 게시글 저장 -->
+    <insert id="savePost">
+        <selectKey keyProperty="post.postNum" resultType="int" order="BEFORE">
+            SELECT community_section_seq.NEXTVAL FROM dual
+        </selectKey>
+        INSERT INTO community_section (
+            community_id, community_title, community_content,
+            community_nickname, community_category, member_num
+        ) VALUES (
+            #{post.postNum}, #{post.title, jdbcType=VARCHAR}, #{post.content, jdbcType=VARCHAR},
+            #{post.author, jdbcType=VARCHAR}, #{post.category, jdbcType=VARCHAR}, #{memberNum}
+        )
+    </insert>
+
+    <select id="countPosts" resultType="int">
+        SELECT COUNT(*) FROM community_section
+    </select>
+
+    <!-- 전체 게시글을 최신 번호순으로 페이지 조회 -->
+    <select id="findPosts" resultType="kr.co.ictedu.back.common.vo.MyPostVO">
+        SELECT community_id AS "postNum", community_title AS "title",
+               community_content AS "content", community_category AS "category",
+               community_nickname AS "author"
+        FROM (
+            SELECT community_id, community_title, community_content, community_category,
+                   community_nickname,
+                   ROW_NUMBER() OVER (ORDER BY community_id DESC) AS row_num
+            FROM community_section
+        )
+        WHERE row_num BETWEEN #{startRow} AND #{endRow}
+        ORDER BY row_num
+    </select>
+
+    <!-- 로그인한 회원이 작성한 게시글 수 -->
+    <select id="countMyPosts" resultType="int">
+        SELECT COUNT(*)
+        FROM community_section
+        WHERE member_num = #{memberNum}
+    </select>
+
+    <!-- 본인 게시글을 최신 번호순으로 페이지 조회 -->
+    <select id="findMyPosts" resultType="kr.co.ictedu.back.common.vo.MyPostVO">
+        SELECT community_id AS "postNum", community_title AS "title",
+               community_content AS "content", community_category AS "category",
+               community_nickname AS "author"
+        FROM (
+            SELECT community_id, community_title, community_content, community_category,
+                   community_nickname,
+                   ROW_NUMBER() OVER (ORDER BY community_id DESC) AS row_num
+            FROM community_section
+            WHERE member_num = #{memberNum}
+        )
+        WHERE row_num BETWEEN #{startRow} AND #{endRow}
+        ORDER BY row_num
+    </select>
+
+    <!-- 1. 게시글 쓰기 -->
+    <insert id="insertPost" parameterType="kr.co.ictedu.back.common.vo.CommunityVO" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO community (
+            title, 
+            content, 
+            nickname, 
+            category
+        ) VALUES (
+            #{title}, 
+            #{content}, 
+            #{nickname}, 
+            #{category}
+        )
+    </insert>
+
+    <!-- 2. 게시글 삭제하기 -->
+    <delete id="deletePost" parameterType="int">
+        DELETE FROM community 
+        WHERE id = #{id}
+    </delete>
+
+    <!-- 3. 댓글 쓰기 -->
+    <!-- 댓글도 별도의 테이블이 있거나 community 테이블 구조를 활용한다고 가정합니다. 
+         여기서는 예시로 comment 테이블에 삽입하는 쿼리로 작성했습니다. -->
+    <insert id="insertComment">
+        INSERT INTO community_comment (
+            post_id, 
+            content, 
+            nickname
+        ) VALUES (
+            #{postId}, 
+            #{comment.content}, 
+            #{comment.nickname}
+        )
+    </insert>
+
+    <!-- 4. 댓글 삭제 -->
+    <delete id="deleteComment" parameterType="int">
+        DELETE FROM community_comment 
+        WHERE id = #{commentId}
+    </delete>
+
+    <!-- 5. 임시글 작성 -->
+    <!-- 임시글 상태를 구분하는 컬럼(예: status = 'TEMP')이 있다고 가정합니다. -->
+    <insert id="insertTempPost" parameterType="kr.co.ictedu.back.common.vo.CommunityVO" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO community (
+            title, 
+            content, 
+            nickname, 
+            category, 
+            status
+        ) VALUES (
+            #{title}, 
+            #{content}, 
+            #{nickname}, 
+            #{category}, 
+            'TEMP'
+        )
+    </insert>
+
+</mapper>

@@ -1,0 +1,292 @@
+/* 허승표 */
+
+.chatBot {
+    width: 380px;
+    height: 600px;
+
+    display: flex;
+    flex-direction: column;
+
+    background-color: var(--background);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+}
+
+.chatHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 16px;
+    border-bottom: 1px solid var(--border);
+}
+
+.loginNotice {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+
+    padding: 10px 16px;
+
+    background-color: var(--background-secondary);
+    border-bottom: 1px solid var(--border);
+
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.loginNotice span {
+    flex: 1;
+}
+
+.loginNotice button {
+    flex-shrink: 0;
+
+    padding: 5px 10px;
+
+    background-color: var(--primary);
+    color: var(--background);
+    border-radius: var(--radius-sm);
+
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.loginNotice button:hover {
+    background-color: var(--primary-hover);
+}
+
+.chatContent {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+
+    padding: 16px;
+
+    background-color: var(--background-secondary);
+}
+
+.botMessage {
+    width: fit-content;
+    max-width: 90%;
+    margin-bottom: 12px;
+    padding: 10px 12px;
+
+    background-color: var(--background);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+
+    color: var(--text);
+}
+
+.userMessage {
+    width: fit-content;
+    max-width: 80%;
+    margin: 0 0 12px auto;
+    padding: 10px 12px;
+
+    background-color: var(--primary);
+    border-radius: var(--radius-sm);
+
+    color: var(--background);
+}
+
+.chatInput {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    padding: 12px;
+    border-top: 1px solid var(--border);
+}
+
+.chatInput input {
+    flex: 1;
+    padding: 10px 12px;
+
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+}
+
+
+/* AI 답변 대기 메시지 */
+.loadingMessage {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* 로딩 아이콘 */
+.loadingIcon {
+    flex-shrink: 0;
+    animation: loadingSpin 1s linear infinite;
+}
+
+/* 회전 애니메이션 */
+@keyframes loadingSpin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* 초기 질문 예시 영역 */
+.exampleQuestions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    margin-bottom: 12px;
+}
+
+/* 질문 예시 안내 문구 */
+.exampleQuestions p {
+    margin: 0 0 4px;
+
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+/* 질문 예시 버튼 */
+.exampleQuestions button {
+    width: fit-content;
+    max-width: 100%;
+
+    padding: 10px 12px;
+
+    background-color: var(--background);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+
+    color: var(--text);
+    font-size: 12px;
+    text-align: left;
+
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+/* 질문 예시 버튼 마우스 오버 */
+.exampleQuestions button:hover {
+    background-color: var(--background-secondary);
+    border-color: var(--primary);
+}
+
+/* 대화 내역 조회 실패 안내 */
+.historyError {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    padding: 12px;
+    margin-bottom: 12px;
+
+    background-color: var(--background);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+}
+
+/* 오류 안내 제목 */
+.historyError p {
+    margin: 0;
+
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* 오류 상세 안내 */
+.historyError span {
+    color: var(--text-secondary);
+    font-size: 12px;
+}
+
+/* 다시 시도 버튼 */
+.historyError button {
+    align-self: flex-start;
+
+    padding: 7px 12px;
+
+    background-color: var(--primary);
+    color: var(--background);
+    border-radius: var(--radius-sm);
+
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.historyError button:hover {
+    background-color: var(--primary-hover);
+}
+
+/* 메시지 전송 중 상태 */
+.messageStatus {
+    margin-top: 6px;
+    font-size: 11px;
+    color: #e0e7ff;
+}
+
+/* 메시지 전송 결과 확인 실패 */
+.messageStatusError {
+    margin-top: 6px;
+    font-size: 11px;
+    color: #fee2e2;
+    font-weight: 500;
+}
+
+/* 챗봇 답변 문단 */
+.botMessage p {
+    margin: 0 0 10px;
+    line-height: 1.7;
+}
+
+/* 마지막 문단 여백 제거 */
+.botMessage p:last-child {
+    margin-bottom: 0;
+}
+
+/* 제목 */
+.botMessage h1,
+.botMessage h2,
+.botMessage h3 {
+    margin: 12px 0 8px;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.5;
+}
+
+/* 번호 목록 및 일반 목록 */
+.botMessage ol {
+    list-style-type: decimal;
+    list-style-position: outside;
+    padding-left: 24px;
+    margin: 10px 0;
+}
+
+.botMessage ul {
+    list-style-type: disc;
+    list-style-position: outside;
+    padding-left: 24px;
+    margin: 10px 0;
+}
+
+/* 목록 항목 */
+.botMessage li {
+    display: list-item;
+    margin-bottom: 8px;
+    line-height: 1.6;
+}
+
+/* 굵은 글씨 */
+.botMessage strong {
+    font-weight: 700;
+}
+
+/* 긴 단어 줄바꿈 */
+.botMessage {
+    overflow-wrap: anywhere;
+}

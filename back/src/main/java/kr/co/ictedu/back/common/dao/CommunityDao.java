@@ -34,4 +34,7 @@ public interface CommunityDao {
 
     // 5. 임시글 작성 (임시저장 상태 필드가 있다고 가정하거나 별도 컬럼 처리)
     int insertTempPost(CommunityVO communityVO);
+    
+    // 6. 좋아요 누르기
+    int like(CommunityVO vo);
 }

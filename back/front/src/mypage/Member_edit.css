@@ -1,0 +1,285 @@
+/* =========================
+   정보수정 페이지 전체
+========================= */
+
+.member-edit-page {
+  width: 100%;
+  min-height: 100vh;
+
+  /* 마이페이지와 동일한 배경 */
+  background-color: #f8fafc;
+
+  padding: 60px 20px;
+}
+
+
+/* =========================
+   정보수정 카드
+========================= */
+
+.member-edit-container {
+  width: 100%;
+  max-width: 540px;
+
+  margin: 0 auto;
+
+  background-color: #ffffff;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
+
+  overflow: hidden;
+}
+
+
+/* =========================
+   헤더
+========================= */
+
+.member-edit-header {
+  padding: 30px;
+
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.member-edit-header h2 {
+  margin: 0 0 8px;
+
+  font-size: 26px;
+  font-weight: 700;
+
+  color: #222222;
+}
+
+.member-edit-header p {
+  margin: 0;
+
+  font-size: 14px;
+
+  color: #666666;
+}
+
+
+/* =========================
+   폼
+========================= */
+
+.member-edit-form {
+  padding: 30px;
+}
+
+
+/* =========================
+   입력 그룹
+========================= */
+
+.member-edit-input-group {
+  margin-bottom: 22px;
+}
+
+.member-edit-input-group label {
+  display: block;
+
+  margin-bottom: 8px;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  color: #222222;
+}
+
+
+/* =========================
+   입력창
+========================= */
+
+.member-edit-input-group input {
+  width: 100%;
+  height: 48px;
+
+  padding: 0 16px;
+
+  border: 1px solid #dfe3e8;
+  border-radius: 6px;
+
+  background-color: #ffffff;
+
+  font-size: 14px;
+
+  color: #222222;
+
+  outline: none;
+
+  transition: border-color 0.2s ease;
+}
+
+
+/* 입력창 클릭했을 때 */
+
+.member-edit-input-group input:focus {
+  border-color: #2563eb;
+}
+
+
+/* =========================
+   비활성화된 입력창
+========================= */
+
+.member-edit-input-group input.input-disabled {
+  background-color: #f8fafc;
+
+  color: #666666;
+
+  cursor: not-allowed;
+}
+
+
+/* =========================
+   닉네임 입력 + 중복확인
+========================= */
+
+.member-edit-input-button {
+  display: flex;
+
+  gap: 8px;
+}
+
+
+/* 닉네임 입력창 */
+
+.member-edit-input-button input {
+  flex: 1;
+}
+
+
+/* =========================
+   중복확인 버튼
+========================= */
+
+.nickname-check-button {
+  width: 90px;
+  height: 48px;
+
+  flex-shrink: 0;
+
+  border: 1px solid #dfe3e8;
+  border-radius: 6px;
+
+  background-color: #f8fafc;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  color: #222222;
+
+  cursor: pointer;
+}
+
+
+/* 중복확인 버튼 hover */
+
+.nickname-check-button:hover {
+  background-color: #f1f5f9;
+}
+
+
+/* =========================
+   하단 버튼
+========================= */
+
+.member-edit-buttons {
+  display: flex;
+
+  gap: 12px;
+
+  margin-top: 30px;
+}
+
+
+/* 취소 버튼 */
+
+.member-edit-cancel-button {
+  flex: 1;
+
+  height: 50px;
+
+  border: 1px solid #dfe3e8;
+  border-radius: 6px;
+
+  background-color: #ffffff;
+
+  font-size: 15px;
+  font-weight: 600;
+
+  color: #222222;
+
+  cursor: pointer;
+}
+
+
+/* 취소 hover */
+
+.member-edit-cancel-button:hover {
+  background-color: #f8fafc;
+}
+
+
+/* =========================
+   수정 완료 버튼
+========================= */
+
+.member-edit-submit-button {
+  flex: 1;
+
+  height: 50px;
+
+  border: none;
+  border-radius: 6px;
+
+  background-color: #2563eb;
+
+  font-size: 15px;
+  font-weight: 700;
+
+  color: #ffffff;
+
+  cursor: pointer;
+}
+
+
+/* 수정 완료 hover */
+
+.member-edit-submit-button:hover {
+  background-color: #1d4ed8;
+}
+
+
+/* =========================
+   모바일
+========================= */
+
+@media (max-width: 600px) {
+
+  .member-edit-page {
+    padding: 30px 15px;
+  }
+
+  .member-edit-header {
+    padding: 24px 20px;
+  }
+
+  .member-edit-header h2 {
+    font-size: 22px;
+  }
+
+  .member-edit-form {
+    padding: 24px 20px;
+  }
+
+  .member-edit-buttons {
+    gap: 8px;
+  }
+
+}
