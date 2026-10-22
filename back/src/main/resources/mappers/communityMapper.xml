@@ -20,13 +20,21 @@
 
 	<!-- 전체 게시글을 최신 번호순으로 페이지 조회 -->
 	<select id="findPosts" resultType="kr.co.ictedu.back.common.vo.MyPostVO">
-		SELECT community_id AS "postNum", community_title AS "title",
-		community_content AS "content", community_category AS "category",
-		community_nickname AS "author"
+		SELECT
+		community_id AS "postNum",
+		community_title AS "title",
+		community_content AS "content",
+		community_category AS "category",
+		community_nickname AS "author",
+		like_count AS "likeCount"
 		FROM (
-		SELECT community_id, community_title, community_content,
+		SELECT
+		community_id,
+		community_title,
+		community_content,
 		community_category,
 		community_nickname,
+		like_count,
 		ROW_NUMBER() OVER (ORDER BY community_id DESC) AS row_num
 		FROM community_section
 		)
