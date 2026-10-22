@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Spring Boot
 back/build/
 back/.gradle/
@@ -67,4 +66,3 @@ out/
 
 ### Application Properties ###
 src/main/resources/application.properties
->>>>>>> 8bb8695 (댓글, 좋아요)
