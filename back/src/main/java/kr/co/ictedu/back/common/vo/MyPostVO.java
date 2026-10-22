@@ -11,4 +11,5 @@ public class MyPostVO {
     private String category;
     private String content;
     private String author;
+    private int likeCount; 
 }
