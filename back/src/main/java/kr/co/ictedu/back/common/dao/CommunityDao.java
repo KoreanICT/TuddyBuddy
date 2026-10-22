@@ -25,16 +25,19 @@ public interface CommunityDao {
 
     // 2. 게시글 삭제하기
     int deletePost(int id);
+    
+    // 3. 게시글 수정하기
+    int updatePost(CommunityVO vo);
 
-    // 3. 댓글 쓰기 (댓글 정보를 담은 VO나 파라미터 전달)
+    // 4. 댓글 쓰기 (댓글 정보를 담은 VO나 파라미터 전달)
     int insertComment(@Param("postId") int postId, @Param("comment") CommunityVO commentVO);
 
-    // 4. 댓글 삭제
+    // 5. 댓글 삭제
     int deleteComment(int commentId);
-
-    // 5. 임시글 작성 (임시저장 상태 필드가 있다고 가정하거나 별도 컬럼 처리)
+    
+    // 7. 임시글 작성 (임시저장 상태 필드가 있다고 가정하거나 별도 컬럼 처리)
     int insertTempPost(CommunityVO communityVO);
     
-    // 6. 좋아요 누르기
+    // 8. 좋아요 누르기
     int like(CommunityVO vo);
 }

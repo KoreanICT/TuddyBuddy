@@ -77,11 +77,21 @@
 
 	<!-- 2. 게시글 삭제하기 -->
 	<delete id="deletePost" parameterType="int">
-		DELETE FROM community
-		WHERE id = #{id}
+		DELETE FROM COMMUNITY_SECTION
+		WHERE COMMUNITY_ID = #{id}
 	</delete>
 
-	<!-- 3. 댓글 쓰기 -->
+	<!-- 3. 게시글 수정하기 -->
+	<update id="updatePost"
+		parameterType="kr.co.ictedu.back.common.vo.CommunityVO">
+		UPDATE COMMUNITY_SECTION
+		SET
+		COMMUNITY_TITLE = #{title},
+		COMMUNITY_CONTENT = #{content}
+		WHERE COMMUNITY_ID = #{id}
+	</update>
+
+	<!-- 4. 댓글 쓰기 -->
 	<insert id="insertComment">
 		INSERT INTO community_comment (
 		post_id,
@@ -94,13 +104,13 @@
 		)
 	</insert>
 
-	<!-- 4. 댓글 삭제 -->
+	<!-- 5. 댓글 삭제 -->
 	<delete id="deleteComment" parameterType="int">
 		DELETE FROM community_comment
 		WHERE id = #{commentId}
 	</delete>
 
-	<!-- 5. 임시글 작성 -->
+	<!-- 7. 임시글 작성 -->
 	<insert id="insertTempPost"
 		parameterType="kr.co.ictedu.back.common.vo.CommunityVO"
 		useGeneratedKeys="true" keyProperty="id">
@@ -119,6 +129,7 @@
 		)
 	</insert>
 
+	<!-- 8. 좋아요 누르기 -->
 	<update id="like" parameterType="kr.co.ictedu.back.common.vo.CommunityVO">
 		UPDATE COMMUNITY_SECTION
 		SET LIKE_COUNT = NVL(LIKE_COUNT, 0) + 1

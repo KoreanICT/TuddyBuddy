@@ -1,61 +1,66 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-
-<!DOCTYPE mapper
-        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="kr.co.ictedu.back.common.dao.CommentMapper">
 
-    <!-- 댓글 목록 -->
-    <select id="selectComments"
-            parameterType="int"
-            resultType="kr.co.ictedu.back.common.dao.CommentDao">
+	<!-- 댓글 목록 -->
+	<select id="selectComments"
+		parameterType="int"
+		resultType="kr.co.ictedu.back.common.dao.CommentDao">
 
-        SELECT
-            C.COMMENT_NUM AS commentNum,
-            C.POST_ID AS postId,
-            C.MEMBER_NUM AS memberNum,
-            C.CONTENT AS content,
-            M.MEMBER_NAME AS author,
-            TO_CHAR(C.CREATED_AT, 'YYYY-MM-DD HH24:MI:SS') AS createdAt
-        FROM COMMUNITY_COMMENT C
-        LEFT JOIN MEMBER M
-            ON C.MEMBER_NUM = M.MEMBER_NUM
-        WHERE C.POST_ID = #{postId}
-        ORDER BY C.COMMENT_NUM ASC
+		SELECT
+		C.COMMENT_NUM AS commentNum,
+		C.POST_ID AS postId,
+		C.MEMBER_NUM AS memberNum,
+		C.CONTENT AS content,
+		M.MEMBER_NICK AS author,
+		TO_CHAR(C.CREATED_AT, 'YYYY-MM-DD HH24:MI:SS') AS createdAt
+		FROM COMMUNITY_COMMENT C
+		LEFT JOIN MEMBER M
+		ON C.MEMBER_NUM = M.MEMBER_NUM
+		WHERE C.POST_ID = #{postId}
+		ORDER BY C.COMMENT_NUM ASC
 
-    </select>
-
-
-    <!-- 댓글 작성 -->
-    <insert id="insertComment"
-            parameterType="kr.co.ictedu.back.common.dao.CommentDao">
-
-        INSERT INTO COMMUNITY_COMMENT (
-            COMMENT_NUM,
-            POST_ID,
-            MEMBER_NUM,
-            CONTENT,
-            CREATED_AT
-        )
-        VALUES (
-            COMMUNITY_COMMENT_SEQ.NEXTVAL,
-            #{postId},
-            #{memberNum},
-            #{content},
-            SYSDATE
-        )
-
-    </insert>
+	</select>
 
 
-    <!-- 댓글 삭제 -->
-    <delete id="deleteComment"
-            parameterType="int">
+	<!-- 댓글 작성 -->
+	<insert id="insertComment"
+		parameterType="kr.co.ictedu.back.common.dao.CommentDao">
 
-        DELETE FROM COMMUNITY_COMMENT
-        WHERE COMMENT_NUM = #{commentNum}
+		INSERT INTO COMMUNITY_COMMENT (
+		COMMENT_NUM,
+		POST_ID,
+		MEMBER_NUM,
+		CONTENT,
+		CREATED_AT
+		)
+		VALUES (
+		COMMUNITY_COMMENT_SEQ.NEXTVAL,
+		#{postId},
+		#{memberNum},
+		#{content},
+		SYSDATE
+		)
 
-    </delete>
+	</insert>
+
+	<!-- 댓글 수정 -->
+	<update id="updateComment"
+		parameterType="kr.co.ictedu.back.common.vo.CommunityVO">
+
+		UPDATE COMMUNITY_COMMENT
+		SET CONTENT = #{content}
+		WHERE COMMENT_NUM = #{commentNum}
+
+	</update>
+	<!-- 댓글 삭제 -->
+	<delete id="deleteComment"
+		parameterType="int">
+
+		DELETE FROM COMMUNITY_COMMENT
+		WHERE COMMENT_NUM = #{commentNum}
+
+	</delete>
 
 </mapper>
