@@ -47,6 +47,11 @@ const Community: React.FC = () => {
   const [searchKeyword, setSearchKeyword] = useState("");
   const [searchedKeyword, setSearchedKeyword] = useState("");
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editTitle, setEditTitle] = useState("");
+  const [editContent, setEditContent] = useState("");
+  const [editSaving, setEditSaving] = useState(false);
+  const [editError, setEditError] = useState("");
 
   const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
   const [newTitle, setNewTitle] = useState("");
@@ -60,6 +65,9 @@ const Community: React.FC = () => {
   const [commentsLoading, setCommentsLoading] = useState(false);
   const [newCommentContent, setNewCommentContent] = useState("");
   const [commentSubmitting, setCommentSubmitting] = useState(false);
+  const [editingCommentNum, setEditingCommentNum] = useState<number | null>(null);
+  const [editingCommentContent, setEditingCommentContent] = useState("");
+  const [commentEditSubmitting, setCommentEditSubmitting] = useState(false);
   const [likeSubmitting, setLikeSubmitting] = useState(false);
 
   const saveLock = useRef(false);
@@ -105,8 +113,8 @@ const Community: React.FC = () => {
           status === 401
             ? "로그인이 만료되었습니다. 다시 로그인해주세요."
             : status === 403
-            ? "게시글 목록에 접근할 권한이 없습니다."
-            : "게시글을 불러오지 못했습니다. 잠시 후 다시 시도해주세요."
+              ? "게시글 목록에 접근할 권한이 없습니다."
+              : "게시글을 불러오지 못했습니다. 잠시 후 다시 시도해주세요."
         );
       } finally {
         if (!controller.signal.aborted) {
@@ -233,8 +241,8 @@ const Community: React.FC = () => {
       return;
     }
 
-    if (title.length > 30 || content.length > 250) {
-      setWriteError("제목은 30자, 내용은 250자 이내로 입력해주세요.");
+    if (title.length > 100 || content.length > 250) {
+      setWriteError("제목은 100자, 내용은 250자 이내로 입력해주세요.");
       return;
     }
 
@@ -286,19 +294,19 @@ const Community: React.FC = () => {
 
       const serverMessage = axios.isAxiosError(error)
         ? error.response?.data?.message ||
-          error.response?.data?.detail
+        error.response?.data?.detail
         : undefined;
 
       setWriteError(
         status === 401
           ? "로그인이 만료되었습니다. 다시 로그인해주세요."
           : status === 403
-          ? "게시글을 작성할 권한이 없습니다."
-          : status === 400
-          ? typeof serverMessage === "string"
-            ? serverMessage
-            : "입력한 내용이 게시글 저장 형식 또는 길이 제한에 맞지 않습니다."
-          : "게시글 등록 결과를 확인하지 못했습니다. 목록을 확인한 후 다시 시도해주세요."
+            ? "게시글을 작성할 권한이 없습니다."
+            : status === 400
+              ? typeof serverMessage === "string"
+                ? serverMessage
+                : "입력한 내용이 게시글 저장 형식 또는 길이 제한에 맞지 않습니다."
+              : "게시글 등록 결과를 확인하지 못했습니다. 목록을 확인한 후 다시 시도해주세요."
       );
     } finally {
       if (saveController.current === controller) {
@@ -311,6 +319,144 @@ const Community: React.FC = () => {
       }
     }
   };
+
+  // 게시글 수정 모드 시작
+  const handleStartEdit = () => {
+    if (!selectedPost) return;
+
+    setEditTitle(selectedPost.title || "");
+    setEditContent(selectedPost.content || "");
+    setEditError("");
+    setIsEditMode(true);
+  };
+
+  // 게시글 수정
+  const handleUpdatePost = async (
+    event: React.FormEvent
+  ) => {
+    event.preventDefault();
+
+    if (!selectedPost || editSaving) return;
+
+    const title = editTitle.trim();
+    const content = editContent.trim();
+
+    if (!title || !content) {
+      setEditError("제목과 내용을 모두 입력해주세요.");
+      return;
+    }
+
+    if (title.length > 100 || content.length > 250) {
+      setEditError(
+        "제목은 100자, 내용은 250자 이내로 입력해주세요."
+      );
+      return;
+    }
+
+    setEditSaving(true);
+    setEditError("");
+
+    try {
+      await axios.put(
+        `${BACKEND_URL}/api/community/update/${selectedPost.postNum}`,
+        {
+          id: selectedPost.postNum,
+          title,
+          content,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      // 현재 상세 게시글 내용도 즉시 변경
+      setSelectedPost((prev) =>
+        prev
+          ? {
+            ...prev,
+            title,
+            content,
+          }
+          : null
+      );
+
+      // 목록에 표시되는 게시글도 수정
+      setListing((prev) => {
+        if (!prev) return prev;
+
+        return {
+          ...prev,
+          data: prev.data.map((post) =>
+            post.postNum === selectedPost.postNum
+              ? {
+                ...post,
+                title,
+                content,
+              }
+              : post
+          ),
+        };
+      });
+
+      setIsEditMode(false);
+
+      alert("게시글이 수정되었습니다.");
+
+    } catch (error) {
+      console.error("게시글 수정 실패:", error);
+
+      if (axios.isAxiosError(error)) {
+        const errorMsg =
+          error.response?.data?.message ||
+          error.response?.data?.error ||
+          error.response?.data ||
+          error.message;
+
+        setEditError(
+          `게시글 수정에 실패했습니다: ${errorMsg}`
+        );
+      } else {
+        setEditError("게시글 수정에 실패했습니다.");
+      }
+    } finally {
+      setEditSaving(false);
+    }
+  };
+
+
+  // 게시글 삭제
+  const handleDeletePost = async () => {
+    if (!selectedPost) return;
+
+    if (!window.confirm("정말 이 게시글을 삭제하시겠습니까?")) {
+      return;
+    }
+
+    try {
+      await axios.delete(
+        `${BACKEND_URL}/api/community/delete/${selectedPost.postNum}`);
+
+      alert("게시글이 삭제되었습니다.");
+      setSelectedPost(null); // 상세 모달 닫기
+      setPage(1);            // 페이지 초기화 또는 유지
+      setReload((value) => value + 1); // 목록 새로고침
+    } catch (error) {
+      console.error("게시글 삭제 실패:", error);
+
+      if (axios.isAxiosError(error)) {
+        const errorMsg =
+          error.response?.data?.message ||
+          error.response?.data?.error ||
+          error.message;
+        alert(`게시글 삭제 실패: ${errorMsg}`);
+      } else {
+        alert("게시글 삭제에 실패했습니다.");
+      }
+    }
+  };
+
 
   // ==========================================================
   // 좋아요 기능
@@ -360,9 +506,9 @@ const Community: React.FC = () => {
       setSelectedPost((prev) =>
         prev
           ? {
-              ...prev,
-              likeCount: (prev.likeCount ?? 0) + 1,
-            }
+            ...prev,
+            likeCount: (prev.likeCount ?? 0) + 1,
+          }
           : null
       );
 
@@ -375,9 +521,9 @@ const Community: React.FC = () => {
           data: prev.data.map((post) =>
             post.postNum === postNum
               ? {
-                  ...post,
-                  likeCount: (post.likeCount ?? 0) + 1,
-                }
+                ...post,
+                likeCount: (post.likeCount ?? 0) + 1,
+              }
               : post
           ),
         };
@@ -401,8 +547,8 @@ const Community: React.FC = () => {
           typeof error.response?.data === "string"
             ? error.response.data
             : error.response?.data?.message ||
-              error.response?.data?.error ||
-              error.message;
+            error.response?.data?.error ||
+            error.message;
 
         alert(
           `좋아요 처리에 실패했습니다.\n${serverMessage}`
@@ -469,6 +615,71 @@ const Community: React.FC = () => {
       }
     } finally {
       setCommentSubmitting(false);
+    }
+  };
+
+  // 댓글 수정
+
+  const handleStartEditComment = (comment: Comment) => {
+    if (comment.commentNum == null) return;
+
+    setEditingCommentNum(comment.commentNum);
+    setEditingCommentContent(comment.content);
+  };
+
+  const handleUpdateComment = async (commentNum: number) => {
+    const content = editingCommentContent.trim();
+
+    if (!content) {
+      alert("댓글 내용을 입력해주세요.");
+      return;
+    }
+
+    if (content.length > 250) {
+      alert("댓글은 250자 이내로 입력해주세요.");
+      return;
+    }
+
+    setCommentEditSubmitting(true);
+
+    try {
+      await axios.put(
+        `${BACKEND_URL}/api/community/comment/update`,
+        {
+          commentNum,
+          content,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      alert("댓글이 수정되었습니다.");
+
+      setEditingCommentNum(null);
+      setEditingCommentContent("");
+
+      if (selectedPost) {
+        await fetchComments(selectedPost.postNum);
+      }
+    } catch (error) {
+      console.error("댓글 수정 실패:", error);
+
+      if (axios.isAxiosError(error)) {
+        const errorMsg =
+          error.response?.data?.message ||
+          error.response?.data?.error ||
+          error.response?.data ||
+          error.message;
+
+        alert(`댓글 수정 실패: ${errorMsg}`);
+      } else {
+        alert("댓글 수정에 실패했습니다.");
+      }
+    } finally {
+      setCommentEditSubmitting(false);
     }
   };
 
@@ -573,11 +784,10 @@ const Community: React.FC = () => {
                 aria-pressed={
                   selectedCategory === category
                 }
-                className={`nav-link py-2 px-3 fw-semibold rounded-3 ${
-                  selectedCategory === category
-                    ? "active bg-primary text-white shadow-sm"
-                    : "text-secondary bg-transparent"
-                }`}
+                className={`nav-link py-2 px-3 fw-semibold rounded-3 ${selectedCategory === category
+                  ? "active bg-primary text-white shadow-sm"
+                  : "text-secondary bg-transparent"
+                  }`}
                 onClick={() =>
                   setSelectedCategory(category)
                 }
@@ -763,8 +973,8 @@ const Community: React.FC = () => {
                     length: Math.max(
                       0,
                       listing.endPage -
-                        listing.startPage +
-                        1
+                      listing.startPage +
+                      1
                     ),
                   },
                   (_, index) =>
@@ -773,11 +983,10 @@ const Community: React.FC = () => {
                   <button
                     key={number}
                     type="button"
-                    className={`btn btn-sm ${
-                      number === listing.currentPage
-                        ? "btn-primary"
-                        : "btn-outline-primary"
-                    }`}
+                    className={`btn btn-sm ${number === listing.currentPage
+                      ? "btn-primary"
+                      : "btn-outline-primary"
+                      }`}
                     aria-current={
                       number === listing.currentPage
                         ? "page"
@@ -910,7 +1119,7 @@ const Community: React.FC = () => {
                         type="text"
                         className="form-control"
                         value={newTitle}
-                        maxLength={30}
+                        maxLength={100}
                         disabled={saving}
                         onChange={(event) =>
                           setNewTitle(event.target.value)
@@ -920,7 +1129,7 @@ const Community: React.FC = () => {
                       />
 
                       <p className="small text-muted mt-1 mb-0">
-                        {newTitle.length}/30자
+                        {newTitle.length}/100자
                       </p>
                     </div>
 
@@ -1066,24 +1275,113 @@ const Community: React.FC = () => {
                     >
                       {likeSubmitting
                         ? "처리 중..."
-                        : `❤️ 좋아요 ${
-                            selectedPost.likeCount ?? 0
-                          }`}
+                        : `❤️ 좋아요 ${selectedPost.likeCount ?? 0
+                        }`}
                     </button>
                   </div>
 
-                  {/* 게시글 내용 */}
-                  <div
-                    className="fs-6 text-dark mb-5"
-                    style={{
-                      minHeight: "80px",
-                      whiteSpace: "pre-wrap",
-                      overflowWrap: "anywhere",
-                    }}
-                  >
-                    {selectedPost.content}
-                  </div>
+                  {/* 게시글 내용 / 수정 영역 */}
+                  {isEditMode ? (
+                    <form
+                      onSubmit={(event) =>
+                        void handleUpdatePost(event)
+                      }
+                    >
+                      {/* 제목 수정 */}
+                      <div className="mb-3">
+                        <label
+                          htmlFor="edit-post-title"
+                          className="form-label fw-semibold"
+                        >
+                          제목
+                        </label>
 
+                        <input
+                          id="edit-post-title"
+                          type="text"
+                          className="form-control"
+                          value={editTitle}
+                          maxLength={100}
+                          disabled={editSaving}
+                          onChange={(event) =>
+                            setEditTitle(event.target.value)
+                          }
+                        />
+
+                        <div className="small text-muted mt-1">
+                          {editTitle.length}/30자
+                        </div>
+                      </div>
+
+                      {/* 내용 수정 */}
+                      <div className="mb-3">
+                        <label
+                          htmlFor="edit-post-content"
+                          className="form-label fw-semibold"
+                        >
+                          내용
+                        </label>
+
+                        <textarea
+                          id="edit-post-content"
+                          className="form-control"
+                          rows={8}
+                          value={editContent}
+                          maxLength={250}
+                          disabled={editSaving}
+                          onChange={(event) =>
+                            setEditContent(event.target.value)
+                          }
+                        />
+
+                        <div className="small text-muted mt-1">
+                          {editContent.length}/250자
+                        </div>
+                      </div>
+
+                      {editError && (
+                        <div
+                          className="text-danger small mb-3"
+                          role="alert"
+                        >
+                          {editError}
+                        </div>
+                      )}
+
+                      <div className="d-flex justify-content-end gap-2 mb-4">
+                        <button
+                          type="button"
+                          className="btn btn-secondary rounded-3"
+                          disabled={editSaving}
+                          onClick={() => {
+                            setIsEditMode(false);
+                            setEditError("");
+                          }}
+                        >
+                          취소
+                        </button>
+
+                        <button
+                          type="submit"
+                          className="btn btn-primary rounded-3 fw-semibold"
+                          disabled={editSaving}
+                        >
+                          {editSaving ? "수정 중..." : "수정 완료"}
+                        </button>
+                      </div>
+                    </form>
+                  ) : (
+                    <div
+                      className="fs-6 text-dark mb-5"
+                      style={{
+                        minHeight: "80px",
+                        whiteSpace: "pre-wrap",
+                        overflowWrap: "anywhere",
+                      }}
+                    >
+                      {selectedPost.content}
+                    </div>
+                  )}
                   {/* 댓글 영역 */}
                   <div className="border-top pt-4">
                     <h5 className="fw-bold text-dark mb-3">
@@ -1101,71 +1399,97 @@ const Community: React.FC = () => {
                       </p>
                     ) : (
                       <div className="d-flex flex-column gap-2 mb-4">
-                        {comments.map(
-                          (comment, index) => (
-                            <div
-                              key={
-                                comment.commentNum ||
-                                index
-                              }
-                              className="p-3 bg-light rounded-3"
-                            >
-                              <div className="d-flex justify-content-between align-items-center mb-1">
-                                <span className="fw-bold small text-dark">
-                                  {comment.author ||
-                                    "회원"}
-                                </span>
+                        {comments.map((comment) => (
+                          <div
+                            key={comment.commentNum}
+                            className="border-bottom py-3"
+                          >
+                            <div className="d-flex justify-content-between align-items-center mb-2">
+                              <strong>{comment.author || "익명"}</strong>
 
-                                <div className="d-flex align-items-center gap-2">
-                                  <span
-                                    className="text-muted"
-                                    style={{
-                                      fontSize:
-                                        "0.75rem",
+                              <div className="d-flex gap-2">
+                                {editingCommentNum !== comment.commentNum && (
+                                  <button
+                                    type="button"
+                                    className="btn btn-sm btn-outline-primary"
+                                    onClick={() => handleStartEditComment(comment)}
+                                  >
+                                    수정
+                                  </button>
+                                )}
+
+                                <button
+                                  type="button"
+                                  className="btn btn-sm btn-outline-danger"
+                                  disabled={editingCommentNum === comment.commentNum}
+                                  onClick={() => {
+                                    if (comment.commentNum != null) {
+                                      void handleDeleteComment(comment.commentNum);
+                                    }
+                                  }}
+                                >
+                                  삭제
+                                </button>
+                              </div>
+                            </div>
+
+                            {editingCommentNum === comment.commentNum ? (
+                              <div>
+                                <textarea
+                                  className="form-control mb-2"
+                                  rows={3}
+                                  value={editingCommentContent}
+                                  maxLength={250}
+                                  disabled={commentEditSubmitting}
+                                  onChange={(event) =>
+                                    setEditingCommentContent(event.target.value)
+                                  }
+                                />
+
+                                <div className="small text-muted mb-2">
+                                  {editingCommentContent.length}/250자
+                                </div>
+
+                                <div className="d-flex justify-content-end gap-2">
+                                  <button
+                                    type="button"
+                                    className="btn btn-sm btn-secondary"
+                                    disabled={commentEditSubmitting}
+                                    onClick={() => {
+                                      setEditingCommentNum(null);
+                                      setEditingCommentContent("");
                                     }}
                                   >
-                                    {comment.createdAt
-                                      ? new Date(
-                                          comment.createdAt
-                                        ).toLocaleString()
-                                      : ""}
-                                  </span>
+                                    취소
+                                  </button>
 
-                                  {/* 댓글 삭제 버튼 */}
-                                  {comment.commentNum !=
-                                    null && (
-                                    <button
-                                      type="button"
-                                      className="btn btn-sm btn-outline-danger py-0 px-2"
-                                      style={{
-                                        fontSize:
-                                          "0.75rem",
-                                      }}
-                                      onClick={() =>
-                                        handleDeleteComment(
-                                          comment.commentNum!
-                                        )
+                                  <button
+                                    type="button"
+                                    className="btn btn-sm btn-primary"
+                                    disabled={commentEditSubmitting}
+                                    onClick={() => {
+                                      if (comment.commentNum != null) {
+                                        void handleUpdateComment(comment.commentNum);
                                       }
-                                    >
-                                      삭제
-                                    </button>
-                                  )}
+                                    }}
+                                  >
+                                    {commentEditSubmitting ? "수정 중..." : "수정 완료"}
+                                  </button>
                                 </div>
                               </div>
-
-                              <p
-                                className="mb-0 text-secondary small"
+                            ) : (
+                              <div
+                                className="text-dark"
                                 style={{
-                                  whiteSpace:
-                                    "pre-wrap",
-                                  overflowWrap:
-                                    "anywhere",
+                                  whiteSpace: "pre-wrap",
+                                  overflowWrap: "anywhere",
                                 }}
                               >
                                 {comment.content}
-                              </p>
-                            </div>
-                          )
+                              </div>
+                            )}
+                          </div>
+                        )
                         )}
                       </div>
                     )}
@@ -1205,19 +1529,44 @@ const Community: React.FC = () => {
                   </div>
                 </div>
 
-                {/* 모달 하단 */}
-                <div className="modal-footer border-top bg-light-subtle p-3">
+                <div className="modal-footer border-top bg-light-subtle p-3 d-flex justify-content-between">
+                  <div className="d-flex gap-2">
+                    {/* 글 수정 */}
+                    {!isEditMode && (
+                      <button
+                        type="button"
+                        className="btn btn-outline-primary px-4 rounded-3 fw-semibold"
+                        onClick={handleStartEdit}
+                      >
+                        글 수정
+                      </button>
+                    )}
+
+                    {/* 글 삭제 */}
+                    <button
+                      type="button"
+                      className="btn btn-outline-danger px-4 rounded-3 fw-semibold"
+                      disabled={isEditMode || editSaving}
+                      onClick={() => void handleDeletePost()}
+                    >
+                      글 삭제
+                    </button>
+                  </div>
+
+                  {/* 닫기 */}
                   <button
                     type="button"
                     className="btn btn-secondary px-4 rounded-3 fw-semibold"
-                    onClick={() =>
-                      setSelectedPost(null)
-                    }
+                    disabled={editSaving}
+                    onClick={() => {
+                      setIsEditMode(false);
+                      setEditError("");
+                      setSelectedPost(null);
+                    }}
                   >
                     닫기
                   </button>
                 </div>
-
               </div>
             </div>
           </div>
