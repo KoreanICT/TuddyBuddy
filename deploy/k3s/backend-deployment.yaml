@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tuddybuddy-backend
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  progressDeadlineSeconds: 300
+  selector:
+    matchLabels:
+      app: tuddybuddy-backend
+  template:
+    metadata:
+      labels:
+        app: tuddybuddy-backend
+    spec:
+      containers:
+        - name: backend
+          image: __IMAGE__
+          imagePullPolicy: Never
+          ports:
+            - name: http
+              containerPort: 80
+          env:
+            - name: SPRING_CONFIG_ADDITIONAL_LOCATION
+              value: file:/app/config/application.properties
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:oracle:thin:@172.31.9.72:1521:xe
+            - name: SPRING_DATA_REDIS_HOST
+              value: 172.31.9.72
+            - name: SPRING_DATA_REDIS_PORT
+              value: "6379"
+            - name: SPRING_SERVLET_MULTIPART_LOCATION
+              value: /app/upload
+            - name: FILE_UPLOAD_GROUP_THUMBNAIL
+              value: /app/upload/group
+            - name: QUIZ_IMAGE_DIRECTORY
+              value: /app/upload/quiz
+            - name: TZ
+              value: Asia/Seoul
+            - name: JAVA_TOOL_OPTIONS
+              value: -Duser.timezone=Asia/Seoul -XX:MaxRAMPercentage=65
+          startupProbe:
+            tcpSocket:
+              port: http
+            periodSeconds: 5
+            failureThreshold: 60
+          readinessProbe:
+            tcpSocket:
+              port: http
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: 100m
+              memory: 384Mi
+            limits:
+              memory: 768Mi
+          volumeMounts:
+            - name: backend-config
+              mountPath: /app/config
+              readOnly: true
+            - name: uploads
+              mountPath: /app/upload
+      volumes:
+        - name: backend-config
+          secret:
+            secretName: tuddybuddy-backend
+            items:
+              - key: application.properties
+                path: application.properties
+        - name: uploads
+          hostPath:
+            path: /home/ubuntu/tuddybuddy/uploads
+            type: Directory

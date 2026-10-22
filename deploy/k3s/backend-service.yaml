@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: tuddybuddy-backend
+spec:
+  type: ClusterIP
+  selector:
+    app: tuddybuddy-backend
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
