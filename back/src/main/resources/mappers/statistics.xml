@@ -54,8 +54,12 @@
 	<select id="selectHistoryStatistics" resultType="map">
 	    SELECT
 	        c.CATEGORY_ID AS "categoryId",
+	        c.CATEGORY_NAME AS "categoryName",
 	        sr.SELFSTUDY_RESULTS_ID AS "resultId",
-	        sr.SELFSTUDY_RESULTS_ID AS "round",
+	        ROW_NUMBER() OVER (
+	            PARTITION BY c.CATEGORY_ID
+	            ORDER BY sr.SUBMITTED_AT, sr.SELFSTUDY_RESULTS_ID
+	        ) AS "round",
 	        sr.SELFSTUDY_TOTAL_SCORE AS "score",
 	        TO_CHAR(sr.SUBMITTED_AT, 'MM-DD') AS "date"
 	    FROM SELFSTUDY_RESULTS sr

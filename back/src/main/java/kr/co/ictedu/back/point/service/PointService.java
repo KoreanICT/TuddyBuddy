@@ -22,6 +22,29 @@ public class PointService {
 	private PointDao dao;
 
 	/**
+	 * 회원번호에 해당하는 전체 포인트 로그를 한 번 조회한다.
+	 * 결과에는 변동일, 변동 포인트, 변동 후 잔액, 변동 사유가 포함된다.
+	 */
+	public List<PointVO> selectPointHistory(Long memberNum) {
+		//역할: 회원번호 검증
+		validateMemberNumber(memberNum);
+		return dao.select_point_log(memberNum);
+	}
+
+	/** 출석 보상 포인트 300점을 적립한다. */
+	@Transactional
+	public void addAttendanceReward(Long memberNum, String description) {
+		//역할: 출석 보상을 받을 회원번호 검증
+		validateMemberNumber(memberNum);
+		//역할: 출석 보상 설명 검증
+		validateDescription(description);
+		long amount = 300L;
+		//역할: 출석 보상 포인트 양수 검증
+		validatePositiveAmount(amount, "출석 보상 포인트");
+		insertPointChange(memberNum, amount, 0L, "PAYMENT", description);
+	}
+
+	/**
 	 * 포인트 사용 처리. 호출하는 도메인에서 회원 번호, 사용할 포인트, 설명을 전달한다.
 	 * 포인트 로그와 회원 잔액 변경은 하나의 트랜잭션으로 처리한다.
 	 */
