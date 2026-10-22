@@ -35,6 +35,19 @@ const Signup: React.FC = () => {
 
     // 이메일 인증
     const [emailVerified, setEmailVerified] = useState(false);
+    const [verificationToken, setVerificationToken] = useState('');
+    const [verifiedEmail, setVerifiedEmail] = useState('');
+    const [emailBusy, setEmailBusy] = useState(false);
+    const [signupLoading, setSignupLoading] = useState(false);
+    const emailRequestId = useRef(0);
+    const emailOperationLock = useRef(false);
+    const signupLock = useRef(false);
+
+    const resetEmailVerification = () => {
+        setEmailVerified(false);
+        setVerificationToken('');
+        setVerifiedEmail('');
+    };
 
     // 약관 동의
     const [termsAgree, setTermsAgree] = useState(false);
@@ -52,19 +65,25 @@ const Signup: React.FC = () => {
 
     // 이메일 인증번호 발송
     const handleEmailSend = async () => {
+        if (emailOperationLock.current || signupLock.current) return;
         if (!email.trim()) {
             alert('이메일을 입력해주세요.');
             return;
         }
 
+        const requestId = ++emailRequestId.current;
+        const requestedEmail = email.trim().toLowerCase();
+        emailOperationLock.current = true;
+        setEmailBusy(true);
+        resetEmailVerification();
         try {
             const response = await axios.post(
                 `${backendUrl}/api/auth/emailCheck`,
-                { email },
+                { email: requestedEmail },
                 { withCredentials: true }
             );
 
-            console.log('이메일 인증 요청 결과:', response.data);
+            if (requestId !== emailRequestId.current) return;
 
             if (response.data === 0) {
                 alert('인증번호가 이메일로 발송되었습니다.');
@@ -73,6 +92,7 @@ const Signup: React.FC = () => {
                 alert('이미 사용 중인 이메일입니다.');
             }
         } catch (error) {
+            if (requestId !== emailRequestId.current) return;
             console.error('이메일 인증 요청 오류:', error);
 
             if (axios.isAxiosError(error)) {
@@ -81,11 +101,15 @@ const Signup: React.FC = () => {
             }
 
             alert('이메일 인증 요청 중 오류가 발생했습니다.');
+        } finally {
+            emailOperationLock.current = false;
+            setEmailBusy(false);
         }
     };
 
     // 이메일 인증번호 확인
     const handleEmailVerify = async () => {
+        if (emailOperationLock.current || signupLock.current) return;
         if (!email.trim()) {
             alert('이메일을 입력해주세요.');
             return;
@@ -96,11 +120,16 @@ const Signup: React.FC = () => {
             return;
         }
 
+        const requestId = ++emailRequestId.current;
+        const requestedEmail = email.trim().toLowerCase();
+        emailOperationLock.current = true;
+        setEmailBusy(true);
+        resetEmailVerification();
         try {
             const response = await axios.post(
                 `${backendUrl}/api/auth/emailCheck/certi`,
                 {
-                    email,
+                    email: requestedEmail,
                     code
                 },
                 {
@@ -108,11 +137,13 @@ const Signup: React.FC = () => {
                 }
             );
 
-            console.log('인증번호 확인 결과:', response.data);
+            if (requestId !== emailRequestId.current) return;
 
-            if (response.data.success === true) {
+            if (response.data.success === true && typeof response.data.verificationToken === 'string' && response.data.verificationToken) {
                 setEmailVerified(true);
-                alert('이메일 인증이 완료되었습니다.');
+                setVerificationToken(response.data.verificationToken);
+                setVerifiedEmail(requestedEmail);
+                alert('이메일 인증이 완료되었습니다. 10분 이내에 가입해주세요.');
                 return;
             }
 
@@ -128,8 +159,11 @@ const Signup: React.FC = () => {
                 alert('이메일 인증에 실패했습니다.');
             }
         } catch (error) {
-            console.error('인증번호 확인 오류:', error);
+            if (requestId !== emailRequestId.current) return;
             alert('인증번호 확인 중 오류가 발생했습니다.');
+        } finally {
+            emailOperationLock.current = false;
+            setEmailBusy(false);
         }
     };
 
@@ -223,7 +257,8 @@ const Signup: React.FC = () => {
 
     // 회원가입
     const handleSignup = async () => {
-        if (!emailVerified) {
+        if (signupLock.current || emailOperationLock.current) return;
+        if (!emailVerified || !verificationToken || verifiedEmail !== email.trim().toLowerCase()) {
             alert('이메일 인증을 먼저 완료해주세요.');
             return;
         }
@@ -258,11 +293,14 @@ const Signup: React.FC = () => {
             return;
         }
 
+        signupLock.current = true;
+        setSignupLoading(true);
         try {
             const response = await axios.post(
                 `${backendUrl}/api/member/signup`,
                 {
-                    member_email: email,
+                    member_email: email.trim().toLowerCase(),
+                    verificationToken,
                     member_pwd: pwd1,
                     member_name: name,
                     member_nick: nick,
@@ -276,19 +314,17 @@ const Signup: React.FC = () => {
                 }
             );
 
-            console.log('회원가입 결과:', response.data);
-
             alert(response.data);
             navigate('/auth/member');
         } catch (error) {
-            console.error('회원가입 오류:', error);
-
-            if (axios.isAxiosError(error)) {
-                console.log('서버 상태:', error.response?.status);
-                console.log('서버 응답:', error.response?.data);
-            }
-
-            alert('회원가입 중 오류가 발생했습니다.');
+            // 서버의 증명은 일회성이므로 실패·응답 유실 후에도 다시 인증합니다.
+            resetEmailVerification();
+            const responseData = axios.isAxiosError(error) ? error.response?.data : undefined;
+            const message = typeof responseData === 'string' ? responseData : responseData?.message || responseData?.detail;
+            alert(`${typeof message === 'string' ? message : '회원가입 결과를 확인하지 못했습니다.'} 이메일 인증을 다시 진행해주세요.`);
+        } finally {
+            signupLock.current = false;
+            setSignupLoading(false);
         }
     };
 
@@ -405,15 +441,19 @@ TuddyBuddy(이하 "회사")는 회원가입, 원활한 고객 상담, 각종 서
                                 type="email"
                                 placeholder="이메일을 입력해주세요"
                                 value={email}
+                                disabled={signupLoading}
                                 onChange={(e) => {
+                                    emailRequestId.current += 1;
                                     setEmail(e.target.value);
-                                    setEmailVerified(false);
+                                    setCode('');
+                                    resetEmailVerification();
                                 }}
                             />
 
                             <button
                                 type="button"
                                 onClick={handleEmailSend}
+                                disabled={emailBusy || signupLoading}
                             >
                                 인증요청
                             </button>
@@ -435,6 +475,7 @@ TuddyBuddy(이하 "회사")는 회원가입, 원활한 고객 상담, 각종 서
                             <button
                                 type="button"
                                 onClick={handleEmailVerify}
+                                disabled={emailBusy || signupLoading}
                             >
                                 확인
                             </button>
@@ -442,7 +483,7 @@ TuddyBuddy(이하 "회사")는 회원가입, 원활한 고객 상담, 각종 서
 
                         {emailVerified && (
                             <p className="email-verified-text">
-                                이메일 인증 완료
+                                이메일 인증 완료 · 10분 이내에 가입해주세요.
                             </p>
                         )}
                     </div>
@@ -670,8 +711,9 @@ TuddyBuddy(이하 "회사")는 회원가입, 원활한 고객 상담, 각종 서
                             type="button"
                             className="signup-submit-button"
                             onClick={handleSignup}
+                            disabled={signupLoading || emailBusy}
                         >
-                            회원가입
+                            {signupLoading ? '가입 중...' : '회원가입'}
                         </button>
                     </div>
                 </form>
