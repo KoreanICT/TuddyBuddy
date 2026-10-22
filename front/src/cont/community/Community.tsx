@@ -483,7 +483,7 @@ const Community: React.FC = () => {
 
     try {
       console.log("좋아요 요청:", {
-        postNum: postNum,
+        id: postNum,
         url: `${BACKEND_URL}/api/community/like`,
       });
 
