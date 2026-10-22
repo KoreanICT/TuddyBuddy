@@ -71,14 +71,25 @@ public class CommunityService {
 	}
 
 	// 2. 게시글 삭제하기
+	@Transactional
 	public void deletePost(int id) {
 		int result = communityDao.deletePost(id);
 		if (result <= 0) {
 			throw new RuntimeException("게시글 삭제에 실패했습니다.");
 		}
 	}
+	
+	// 3. 게시글 수정하기
+	@Transactional
+	public void updatePost(CommunityVO vo) {
+	    int result = communityDao.updatePost(vo);
 
-	// 3. 댓글 쓰기
+	    if (result <= 0) {
+	        throw new RuntimeException("게시글 수정에 실패했습니다.");
+	    }
+	}
+
+	// 4. 댓글 쓰기
 	public void writeComment(int postId, CommunityVO commentVO) {
 		int result = communityDao.insertComment(postId, commentVO);
 		if (result <= 0) {
@@ -86,15 +97,16 @@ public class CommunityService {
 		}
 	}
 
-	// 4. 댓글 삭제
+	// 5. 댓글 삭제
 	public void deleteComment(int commentId) {
 		int result = communityDao.deleteComment(commentId);
 		if (result <= 0) {
 			throw new RuntimeException("댓글 삭제에 실패했습니다.");
 		}
 	}
-
-	// 5. 임시글 작성
+	
+	
+	// 7. 임시글 작성
 	public void tempSavePost(CommunityVO communityVO) {
 		int result = communityDao.insertTempPost(communityVO);
 		if (result <= 0) {
@@ -102,7 +114,7 @@ public class CommunityService {
 		}
 	}
 
-	// 6. 좋아요 누르기
+	// 8. 좋아요 누르기
 	public int like(CommunityVO vo) {
 		return communityDao.like(vo);
 	}

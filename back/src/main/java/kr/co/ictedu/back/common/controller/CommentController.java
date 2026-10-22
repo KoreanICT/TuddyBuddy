@@ -8,6 +8,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -16,6 +17,8 @@ import org.springframework.web.server.ResponseStatusException;
 
 import kr.co.ictedu.back.common.dao.CommentDao;
 import kr.co.ictedu.back.common.service.CommentService;
+import kr.co.ictedu.back.common.service.CommunityService;
+import kr.co.ictedu.back.common.vo.CommunityVO;
 import kr.co.ictedu.back.member.service.MemberService;
 import kr.co.ictedu.back.member.vo.MemberVO;
 
@@ -196,4 +199,30 @@ public class CommentController {
                     .body("댓글 삭제 중 오류가 발생했습니다.");
         }
     }
+    
+    
+    // =========================================================
+    // 4. 댓글 수정
+    //
+    // UPDATE
+    // /api/community/comment/update?commentNum=1
+    // =========================================================
+    @PutMapping("/update")
+    public ResponseEntity<?> updateComment(@RequestBody CommunityVO vo) {
+        try {
+            int result = commentService.updateComment(vo);
+
+            if (result > 0) {
+                return ResponseEntity.ok("댓글 수정 성공");
+            }
+
+            return ResponseEntity.badRequest().body("댓글 수정 실패");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("댓글 수정 중 오류가 발생했습니다.");
+        }
+    }
+    
+    
 }

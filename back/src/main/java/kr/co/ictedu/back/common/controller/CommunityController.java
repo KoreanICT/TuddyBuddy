@@ -160,19 +160,46 @@ public class CommunityController {
 	// 4. 게시글 삭제
 	// DELETE /api/community/delete/{id}
 	// =========================================================
-	@DeleteMapping("/delete/{id}")
-	public ResponseEntity<Map<String, Object>> deletePost(@PathVariable("id") int id) {
+	@DeleteMapping("/delete/{postNum}")
+	public ResponseEntity<?> deletePost(@PathVariable("postNum") int postNum) {
 
-		System.out.println("삭제할 게시글 번호: " + id);
+	    try {
+	        System.out.println("삭제 요청 게시글 번호 = " + postNum);
 
-		Map<String, Object> response = new HashMap<>();
+	        communityService.deletePost(postNum);
 
-		response.put("status", "success");
-		response.put("message", "게시글이 삭제되었습니다.");
+	        System.out.println("게시글 삭제 완료");
 
-		return ResponseEntity.ok(response);
+	        return ResponseEntity.ok("게시글 삭제 성공");
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        return ResponseEntity.status(500).body("게시글 삭제 실패");
+	    }
 	}
+	
+	// =========================================================
+	// 5. 게시글 수정
+	// DELETE /api/community/update/{id}
+	// =========================================================
+	@PutMapping("/update/{postNum}")
+	public ResponseEntity<?> updatePost(
+	        @PathVariable("postNum") int postNum,
+	        @RequestBody CommunityVO vo) {
 
+	    try {
+	        vo.setId(postNum);
+
+	        communityService.updatePost(vo);
+
+	        return ResponseEntity.ok("게시글 수정 성공");
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        return ResponseEntity.status(500).body("게시글 수정 실패");
+	    }
+	}
+	
 	// =========================================================
 	// ⚠️ 댓글 관련 API는 여기에서 작성하지 않습니다.
 	//
@@ -184,7 +211,7 @@ public class CommunityController {
 	// =========================================================
 
 	// =========================================================
-	// 5. 임시글 작성
+	// 6. 임시글 작성
 	// POST /api/community/temp-save
 	// =========================================================
 	@PostMapping("/temp-save")
@@ -201,7 +228,7 @@ public class CommunityController {
 	}
 
 	// =========================================================
-	// 6. 좋아요 누르기
+	// 7. 좋아요 누르기
 	// POST /api/community/like
 	// =========================================================
 	@PostMapping("/like")

@@ -12,6 +12,7 @@ public class CommunityVO {
 	private int id; // 커뮤니티 페이지 게시글 번호
 	private String title; // 커뮤니티 페이지 게시글 제목
 	private String content; // 커뮤니티 페이지 게시글 내용
+	private int commentNum; // 댓글 수
 	private String nickname; // 사용자 닉네임
 	private String category; // 커뮤니티 페이지 게시글 카테고리
 	private int likeCount; // 좋아요 개수

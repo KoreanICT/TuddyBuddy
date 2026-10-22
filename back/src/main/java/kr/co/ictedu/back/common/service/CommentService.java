@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import kr.co.ictedu.back.common.dao.CommentDao;
 import kr.co.ictedu.back.common.dao.CommentMapper;
+import kr.co.ictedu.back.common.vo.CommunityVO;
 
 @Service
 public class CommentService {
@@ -36,4 +37,9 @@ public class CommentService {
     public int deleteComment(int commentNum) {
         return commentMapper.deleteComment(commentNum);
     }
+    
+    public int updateComment(CommunityVO vo) {
+        return commentMapper.updateComment(vo);
+    }
+	
 }

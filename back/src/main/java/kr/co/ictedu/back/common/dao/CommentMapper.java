@@ -15,5 +15,7 @@ public interface CommentMapper {
 
     int deleteComment(int commentNum);
     
+    int updateComment(CommunityVO vo);
+    
     int like(CommunityVO vo);
 }
