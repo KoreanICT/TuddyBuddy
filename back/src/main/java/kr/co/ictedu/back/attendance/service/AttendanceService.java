@@ -17,6 +17,8 @@ import org.springframework.web.server.ResponseStatusException;
 import kr.co.ictedu.back.attendance.dao.AttendanceDao;
 import kr.co.ictedu.back.attendance.vo.AttendanceStatusVO;
 import kr.co.ictedu.back.attendance.vo.AttendanceDayVO;
+import kr.co.ictedu.back.point.service.PointService;
+import kr.co.ictedu.back.point.vo.PointVO;
 
 /** 한국 날짜 기준 출석 규칙과 트랜잭션을 담당하며 회원 포인트 잔액은 변경하지 않는다. */
 @Service
@@ -25,10 +27,18 @@ public class AttendanceService {
     private static final Pattern DUPLICATE_CONSTRAINT = Pattern.compile(
             "(?i)(?<![A-Z0-9_])UQ_ATTENDANCE_MEMBER_DAY(?![A-Z0-9_])");
     private final AttendanceDao attendance;
+    private final PointService points;
 
     /** MyBatis DAO를 주입받아 SQL 실행을 데이터 계층에 맡긴다. */
-    public AttendanceService(AttendanceDao attendance) {
+    public AttendanceService(AttendanceDao attendance, PointService points) {
         this.attendance = attendance;
+        this.points = points;
+    }
+
+    /** 마이페이지 조회 전용. 포인트 도메인의 공개 메서드에 인증 회원번호만 전달한다. */
+    @Transactional(readOnly = true)
+    public List<PointVO> getPointHistory(Long memberNum) {
+        return points.selectPointHistory(memberNum);
     }
 
     /**

@@ -84,6 +84,18 @@
   width: 100%;
 }
 
+.point-history-state { padding: 24px; margin: 0; color: #63718b; line-height: 1.7; }
+.point-history-state p { margin: 0 0 12px; }
+.point-history-state button { border: 1px solid #c8c7fb; border-radius: 8px; padding: 8px 14px; background: #f3f2ff; color: #4939d5; cursor: pointer; }
+.point-history-scroll { max-height: 55vh; overflow: auto; }
+.point-history-table { width: 100%; border-collapse: collapse; font-size: 14px; color: #334155; }
+.point-history-caption { padding: 12px 20px; text-align: left; color: #64748b; }
+.point-history-table th { background: #f7f8fe; font-weight: 600; }
+.point-history-table th, .point-history-table td { padding: 16px; text-align: left; border-bottom: 1px solid #e9edf5; }
+.point-history-table td:first-child { white-space: nowrap; }
+.point-history-table td:last-child { overflow-wrap: anywhere; min-width: 120px; }
+.point-history-table .point-plus, .point-history-table .point-minus { font-size: 14px; }
+
 
 /* ========================================
    포인트 내역 하나
