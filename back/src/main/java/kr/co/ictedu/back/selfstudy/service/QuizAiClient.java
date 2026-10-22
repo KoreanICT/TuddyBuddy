@@ -3,6 +3,7 @@ package kr.co.ictedu.back.selfstudy.service;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
@@ -16,22 +17,25 @@ import org.springframework.web.server.ResponseStatusException;
 import static org.springframework.http.HttpStatus.*;
 import kr.co.ictedu.back.selfstudy.dto.AiQuizResponseDto;
 import kr.co.ictedu.back.selfstudy.dto.QuizGenerateRequestDto;
+import tools.jackson.databind.json.JsonMapper;
 
 @Component
 public class QuizAiClient {
 	private final RestClient client;
 	private final String token;
+	private final JsonMapper json;
 
 	public QuizAiClient(@Value("${quiz.ai.base-url}") String baseUrl, @Value("${quiz.ai.token:}") String token,
-			@Value("${quiz.ai.timeout-seconds:180}") int timeout) {
+			@Value("${quiz.ai.timeout-seconds:180}") int timeout, JsonMapper json) {
 		this.token = token;
+		this.json = json;
 		var factory = new SimpleClientHttpRequestFactory();
 		factory.setConnectTimeout(Duration.ofSeconds(10));
 		factory.setReadTimeout(Duration.ofSeconds(timeout));
 		client = RestClient.builder().baseUrl(baseUrl).requestFactory(factory).build();
 	}
 
-	public AiQuizResponseDto generate(QuizGenerateRequestDto r, byte[] image) {
+	public AiQuizResponseDto generate(QuizGenerateRequestDto r, byte[] image, List<Map<String, Object>> catalog) {
 		var parts = new LinkedMultiValueMap<String, Object>();
 		var headers = new org.springframework.http.HttpHeaders();
 		headers.setContentType(MediaType.parseMediaType(r.getFile().getContentType()));
@@ -41,7 +45,10 @@ public class QuizAiClient {
 				return "image";
 			}
 		}, headers));
-		parts.add("subject_id", r.getSubject_id().toString());
+		if (r.getSubject_id() != null) {
+			parts.add("subject_id", r.getSubject_id().toString());
+		}
+		parts.add("catalog_json", json.writeValueAsString(catalog));
 		parts.add("quiz_type", r.getQuiz_type());
 		parts.add("quiz_difficulty", r.getQuiz_difficulty());
 		parts.add("quiz_count", r.getQuiz_count().toString());
@@ -59,8 +66,9 @@ public class QuizAiClient {
 	}
 
 	private void validate(AiQuizResponseDto response, QuizGenerateRequestDto r) {
-		if (response == null || response.quizzes() == null || response.quizzes().size() != r.getQuiz_count())
-			throw new ResponseStatusException(BAD_GATEWAY, "AI가 요청한 수의 문제를 반환하지 않았습니다.");
+		if (response == null || blank(response.categoryName()) || blank(response.subjectName()))
+			throw new ResponseStatusException(BAD_GATEWAY, "AI 응답에서 카테고리 또는 과목 분류를 받지 못했습니다.");
+		if (response.quizzes() == null) return;
 		for (var q : response.quizzes()) {
 			if (q == null || blank(q.quizQuestion()) || blank(q.quizCorrectAnswer()) || blank(q.quizExplanation())
 					|| q.quizSelections() == null || q.quizSelections().stream().anyMatch(this::blank))

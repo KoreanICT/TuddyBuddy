@@ -1,0 +1,159 @@
+.dialog {
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+
+  border: 0;
+
+  background: transparent;
+}
+
+.dialog::backdrop {
+  background: transparent;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.intro,
+.count {
+  margin: 0;
+
+  color: var(--text-secondary);
+
+  font-size: 13px;
+}
+
+.search {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.search input {
+  width: 100%;
+  padding: 10px 12px;
+
+  box-sizing: border-box;
+
+  border: 1px solid var(--border);
+  border-radius: 8px;
+
+  background: var(--background);
+  color: var(--text);
+
+  font: inherit;
+  font-weight: 400;
+}
+
+.categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.categories button,
+.actions button {
+  min-height: 36px;
+  padding: 7px 12px;
+
+  border: 1px solid var(--border);
+  border-radius: 8px;
+
+  background: var(--background);
+  color: var(--text-secondary);
+
+  font: inherit;
+  font-size: 13px;
+
+  cursor: pointer;
+}
+
+.categories button[aria-pressed='true'] {
+  border-color: #7dd3fc;
+
+  background: #f0f9ff;
+  color: var(--primary);
+
+  font-weight: 700;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.item {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.item summary {
+  padding: 14px 16px;
+
+  color: var(--text);
+
+  font-size: 14px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+
+  cursor: pointer;
+}
+
+.item[open] {
+  border-color: #bae6fd;
+
+  background: #f8fcff;
+}
+
+.answer {
+  padding: 0 16px 16px;
+
+  font-size: 14px;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+
+.answer p {
+  margin: 0 0 10px;
+
+  color: var(--text-secondary);
+}
+
+.answer a {
+  color: var(--primary);
+
+  font-weight: 600;
+}
+
+.empty {
+  margin: 0;
+  padding: 24px 12px;
+
+  color: var(--text-secondary);
+
+  text-align: center;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.content input:focus-visible,
+.content button:focus-visible,
+.content summary:focus-visible,
+.content a:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+}

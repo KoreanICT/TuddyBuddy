@@ -44,6 +44,11 @@ const Navbar: React.FC = () => {
                                 커뮤니티
                             </NavLink>
                         </li>
+                        <li>
+                            <NavLink to="/education-news" className={linkClass}>
+                                교육 뉴스
+                            </NavLink>
+                        </li>
 
                         <RoleGate allowedRoles={ROLE_ACCESS.member}>
                         <li>
@@ -61,6 +66,11 @@ const Navbar: React.FC = () => {
                         <li>
                             <NavLink to="/statistics" className={linkClass}>
                                 평가분석
+                            </NavLink>
+                        </li>
+                        <li>
+                            <NavLink to="/attendance" className={linkClass}>
+                                출석체크
                             </NavLink>
                         </li>
                         </RoleGate>

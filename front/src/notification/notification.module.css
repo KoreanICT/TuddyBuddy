@@ -1,0 +1,103 @@
+.notificationModal {
+    position: absolute;
+
+    top: calc(100% + 8px);
+    right: 0;
+
+    width: 330px;
+    max-height: 450px;
+
+    overflow-y: auto;
+
+    z-index: 1000;
+
+    padding: 16px;
+
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background-color: var(--background);
+
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.notificationHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    margin-bottom: 12px;
+}
+
+.notificationHeader h3 {
+    margin: 0;
+}
+
+.closeButton {
+    border: none;
+    background: none;
+
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.notificationList {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.notificationItem {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+
+    background: var(--background);
+    overflow: hidden;
+}
+
+.notificationTitle {
+    width: 100%;
+
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+
+    gap: 4px;
+
+    padding: 12px;
+
+    border: none;
+    background: transparent;
+
+    text-align: left;
+    cursor: pointer;
+}
+
+.notificationDate {
+    font-size: 12px;
+    opacity: 0.6;
+}
+
+.notificationContent {
+    padding: 12px;
+
+    border-top: 1px solid var(--border);
+
+    font-size: 14px;
+}
+
+/* 신고 알림 */
+.reportNotification {
+    border-color: #d9534f;
+    background-color: #fff5f5;
+}
+
+.reportNotification .notificationTitle {
+    color: #b42318;
+    font-weight: 600;
+}
+
+.empty {
+    padding: 24px;
+    text-align: center;
+    opacity: 0.6;
+}

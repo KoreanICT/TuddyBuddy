@@ -6,7 +6,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,6 +17,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import kr.co.ictedu.back.chatbot.dto.ChatAIRequest;
 import kr.co.ictedu.back.chatbot.dto.ChatAIResponse;
 import kr.co.ictedu.back.chatbot.service.ChatBotService;
@@ -27,6 +29,7 @@ import kr.co.ictedu.back.chatbot.vo.ChatSessionVO;
 import kr.co.ictedu.back.member.dao.MemberDAO;
 import kr.co.ictedu.back.member.vo.MemberVO;
 
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -55,7 +58,8 @@ public class ChatController {
 	@ApiResponse(responseCode = "400", description = "잘못된 세션 생성 요청")
 	@ApiResponse(responseCode = "500", description = "채팅 세션 생성 중 서버 오류")
 	@PostMapping("/session")
-	public ChatSessionVO addSession(@RequestBody ChatSessionVO vo, Authentication authentication) {
+	public ChatSessionVO addSession(@RequestBody ChatSessionVO vo, Authentication authentication,
+			HttpServletRequest httpRequest) {
 
 		// 기본값: 비회원
 		Long memberNum = null;
@@ -84,6 +88,13 @@ public class ChatController {
 
 		// 기존 세션 생성 로직 유지
 		sessionService.add(vo);
+		
+		// 비회원이면 이 브라우저가 만든 채팅 번호 기록
+		if (memberNum == null) {
+			HttpSession browserSession = httpRequest.getSession();
+			
+			browserSession.setAttribute("chatbotGuest_" + vo.getChat_num(), Boolean.TRUE);
+		}
 
 		return vo;
 	}
@@ -95,7 +106,7 @@ public class ChatController {
 	@GetMapping("/session/{chat_num}")
 	public ChatSessionVO detailSession(
 			@Parameter(description = "채팅 세션 번호", example = "1") @PathVariable("chat_num") int chat_num,
-			Authentication authentication) {
+			Authentication authentication, HttpServletRequest httpRequest) {
 		
 		// 조회할 채팅 세션 확인
 		ChatSessionVO session = sessionService.detail(chat_num);
@@ -110,6 +121,9 @@ public class ChatController {
 		if (session.getMember_num() != null) {
 			Long loginMemberNum = getLoginMemberNum(authentication);
 			sessionService.vaildateMemberSession(chat_num, loginMemberNum);
+		} else {
+			// 비회원 소유권 검증
+			validateGuestSession(chat_num, httpRequest);
 		}
 		
 		// 비회원 세션은 기존 방식으로 조회
@@ -141,7 +155,7 @@ public class ChatController {
 	@GetMapping("/message/session/{chat_num}")
 	public List<ChatMessageVO> messageList(
 			@Parameter(description = "채팅 세션 번호", example = "1") @PathVariable("chat_num") int chat_num,
-			Authentication authentication) {
+			Authentication authentication, HttpServletRequest httpRequest) {
 		
 		// 채팅 세션 조회
 		ChatSessionVO session = sessionService.detail(chat_num);
@@ -157,6 +171,9 @@ public class ChatController {
 		if (session.getMember_num() != null) {
 			Long loginMemberNum = getLoginMemberNum(authentication);
 			sessionService.vaildateMemberSession(chat_num, loginMemberNum);
+		} else {
+			// 비회원 소유권 검증
+			validateGuestSession(chat_num, httpRequest);
 		}
 		
 		// 메시지 목록 반환
@@ -191,10 +208,10 @@ public class ChatController {
 	@ApiResponse(responseCode = "200", description = "AI 답변 생성 성공")
 	@ApiResponse(responseCode = "400", description = "잘못된 AI 질문 요청")
 	@ApiResponse(responseCode = "500", description = "AI 답변 처리 중 서버 오류")
+	@ApiResponse(responseCode = "503", description = "AI 서버 연결 실패, 응답 시간 초과 또는 빈 AI 답변으로 서비스 이용 불가")
 	@PostMapping("/ai")
-	public ChatAIResponse askAI(@RequestBody ChatAIRequest request, Authentication authentication) {
-//    	System.out.println("question = " + request.getQuestion());
-//    	System.out.println("user_type = " + request.getUser_type());
+	public ChatAIResponse askAI(@RequestBody ChatAIRequest request, Authentication authentication,
+			HttpServletRequest httpRequest) {
 		
 		// 요청한 채팅 세션 조회
 		ChatSessionVO session = sessionService.detail(request.getChat_num());
@@ -218,12 +235,11 @@ public class ChatController {
 			// 검증된 회원 세션
 			request.setUser_type("member");
 		} else {
+			// 질문 저장/AI 호출 전에 비회원 소유권 검증
+			validateGuestSession(request.getChat_num(), httpRequest);
 			// 비회원 세션
 			request.setUser_type("guest");
 		}
-		
-		// 서버에서 최종 결정한 회원 유형 확인
-		System.out.println("챗봇 최종 user_type : " + request.getUser_type());
 		
 		// 서버에서 결정한 user_type으로 AI 서비스 호출
 		return chatBotService.chat(request);
@@ -245,5 +261,33 @@ public class ChatController {
 
 		return member.getMember_num();
 	}
-
+	
+	// 챗봇에서 발생한 HTTP 상태 예외를 직접 응답
+	@ExceptionHandler(ResponseStatusException.class)
+	public ResponseEntity<String> handleChatException(ResponseStatusException e) {
+		return ResponseEntity.status(e.getStatusCode()).body(e.getReason());
+	}
+	
+	// 현재 브라우저가 만든 비회원 세션인지 확인
+	private void validateGuestSession(int chat_num, HttpServletRequest httpRequest) {
+		// 이미 만들어진 서버 세션만 확인
+		// 없다고 새로 생성하지 않음
+		HttpSession browserSession = httpRequest.getSession(false);
+		
+		if (browserSession == null) {
+			throw new ResponseStatusException(
+					HttpStatus.FORBIDDEN,
+					"비회원 대화 확인 정보가 없습니다.");
+		}
+		
+		// 채팅 번호마다 소유 기록 확인
+		Object owner = browserSession.getAttribute(
+				"chatbotGuest_" + chat_num);
+		
+		if (!Boolean.TRUE.equals(owner)) {
+			throw new ResponseStatusException(
+					HttpStatus.FORBIDDEN,
+					"접근할 수 없는 비회원 대화입니다.");
+		}
+	}
 }

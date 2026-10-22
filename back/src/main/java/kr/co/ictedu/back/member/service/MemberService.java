@@ -1,4 +1,4 @@
-
+// 최 원철
 package kr.co.ictedu.back.member.service;
 
 import java.util.List;
@@ -7,6 +7,7 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.http.HttpStatus;
@@ -19,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import kr.co.ictedu.back.member.dao.MemberDAO;
 import kr.co.ictedu.back.member.vo.MemberVO;
+import kr.co.ictedu.back.point.service.PointService;
 
 @Service
 public class MemberService {
@@ -31,6 +33,9 @@ public class MemberService {
 
 	@Autowired
 	private RefreshTokenService refreshTokens;
+	
+	@Autowired
+	private PointService pointService;
 
 	// 비밀번호 변경 결과
 	public enum PasswordChangeResult {
@@ -38,11 +43,17 @@ public class MemberService {
 		UPDATE_CONFLICT
 	}
 
-	// ==========================================
 	// 일반 회원가입
-	// ==========================================
+	@Transactional
 	public void create(MemberVO vo) {
-        vo.setAuthority(MemberRoles.MEMBER);
+		create(vo, null);
+	}
+
+	// 회원 저장과 추천인 보상은 동일 트랜잭션으로 처리합니다.
+	@Transactional
+	public void create(MemberVO vo, String referralCode) {
+		String referrerCode = validateReferralCode(referralCode);
+		vo.setAuthority(MemberRoles.MEMBER);
 
 		System.out.println("1");
 
@@ -55,24 +66,30 @@ public class MemberService {
 		}
 
 		System.out.println("4");
-
+		
 		vo.setMember_pwd(passwordEncoder.encode(vo.getMember_pwd()));
 
 		String memberCode = UUID.randomUUID().toString();
 		vo.setMember_code(memberCode);
 
-		System.out.println("생성된 회원코드 : " + memberCode);
-
 		memberDao.insertMember(vo);
+		
+		// 입력한 기존 추천인의 코드로만 지급합니다. 본인의 새 코드를 전달하지 않습니다.
+		pointService.addReferralReward(referrerCode, "회원가입 추천인 보상");
 
 		System.out.println("5");
 	}
 
-	// ==========================================
 	// 카카오 회원가입
-	// ==========================================
 	@Transactional
 	public MemberVO createKakaoMember(String kakaoId, String email, String name, String nick, String phone) {
+		return createKakaoMember(kakaoId, email, name, nick, phone, null);
+	}
+
+	@Transactional
+	public MemberVO createKakaoMember(String kakaoId, String email, String name, String nick, String phone,
+			String referralCode) {
+		String referrerCode = validateReferralCode(referralCode);
 
 		// 필수 정보 검사
 		if (kakaoId == null || kakaoId.isBlank()) {
@@ -135,7 +152,7 @@ public class MemberService {
 		if (memberDao.countByNick(normalizedNick) > 0) {
 			throw new IllegalArgumentException("이미 사용 중인 닉네임입니다.");
 		}
-
+		
 		// 카카오 회원정보 생성
 		MemberVO vo = new MemberVO();
 
@@ -157,24 +174,32 @@ public class MemberService {
 
 		// Oracle 저장
 		memberDao.insertKakaoMember(vo);
-
+		
+		pointService.addReferralReward(referrerCode, "회원가입 추천인 보상");
+		
 		// 저장된 회원정보 재조회
 		MemberVO savedMember = memberDao.findBySocialLogin("KAKAO", kakaoId);
-
+		
 		if (savedMember == null) {
 			throw new IllegalStateException("카카오 회원정보 저장 후 조회에 실패했습니다.");
 		}
 
 		System.out.println("===== 카카오 회원가입 완료 =====");
 
-		System.out.println("회원번호: " + savedMember.getMember_num());
-
 		return savedMember;
 	}
 
-	// ==========================================
+	/** 선택 입력은 null로 통일하고, 신규 회원 저장 전에 기존 추천인인지 확인합니다. */
+	public String validateReferralCode(String referralCode) {
+		if (referralCode == null || referralCode.isBlank()) return null;
+		String normalized = referralCode.trim();
+		if (normalized.length() > 100 || memberDao.findByMemberCode(normalized) == null) {
+			throw new IllegalArgumentException("존재하지 않는 추천인 코드입니다.");
+		}
+		return normalized;
+	}
+
 	// 일반 회원 비밀번호 변경
-	// ==========================================
 	@Transactional
 	public PasswordChangeResult changePassword(String email, String currentPassword, String newPassword) {
 
@@ -222,8 +247,7 @@ public class MemberService {
 
 		// 비밀번호 저장
 		// 조회 시점의 비밀번호가 그대로일 때만 변경
-		int result = memberDao.updatePasswordIfUnchanged(
-				member.getMember_num(), newEncodedPassword, encodedPassword);
+		int result = memberDao.updatePasswordIfUnchanged(member.getMember_num(), newEncodedPassword, encodedPassword);
 
 		if (result != 1) {
 			return PasswordChangeResult.UPDATE_CONFLICT;
@@ -236,9 +260,7 @@ public class MemberService {
 		return PasswordChangeResult.SUCCESS;
 	}
 
-	// ==========================================
 	// 닉네임 중복 확인
-	// ==========================================
 	public int checkNick(String nick) {
 		return memberDao.countByNick(nick);
 	}
@@ -247,87 +269,44 @@ public class MemberService {
 		return memberDao.countByNickExcludingMember(nick, memberNum);
 	}
 
-	// ==========================================
 	// 이메일로 회원 조회
-	// ==========================================
 	public MemberVO getMemberByEmail(String email) {
 		return memberDao.getMemberByEmail(email);
 	}
 
-	// ==========================================
 	// 회원정보 수정
-	// ==========================================
 	public int updateMember(MemberVO vo) {
 		return memberDao.updateMember(vo);
 	}
 
-	// ==========================================
 	// 회원 탈퇴
-	// ==========================================
 	@Transactional
 	public boolean withdrawMember(Long mnum) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()
-                || "anonymousUser".equals(authentication.getPrincipal())) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
-        }
-        MemberVO actor = memberDao.getMemberByEmail(authentication.getName());
-        if (actor == null || mnum == null || !mnum.equals(actor.getMember_num())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "본인 계정만 탈퇴할 수 있습니다.");
-        }
-        MemberVO target = memberDao.lockMemberByNum(mnum);
-        if (target == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "회원을 찾을 수 없습니다.");
-        }
-        if (MemberRoles.ADMIN.equals(target.getAuthority())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "최고 관리자 계정은 DB 관리자가 관리합니다.");
-        }
-        if (memberDao.deleteMember(mnum) != 1) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "회원 탈퇴에 실패했습니다.");
-        }
-        refreshTokens.revokeAll(mnum);
-        return true;
-	}
-
-	// ==========================================
-	// 회원 전체 조회
-	// ==========================================
-	public List<MemberVO> list(Map<String, String> map) {
-
-		return memberDao.memberList(map);
-	}
-
-	// ==========================================
-	// 회원 전체 수
-	// ==========================================
-	public int totalCount(Map<String, String> map) {
-
-		return memberDao.totalCount(map);
-	}
-
-	// ==========================================
-	// 선택된 회원 등급 변경
-	// ==========================================
-	@Transactional
-	public int updateGrade(Map<String, Object> param) {
-        Object memberNums = param.get("memberNums");
-        Object authority = param.get("authority");
-        if (!(memberNums instanceof List<?> numbers) || numbers.isEmpty()
-                || !(authority instanceof String role)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "회원 번호와 권한이 필요합니다.");
-        }
-        int updated = 0;
-        for (Object number : numbers) {
-            if (!(number instanceof Number)) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "회원 번호가 올바르지 않습니다.");
-            }
-            updated += updateManagedAuthority(((Number) number).longValue(), role);
-        }
-        return updated;
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		if (authentication == null || !authentication.isAuthenticated()
+				|| "anonymousUser".equals(authentication.getPrincipal())) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
+		}
+		MemberVO actor = memberDao.getMemberByEmail(authentication.getName());
+		if (actor == null || mnum == null || !mnum.equals(actor.getMember_num())) {
+			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "본인 계정만 탈퇴할 수 있습니다.");
+		}
+		MemberVO target = memberDao.lockMemberByNum(mnum);
+		if (target == null) {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "회원을 찾을 수 없습니다.");
+		}
+		if (MemberRoles.ADMIN.equals(target.getAuthority())) {
+			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "최고 관리자 계정은 DB 관리자가 관리합니다.");
+		}
+		if (memberDao.deleteMember(mnum) != 1) {
+			throw new ResponseStatusException(HttpStatus.CONFLICT, "회원 탈퇴에 실패했습니다.");
+		}
+		refreshTokens.revokeAll(mnum);
+		return true;
 	}
 
     @Transactional
-    public int updateManagedAuthority(Long memberNum, String authority) {
+    public void withdrawManagedMember(Long memberNum) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()
                 || "anonymousUser".equals(authentication.getPrincipal())) {
@@ -335,36 +314,98 @@ public class MemberService {
         }
         MemberVO actor = memberDao.getMemberByEmail(authentication.getName());
         if (actor == null || !MemberRoles.ADMIN.equals(actor.getAuthority())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "최고 관리자만 권한을 변경할 수 있습니다.");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "최고 관리자만 회원을 탈퇴 처리할 수 있습니다.");
         }
-        if (memberNum == null || memberNum <= 0
-                || !(MemberRoles.MEMBER.equals(authority) || MemberRoles.SUB_ADMIN.equals(authority))) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "회원 번호 또는 변경할 권한이 올바르지 않습니다.");
+        if (memberNum == null || memberNum <= 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "회원 번호가 올바르지 않습니다.");
+        }
+        if (memberNum.equals(actor.getMember_num())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "관리 화면에서 본인을 탈퇴 처리할 수 없습니다.");
         }
         MemberVO target = memberDao.lockMemberByNum(memberNum);
         if (target == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "회원을 찾을 수 없습니다.");
         }
         if (!MemberRoles.MEMBER.equals(target.getAuthority()) && !MemberRoles.SUB_ADMIN.equals(target.getAuthority())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "해당 계정의 권한은 DB 관리자만 변경할 수 있습니다.");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "해당 계정은 DB 관리자만 관리할 수 있습니다.");
         }
-        int updated = memberDao.updateManagedAuthority(memberNum, authority);
-        if (updated != 1) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "권한 변경에 실패했습니다.");
+        try {
+            if (memberDao.deleteMember(memberNum) != 1) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "회원 탈퇴 처리에 실패했습니다.");
+            }
+        } catch (DataIntegrityViolationException e) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "연관 데이터로 인해 탈퇴 처리할 수 없습니다. 관련 데이터의 처리 상태를 확인해주세요.");
         }
-        return updated;
+        refreshTokens.revokeAll(memberNum);
     }
 
 	// ==========================================
+	// 회원 전체 조회
+	public List<MemberVO> list(Map<String, String> map) {
+
+		return memberDao.memberList(map);
+	}
+
+	// 회원 전체 수
+	public int totalCount(Map<String, String> map) {
+
+		return memberDao.totalCount(map);
+	}
+
+	// 선택된 회원 등급 변경
+	@Transactional
+	public int updateGrade(Map<String, Object> param) {
+		Object memberNums = param.get("memberNums");
+		Object authority = param.get("authority");
+		if (!(memberNums instanceof List<?> numbers) || numbers.isEmpty() || !(authority instanceof String role)) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "회원 번호와 권한이 필요합니다.");
+		}
+		int updated = 0;
+		for (Object number : numbers) {
+			if (!(number instanceof Number)) {
+				throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "회원 번호가 올바르지 않습니다.");
+			}
+			updated += updateManagedAuthority(((Number) number).longValue(), role);
+		}
+		return updated;
+	}
+
+	@Transactional
+	public int updateManagedAuthority(Long memberNum, String authority) {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		if (authentication == null || !authentication.isAuthenticated()
+				|| "anonymousUser".equals(authentication.getPrincipal())) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
+		}
+		MemberVO actor = memberDao.getMemberByEmail(authentication.getName());
+		if (actor == null || !MemberRoles.ADMIN.equals(actor.getAuthority())) {
+			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "최고 관리자만 권한을 변경할 수 있습니다.");
+		}
+		if (memberNum == null || memberNum <= 0
+				|| !(MemberRoles.MEMBER.equals(authority) || MemberRoles.SUB_ADMIN.equals(authority))) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "회원 번호 또는 변경할 권한이 올바르지 않습니다.");
+		}
+		MemberVO target = memberDao.lockMemberByNum(memberNum);
+		if (target == null) {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "회원을 찾을 수 없습니다.");
+		}
+		if (!MemberRoles.MEMBER.equals(target.getAuthority()) && !MemberRoles.SUB_ADMIN.equals(target.getAuthority())) {
+			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "해당 계정의 권한은 DB 관리자만 변경할 수 있습니다.");
+		}
+		int updated = memberDao.updateManagedAuthority(memberNum, authority);
+		if (updated != 1) {
+			throw new ResponseStatusException(HttpStatus.CONFLICT, "권한 변경에 실패했습니다.");
+		}
+		return updated;
+	}
+
 	// 이메일 중복 확인
-	// ==========================================
 	public int checkemail(String email) {
 		return memberDao.countByEmail(email);
 	}
 
-	// ==========================================
 	// 회원 코드로 회원 검색
-	// ==========================================
 	public MemberVO findByMemberCode(String member_code) {
 
 		if (member_code == null || member_code.isBlank()) {
@@ -375,9 +416,7 @@ public class MemberService {
 		return memberDao.findByMemberCode(member_code.trim());
 	}
 
-	// ==========================================
 	// 회원 번호로 상세 조회
-	// ==========================================
 	public Map<String, Object> getMemberProfile(Long member_num) {
 
 		if (member_num == null || member_num <= 0) {

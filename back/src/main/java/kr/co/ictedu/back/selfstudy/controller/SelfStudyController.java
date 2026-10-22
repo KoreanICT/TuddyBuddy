@@ -71,8 +71,8 @@ public class SelfStudyController {
 
 	@Operation(summary = "내 퀴즈 세션 목록 조회")
 	@GetMapping("/sessions")
-	public List<QuizSessionVO> getSessions() {
-		return selfStudyService.getSessions(authenticatedMember.requireId());
+	public ResponseEntity<List<QuizSessionVO>> getSessions() {
+		return ResponseEntity.ok(selfStudyService.getSessions(authenticatedMember.requireId()));
 	}
 
 	// http://localhost/back/api/selfstudy/sessions/1
@@ -108,8 +108,8 @@ public class SelfStudyController {
 	// http://localhost/back/api/selfstudy/results/1
 	@Operation(summary = "내 학습 결과 목록 조회")
 	@GetMapping("/results")
-	public List<SelfStudyResultVO> getResults() {
-		return selfStudyService.getResults(authenticatedMember.requireId());
+	public ResponseEntity<List<SelfStudyResultVO>> getResults() {
+		return ResponseEntity.ok(selfStudyService.getResults(authenticatedMember.requireId()));
 	}
 
 	// http://localhost/back/api/selfstudy/results/1

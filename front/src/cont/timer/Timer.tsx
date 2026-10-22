@@ -161,6 +161,7 @@ function TimerView({ timer, startLabel = '시작', embedded = false }: {
               <input
                 className={styles.input}
                 type="number"
+                name="studyTimerMinutes"
                 min={1}
                 max={240}
                 step={1}

@@ -6,6 +6,7 @@ import axios from 'axios';
 import { CheckCircle2, LockKeyhole } from 'lucide-react';
 
 import { saveSession } from './session';
+import { consumeLoginDestination } from './loginRedirect';
 
 import '../member/Signup.css';
 import styles from './KakaoSignup.module.css';
@@ -49,6 +50,7 @@ const KakaoSignup: React.FC = () => {
     const [name, setName] = useState(kakaoProfile?.name ?? '');
     const [nick, setNick] = useState(kakaoProfile?.nickname ?? '');
     const [phone, setPhone] = useState(kakaoProfile?.phone ?? '');
+    const [referralCode, setReferralCode] = useState('');
 
     // 이메일 인증
     const [emailCode, setEmailCode] = useState('');
@@ -59,6 +61,7 @@ const KakaoSignup: React.FC = () => {
     // 닉네임 중복확인
     const [verifiedNick, setVerifiedNick] = useState('');
     const [nickStatus, setNickStatus] = useState<NickStatus>('idle');
+    const [nickMessage, setNickMessage] = useState('');
     const [nickChecking, setNickChecking] = useState(false);
 
     // 약관 동의
@@ -120,7 +123,7 @@ const KakaoSignup: React.FC = () => {
         const validationError = validateNickname(nickname);
 
         if (validationError) {
-            setMessage(validationError);
+            setNickMessage(validationError);
             setNickStatus('error');
             setVerifiedNick('');
             return;
@@ -129,7 +132,7 @@ const KakaoSignup: React.FC = () => {
         setNickChecking(true);
         setNickStatus('idle');
         setVerifiedNick('');
-        setMessage('');
+        setNickMessage('');
 
         try {
             const response = await axios.get(
@@ -145,18 +148,18 @@ const KakaoSignup: React.FC = () => {
             if (count === 0) {
                 setVerifiedNick(nickname);
                 setNickStatus('available');
-                setMessage('사용 가능한 닉네임입니다.');
+                setNickMessage('사용 가능한 닉네임입니다.');
             } else if (Number.isFinite(count) && count > 0) {
                 setNickStatus('duplicate');
-                setMessage('이미 사용 중인 닉네임입니다.');
+                setNickMessage('이미 사용 중인 닉네임입니다.');
             } else {
                 setNickStatus('error');
-                setMessage('닉네임 중복확인 결과를 확인할 수 없습니다.');
+                setNickMessage('닉네임 중복확인 결과를 확인할 수 없습니다.');
             }
         } catch (error) {
             console.error('닉네임 중복확인 오류:');
             setNickStatus('error');
-            setMessage('닉네임 중복확인 중 오류가 발생했습니다.');
+            setNickMessage('닉네임 중복확인 중 오류가 발생했습니다.');
         } finally {
             setNickChecking(false);
         }
@@ -167,7 +170,7 @@ const KakaoSignup: React.FC = () => {
         setNick(value);
         setVerifiedNick('');
         setNickStatus('idle');
-        setMessage('');
+        setNickMessage('');
     };
 
     // 이메일 인증번호 발송
@@ -298,7 +301,7 @@ const KakaoSignup: React.FC = () => {
             return;
         }
 
-        if (!email.trim() || !name.trim() || !nick.trim() || !phone.trim()) {
+        if (!email.trim() || !name.trim() || !phone.trim()) {
             setMessage('필수 정보를 모두 입력해주세요.');
             return;
         }
@@ -306,12 +309,15 @@ const KakaoSignup: React.FC = () => {
         const validationError = validateNickname(nick);
 
         if (validationError) {
-            setMessage(validationError);
+            setNickMessage(validationError);
+            setNickStatus('error');
+            setVerifiedNick('');
             return;
         }
 
         if (nickStatus !== 'available' || verifiedNick !== nick.trim()) {
-            setMessage('닉네임 중복확인을 완료해주세요.');
+            setNickMessage('닉네임 중복확인을 완료해주세요.');
+            setNickStatus('error');
             return;
         }
 
@@ -332,6 +338,7 @@ const KakaoSignup: React.FC = () => {
                     name: name.trim(),
                     nick: nick.trim(),
                     phone: phone.trim(),
+                    referral_code: referralCode.trim(),
                     termsAgree,
                     privacyAgree,
                     marketingAgree
@@ -366,7 +373,7 @@ const KakaoSignup: React.FC = () => {
             }
             sessionStorage.removeItem('kakao_signup_token');
 
-            navigate('/', { replace: true });
+            navigate(consumeLoginDestination(), { replace: true });
         } catch (error) {
             console.error('카카오 회원가입 오류');
 
@@ -533,6 +540,8 @@ const KakaoSignup: React.FC = () => {
                                 maxLength={12}
                                 onChange={(e) => handleNickChange(e.target.value)}
                                 disabled={nickChecking || signupLoading}
+                                aria-describedby={`kakao-nick-help${nickMessage ? ' kakao-nick-message' : ''}`}
+                                aria-invalid={nickStatus === 'error' || nickStatus === 'duplicate'}
                                 required
                             />
                             <button
@@ -544,15 +553,17 @@ const KakaoSignup: React.FC = () => {
                             </button>
                         </div>
 
-                        {nickStatus === 'available' && verifiedNick === nick.trim() && (
-                            <p className={styles.successText}>사용 가능한 닉네임입니다.</p>
+                        {nickMessage && (
+                            <p
+                                id="kakao-nick-message"
+                                className={nickStatus === 'available' ? styles.successText : styles.errorText}
+                                role={nickStatus === 'available' ? 'status' : 'alert'}
+                            >
+                                {nickMessage}
+                            </p>
                         )}
 
-                        {nickStatus === 'duplicate' && (
-                            <p className={styles.errorText}>이미 사용 중인 닉네임입니다.</p>
-                        )}
-
-                        <p className={styles.helpText}>
+                        <p id="kakao-nick-help" className={styles.helpText}>
                             2~12자, 완성형 한글·영문·숫자 사용 가능
                         </p>
                     </div>
@@ -569,6 +580,19 @@ const KakaoSignup: React.FC = () => {
                             disabled={signupLoading}
                             className={styles.phoneInput}
                             required
+                        />
+                    </div>
+
+                    {/* 추천인 코드 (선택) */}
+                    <div className="signup-input-group">
+                        <label htmlFor="kakao-referral-code">추천인 코드 (선택)</label>
+                        <input
+                            id="kakao-referral-code"
+                            type="text"
+                            placeholder="추천인 코드를 입력해주세요"
+                            value={referralCode}
+                            onChange={(e) => setReferralCode(e.target.value)}
+                            disabled={signupLoading}
                         />
                     </div>
 

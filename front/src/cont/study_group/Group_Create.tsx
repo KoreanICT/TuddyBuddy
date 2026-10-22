@@ -1,8 +1,8 @@
+import api from './api';
 //작성자 : 오진석
 import React, { useState, useRef, useEffect } from 'react';
 import styles from './detail.module.css';
 import { TagItem, searchGroupTags, GroupData } from './GroupAPI';
-import axios from 'axios';
 const PRESET_COLORS = ['#e2e8f0', '#fef08a', '#bbf7d0', '#c0f2ff', '#bfdbfe', '#fbcfe8', '#fed7aa'];
 
 interface GroupCreateModalProps {
@@ -71,8 +71,8 @@ export const Group_Create: React.FC<GroupCreateModalProps> = ({ isOpen, onClose,
         if (thumbnail) {
             formData.append('thumbnail', thumbnail);
         }
-        const response = await axios.post(
-            `http://localhost/back/api/group/add`,
+        const response = await api.post(
+            `/group/add`,
             formData
         );
         return response.data.group_num;

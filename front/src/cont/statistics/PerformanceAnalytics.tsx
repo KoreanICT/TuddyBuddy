@@ -1,156 +1,386 @@
 //김진규
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import {
-    LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell, Legend
+    LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Cell
 } from 'recharts';
-import { AlertTriangle, Award, BookOpen, Brain, Clock, MessageSquareQuote, TrendingUp } from 'lucide-react';
-import { ChartDataState, LLMFeedbackState } from './types';
+import { AlertTriangle, Award, BookOpen, Brain, MessageSquareQuote, TrendingUp } from 'lucide-react';
+import { CategoryOption, ChartDataState, LLMFeedbackState, PersistedStatisticsAnalysis, StatisticsApiResponse } from './types';
 import './PerformanceAnalytics.css';
-import { json } from 'stream/consumers';
+import { useAuth } from '../../login/hooks/useAuth';
+
+const STATISTICS_ANALYSIS_STORAGE_KEY = 'tuddybuddy:statistics-analysis';
 
 export default function PerformanceAnalytics() {
+    // 로그인한 회원의 식별자와 백엔드 요청에 사용할 JWT를 인증 훅에서 가져옵니다.
+    const { memberNum, token } = useAuth();
 
-    // 유저 고유식별자 member_num 추출
-    const [memberNum, setMemberNum] = useState<number>();
+    // /getCategories 응답의 카테고리 목록과 현재 선택한 DB category_id를 저장합니다.
+    const [categories, setCategories] = useState<CategoryOption[]>([]);
+    const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
 
-    // 과목 목록 및 선택된 과목 ID (NUMBER 타입 PK 매핑)
-    const [subjects, setSubjects] = useState<string[]>([]);
-    const [categories, setCategories] = useState<string>("");
+    // 한 번 받아온 전체 통계 응답입니다. 카테고리 선택 시 이 응답에서 필요한 항목만 골라 표시합니다.
+    const [allStatistics, setAllStatistics] = useState<StatisticsApiResponse | null>(null);
 
-    // 차트용 데이터 State
+    // 현재 선택한 카테고리에 해당하는 차트 데이터만 보관합니다.
     const [chartData, setChartData] = useState<ChartDataState | null>(null);
 
-    // LLM 평가 컨설팅 State
+    // 현재 선택한 카테고리에 해당하는 LLM 평가분석 응답만 보관합니다.
     const [llmFeedback, setLlmFeedback] = useState<LLMFeedbackState | null>(null);
 
-    // 로딩 및 에러 상태
-    const [loading, setLoading] = useState<boolean>(true);
+    // 요청 진행 상태, 분석 결과 사용 가능 여부, 결과를 불러온 회원, 안내 문구, 결제 확인 모달 상태입니다.
+    const [loading, setLoading] = useState<boolean>(false);
+    const [analysisUnlocked, setAnalysisUnlocked] = useState<boolean>(false);
+    const [analysisOwnerMemberNum, setAnalysisOwnerMemberNum] = useState<number | null>(null);
+    const [errorMessage, setErrorMessage] = useState<string>('');
+    const [showPurchaseModal, setShowPurchaseModal] = useState<boolean>(false);
 
-    // --------------------------------------------------------------------------
-    // 1. 초기 마운트 시 과목 목록(subjects) 조회
-    // --------------------------------------------------------------------------
+    // 결제 확인 모달이 열린 동안 Escape 키로 닫을 수 있게 키보드 이벤트를 등록합니다.
     useEffect(() => {
+        if (!showPurchaseModal) return;
 
-        //더미데이터 반드시 수정할것 > member_num
-        setMemberNum(1)
-
-        const fetchAnalytics = async () => {
-            setLoading(true);
-            try {
-                const token = localStorage.getItem('token');
-                if (typeof token !== 'string' || token.trim() === '') return;
-
-                // 1.  카테고리 수집
-                const savedResponse = await axios.post(`${process.env.REACT_APP_BACK_END_URL}/api/statistics/getCategories`, {
-                    memberNum: 1,
-                }, {
-                    headers: { Authorization: `Bearer ${token}` },
-                });
-
-                if (!savedResponse.data) return;
-                setSubjects(savedResponse.data);
-                if (savedResponse.data.length > 0) {
-                    setCategories(savedResponse.data[0]);
-                }
-
-            } catch (error) {
-                console.error("카테고리 로딩 실패:", error);
-            } finally {
-                setLoading(false);
-            }
+        const closeModalOnEscape = (event: KeyboardEvent) => {
+            // 요청 중에는 모달을 닫지 못하게 해 진행 상태를 유지합니다.
+            if (event.key === 'Escape' && !loading) setShowPurchaseModal(false);
         };
-        fetchAnalytics();
+        window.addEventListener('keydown', closeModalOnEscape);
+        // 모달이 닫히거나 컴포넌트가 사라질 때 이벤트 리스너를 정리합니다.
+        return () => window.removeEventListener('keydown', closeModalOnEscape);
+    }, [loading, showPurchaseModal]);
+
+    // 브라우저에 저장된 분석 결과를 읽어 새로고침이나 화면 재방문 후 복원합니다.
+    useEffect(() => {
+        // 회원번호가 없거나 안전한 양의 정수가 아니면 회원별 저장 결과를 조회하지 않습니다.
+        if (memberNum == null || !Number.isSafeInteger(memberNum) || memberNum <= 0) return;
+
+        // 저장할 때 사용한 고정 키로 분석 결과를 찾습니다. 아래에서 저장된 회원번호도 대조합니다.
+        const storageKey = STATISTICS_ANALYSIS_STORAGE_KEY;
+        try {
+            // 로컬 스토리지에서 직전 분석 결과를 문자열로 가져옵니다.
+            const savedValue = localStorage.getItem(storageKey);
+
+            // 저장된 값이 없으면 복원할 분석 결과가 없으므로 종료합니다.
+            if (!savedValue) return;
+
+            // JSON 문자열을 저장 구조로 변환한 뒤, 아래에서 필수 필드와 회원 소유자를 확인합니다.
+            const saved = JSON.parse(savedValue) as PersistedStatisticsAnalysis;
+
+            // 오래된 버전, 다른 회원 소유 데이터, 필수 응답 배열 누락 등 복원 불가능한 값을 걸러냅니다.
+            const isValid = saved.cacheVersion === 1
+                && saved.memberNum === memberNum
+                && Array.isArray(saved.categories)
+                && saved.categories.length > 0
+                && saved.categories.every((category) =>
+                    Number.isSafeInteger(category.categoryId) && typeof category.categoryName === 'string'
+                )
+                && saved.response?.chartData != null
+                && Array.isArray(saved.response.chartData.history)
+                && Array.isArray(saved.response.chartData.prediction?.categoryPredictions)
+                && Array.isArray(saved.response.chartData.subjectShare)
+                && Array.isArray(saved.response.llmFeedback?.categoryAnalyses);
+
+            if (!isValid) {
+                // 손상되었거나 현재 회원에게 속하지 않은 값은 재사용하지 않고 제거합니다.
+                localStorage.removeItem(storageKey);
+                return;
+            }
+
+            // 이전에 선택했던 카테고리가 현재 저장 목록에 있는지 확인합니다.
+            const selectedCategoryExists = saved.categories.some(
+                (category) => category.categoryId === saved.selectedCategoryId
+            );
+            // 카테고리 목록과 전체 응답을 복원하고, 유효한 이전 선택 또는 첫 카테고리를 기본 선택합니다.
+            setCategories(saved.categories);
+            setSelectedCategoryId(selectedCategoryExists
+                ? saved.selectedCategoryId
+                : saved.categories[0].categoryId);
+            setAllStatistics(saved.response);
+            setAnalysisOwnerMemberNum(memberNum);
+            setAnalysisUnlocked(true);
+        } catch (error) {
+            // JSON 파싱이나 스토리지 접근에 실패하면 오류를 기록하고 저장 데이터를 폐기합니다.
+            console.error('저장된 평가분석 결과를 복원하지 못했습니다:', error);
+            localStorage.removeItem(storageKey);
+        }
+    }, [memberNum]);
+
+    // 다른 탭에서 로그아웃해 저장 응답이 삭제되면 이 탭의 화면 상태도 함께 초기화합니다.
+    useEffect(() => {
+        const clearAnalysisOnStorageRemoval = (event: StorageEvent) => {
+            // 분석 결과 저장 키가 삭제된 이벤트만 처리합니다.
+            if (event.key !== STATISTICS_ANALYSIS_STORAGE_KEY || event.newValue !== null) return;
+            setCategories([]);
+            setSelectedCategoryId(null);
+            setAllStatistics(null);
+            setChartData(null);
+            setLlmFeedback(null);
+            setAnalysisOwnerMemberNum(null);
+            setAnalysisUnlocked(false);
+        };
+
+        // 다른 브라우저 탭에서 발생한 로컬 스토리지 변경을 감시합니다.
+        window.addEventListener('storage', clearAnalysisOnStorageRemoval);
+        // 컴포넌트가 사라질 때 감시 이벤트를 제거합니다.
+        return () => window.removeEventListener('storage', clearAnalysisOnStorageRemoval);
     }, []);
 
-    // --------------------------------------------------------------------------
-    // 2. 과목 변경 시 데이터 조회 (selfstudy_results 및 quiz_responses 기반 분석)
-    // --------------------------------------------------------------------------
+    // 전체 응답에서 선택된 categoryId와 일치하는 데이터만 추려 화면 상태에 반영합니다.
+    // 이미 받은 응답을 필터링하므로 카테고리 변경만으로 서버 요청이나 포인트 차감이 발생하지 않습니다.
     useEffect(() => {
-        // if (!categories) return;
+        // 데이터가 아직 없거나 현재 로그인 회원의 결과가 아니면 이전 카테고리 화면을 비웁니다.
+        if (!allStatistics || selectedCategoryId === null || analysisOwnerMemberNum !== memberNum) {
+            setChartData(null);
+            setLlmFeedback(null);
+            return;
+        }
 
-        const fetchAnalyticsData = async () => {
-            setLoading(true);
-            try {
-                const token = localStorage.getItem('token');
-                if (typeof token !== 'string' || token.trim() === '') return;
+        const responseChartData = allStatistics.chartData;
+        // 선택 카테고리의 시험 이력만 남기고, 화면 x축 표시는 1회부터 순서대로 구성합니다.
+        const history = responseChartData.history.filter(
+            (item) => item.categoryId === selectedCategoryId
+        ).map((item, index) => ({
+            ...item,
+            round: `${index + 1}회`,
+        }));
+        // 예측 응답의 카테고리 묶음 중 선택 카테고리를 포함한 결과만 고릅니다.
+        const prediction = responseChartData.prediction.categoryPredictions
+            .filter((category) => category.categoryIds.includes(selectedCategoryId))
+            // 한 카테고리의 실제 점수와 예측 점수 항목을 차트가 바로 그릴 수 있는 배열로 펼칩니다.
+            .flatMap((category) =>
+                category.prediction.map((item) => ({
+                    ...item,
+                    name: `${category.categoryName} · ${item.name}`,
+                    categoryId: selectedCategoryId,
+                    categoryIds: category.categoryIds,
+                    categoryName: category.categoryName,
+                }))
+            );
+        // 오답 과목 분포에서 선택 카테고리에 속한 과목만 남깁니다.
+        const subjectShare = responseChartData.subjectShare.filter(
+            (item) => item.categoryId === selectedCategoryId
+        );
+        // 평가분석 응답에서도 선택 카테고리 ID가 포함된 결과만 남깁니다.
+        const categoryAnalyses = allStatistics.llmFeedback.categoryAnalyses.filter(
+            (analysis) => analysis.categoryIds.includes(selectedCategoryId)
+        );
 
-                // 스프링부트 API 호출: /api/v1/analytics/subjects/{subjectId}
-                const response = await axios.post(`${process.env.REACT_APP_BACK_END_URL}/api/statistics/getStatistics`, {
-                    memberNum: 1,
-                }, {
-                    headers: { Authorization: `Bearer ${token}` },
-                });
+        // 필터링한 차트 데이터와 평가분석 데이터를 각각 화면 상태에 저장합니다.
+        setChartData({ history, prediction, subjectShare });
+        setLlmFeedback({ categoryAnalyses });
+    }, [allStatistics, analysisOwnerMemberNum, memberNum, selectedCategoryId]);
 
-                const responseChartData = response.data.chartData;
-                const predictionResponse = responseChartData?.prediction;
-                const prediction = Array.isArray(predictionResponse)
-                    ? predictionResponse
-                    : Array.isArray(predictionResponse?.prediction)
-                        ? predictionResponse.prediction
-                        : [];
+    // 전체 응답과 마지막 선택 카테고리를 로컬 스토리지에 저장해 화면 재방문 시 복원할 수 있게 합니다.
+    useEffect(() => {
+        // 현재 회원의 분석 결과와 선택 카테고리가 모두 준비된 경우에만 저장합니다.
+        if (memberNum == null || analysisOwnerMemberNum !== memberNum
+            || !allStatistics || selectedCategoryId === null || categories.length === 0) return;
 
-                setChartData({
-                    ...responseChartData,
-                    prediction,
-                });
-                setLlmFeedback(response.data.llmFeedback);
-
-            } catch (error) {
-                console.error("분석 데이터 로딩 실패 -> ERD 호환 더미 데이터 세팅:", error);
-
-                // DB 스키마(selfstudy_results, quiz_responses) 구조에 부합하는 더미 데이터
-                setChartData({
-                    history: [
-                        { resultId: 101, round: '1회차', score: 55, date: '08-01' },
-                        { resultId: 102, round: '2회차', score: 65, date: '08-10' },
-                        { resultId: 103, round: '3회차', score: 60, date: '08-20' },
-                        { resultId: 104, round: '4회차', score: 75, date: '08-30' },
-                    ],
-                    prediction: [
-                        { name: '최근 평균', score: 63.7, type: 'actual' },
-                        { name: '다음 시험 예측', score: 82.0, type: 'predict' },
-                    ],
-                    subjectShare: [
-                        { subjectId: 1, name: '소프트웨어 설계', value: 35, color: '#2563eb' },
-                        { subjectId: 2, name: '소프트웨어 개발', value: 25, color: '#0284c7' },
-                        { subjectId: 3, name: '데이터베이스 구축', value: 20, color: '#059669' },
-                    ]
-                });
-
-                setLlmFeedback({
-                    mentorComment: "4회차 점수는 상승했으나 quiz_responses 오답 분석 결과 데이터베이스 구축 단원 정답률이 30%에 불과합니다.",
-                    weaknesses: [
-                        { subjectName: '데이터베이스 구축', reason: 'B-Tree 인덱스 및 정규화 문제 연속 오답' },
-                        { subjectName: '소프트웨어 설계', reason: '디자인 패턴 적용 문제 개념 혼동' }
-                    ],
-                    consultingPath: [
-                        '1. quiz_responses 기반 오답노트에서 DB 정규화 문제 집중 재풀이',
-                        '2. B-Tree 인덱스 개념 해설(quiz_explanation) 복습',
-                        '3. 동일 과목 신규 quiz_session 생성 후 20문항 응시'
-                    ]
-                });
-            } finally {
-                setLoading(false);
-            }
+        // 저장 버전, 소유 회원번호, 카테고리 선택, 전체 서버 응답을 한 객체로 묶습니다.
+        const saved: PersistedStatisticsAnalysis = {
+            cacheVersion: 1,
+            memberNum,
+            selectedCategoryId,
+            categories,
+            response: allStatistics,
         };
+        try {
+            // JSON 문자열로 변환해 브라우저 저장소에 기록합니다.
+            localStorage.setItem(
+                STATISTICS_ANALYSIS_STORAGE_KEY,
+                JSON.stringify(saved)
+            );
+        } catch (error) {
+            // 저장소 용량이나 브라우저 정책으로 저장에 실패해도 이미 받은 분석 결과는 화면에 유지합니다.
+            console.error('평가분석 결과를 브라우저에 저장하지 못했습니다:', error);
+        }
+    }, [allStatistics, analysisOwnerMemberNum, categories, memberNum, selectedCategoryId]);
 
-        fetchAnalyticsData();
-    }, [categories]);
+    const handleStartAnalysis = async () => {
+        // 새 분석 요청을 시작하면서 로딩 표시, 모달, 이전 오류 안내를 초기화합니다.
+        setLoading(true);
+        setShowPurchaseModal(false);
+        setErrorMessage('');
+        let statisticsRequestStarted = false;
+        try {
+            // 요청에 사용할 로그인 토큰이 비어 있지 않은 문자열인지 확인합니다.
+            if (typeof token !== 'string' || token.trim() === '') {
+                throw new Error('로그인 토큰을 확인할 수 없습니다.');
+            }
+            // 인증 훅에서 얻은 회원번호가 유효한 양수인지 확인합니다.
+            if (memberNum == null || !Number.isFinite(memberNum) || memberNum <= 0) {
+                throw new Error('회원 번호를 확인할 수 없습니다.');
+            }
 
-    if (loading) {
-        return <div className="analytics-page container">성적 분석 데이터를 산출하는 중입니다...</div>;
+            // 두 API 요청에서 공통으로 사용할 JWT Bearer 인증 헤더를 구성합니다.
+            const headers = { Authorization: `Bearer ${token}` };
+            // 먼저 회원이 시험을 본 카테고리를 조회합니다. 여기서는 포인트를 차감하지 않습니다.
+            const categoriesResponse = await axios.post<CategoryOption[]>(`${process.env.REACT_APP_BACK_END_URL}/api/statistics/getCategories`, {
+                memberNum,
+            }, { headers });
+
+            if (!Array.isArray(categoriesResponse.data)) {
+                // 예상한 카테고리 배열이 아니면 응답 형식 오류로 처리합니다.
+                throw new Error('카테고리 응답 형식이 올바르지 않습니다.');
+            }
+            if (categoriesResponse.data.length === 0) {
+                // 응시 기록이 없으면 유료 분석 요청을 보내지 않고 사용자 안내만 표시합니다.
+                setErrorMessage('아직 시험 기록이 없습니다. 셀프스터디에서 문제를 만들고 풀어보세요. 시험 기록이 생기면 이곳에서 카테고리별 평가분석과 성적예측을 확인할 수 있습니다.');
+                return;
+            }
+            // 응답 카테고리 목록을 저장하고 첫 카테고리를 기본 선택으로 지정합니다.
+            setCategories(categoriesResponse.data);
+            setSelectedCategoryId(categoriesResponse.data[0].categoryId);
+
+            // 이후 요청은 포인트 결제가 포함된 평가분석·예측 요청임을 표시합니다.
+            statisticsRequestStarted = true;
+
+            // 회원번호와 결제 설명을 보내 분석을 요청합니다. 백엔드에서 포인트 차감 후 LLM 결과를 반환합니다.
+            const response = await axios.post<StatisticsApiResponse>(`${process.env.REACT_APP_BACK_END_URL}/api/statistics/getStatistics`, {
+                memberNum,
+                description: '평가분석 및 성적예측 이용',
+            }, { headers });
+
+            // 성공 응답과 첫 선택 카테고리를 복원용 데이터로 구성합니다.
+            const firstCategoryId = categoriesResponse.data[0].categoryId;
+            const saved: PersistedStatisticsAnalysis = {
+                cacheVersion: 1,
+                memberNum,
+                selectedCategoryId: firstCategoryId,
+                categories: categoriesResponse.data,
+                response: response.data,
+            };
+            try {
+                // 성공 결과를 저장해 새로고침이나 화면 재방문 시 다시 요청하지 않도록 합니다.
+                localStorage.setItem(
+                    STATISTICS_ANALYSIS_STORAGE_KEY,
+                    JSON.stringify(saved)
+                );
+            } catch (error) {
+                // 저장 실패는 결과 수신 성공과 분리해 처리합니다.
+                console.error('평가분석 결과를 브라우저에 저장하지 못했습니다:', error);
+            }
+
+            // 응답을 현재 회원 소유의 전체 결과로 설정하고 분석 화면을 엽니다.
+            setAnalysisOwnerMemberNum(memberNum);
+            setAllStatistics(response.data);
+            setAnalysisUnlocked(true);
+        } catch (error) {
+            console.error('평가분석 요청 실패:', error);
+            // 포인트 결제 요청 전 오류와 요청 후 오류를 구분해 사용자에게 상황을 안내합니다.
+            if (!statisticsRequestStarted) {
+                setErrorMessage('시험 기록을 불러오지 못했어요. 포인트는 사용되지 않았습니다! 로그인 상태와 인터넷 연결을 확인한 뒤 다시 시도해 주세요.');
+            } else if (axios.isAxiosError(error) && error.response) {
+                setErrorMessage('분석을 마치지 못했어요. 이번 분석에 사용된 포인트는 다시 돌려드려요! 잔액을 확인하고 잠시 후 다시 시도해 주세요.');
+            } else {
+                setErrorMessage('분석 결과를 확인하지 못했어요. 포인트 처리 여부를 알 수 없으니 잔액을 먼저 확인해 주세요! 포인트가 차감됐다면 재시도 전에 고객센터로 문의해 주세요.');
+            }
+        } finally {
+            // 성공·실패·조기 종료와 관계없이 요청 진행 상태를 해제합니다.
+            setLoading(false);
+        }
+    };
+
+    // 분석 결과가 없거나 현재 로그인 회원의 결과가 아니면 결제 안내 화면을 표시합니다.
+    if (!analysisUnlocked || analysisOwnerMemberNum !== memberNum) {
+        return (
+            <div className="analytics-page">
+                <div className="container">
+                    <section className="analytics-gate-card" aria-labelledby="analysis-gate-title">
+                        <div className="analytics-gate-icon" aria-hidden="true">
+                            <Brain size={24} />
+                        </div>
+                        <p className="analytics-gate-eyebrow">AI 학습 리포트</p>
+                        <h2 id="analysis-gate-title">내 학습을 분석하고 다음 목표를 세워보세요</h2>
+                        <p className="analytics-gate-description">
+                            응시 기록과 오답 데이터를 바탕으로 전체 카테고리의 평가분석과 LLM 성적예측을 제공합니다.
+                        </p>
+                        <ul className="analytics-gate-benefits">
+                            <li><TrendingUp size={16} /> 카테고리별 성적 변화와 예측</li>
+                            <li><TrendingUp size={16} /> 과목별 오답 현황</li>
+                            <li><BookOpen size={16} /> 취약점 분석과 맞춤 학습 경로</li>
+                        </ul>
+                        <div className="analytics-gate-price">
+                            <span>이용 포인트</span>
+                            <strong>1,000P</strong>
+                        </div>
+                        {/* 요청 실패나 응시 기록 부재에 대한 안내를 결제 버튼 위에 표시합니다. */}
+                        {errorMessage && <p className="analytics-gate-error" role="alert">{errorMessage}</p>}
+                        {/* 확인 모달을 열며, 실제 분석 요청은 모달에서 동의한 뒤 시작합니다. */}
+                        <button
+                            className="analytics-gate-button"
+                            type="button"
+                            onClick={() => {
+                                setErrorMessage('');
+                                setShowPurchaseModal(true);
+                            }}
+                            disabled={loading}
+                        >
+                            {loading ? '카테고리 및 분석 데이터를 불러오는 중...' : '1,000포인트로 분석 시작'}
+                        </button>
+                    </section>
+                    {/* 포인트 사용과 결과 보관 안내를 확인하는 기존 결제 모달입니다. */}
+                    {showPurchaseModal && (
+                        <div
+                            className="analytics-purchase-modal-backdrop"
+                            onMouseDown={(event) => {
+                                if (event.target === event.currentTarget && !loading) setShowPurchaseModal(false);
+                            }}
+                        >
+                            <section
+                                className="analytics-purchase-modal"
+                                role="dialog"
+                                aria-modal="true"
+                                aria-labelledby="analytics-purchase-title"
+                                aria-describedby="analytics-purchase-description"
+                            >
+                                <div className="analytics-purchase-modal-icon" aria-hidden="true">
+                                    <Brain size={22} />
+                                </div>
+                                <h2 id="analytics-purchase-title">평가분석을 시작할까요?</h2>
+                                <p id="analytics-purchase-description" className="analytics-purchase-modal-description">
+                                    전체 카테고리의 성적 분석과 맞춤 학습 안내를 확인할 수 있어요!
+                                </p>
+                                <div className="analytics-purchase-modal-price">
+                                    <span>사용 포인트</span>
+                                    <strong>1,000P</strong>
+                                </div>
+                                <p className="analytics-purchase-modal-notice">
+                                    분석 결과는 로그인 중에만 저장돼요. 로그아웃하면 결과가 사라지며, 다시 분석할 때 1,000포인트가 사용됩니다.
+                                </p>
+                                <div className="analytics-purchase-modal-actions">
+                                    <button
+                                        className="analytics-purchase-cancel"
+                                        type="button"
+                                        onClick={() => setShowPurchaseModal(false)}
+                                        autoFocus
+                                    >
+                                        취소
+                                    </button>
+                                    <button
+                                        className="analytics-purchase-confirm"
+                                        type="button"
+                                        onClick={handleStartAnalysis}
+                                    >
+                                        확인하고 분석 시작
+                                    </button>
+                                </div>
+                            </section>
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
     }
 
     return (
         <div className="analytics-page">
             <div className="container">
 
-                {/* 상단 헤더 & 과목 셀렉터 */}
+                {/* 상단 제목과 카테고리 선택 컨트롤입니다. 선택 변경은 아래 필터링 효과를 다시 실행합니다. */}
                 <header className="analytics-header">
                     <div className="header-title">
                         <h1>📊 AI 학습 성적 분석 & 멘토링</h1>
-                        <p>selfstudy_results 및 오답 로그를 기반으로 ML 예측과 LLM 팩트폭격 컨설팅을 제공합니다.</p>
+                        <p>성적 이력과 오답 로그를 바탕으로 LLM 성적 예측과 평가분석 컨설팅을 제공합니다.</p>
                     </div>
 
                     <div className="category-selector">
@@ -158,24 +388,24 @@ export default function PerformanceAnalytics() {
                         <label htmlFor="subject-select" className="label">학습 과목:</label>
                         <select
                             id="subject-select"
-                            value={categories}
-                            onChange={(e) => setCategories(e.target.value)}
+                            value={selectedCategoryId ?? ''}
+                            onChange={(e) => setSelectedCategoryId(Number(e.target.value))}
                             className="select-box"
                         >
-                            {subjects.map((sub, i) => (
-                                <option key={i} value={sub}>
-                                    {sub}
+                            {categories.map((category) => (
+                                <option key={category.categoryId} value={category.categoryId}>
+                                    {category.categoryName}
                                 </option>
                             ))}
                         </select>
                     </div>
                 </header>
 
-                {/* 1. 차트 영역 */}
+                {/* 현재 선택 카테고리에 대한 시험 이력, 예측 점수, 과목별 오답 현황 차트입니다. */}
                 {chartData && (
                     <section className="charts-grid">
 
-                        {/* 지난 성적 추이 (selfstudy_results) */}
+                        {/* 시험 이력의 회차별 점수를 선 그래프로 표시합니다. */}
                         <div className="card chart-card">
                             <div className="card-header">
                                 <TrendingUp className="icon primary" size={20} />
@@ -194,11 +424,11 @@ export default function PerformanceAnalytics() {
                             </div>
                         </div>
 
-                        {/* ML 예측 성적 */}
+                        {/* 최근 평균과 LLM 예측 점수를 막대 그래프로 비교합니다. */}
                         <div className="card chart-card">
                             <div className="card-header">
                                 <Award className="icon success" size={20} />
-                                <h2>ML 머신러닝 예측 성적</h2>
+                                <h2>LLM 성적 예측</h2>
                             </div>
                             <div className="chart-wrapper">
                                 <ResponsiveContainer width="100%" height="100%">
@@ -217,93 +447,81 @@ export default function PerformanceAnalytics() {
                             </div>
                         </div>
 
-                        {/* 학습/문제 출제 지분 */}
-                        <div className="card chart-card">
+                        {/* API가 제공하는 과목별 오답 건수를 가로 막대 그래프로 표시합니다. */}
+                        <div className="card chart-card analytics-subject-errors-card">
                             <div className="card-header">
-                                <Clock className="icon warning" size={20} />
-                                <h2>자주 공부하는 과목/단원 지분</h2>
+                                <TrendingUp className="icon warning" size={20} />
+                                <h2>과목별 오답 현황</h2>
                             </div>
-                            <div className="chart-wrapper">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <PieChart>
-                                        <Pie
-                                            data={chartData.subjectShare}
-                                            dataKey="value"
-                                            nameKey="name"
-                                            cx="50%" cy="50%"
-                                            innerRadius={45} outerRadius={75}
-                                            paddingAngle={4}
+                            {chartData.subjectShare.length === 0 ? (
+                                <p className="analytics-subject-errors-empty">표시할 과목별 오답 데이터가 없습니다.</p>
+                            ) : (
+                                <div className="chart-wrapper analytics-subject-errors-chart">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart
+                                            data={[...chartData.subjectShare].sort((a, b) => b.value - a.value)}
+                                            layout="vertical"
+                                            margin={{ top: 4, right: 16, bottom: 4, left: 8 }}
                                         >
-                                            {chartData.subjectShare.map((entry, index) => (
-                                                <Cell key={`cell-${index}`} fill={entry.color ?? '#2563eb'} />
-                                            ))}
-                                        </Pie>
-                                        <Tooltip formatter={(value) => `${value}%`} />
-                                        <Legend layout="vertical" align="right" verticalAlign="middle" wrapperStyle={{ fontSize: '12px' }} />
-                                    </PieChart>
-                                </ResponsiveContainer>
-                            </div>
+                                            <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="var(--border)" />
+                                            <XAxis type="number" allowDecimals={false} stroke="var(--text-secondary)" fontSize={12} />
+                                            <YAxis type="category" dataKey="name" width={112} stroke="var(--text-secondary)" fontSize={12} />
+                                            <Tooltip formatter={(value) => [`${value}건`, '오답 수']} />
+                                            <Bar dataKey="value" fill="var(--primary)" radius={[0, 6, 6, 0]} barSize={22} name="오답 수" />
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            )}
                         </div>
 
                     </section>
                 )}
 
-                {/* 2. LLM 평가 컨설팅 영역 */}
+                {/* 선택한 카테고리의 LLM 평가분석, 취약점, 맞춤 학습 경로를 표시합니다. */}
                 {llmFeedback && (
                     <section className="card feedback-card">
+                        {llmFeedback.categoryAnalyses.length === 0 ? (
+                            <p>선택한 카테고리의 평가분석 데이터가 없습니다.</p>
+                        ) : llmFeedback.categoryAnalyses.map((analysis) => (
+                            <div className="feedback-section" key={analysis.categoryIds.join('-')}>
+                                <div className="card-header danger">
+                                    <MessageSquareQuote size={22} />
+                                    <h2>{analysis.categoryName} 평가분석</h2>
+                                </div>
+                                <div className="mentor-speech-box">
+                                    <p>"{analysis.mentorComment}"</p>
+                                </div>
 
-                        <div className="feedback-section">
-                            <div className="card-header danger">
-                                <MessageSquareQuote size={22} />
-                                <h2>AI 1타 강사의 팩트폭격 멘토링</h2>
-                            </div>
-                            <div className="mentor-speech-box">
-                                <p>"{llmFeedback.mentorComment}"</p>
-                            </div>
-                        </div>
-
-                        <div className="consulting-grid">
-
-                            {/* 집중 보완 영역 */}
-                            <div className="consulting-col">
-                                <h3 className="section-title">
-                                    <AlertTriangle className="icon warning" size={16} /> 집중 보완 단원 및 원인 분석
-                                </h3>
-                                <div className="weakness-list">
-                                    {llmFeedback.weaknesses.map((item, idx) => (
-                                        <div key={idx} className="weakness-item">
-                                            {typeof item === 'string' ? (
-                                                <p className="reason">{item}</p>
-                                            ) : (
-                                                <>
-                                                    <div className="weakness-head">
-                                                        <span className="subject">{item.subjectName}</span>
-                                                    </div>
-                                                    <p className="reason">{item.reason}</p>
-                                                </>
-                                            )}
+                                <div className="consulting-grid">
+                                    <div className="consulting-col">
+                                        <h3 className="section-title">
+                                            <AlertTriangle className="icon warning" size={16} /> 집중 보완 단원 및 원인 분석
+                                        </h3>
+                                        <div className="weakness-list">
+                                            {analysis.weaknesses.map((weakness, idx) => (
+                                                <div key={idx} className="weakness-item">
+                                                    <p className="reason">{weakness}</p>
+                                                </div>
+                                            ))}
                                         </div>
-                                    ))}
+                                    </div>
+
+                                    <div className="consulting-col">
+                                        <h3 className="section-title">
+                                            <Brain className="icon primary" size={16} /> 맞춤형 성적 탈출 컨설팅 경로
+                                        </h3>
+                                        <ol className="consulting-path">
+                                            {analysis.consultingPath.map((step, idx) => (
+                                                <li key={idx}>
+                                                    <span className="step-num">{idx + 1}</span>
+                                                    <span className="step-text">{step}</span>
+                                                </li>
+                                            ))}
+                                        </ol>
+                                    </div>
                                 </div>
                             </div>
-
-                            {/* 컨설팅 경로 */}
-                            <div className="consulting-col">
-                                <h3 className="section-title">
-                                    <Brain className="icon primary" size={16} /> 맞춤형 성적 탈출 컨설팅 경로
-                                </h3>
-                                <ol className="consulting-path">
-                                    {llmFeedback.consultingPath.map((step, idx) => (
-                                        <li key={idx}>
-                                            <span className="step-num">{idx + 1}</span>
-                                            <span className="step-text">{step}</span>
-                                        </li>
-                                    ))}
-                                </ol>
-                            </div>
-
-                        </div>
-
+                        ))}
                     </section>
                 )}
 

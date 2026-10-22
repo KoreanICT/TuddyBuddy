@@ -18,6 +18,8 @@ import org.springframework.web.server.ResponseStatusException;
 
 import kr.co.ictedu.back.member.dao.MemberDAO;
 import kr.co.ictedu.back.member.vo.MemberVO;
+import kr.co.ictedu.back.member.service.LoginLogService;
+import jakarta.servlet.http.HttpServletRequest;
 
 @Service
 public class RefreshTokenService {
@@ -29,14 +31,24 @@ public class RefreshTokenService {
             + "redis.call('SET', KEYS[2], ARGV[2], 'EX', ARGV[3]); return 1", Long.class);
     private static final DefaultRedisScript<Long> ROTATE = new DefaultRedisScript<>(
             "if redis.call('GET', KEYS[1]) ~= ARGV[1] or redis.call('GET', KEYS[2]) ~= ARGV[2] then return 0 end; "
-            + "redis.call('DEL', KEYS[2]); redis.call('SET', KEYS[3], ARGV[2], 'EX', ARGV[3]); return 1", Long.class);
+            + "local history = redis.call('GET', KEYS[4]); "
+            + "redis.call('DEL', KEYS[2], KEYS[4]); redis.call('SET', KEYS[3], ARGV[2], 'EX', ARGV[3]); "
+            + "if history then redis.call('SET', KEYS[5], history, 'EX', ARGV[3]); end; return 1", Long.class);
+    private static final DefaultRedisScript<Long> ATTACH_LOG = new DefaultRedisScript<>(
+            "local value = redis.call('GET', KEYS[1]); local ttl = redis.call('TTL', KEYS[1]); "
+            + "if not value or ttl <= 0 or string.sub(value, 1, string.len(ARGV[1]) + 1) ~= ARGV[1] .. '|' then return 0 end; "
+            + "redis.call('SET', KEYS[2], ARGV[2], 'EX', ttl); return 1", Long.class);
+    private static final DefaultRedisScript<String> REVOKE = new DefaultRedisScript<>(
+            "local history = redis.call('GET', KEYS[2]); redis.call('DEL', KEYS[1], KEYS[2]); return history", String.class);
 
     private final StringRedisTemplate redis;
     private final MemberDAO members;
+    private final LoginLogService loginLogs;
 
-    public RefreshTokenService(StringRedisTemplate redis, MemberDAO members) {
+    public RefreshTokenService(StringRedisTemplate redis, MemberDAO members, LoginLogService loginLogs) {
         this.redis = redis;
         this.members = members;
+        this.loginLogs = loginLogs;
     }
 
     public record Rotation(MemberVO member, String token) { }
@@ -67,7 +79,8 @@ public class RefreshTokenService {
             String successor = randomToken();
             // Query first, then atomically consume and replace. Exactly one concurrent caller succeeds.
             Long rotated = redis.execute(ROTATE,
-                    List.of(generationKey(member.getMember_num()), tokenKey(token), tokenKey(successor)),
+                    List.of(generationKey(member.getMember_num()), tokenKey(token), tokenKey(successor),
+                            logKey(token), logKey(successor)),
                     parts[1], value, Long.toString(TTL.toSeconds()));
             if (!Long.valueOf(1).equals(rotated)) throw unauthorized();
             return new Rotation(member, successor);
@@ -79,9 +92,30 @@ public class RefreshTokenService {
     public void revoke(String token) {
         if (!validFormat(token)) return;
         try {
-            redis.delete(tokenKey(token));
+            String history = redis.execute(REVOKE, List.of(tokenKey(token), logKey(token)));
+            if (history != null) {
+                try {
+                    String[] ids = history.split(":", 2);
+                    if (ids.length == 2) loginLogs.finish(Long.valueOf(ids[1]), Long.valueOf(ids[0]));
+                } catch (RuntimeException e) {
+                    LoginLogService.warnUnavailable();
+                }
+            }
         } catch (DataAccessException e) {
             throw unavailable();
+        }
+    }
+
+    public void recordLogin(MemberVO member, String token, HttpServletRequest request) {
+        // Best effort history must never turn successful authentication into a failure.
+        try {
+            Long logNum = loginLogs.success(member, request);
+            if (logNum == null) return;
+            Long attached = redis.execute(ATTACH_LOG, List.of(tokenKey(token), logKey(token)),
+                    String.valueOf(member.getMember_num()), member.getMember_num() + ":" + logNum);
+            if (!Long.valueOf(1).equals(attached)) LoginLogService.warnUnavailable();
+        } catch (RuntimeException e) {
+            LoginLogService.warnUnavailable();
         }
     }
 
@@ -124,6 +158,10 @@ public class RefreshTokenService {
         } catch (java.security.NoSuchAlgorithmException e) {
             throw new IllegalStateException("SHA-256 unavailable", e);
         }
+    }
+
+    private static String logKey(String token) {
+        return tokenKey(token) + ":login-log";
     }
 
     private static ResponseStatusException unauthorized() {

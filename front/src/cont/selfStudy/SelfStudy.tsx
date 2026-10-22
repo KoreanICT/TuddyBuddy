@@ -27,6 +27,7 @@ import {
 
 import styles from './selfstudy.module.css';
 
+const SELF_STUDY_GENERATION_POINT_COST = 1_000;
 
 
 const getValue = (
@@ -50,6 +51,24 @@ const parseSelections = (value: unknown): string[] => {
   } catch {
     return [];
   }
+};
+
+const parseArrayResponse = (value: unknown): unknown[] | null => {
+  let parsed = value;
+
+  for (let depth = 0; depth < 2 && typeof parsed === 'string'; depth += 1) {
+    if (!parsed.trim()) {
+      return [];
+    }
+
+    try {
+      parsed = JSON.parse(parsed);
+    } catch {
+      return null;
+    }
+  }
+
+  return Array.isArray(parsed) ? parsed : null;
 };
 
 const normalizeQuiz = (data: any): Quiz => ({
@@ -152,7 +171,7 @@ const normalizeResponse = (data: any): SavedQuizResponse => ({
 const resolveImageUrl = (value?: string): string | null => {
   if (!value?.trim()) return null;
 
-  const path = value.trim();
+  const path = value.trim().replace(/(^|\/)quiz-images\//, '$1imgfile/quiz/');
 
   if (/^https?:\/\//i.test(path)) {
     return path;
@@ -197,6 +216,11 @@ const SelfStudy: React.FC = () => {
   const [quizSessionId, setQuizSessionId] =
     useState<number | null>(null);
 
+  const [quizTimerStartedAt, setQuizTimerStartedAt] =
+    useState<number | null>(null);
+  const [quizTimerRunning, setQuizTimerRunning] = useState(false);
+  const [quizElapsedSeconds, setQuizElapsedSeconds] = useState(0);
+
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [score, setScore] = useState<number | null>(null);
@@ -204,14 +228,13 @@ const SelfStudy: React.FC = () => {
   const [activeTab, setActiveTab] =
     useState<MainTabType>('quiz');
 
+  const [generatedCategoryName, setGeneratedCategoryName] = useState('');
+  const [generatedSubjectName, setGeneratedSubjectName] = useState('');
+  const [classificationMode, setClassificationMode] = useState<'auto' | 'manual'>('auto');
   const [categories, setCategories] = useState<Category[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
-
-  const [selectedCategoryId, setSelectedCategoryId] =
-    useState<number | null>(null);
-
-  const [selectedSubjectId, setSelectedSubjectId] =
-    useState<number | null>(null);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
+  const [selectedSubjectId, setSelectedSubjectId] = useState<number | null>(null);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -255,149 +278,96 @@ const SelfStudy: React.FC = () => {
   // 오래된 비동기 응답이 현재 학습을 덮어쓰지 않도록 관리
   const restoreRequestRef = useRef(0);
 
-  // =========================================================
-  // 1. 카테고리 조회
-  // =========================================================
+  const resetQuizTimer = useCallback(() => {
+    setQuizTimerStartedAt(null);
+    setQuizTimerRunning(false);
+    setQuizElapsedSeconds(0);
+  }, []);
+
+  useEffect(() => {
+    if (quizTimerStartedAt === null || !quizTimerRunning) return;
+
+    const updateElapsedTime = () => {
+      setQuizElapsedSeconds(
+        Math.floor((Date.now() - quizTimerStartedAt) / 1000)
+      );
+    };
+
+    updateElapsedTime();
+    const intervalId = window.setInterval(updateElapsedTime, 1000);
+    return () => window.clearInterval(intervalId);
+  }, [quizTimerStartedAt, quizTimerRunning]);
+
+  const handleStartQuiz = () => {
+    if (
+      quizSessionId === null ||
+      quizList.length === 0 ||
+      quizTimerStartedAt !== null ||
+      submitted
+    ) {
+      return;
+    }
+
+    setQuizTimerStartedAt(Date.now());
+    setQuizElapsedSeconds(0);
+    setQuizTimerRunning(true);
+  };
 
   useEffect(() => {
     let cancelled = false;
-
     if (!token) {
       setCategories([]);
       return;
     }
 
-    const getCategories = async () => {
-      try {
-        const response = await axios.get(
-          `${BACKEND_URL}/api/selfstudy/categories`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+    axios.get(`${BACKEND_URL}/api/selfstudy/categories`, {
+      headers: getAuthHeaders(),
+    }).then(({ data }) => {
+      const mapped: Category[] = Array.isArray(data)
+        ? data.map((item: any) => ({
+            categoryId: Number(item.categoryId ?? item.category_id),
+            categoryName: String(item.categoryName ?? item.category_name ?? ''),
+          })).filter((item: Category) => Number.isFinite(item.categoryId) && item.categoryName.trim())
+        : [];
+      if (!cancelled) setCategories(mapped);
+    }).catch(() => {
+      if (!cancelled) setCategories([]);
+    });
 
-        if (!Array.isArray(response.data)) {
-          throw new Error(
-            '카테고리 응답이 배열 형식이 아닙니다.'
-          );
-        }
-
-        const mappedCategories: Category[] = response.data
-          .map((cat: any) => ({
-            categoryId: Number(
-              cat.categoryId ?? cat.category_id
-            ),
-            categoryName: String(
-              cat.categoryName ?? cat.category_name ?? ''
-            ),
-          }))
-          .filter(
-            (cat: Category) =>
-              Number.isFinite(cat.categoryId) &&
-              cat.categoryName.trim() !== ''
-          );
-
-        if (!cancelled) {
-          setCategories(mappedCategories);
-        }
-      } catch (error) {
-        console.error('카테고리 조회 실패:');
-
-        if (!cancelled) {
-          setCategories([]);
-        }
-      }
-    };
-
-    void getCategories();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [token]);
-
-  // =========================================================
-  // 2. 카테고리 선택 시 과목 조회
-  // =========================================================
+    return () => { cancelled = true; };
+  }, [token, getAuthHeaders]);
 
   useEffect(() => {
     let cancelled = false;
-
     setSubjects([]);
     setSelectedSubjectId(null);
+    if (selectedCategoryId === null || !token) return;
 
-    if (selectedCategoryId === null || !token) {
-      return;
-    }
+    axios.get(`${BACKEND_URL}/api/selfstudy/subjects`, {
+      params: { categoryId: selectedCategoryId },
+      headers: getAuthHeaders(),
+    }).then(({ data }) => {
+      const mapped: Subject[] = Array.isArray(data)
+        ? data.map((item: any) => ({
+            subjectId: Number(item.subjectId ?? item.subject_id),
+            categoryId: Number(item.categoryId ?? item.category_id),
+            subjectName: String(item.subjectName ?? item.subject_name ?? ''),
+          })).filter((item: Subject) =>
+            Number.isFinite(item.subjectId) &&
+            item.categoryId === selectedCategoryId &&
+            item.subjectName.trim()
+          )
+        : [];
+      if (!cancelled) setSubjects(mapped);
+    }).catch(() => {
+      if (!cancelled) setSubjects([]);
+    });
 
-    const getSubjects = async () => {
-      try {
-        const response = await axios.get(
-          `${BACKEND_URL}/api/selfstudy/subjects`,
-          {
-            params: {
-              categoryId: selectedCategoryId,
-            },
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        if (!Array.isArray(response.data)) {
-          throw new Error(
-            '과목 응답이 배열 형식이 아닙니다.'
-          );
-        }
-
-        const mappedSubjects: Subject[] = response.data
-          .map((sub: any) => ({
-            subjectId: Number(
-              sub.subjectId ?? sub.subject_id
-            ),
-            categoryId: Number(
-              sub.categoryId ?? sub.category_id
-            ),
-            subjectName: String(
-              sub.subjectName ?? sub.subject_name ?? ''
-            ),
-            usageCount:
-              sub.usageCount ?? sub.usage_count,
-            createdAt:
-              sub.createdAt ?? sub.created_at,
-          }))
-          .filter(
-            (sub: Subject) =>
-              Number.isFinite(sub.subjectId) &&
-              sub.categoryId === selectedCategoryId &&
-              sub.subjectName.trim() !== ''
-          );
-
-        if (!cancelled) {
-          setSubjects(mappedSubjects);
-        }
-      } catch (error) {
-        console.error('과목 조회 실패:');
-
-        if (!cancelled) {
-          setSubjects([]);
-          setSelectedSubjectId(null);
-          alert('과목을 불러오지 못했습니다.');
-        }
-      }
-    };
-
-    void getSubjects();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [selectedCategoryId, token]);
+    return () => { cancelled = true; };
+  }, [selectedCategoryId, token, getAuthHeaders]);
 
   // =========================================================
-  // 3. 로그인 회원의 학습 기록 조회
+  // 1. 로그인 회원의 학습 기록 조회
   // =========================================================
 
   const loadHistory = useCallback(async () => {
@@ -424,17 +394,29 @@ const SelfStudy: React.FC = () => {
           ),
         ]);
 
+      const sessionsData = parseArrayResponse(sessionsResponse.data);
+      const resultsData = parseArrayResponse(resultsResponse.data);
+
       if (
-        !Array.isArray(sessionsResponse.data) ||
-        !Array.isArray(resultsResponse.data)
+        !sessionsData ||
+        !resultsData
       ) {
+        const describeResponse = (value: unknown) => {
+          if (Array.isArray(value)) return 'array';
+          if (value === null) return 'null';
+          if (typeof value === 'object') {
+            return `object(${Object.keys(value).join(', ')})`;
+          }
+          return typeof value;
+        };
+
         throw new Error(
-          '학습 기록 응답 형식이 올바르지 않습니다.'
+          `학습 기록 응답 형식이 올바르지 않습니다. sessions=${describeResponse(sessionsResponse.data)}, results=${describeResponse(resultsResponse.data)}`
         );
       }
 
       const sessions: QuizSession[] =
-        sessionsResponse.data
+        sessionsData
           .map(normalizeSession)
           .filter(
             (session: QuizSession) =>
@@ -443,7 +425,7 @@ const SelfStudy: React.FC = () => {
           );
 
       const results: SelfStudyResult[] =
-        resultsResponse.data
+        resultsData
           .map(normalizeResult)
           .filter(
             (result: SelfStudyResult) =>
@@ -454,7 +436,7 @@ const SelfStudy: React.FC = () => {
       setSavedSessions(sessions);
       setSavedResults(results);
     } catch (error) {
-      console.error('학습 기록 조회 실패:');
+      console.error('학습 기록 조회 실패:', error);
       setHistoryError(
         '저장된 학습 기록을 불러오지 못했습니다.'
       );
@@ -472,6 +454,7 @@ const SelfStudy: React.FC = () => {
     restoreRequestRef.current += 1;
 
     setQuizSessionId(null);
+    resetQuizTimer();
     setQuizList([]);
     setWrongNotes([]);
     setSubmitted(false);
@@ -483,7 +466,7 @@ const SelfStudy: React.FC = () => {
       URL.revokeObjectURL(studyImageUrlRef.current);
       studyImageUrlRef.current = null;
     }
-  }, [token, member_num]);
+  }, [token, member_num, resetQuizTimer]);
 
   // =========================================================
   // 4. 저장된 세션 복원
@@ -589,6 +572,9 @@ const SelfStudy: React.FC = () => {
       }
 
       setQuizSessionId(sessionId);
+      resetQuizTimer();
+      setGeneratedCategoryName('');
+      setGeneratedSubjectName('');
       setQuizList(restoredQuizzes);
       setWrongNotes(
         restoredQuizzes.filter(
@@ -652,6 +638,9 @@ const SelfStudy: React.FC = () => {
         restoreRequestRef.current += 1;
 
         setQuizSessionId(null);
+        resetQuizTimer();
+        setGeneratedCategoryName('');
+        setGeneratedSubjectName('');
         setQuizList([]);
         setWrongNotes([]);
         setScore(null);
@@ -722,41 +711,51 @@ const SelfStudy: React.FC = () => {
   // 8. AI 문제 생성
   // =========================================================
 
-  const handleUploadSubmit = async () => {
-  if (loading) return;
+  const validateUploadInput = (): File | null => {
+    if (loading) return null;
 
-  if (selectedSubjectId === null) {
-    alert('카테고리와 과목을 선택해주세요.');
-    return;
-  }
+    if (classificationMode === 'manual' && selectedSubjectId === null) {
+      alert('직접 지정 모드에서는 카테고리와 과목을 선택해주세요.');
+      return null;
+    }
 
-  if (!selectedFile) {
-    alert('문제 생성에 사용할 이미지를 첨부해주세요.');
-    return;
-  }
+    if (!selectedFile) {
+      alert('문제 생성에 사용할 이미지를 첨부해주세요.');
+      return null;
+    }
 
-  if (
-    !['image/jpeg', 'image/png', 'image/webp'].includes(selectedFile.type) ||
-    selectedFile.size > 10 * 1024 * 1024
-  ) {
-    alert('10MB 이하의 JPG, PNG, WebP 이미지를 선택해주세요.');
-    return;
-  }
+    if (
+      !['image/jpeg', 'image/png', 'image/webp'].includes(selectedFile.type) ||
+      selectedFile.size > 10 * 1024 * 1024
+    ) {
+      alert('10MB 이하의 JPG, PNG, WebP 이미지를 선택해주세요.');
+      return null;
+    }
 
-  if (!requireLogin()) return;
+    if (!requireLogin()) return null;
 
-  setLoading(true);
+    const confirmed = window.confirm(
+      `AI 문제 생성 1회당 ${SELF_STUDY_GENERATION_POINT_COST.toLocaleString()}P가 사용됩니다.\n` +
+      '문제 생성과 저장이 완료된 경우에만 차감됩니다. 계속하시겠습니까?'
+    );
 
-  const formData = new FormData();
+    return confirmed ? selectedFile : null;
+  };
 
-  formData.append('file', selectedFile);
-  formData.append('subject_id', String(selectedSubjectId));
-  formData.append('quiz_type', quizType);
-  formData.append('quiz_difficulty', quizDifficulty);
-  formData.append('quiz_count', String(quizCount));
-  formData.append('quiz_prompt', quizPrompt);
+  const buildUploadFormData = (file: File): FormData => {
+    const formData = new FormData();
+    formData.append('file', file);
+    if (classificationMode === 'manual' && selectedSubjectId !== null) {
+      formData.append('subject_id', String(selectedSubjectId));
+    }
+    formData.append('quiz_type', quizType);
+    formData.append('quiz_difficulty', quizDifficulty);
+    formData.append('quiz_count', String(quizCount));
+    formData.append('quiz_prompt', quizPrompt);
+    return formData;
+  };
 
-  try {
+  const requestGeneratedQuizzes = async (formData: FormData) => {
     const response = await authenticatedFetch(
       `${BACKEND_URL}/api/selfstudy/generate`,
       {
@@ -768,7 +767,6 @@ const SelfStudy: React.FC = () => {
     );
 
     const raw = await response.text();
-
     let data: any = {};
 
     if (raw) {
@@ -786,39 +784,43 @@ const SelfStudy: React.FC = () => {
           : typeof data.detail === 'string'
             ? data.detail
             : 'AI 문제 생성에 실패했습니다.';
-
       throw new Error(message);
     }
 
     if (
       !Array.isArray(data.quizzes) ||
       data.quizzes.length !== quizCount ||
-      !data.quizSessionId
+      !data.quizSessionId ||
+      !data.categoryName ||
+      !data.subjectName
     ) {
       throw new Error(
         '문제 생성 응답이 올바르지 않습니다. 학습 기록을 확인해주세요.'
       );
     }
 
-    // 정상 생성된 경우에만 학습 상태 변경
+    return data;
+  };
+
+  const applyGeneratedQuiz = (data: any, file: File) => {
     setQuizList(data.quizzes);
     setQuizSessionId(data.quizSessionId);
+    resetQuizTimer();
+    setGeneratedCategoryName(String(data.categoryName));
+    setGeneratedSubjectName(String(data.subjectName));
     setSubmitted(false);
     setScore(null);
     setWrongNotes([]);
     setActiveTab('quiz');
 
-    // 기존 학습 이미지 URL 정리
     if (studyImageUrlRef.current) {
       URL.revokeObjectURL(studyImageUrlRef.current);
     }
 
-    const newStudyImageUrl = URL.createObjectURL(selectedFile);
-
+    const newStudyImageUrl = URL.createObjectURL(file);
     studyImageUrlRef.current = newStudyImageUrl;
     setStudyImageUrl(newStudyImageUrl);
 
-    // 성공한 경우에만 모달 닫기
     setIsModalOpen(false);
     setSelectedFile(null);
 
@@ -829,35 +831,48 @@ const SelfStudy: React.FC = () => {
 
     setPreviewUrl(null);
     setQuizPrompt('');
-    setSelectedCategoryId(null);
-    setSelectedSubjectId(null);
+  };
 
-    // 학습 기록 새로고침
-    await loadHistory().catch((error) => {
-      console.error('학습 기록 갱신 실패:');
-    });
-
-  } catch (error) {
+  const showUploadError = (error: unknown) => {
     console.error('AI 문제 생성 오류:');
 
     const message =
       error instanceof Error
         ? error.message
         : '알 수 없는 오류가 발생했습니다.';
+    const pointNotice = message.includes('포인트 잔액이 부족')
+      ? '\n\n포인트는 차감되지 않았습니다. 포인트를 충전한 뒤 다시 시도해주세요.'
+      : '';
 
     alert(
       `문제 생성 요청을 완료하지 못했습니다.\n\n` +
-      `${message}\n\n` +
+      `${message}${pointNotice}\n\n` +
       `입력한 내용은 유지됩니다.`
     );
+  };
 
-    // 실패 시 모달, 이미지, 과목, 문제 설정 유지
-    // 기존 학습 문제와 학습 결과도 변경하지 않음
+  const refreshUploadHistory = async () => {
+    await loadHistory().catch(() => {
+      console.error('학습 기록 갱신 실패:');
+    });
+  };
 
-  } finally {
-    setLoading(false);
-  }
-};
+  const handleUploadSubmit = async () => {
+    const file = validateUploadInput();
+    if (!file) return;
+
+    setLoading(true);
+    try {
+      const formData = buildUploadFormData(file);
+      const data = await requestGeneratedQuizzes(formData);
+      applyGeneratedQuiz(data, file);
+      await refreshUploadHistory();
+    } catch (error) {
+      showUploadError(error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // =========================================================
   // 9. 정답 선택
@@ -927,6 +942,11 @@ const SelfStudy: React.FC = () => {
       return;
     }
 
+    if (quizTimerStartedAt === null) {
+      alert('시험 시작 버튼을 먼저 눌러주세요.');
+      return;
+    }
+
     if (
       quizList.some(
         (quiz) => !quiz.quizUserResponse?.trim()
@@ -938,6 +958,10 @@ const SelfStudy: React.FC = () => {
 
     if (!requireLogin()) return;
 
+    setQuizElapsedSeconds(
+      Math.floor((Date.now() - quizTimerStartedAt) / 1000)
+    );
+    setQuizTimerRunning(false);
     setSubmitting(true);
 
     try {
@@ -1016,6 +1040,9 @@ const SelfStudy: React.FC = () => {
       <div className={styles.layoutWrapper}>
         <MainTabContent
           onSubmit={handleSubmitQuiz}
+          onStartQuiz={handleStartQuiz}
+          quizStarted={quizTimerStartedAt !== null}
+          quizElapsedSeconds={quizElapsedSeconds}
           submitting={submitting}
           submitted={submitted}
           score={score}
@@ -1026,6 +1053,8 @@ const SelfStudy: React.FC = () => {
           wrongNotes={wrongNotes}
           handleSelectAnswer={handleSelectAnswer}
           previewUrl={studyImageUrl}
+          categoryName={generatedCategoryName}
+          subjectName={generatedSubjectName}
           restoring={restoring}
           deleting={deleting}
         />
@@ -1059,12 +1088,15 @@ const SelfStudy: React.FC = () => {
         setQuizPrompt={setQuizPrompt}
         handleFileChange={handleFileChange}
         handleUploadSubmit={handleUploadSubmit}
+        classificationMode={classificationMode}
+        setClassificationMode={setClassificationMode}
         categories={categories}
         subjects={subjects}
         selectedCategoryId={selectedCategoryId}
         setSelectedCategoryId={setSelectedCategoryId}
         selectedSubjectId={selectedSubjectId}
         setSelectedSubjectId={setSelectedSubjectId}
+        pointCost={SELF_STUDY_GENERATION_POINT_COST}
       />
     </div>
   );

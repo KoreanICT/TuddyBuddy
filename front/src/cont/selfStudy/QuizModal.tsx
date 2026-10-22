@@ -26,19 +26,16 @@ interface QuizModalProps {
   ) => void;
 
   handleUploadSubmit: () => void;
-
+  classificationMode: 'auto' | 'manual';
+  setClassificationMode: (value: 'auto' | 'manual') => void;
   categories: Category[];
   subjects: Subject[];
-
   selectedCategoryId: number | null;
-  setSelectedCategoryId: (
-    val: number | null
-  ) => void;
-
+  setSelectedCategoryId: (value: number | null) => void;
   selectedSubjectId: number | null;
-  setSelectedSubjectId: (
-    val: number | null
-  ) => void;
+  setSelectedSubjectId: (value: number | null) => void;
+  pointCost: number;
+
 }
 
 export const QuizModal: React.FC<QuizModalProps> = ({
@@ -56,24 +53,17 @@ export const QuizModal: React.FC<QuizModalProps> = ({
   setQuizPrompt,
   handleFileChange,
   handleUploadSubmit,
+  classificationMode,
+  setClassificationMode,
   categories,
   subjects,
   selectedCategoryId,
   setSelectedCategoryId,
   selectedSubjectId,
   setSelectedSubjectId,
+  pointCost,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // 선택된 카테고리에 해당하는 과목만 표시
-  // 이미지 첨부 여부와는 관계없음
-  const filteredSubjects =
-    selectedCategoryId !== null
-      ? subjects.filter(
-          (subject) =>
-            subject.categoryId === selectedCategoryId
-        )
-      : [];
 
   if (!isOpen) {
     return null;
@@ -85,7 +75,7 @@ export const QuizModal: React.FC<QuizModalProps> = ({
 
         {/* 모달 헤더 */}
         <div className={styles.modalHeader}>
-          <h3>AI 문제 생성 설정 (quiz_sessions)</h3>
+          <h3>AI 문제 생성 설정 </h3>
 
           <button
             type="button"
@@ -102,11 +92,12 @@ export const QuizModal: React.FC<QuizModalProps> = ({
           {/* 1. 이미지 첨부 */}
           <div className={styles.formGroup}>
             <label className={styles.label}>
-              이미지 첨부 (quiz_image_url)
+              이미지 첨부
             </label>
 
             <input
               type="file"
+              name="quizImage"
               ref={fileInputRef}
               accept="image/jpeg,image/png,image/webp"
               onChange={handleFileChange}
@@ -138,101 +129,86 @@ export const QuizModal: React.FC<QuizModalProps> = ({
             </div>
           </div>
 
-          {/* 2. 카테고리 및 과목 선택 */}
-          {/* 이미지가 없어도 항상 표시 */}
-
-          <div className={styles.formRow}>
-
-            {/* 카테고리 */}
-            <div className={styles.formGroup}>
-              <label className={styles.label}>
-                카테고리 (category_id)
+          <div className={styles.formGroup}>
+            <label className={styles.label}>카테고리·과목 지정</label>
+            <div className={styles.formRow}>
+              <label>
+                <input
+                  type="radio"
+                  name="classificationMode"
+                  checked={classificationMode === 'auto'}
+                  disabled={loading}
+                  onChange={() => setClassificationMode('auto')}
+                /> 이미지 자동 분류
               </label>
-
-              <select
-                className={styles.selectInput}
-                value={selectedCategoryId ?? ''}
-                disabled={loading}
-                onChange={(e) => {
-                  const value = e.target.value;
-
-                  const categoryId =
-                    value === ''
-                      ? null
-                      : Number(value);
-
-                  setSelectedCategoryId(categoryId);
-                  setSelectedSubjectId(null);
-                }}
-              >
-                <option value="">
-                  카테고리 선택
-                </option>
-
-                {categories.map((category) => (
-                  <option
-                    key={category.categoryId}
-                    value={category.categoryId}
-                  >
-                    {category.categoryName}
-                  </option>
-                ))}
-              </select>
-
-              {categories.length === 0 && (
-                <small>
-                  조회된 카테고리가 없습니다.
-                </small>
-              )}
-            </div>
-
-            {/* 과목 */}
-            <div className={styles.formGroup}>
-              <label className={styles.label}>
-                과목 (subject_id)
+              <label>
+                <input
+                  type="radio"
+                  name="classificationMode"
+                  checked={classificationMode === 'manual'}
+                  disabled={loading}
+                  onChange={() => setClassificationMode('manual')}
+                /> 직접 선택
               </label>
-
-              <select
-                className={styles.selectInput}
-                value={selectedSubjectId ?? ''}
-                disabled={
-                  loading ||
-                  selectedCategoryId === null
-                }
-                onChange={(e) => {
-                  const value = e.target.value;
-
-                  setSelectedSubjectId(
-                    value === ''
-                      ? null
-                      : Number(value)
-                  );
-                }}
-              >
-                <option value="">
-                  과목 선택
-                </option>
-
-                {filteredSubjects.map((subject) => (
-                  <option
-                    key={subject.subjectId}
-                    value={subject.subjectId}
-                  >
-                    {subject.subjectName}
-                  </option>
-                ))}
-              </select>
-
-              {selectedCategoryId !== null &&
-                filteredSubjects.length === 0 && (
-                  <small>
-                    조회된 과목이 없습니다.
-                  </small>
-                )}
             </div>
+            {classificationMode === 'auto' ? (
+              <small>
+                기존 항목을 우선 사용하고, 없으면 새 항목으로 등록합니다.
+              </small>
+            ) : (
+              <div className={styles.formRow}>
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>카테고리</label>
+                  <select
+                    className={styles.selectInput}
+                    name="categoryId"
+                    value={selectedCategoryId ?? ''}
+                    disabled={loading}
+                    onChange={(event) => {
+                      const value = event.target.value;
+                      setSelectedCategoryId(value ? Number(value) : null);
+                      setSelectedSubjectId(null);
+                    }}
+                  >
+                    <option value="">카테고리 선택</option>
+                    {categories.map((category) => (
+                      <option key={category.categoryId} value={category.categoryId}>
+                        {category.categoryName}
+                      </option>
+                    ))}
+                  </select>
+                  {categories.length === 0 && (
+                    <small>선택할 수 있는 카테고리가 없습니다.</small>
+                  )}
+                </div>
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>과목</label>
+                  <select
+                    className={styles.selectInput}
+                    name="subjectId"
+                    value={selectedSubjectId ?? ''}
+                    disabled={loading || selectedCategoryId === null}
+                    onChange={(event) => {
+                      const value = event.target.value;
+                      setSelectedSubjectId(value ? Number(value) : null);
+                    }}
+                  >
+                    <option value="">과목 선택</option>
+                    {subjects.map((subject) => (
+                      <option key={subject.subjectId} value={subject.subjectId}>
+                        {subject.subjectName}
+                      </option>
+                    ))}
+                  </select>
+                  {selectedCategoryId !== null && subjects.length === 0 && (
+                    <small>선택한 카테고리에 과목이 없습니다.</small>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* 3. 문제 유형 */}
+          {/* 2. 문제 유형 */}
           <div className={styles.formGroup}>
             <label className={styles.label}>
               문제 유형
@@ -240,6 +216,7 @@ export const QuizModal: React.FC<QuizModalProps> = ({
 
             <select
               className={styles.selectInput}
+              name="quizType"
               value={quizType}
               disabled={loading}
               onChange={(e) =>
@@ -260,16 +237,17 @@ export const QuizModal: React.FC<QuizModalProps> = ({
             </select>
           </div>
 
-          {/* 4. 난이도 및 문항 수 */}
+          {/* 3. 난이도 및 문항 수 */}
           <div className={styles.formRow}>
 
             <div className={styles.formGroup}>
               <label className={styles.label}>
-                난이도 (quiz_difficulty)
+                난이도
               </label>
 
               <select
                 className={styles.selectInput}
+                name="quizDifficulty"
                 value={quizDifficulty}
                 disabled={loading}
                 onChange={(e) =>
@@ -292,33 +270,54 @@ export const QuizModal: React.FC<QuizModalProps> = ({
 
             <div className={styles.formGroup}>
               <label className={styles.label}>
-                문항 수 (quiz_count)
+                문항 수 
               </label>
 
-              <select
-                className={styles.selectInput}
-                value={quizCount}
-                disabled={loading}
-                onChange={(e) =>
-                  setQuizCount(Number(e.target.value))
-                }
+              <div
+                className={styles.quizCountControl}
+                role="group"
+                aria-label="문항 수 선택"
               >
-                <option value={3}>3문항</option>
-                <option value={5}>5문항</option>
-                <option value={10}>10문항</option>
-              </select>
+                <button
+                  type="button"
+                  className={styles.quizCountButton}
+                  aria-label="문항 수 줄이기"
+                  disabled={loading || quizCount <= 1}
+                  onClick={() => setQuizCount(Math.max(1, quizCount - 1))}
+                >
+                  −
+                </button>
+                <output
+                  className={styles.quizCountValue}
+                  aria-live="polite"
+                  aria-atomic="true"
+                >
+                  {quizCount}<span>문항</span>
+                </output>
+                <button
+                  type="button"
+                  className={styles.quizCountButton}
+                  aria-label="문항 수 늘리기"
+                  disabled={loading || quizCount >= 10}
+                  onClick={() => setQuizCount(Math.min(10, quizCount + 1))}
+                >
+                  +
+                </button>
+              </div>
+              <p className={styles.quizCountHint}>1~10문항 선택</p>
             </div>
           </div>
 
-          {/* 5. 추가 요청사항 */}
+          {/* 4. 추가 요청사항 */}
           <div className={styles.formGroup}>
             <label className={styles.label}>
-              추가 요청사항 (quiz_prompt)
+              추가 요청사항
             </label>
 
             <input
               type="text"
               className={styles.textInput}
+              name="quizPrompt"
               placeholder="예: 개념 위주로 문제 내줘, 해설을 자세히 적어줘"
               maxLength={1000}
               value={quizPrompt}
@@ -328,6 +327,10 @@ export const QuizModal: React.FC<QuizModalProps> = ({
               }
             />
           </div>
+
+          <p className={styles.pointCostNotice}>
+            문제 생성과 저장이 완료되면 1회당 {pointCost.toLocaleString()}P가 차감됩니다.
+          </p>
         </div>
 
         {/* 모달 하단 */}
@@ -355,7 +358,7 @@ export const QuizModal: React.FC<QuizModalProps> = ({
             )}
             {loading
               ? 'AI가 문제를 생성하는 중...'
-              : '문제 생성 시작'}
+              : `${pointCost.toLocaleString()}P로 문제 생성`}
           </button>
         </div>
       </div>

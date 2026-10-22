@@ -85,6 +85,16 @@
 		</if>
 	</select>
 
+	<!-- 페이지와 무관한 신고 통계: 선택한 상태의 전체 신고를 집계한다. -->
+	<select id="countGroups" resultType="kr.co.ictedu.back.report.vo.ReportCountVO">
+		SELECT type, category, COUNT(*) AS count
+		FROM report
+		<where>
+			<if test="status != null">status = #{status}</if>
+		</where>
+		GROUP BY type, category
+	</select>
+
 	<!-- 신고 상세 -->
 	<select id="detail" parameterType="long" resultType="revo">
 		SELECT num, member_num, type, category, content, status, created_date,
@@ -126,6 +136,28 @@
 	</select>
 
 	<!-- 신고 사유와 내용만 수정 -->
+	<select id="targetDetail" resultType="map">
+		<choose>
+			<when test='type == "community"'>
+				SELECT community_title AS "title", community_content AS "content", member_num AS "memberNum"
+				FROM community_section WHERE community_id = #{targetNum}
+			</when>
+			<when test='type == "user"'>
+				SELECT member_nick AS "title", member_code AS "content", member_num AS "memberNum"
+				FROM member WHERE member_num = #{targetNum}
+			</when>
+			<when test='type == "study"'>
+				SELECT group_title AS "title", group_desc AS "content", group_num AS "groupNum"
+				FROM studygroup WHERE group_num = #{targetNum}
+			</when>
+			<when test='type == "document"'>
+				SELECT document_title AS "title", original_name AS "content", member_num AS "memberNum", group_num AS "groupNum"
+				FROM group_document WHERE document_num = #{targetNum}
+			</when>
+			<otherwise>SELECT 1 AS "unused" FROM dual WHERE 1 = 0</otherwise>
+		</choose>
+	</select>
+
 	<update id="update" parameterType="revo">
 		UPDATE report
 		SET category = #{category},

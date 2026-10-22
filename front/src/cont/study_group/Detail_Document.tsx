@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react'
 import styles from './detail.module.css'
 import { Detail_DocumentModal } from './Detail_DocumentModal';
 import { GetGroupNum, formatFileSize } from './GroupAPI'
-import axios from 'axios';
+import api from './api';
 
 interface DocumentData {
     document_num: number;
@@ -32,8 +32,8 @@ export const Detail_Document: React.FC<GetGroupNum> = ({ groupNum }) => {
 
     const handleDownload = async (documentNum: number, originalName: string, documentType: string) => {
         try {
-            const response = await axios.get(
-                `http://localhost/back/api/detail/document/download/${documentNum}`,
+            const response = await api.get(
+                `/detail/document/download/${documentNum}`,
                 {
                     responseType: 'blob'
                 }
@@ -60,7 +60,7 @@ export const Detail_Document: React.FC<GetGroupNum> = ({ groupNum }) => {
             return;
         }
         try {
-            await axios.delete(`http://localhost/back/api/detail/document/deleteDocument/${documentNum}`);
+            await api.delete(`/detail/document/deleteDocument/${documentNum}`);
             alert('참고 자료가 삭제되었습니다.')
             await getDocuments();
         }  catch (error) {
@@ -75,7 +75,7 @@ export const Detail_Document: React.FC<GetGroupNum> = ({ groupNum }) => {
     }
     const getDocuments = async () => {
         try {
-            const response = await axios.get<DocumentData[]>(`http://localhost/back/api/detail/document/getDocuments/${groupNum}`);
+            const response = await api.get<DocumentData[]>(`/detail/document/getDocuments/${groupNum}`);
 
             const responseData: DocumentData[] = response.data;
             setDocuments(responseData)

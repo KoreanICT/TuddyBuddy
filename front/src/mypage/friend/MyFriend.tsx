@@ -9,6 +9,8 @@ import { Users, UserRound, UserPlus, Inbox, Send } from 'lucide-react';
 
 import { useAuth } from '../../login/hooks/useAuth';
 import styles from './myFriend.module.css';
+import ReportButton from '../../cont/report/ReportButton';
+import FriendStudyInviteModal from '../../cont/friend/FriendStudyInviteModal';
 
 interface FriendVO {
     num: number;
@@ -28,6 +30,7 @@ const API_URL = `${BACKEND_URL}/api`;
 const MyFriend: React.FC = () => {
     const [friends, setFriends] = useState<FriendVO[]>([]);
     const [loading, setLoading] = useState(true);
+    const [inviteFriend, setInviteFriend] = useState<FriendVO | null>(null);
     const { memberNum, token } = useAuth();
     const navigate = useNavigate();
 
@@ -134,6 +137,14 @@ const MyFriend: React.FC = () => {
                                 <strong>{friend.member_nick || '알 수 없는 회원'}</strong>
                                 <span>친구</span>
                             </div>
+                            <div className={styles.friendActions}>
+                                <button type="button" className={styles.inviteButton}
+                                    onClick={() => setInviteFriend(friend)} aria-haspopup="dialog"
+                                    aria-label={`${friend.member_nick || '친구'}님에게 스터디 초대 문구 만들기`}>스터디 초대</button>
+                                <ReportButton type="user" targetNum={Number(friend.request_num) === Number(memberNum)
+                                    ? Number(friend.response_num) : Number(friend.request_num)}
+                                    aria-label={`${friend.member_nick || '친구'} 회원 신고`}>신고</ReportButton>
+                            </div>
                         </div>
                     ))
                 ) : (
@@ -144,6 +155,8 @@ const MyFriend: React.FC = () => {
                     </div>
                 )}
             </div>
+            {inviteFriend && <FriendStudyInviteModal key={inviteFriend.num}
+                friendNick={inviteFriend.member_nick || '친구'} onClose={() => setInviteFriend(null)} />}
         </div>
     );
 };

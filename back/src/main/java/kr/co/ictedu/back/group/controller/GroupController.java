@@ -18,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -26,7 +27,6 @@ import kr.co.ictedu.back.group.dto.GroupCreateRequest;
 import kr.co.ictedu.back.group.dto.GroupInviteRequest;
 import kr.co.ictedu.back.group.dto.GroupListDTO;
 import kr.co.ictedu.back.group.dto.PublicGroupListDTO;
-import kr.co.ictedu.back.group.service.CurrentMemberService;
 import kr.co.ictedu.back.group.service.GroupService;
 import kr.co.ictedu.back.group.vo.GroupVO;
 import kr.co.ictedu.back.group.vo.TagVO;
@@ -38,38 +38,48 @@ public class GroupController {
 
     @Autowired
     private GroupService service;
-
-    @Autowired
-    private CurrentMemberService currentMemberService;
     
     @Operation(summary = "그룹 태그 조회", description = "그룹 태그 조회")
 	@ApiResponse(responseCode = "200", description = "그룹 태그 조회 성공")
 	@ApiResponse(responseCode = "500", description = "그룹 태그 조회 실패")
     @GetMapping("/tags/search")
-    public ResponseEntity<List<TagVO>> searchTags(@RequestParam("keyword") String keyword) {
-        List<TagVO> tags = service.searchTags(keyword);
-        return ResponseEntity.ok(tags);
+    public ResponseEntity<List<TagVO>> searchTags(
+            @RequestParam("keyword") String keyword) {
+
+        return ResponseEntity.ok(
+                service.searchTags(keyword)
+        );
     }
 
     @Operation(summary = "자신의 그룹 리스트 조회", description = "자신이 소속된 그룹들의 리스트를 조회합니다.")
 	@ApiResponse(responseCode = "200", description = "그룹 리스트 조회 성공")
 	@ApiResponse(responseCode = "500", description = "그룹 리스트 조회 실패")
     @GetMapping("/getmyrooms")
-    public ResponseEntity<List<GroupListDTO>> getMyGroups() {
-        Long memberNum = 1L;
-        //Long memberNum = currentMemberService.getCurrentMemberNum();
-        List<GroupListDTO> groups = service.getMyGroups(memberNum);
-        return ResponseEntity.ok(groups);
+    public ResponseEntity<List<GroupListDTO>> getMyGroups(
+            @RequestHeader("memberNum") Long memberNum) {
+    	
+    	System.out.println("멤버 번호" + memberNum);
+    	List<GroupListDTO> list = service.getMyGroups(memberNum);
+    	System.out.println("응답 :" + list);
+        return ResponseEntity.ok(
+                list
+        );
     }
     
     @Operation(summary = "공개된 그룹 리스트 조회", description = "공개된 그룹들의 리스트를 조회합니다.")
 	@ApiResponse(responseCode = "200", description = "그룹 리스트 조회 성공")
 	@ApiResponse(responseCode = "500", description = "그룹 리스트 조회 실패")
     @GetMapping("/getpublicrooms")
-    public ResponseEntity<List<PublicGroupListDTO>> getPublicGroups() {
-    	Long memberNum = 1L;
-    	List<PublicGroupListDTO> groups = service.getPublicGroups(memberNum);
-    	return ResponseEntity.ok(groups);
+    public ResponseEntity<List<PublicGroupListDTO>> getPublicGroups(
+            @RequestHeader(
+                    value = "memberNum",
+                    required = false
+            ) Long memberNum) {
+
+        // 비로그인 요청은 memberNum이 null
+        return ResponseEntity.ok(
+                service.getPublicGroups(memberNum)
+        );
     }
     
     //스터디 그룹 생성
@@ -78,15 +88,22 @@ public class GroupController {
 	@ApiResponse(responseCode = "500", description = "스터디그룹 생성 실패")
     @PostMapping(value="/add", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Map<String, Object>> addGroup(
-    		@RequestPart("groupData") GroupCreateRequest request, 
-    		@RequestPart(value="thumbnail", required=false) MultipartFile thumbnail) {
-    	
-    	Long memberNum = 1L;
-    	
-        Long groupNum = service.addGroup(request,thumbnail,memberNum);
+            @RequestHeader("memberNum") Long memberNum,
+            @RequestPart("groupData") GroupCreateRequest request,
+            @RequestPart(
+                    value = "thumbnail",
+                    required = false
+            ) MultipartFile thumbnail) {
+
+        Long groupNum = service.addGroup(
+                request,
+                thumbnail,
+                memberNum
+        );
+
         Map<String, Object> result = new HashMap<>();
-        result.put("group_num",groupNum);
-        result.put("message","스터디 그룹이 생성되었습니다.");
+        result.put("group_num", groupNum);
+        result.put("message", "스터디 그룹이 생성되었습니다.");
 
         return ResponseEntity.ok(result);
     }
@@ -95,16 +112,19 @@ public class GroupController {
 	@ApiResponse(responseCode = "200", description = "참가 성공")
 	@ApiResponse(responseCode = "500", description = "참가 실패")
     @PostMapping("/join/invite")
-    public ResponseEntity<Map<String, Object>> joinByInviteCode(@RequestBody GroupInviteRequest request) {
-    	
-    	Long memberNum = 1L;
-    	
-    	Long groupNum = service.joinByInviteCode(request.getInviteCode(), memberNum);
-    	Map<String, Object> result = new HashMap<>();
-    	result.put("group_num", groupNum);
-    	
-    	result.put("message", "스터디룸 가입되었습니다.");
-    	
-    	return ResponseEntity.ok(result);
+    public ResponseEntity<Map<String, Object>> joinByInviteCode(
+            @RequestHeader("memberNum") Long memberNum,
+            @RequestBody GroupInviteRequest request) {
+
+        Long groupNum = service.joinByInviteCode(
+                request.getInviteCode(),
+                memberNum
+        );
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("group_num", groupNum);
+        result.put("message", "스터디룸에 가입되었습니다.");
+
+        return ResponseEntity.ok(result);
     }
 }

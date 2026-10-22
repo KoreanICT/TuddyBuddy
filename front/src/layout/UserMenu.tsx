@@ -10,6 +10,8 @@ import AuthModal from '../login/AuthModal';
 import { ROLE_ACCESS } from '../login/auth/roles';
 import RoleGate from '../login/auth/RoleGate';
 import { useRoleAccess } from '../login/hooks/useRoleAccess';
+import { useNotification } from '../notification/NotificationProvider';
+import NotificationModal from '../notification/NotificationModal';
 
 const UserMenu: React.FC = () => {
 
@@ -18,12 +20,14 @@ const UserMenu: React.FC = () => {
 
   const dispatch = useAppDispatch();
 
+  const { notifications, hasNewNotification, setHasNewNotification } = useNotification();
+
   // 내 계정 사이드 메뉴
   const [isOpen, setIsOpen] = useState(false);
 
   // 로그인/회원가입 팝업
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-
+  const [IsNotiOpen, setIsNotiOpen] = useState(false);
   const closeMenu = () => {
     setIsOpen(false);
   };
@@ -71,8 +75,32 @@ const UserMenu: React.FC = () => {
   // ================================
   return (
     <>
-      {/* 프로필 버튼 */}
+      {/* 알림 버튼 */}
       <div className={styles.userMenu}>
+        <div className={styles.notificationWrapper}>
+          <button
+            type="button"
+            className={styles.profileButton}
+            onClick={() => {
+              setIsNotiOpen(true);
+              setHasNewNotification(false);
+            }}
+            aria-label="알림 목록 열기"
+          >
+            <span className={styles.profileIcon}>
+              {hasNewNotification ? '❗' : '🔔'}
+            </span>
+            <span>알림</span>
+          </button>
+
+          {IsNotiOpen && (
+            <NotificationModal
+              notifications={notifications}
+              onClose={() => setIsNotiOpen(false)}
+            />
+          )}
+        </div>
+        {/* 프로필 버튼 */}
         <button
           type="button"
           className={styles.profileButton}
@@ -89,17 +117,15 @@ const UserMenu: React.FC = () => {
 
       {/* Overlay */}
       <div
-        className={`${styles.overlay} ${
-          isOpen ? styles.open : ''
-        }`}
+        className={`${styles.overlay} ${isOpen ? styles.open : ''
+          }`}
         onClick={closeMenu}
       />
 
       {/* Side Menu */}
       <aside
-        className={`${styles.drawer} ${
-          isOpen ? styles.open : ''
-        }`}
+        className={`${styles.drawer} ${isOpen ? styles.open : ''
+          }`}
       >
         {/* Drawer Header */}
         <div className={styles.drawerHeader}>
@@ -136,7 +162,7 @@ const UserMenu: React.FC = () => {
           </NavLink>
 
           <NavLink
-            to="/homeGroup"
+            to="/group"
             onClick={closeMenu}
           >
             스터디 생성

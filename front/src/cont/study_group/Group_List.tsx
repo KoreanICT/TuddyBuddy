@@ -1,8 +1,8 @@
+import api from './api';
 //작성자 : 오진석
 import React, { useEffect, useState } from 'react';
 import styles from './group.module.css';
 import { TagItem } from './GroupAPI';
-import axios from 'axios';
 import { NavLink } from 'react-router-dom';
 import { getFirstLetter } from './GroupAPI';
 interface GroupPublicProps {
@@ -40,7 +40,7 @@ export interface PublicGroupListItem {
 
     group_maxMembers: number;
     group_thumbnail: string | null;
-    
+
     created_at: string;
 
     current_members: number;
@@ -53,78 +53,60 @@ export const Group_List: React.FC<GroupPublicProps> = ({ mode, searchType, searc
     const [mygroups, setMygroups] = useState<GroupListItem[]>([]);
     const [loading, setLoading] = useState(false);
 
-
     useEffect(() => {
-        const loadGroups = async () => {
 
-            if (mode==='my') {
-                try {
-                    setLoading(true);
+        const loadGroups = async () => {
+            setLoading(true);
+
+            try {
+                if (mode === 'my') {
                     const data = await getMyGroups();
+                
                     setMygroups(data);
-                } catch (error) {
-                    console.error('스터디룸 조회 실패', error)
-                } finally {
-                    setLoading(false);
-                }
-            } else if (mode === 'public') {
-                try {
-                    setLoading(true);
+                } else {
                     const data = await getPublicGroups();
+                    
                     setGroups(data);
-                } catch (error) {
-                    console.error('스터디룸 조회 실패', error)
-                } finally {
-                    setLoading(false);
                 }
+            } catch (error) {
+                console.error('스터디룸 조회 실패:', error);
+            } finally {
+                setLoading(false);
             }
-            // try {
-            //     setLoading(true);
-                
-                
-            // } catch (error) {
-            //     console.error('스터디룸 조회 실패', error)
-            // } finally {
-            //     setLoading(false);
-            // }
         };
         loadGroups();
     }, [mode]);
 
 
-    // const data = mode === 'my' ? (
-                    
-    //                 setMygroups(data);
-    //             ) : (
-    //                 await getPublicGroups();
-    //                 setGroups(data);
-    //             )
 
+    const currentList = Array.isArray(mode === 'my' ? mygroups : groups)
+        ? (mode === 'my' ? mygroups : groups)
+        : [];
 
-    const filteredGroups = (mode === 'my' ? mygroups : groups).filter(group => {
+    const filteredGroups = currentList.filter(group => {
         if (!searchTerm.trim()) {
             return true;
         }
         const keyword = searchTerm.toLowerCase();
         if (searchType === 'name') {
-            return group.group_title.toLowerCase().includes(keyword);
+            return group.group_title?.toLowerCase().includes(keyword);
         }
 
-        return group.tags.some(tag => tag.tag_name.toLowerCase().includes(keyword));
+        return group.tags?.some(tag => tag.tag_name?.toLowerCase().includes(keyword));
     });
 
     // 내 스터디룸
     const getMyGroups = async (): Promise<GroupListItem[]> => {
-        const response = await axios.get(
-            `http://localhost/back/api/group/getmyrooms`
+        const response = await api.get(
+            `/group/getmyrooms`
         );
 
         return response.data;
     };
     // 공개 스터디룸
     const getPublicGroups = async (): Promise<GroupListItem[]> => {
-        const response = await axios.get(
-            `http://localhost/back/api/group/getpublicrooms`
+        const response = await api.get(
+            `/group/getpublicrooms`
         );
 
         return response.data;

@@ -4,6 +4,7 @@ package kr.co.ictedu.back.report.service;
 
 import java.util.List;
 import java.util.Map;
+import java.nio.charset.StandardCharsets;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -14,9 +15,11 @@ import org.springframework.web.server.ResponseStatusException;
 import kr.co.ictedu.back.report.dao.ReportDao;
 import kr.co.ictedu.back.report.dao.ReportReplyDao;
 import kr.co.ictedu.back.report.vo.ReportVO;
+import kr.co.ictedu.back.report.vo.ReportCountVO;
 
 @Service
 public class ReportService {
+	private static final int REPORT_REASON_MAX_BYTES = 50;
 	
 	@Autowired
 	private ReportDao reportDao;
@@ -51,8 +54,8 @@ public class ReportService {
 
 	private void validateContent(ReportVO vo) {
 		if (vo.getCategory() == null || vo.getCategory().isBlank()
-				|| vo.getCategory().trim().length() > 255) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "신고 사유를 255자 이내로 입력해주세요.");
+				|| vo.getCategory().trim().getBytes(StandardCharsets.UTF_8).length > REPORT_REASON_MAX_BYTES) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "신고 사유를 50바이트 이내로 입력해주세요. 한글은 보통 한 글자당 3바이트입니다.");
 		}
 		if (vo.getContent() == null || vo.getContent().isBlank()) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "상세 내용을 입력해주세요.");
@@ -79,6 +82,29 @@ public class ReportService {
         return reportDao.totalCount(map);
     }
 
+    public Map<String, Object> statistics(String status) {
+        if (status != null && !List.of("PENDING", "REVIEWING", "COMPLETED", "REJECTED").contains(status)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "올바른 신고 처리 상태를 선택해주세요.");
+        }
+        Map<String, Long> types = new java.util.TreeMap<>();
+        Map<String, Long> reasons = new java.util.TreeMap<>();
+        long total = 0;
+        for (ReportCountVO group : reportDao.countGroups(status)) {
+            String type = group.getType() == null ? "unknown" : group.getType();
+            String reason = group.getCategory() == null || group.getCategory().isBlank()
+                    ? "기타" : group.getCategory().trim();
+            types.merge(type, group.getCount(), Long::sum);
+            reasons.merge(reason, group.getCount(), Long::sum);
+            total += group.getCount();
+        }
+        return Map.of("total", total,
+                "typeCounts", types.entrySet().stream()
+                        .map(entry -> Map.of("name", entry.getKey(), "count", entry.getValue())).toList(),
+                "reasonCounts", reasons.entrySet().stream()
+                        .sorted(Map.Entry.<String, Long>comparingByValue().reversed().thenComparing(Map.Entry.comparingByKey()))
+                        .map(entry -> Map.of("name", entry.getKey(), "value", entry.getValue())).toList());
+    }
+
     public ReportVO detail(Long num) {
         ReportVO report = reportDao.detail(num);
         if (report == null) {
@@ -93,6 +119,16 @@ public class ReportService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "신고를 찾을 수 없습니다.");
         }
         return report;
+    }
+
+    public Map<String, Object> targetDetail(Long reportNum) {
+        ReportVO report = detail(reportNum);
+        if ("report".equals(report.getType())) return Map.of("available", true, "general", true);
+        Map<String, Object> target = reportDao.targetDetail(report.getType(), report.getTarget_num());
+        if (target == null) return Map.of("available", false);
+        Map<String, Object> result = new java.util.HashMap<>(target);
+        result.put("available", true);
+        return result;
     }
 
     @Transactional

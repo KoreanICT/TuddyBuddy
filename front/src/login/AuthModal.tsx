@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import { rememberLoginDestination } from './loginRedirect';
 
 import { useAppDispatch } from './reducers/store';
 import { login } from './authActions/authActions';
@@ -9,11 +10,14 @@ import './AuthModal.css';
 
 interface AuthModalProps {
   onClose: () => void;
+  onSuccess?: () => void;
+  variant?: 'modal' | 'page';
 }
 
-const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
+const AuthModal: React.FC<AuthModalProps> = ({ onClose, onSuccess, variant = 'modal' }) => {
 
   const dispatch = useAppDispatch();
+  const location = useLocation();
 
   // 로그인 입력값
   const [email, setEmail] = useState('');
@@ -29,11 +33,17 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
   // 팝업 내부 접근성 처리
   const modalRef = useRef<HTMLDivElement>(null);
   const emailInputRef = useRef<HTMLInputElement>(null);
+  const passwordInputRef = useRef<HTMLInputElement>(null);
+  const loginPendingRef = useRef(false);
 
   // ================================
   // 팝업 열림/닫힘 처리
   // ================================
   useEffect(() => {
+    if (variant === 'page') {
+      emailInputRef.current?.focus();
+      return;
+    }
     const previousOverflow = document.body.style.overflow;
 
     document.body.style.overflow = 'hidden';
@@ -78,7 +88,11 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
       document.body.style.overflow = previousOverflow;
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [onClose]);
+  }, [onClose, variant]);
+
+  useEffect(() => {
+    if (step === 'password') passwordInputRef.current?.focus();
+  }, [step]);
 
   // ================================
   // 이메일 형식 검사
@@ -111,7 +125,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
   // ================================
   const handleLogin = async () => {
 
-    if (isLoading) {
+    if (loginPendingRef.current) {
       return;
     }
 
@@ -122,6 +136,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
 
     setErrorMessage('');
     setIsLoading(true);
+    loginPendingRef.current = true;
 
     try {
       // 기존 Redux 로그인 액션 재사용
@@ -131,7 +146,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
 
       if (success) {
         // 로그인 상태는 기존 Redux가 변경
-        onClose();
+        if (onSuccess) onSuccess();
+        else onClose();
       } else {
         setErrorMessage(
           '로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.'
@@ -144,6 +160,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
         '로그인 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
       );
     } finally {
+      loginPendingRef.current = false;
       setIsLoading(false);
     }
   };
@@ -175,6 +192,9 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
       .join('');
 
     sessionStorage.setItem('kakao_oauth_state', state);
+    rememberLoginDestination(variant === 'page'
+      ? new URLSearchParams(location.search).get('redirect')
+      : location.pathname + location.search + location.hash);
 
     const params = new URLSearchParams({
       client_id: clientId,
@@ -193,33 +213,33 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
   const handleOverlayClick = (
     event: React.MouseEvent<HTMLDivElement>
   ) => {
-    if (event.target === event.currentTarget) {
+    if (variant === 'modal' && event.target === event.currentTarget) {
       onClose();
     }
   };
 
-  return createPortal(
+  const content = (
     <div
-      className="tb-auth-overlay"
+      className={variant === 'page' ? 'tb-auth-page' : 'tb-auth-overlay'}
       onMouseDown={handleOverlayClick}
     >
       <div
         ref={modalRef}
-        className="tb-auth-modal"
-        role="dialog"
-        aria-modal="true"
+        className={`tb-auth-modal ${variant === 'page' ? 'tb-auth-page-card' : ''}`}
+        role={variant === 'modal' ? 'dialog' : undefined}
+        aria-modal={variant === 'modal' ? true : undefined}
         aria-labelledby="tb-auth-title"
       >
 
         {/* 닫기 버튼 */}
-        <button
+        {variant === 'modal' && <button
           type="button"
           className="tb-auth-close"
           onClick={onClose}
           aria-label="로그인 창 닫기"
         >
           ×
-        </button>
+        </button>}
 
         {/* 상단 타이틀 */}
         <div className="tb-auth-header">
@@ -233,6 +253,11 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
         </div>
 
         {/* 이메일 입력 */}
+        <form noValidate onSubmit={event => {
+          event.preventDefault();
+          if (step === 'email') handleContinue();
+          else void handleLogin();
+        }}>
         <div className="tb-auth-field">
           <label htmlFor="tb-auth-email">
             이메일
@@ -243,6 +268,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
             id="tb-auth-email"
             type="email"
             autoComplete="email"
+            disabled={isLoading}
             value={email}
             onChange={(event) => {
               setEmail(event.target.value);
@@ -262,18 +288,15 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
             </label>
 
             <input
+              ref={passwordInputRef}
               id="tb-auth-password"
               type="password"
               autoComplete="current-password"
+              disabled={isLoading}
               value={password}
               onChange={(event) => {
                 setPassword(event.target.value);
                 setErrorMessage('');
-              }}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter') {
-                  void handleLogin();
-                }
               }}
               placeholder="비밀번호를 입력해주세요"
             />
@@ -290,22 +313,21 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
         {/* 계속하기 / 로그인 */}
         {step === 'email' ? (
           <button
-            type="button"
+            type="submit"
             className="tb-auth-primary"
-            onClick={handleContinue}
           >
             계속하기
           </button>
         ) : (
           <button
-            type="button"
+            type="submit"
             className="tb-auth-primary"
             disabled={isLoading}
-            onClick={() => void handleLogin()}
           >
             {isLoading ? '로그인 중...' : '로그인'}
           </button>
         )}
+        </form>
 
         {/* 회원가입 */}
         <div className="tb-auth-signup">
@@ -313,7 +335,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
 
           <Link
             to="/auth/signup"
-            onClick={onClose}
+            onClick={variant === 'modal' ? onClose : undefined}
           >
             회원가입하기
           </Link>
@@ -353,9 +375,9 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
         </p>
 
       </div>
-    </div>,
-    document.body
+    </div>
   );
+  return variant === 'page' ? content : createPortal(content, document.body);
 };
 
 export default AuthModal;
