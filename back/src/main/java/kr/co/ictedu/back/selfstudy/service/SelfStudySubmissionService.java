@@ -1,6 +1,8 @@
 package kr.co.ictedu.back.selfstudy.service;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -63,6 +65,9 @@ public class SelfStudySubmissionService {
         var expectedQuizzes =
                 selfStudyDao.selectQuizzes(
                         request.getQuiz_sessionid());
+        Map<Long, QuizVO> quizzesById = new HashMap<>();
+        expectedQuizzes.forEach(quiz ->
+                quizzesById.putIfAbsent(quiz.getQuiz_id(), quiz));
         var answerIds = new HashSet<Long>();
 
         for (var answer : request.getResponses()) {
@@ -89,9 +94,7 @@ public class SelfStudySubmissionService {
         // 채점
         int correctCount = 0;
         for (QuizResponseDto answer : request.getResponses()) {
-            QuizVO quiz =
-                    selfStudyDao.selectQuiz(
-                            answer.getQuiz_id());
+            QuizVO quiz = quizzesById.get(answer.getQuiz_id());
             if (quiz == null) {
                 throw new IllegalArgumentException("존재하지 않는 문제입니다. quizId="+ answer.getQuiz_id());
             }
@@ -137,9 +140,7 @@ public class SelfStudySubmissionService {
 
         // 문제별 답안 저장
         for (QuizResponseDto answer : request.getResponses()) {
-            QuizVO quiz =
-                    selfStudyDao.selectQuiz(
-                            answer.getQuiz_id());
+            QuizVO quiz = quizzesById.get(answer.getQuiz_id());
             boolean correct =
                     quiz.getQuiz_correct_answer() != null
                     && answer.getQuiz_user_response() != null

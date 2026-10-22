@@ -711,49 +711,51 @@ const SelfStudy: React.FC = () => {
   // 8. AI 문제 생성
   // =========================================================
 
-  const handleUploadSubmit = async () => {
-  if (loading) return;
+  const validateUploadInput = (): File | null => {
+    if (loading) return null;
 
-  if (classificationMode === 'manual' && selectedSubjectId === null) {
-    alert('직접 지정 모드에서는 카테고리와 과목을 선택해주세요.');
-    return;
-  }
+    if (classificationMode === 'manual' && selectedSubjectId === null) {
+      alert('직접 지정 모드에서는 카테고리와 과목을 선택해주세요.');
+      return null;
+    }
 
-  if (!selectedFile) {
-    alert('문제 생성에 사용할 이미지를 첨부해주세요.');
-    return;
-  }
+    if (!selectedFile) {
+      alert('문제 생성에 사용할 이미지를 첨부해주세요.');
+      return null;
+    }
 
-  if (
-    !['image/jpeg', 'image/png', 'image/webp'].includes(selectedFile.type) ||
-    selectedFile.size > 10 * 1024 * 1024
-  ) {
-    alert('10MB 이하의 JPG, PNG, WebP 이미지를 선택해주세요.');
-    return;
-  }
+    if (
+      !['image/jpeg', 'image/png', 'image/webp'].includes(selectedFile.type) ||
+      selectedFile.size > 10 * 1024 * 1024
+    ) {
+      alert('10MB 이하의 JPG, PNG, WebP 이미지를 선택해주세요.');
+      return null;
+    }
 
-  if (!requireLogin()) return;
+    if (!requireLogin()) return null;
 
-  const confirmed = window.confirm(
-    `AI 문제 생성 1회당 ${SELF_STUDY_GENERATION_POINT_COST.toLocaleString()}P가 사용됩니다.\n` +
-    '문제 생성과 저장이 완료된 경우에만 차감됩니다. 계속하시겠습니까?'
-  );
-  if (!confirmed) return;
+    const confirmed = window.confirm(
+      `AI 문제 생성 1회당 ${SELF_STUDY_GENERATION_POINT_COST.toLocaleString()}P가 사용됩니다.\n` +
+      '문제 생성과 저장이 완료된 경우에만 차감됩니다. 계속하시겠습니까?'
+    );
 
-  setLoading(true);
+    return confirmed ? selectedFile : null;
+  };
 
-  const formData = new FormData();
+  const buildUploadFormData = (file: File): FormData => {
+    const formData = new FormData();
+    formData.append('file', file);
+    if (classificationMode === 'manual' && selectedSubjectId !== null) {
+      formData.append('subject_id', String(selectedSubjectId));
+    }
+    formData.append('quiz_type', quizType);
+    formData.append('quiz_difficulty', quizDifficulty);
+    formData.append('quiz_count', String(quizCount));
+    formData.append('quiz_prompt', quizPrompt);
+    return formData;
+  };
 
-  formData.append('file', selectedFile);
-  if (classificationMode === 'manual' && selectedSubjectId !== null) {
-    formData.append('subject_id', String(selectedSubjectId));
-  }
-  formData.append('quiz_type', quizType);
-  formData.append('quiz_difficulty', quizDifficulty);
-  formData.append('quiz_count', String(quizCount));
-  formData.append('quiz_prompt', quizPrompt);
-
-  try {
+  const requestGeneratedQuizzes = async (formData: FormData) => {
     const response = await authenticatedFetch(
       `${BACKEND_URL}/api/selfstudy/generate`,
       {
@@ -765,7 +767,6 @@ const SelfStudy: React.FC = () => {
     );
 
     const raw = await response.text();
-
     let data: any = {};
 
     if (raw) {
@@ -783,7 +784,6 @@ const SelfStudy: React.FC = () => {
           : typeof data.detail === 'string'
             ? data.detail
             : 'AI 문제 생성에 실패했습니다.';
-
       throw new Error(message);
     }
 
@@ -799,7 +799,10 @@ const SelfStudy: React.FC = () => {
       );
     }
 
-    // 정상 생성된 경우에만 학습 상태 변경
+    return data;
+  };
+
+  const applyGeneratedQuiz = (data: any, file: File) => {
     setQuizList(data.quizzes);
     setQuizSessionId(data.quizSessionId);
     resetQuizTimer();
@@ -810,17 +813,14 @@ const SelfStudy: React.FC = () => {
     setWrongNotes([]);
     setActiveTab('quiz');
 
-    // 기존 학습 이미지 URL 정리
     if (studyImageUrlRef.current) {
       URL.revokeObjectURL(studyImageUrlRef.current);
     }
 
-    const newStudyImageUrl = URL.createObjectURL(selectedFile);
-
+    const newStudyImageUrl = URL.createObjectURL(file);
     studyImageUrlRef.current = newStudyImageUrl;
     setStudyImageUrl(newStudyImageUrl);
 
-    // 성공한 경우에만 모달 닫기
     setIsModalOpen(false);
     setSelectedFile(null);
 
@@ -831,13 +831,9 @@ const SelfStudy: React.FC = () => {
 
     setPreviewUrl(null);
     setQuizPrompt('');
+  };
 
-    // 학습 기록 새로고침
-    await loadHistory().catch((error) => {
-      console.error('학습 기록 갱신 실패:');
-    });
-
-  } catch (error) {
+  const showUploadError = (error: unknown) => {
     console.error('AI 문제 생성 오류:');
 
     const message =
@@ -853,14 +849,30 @@ const SelfStudy: React.FC = () => {
       `${message}${pointNotice}\n\n` +
       `입력한 내용은 유지됩니다.`
     );
+  };
 
-    // 실패 시 모달, 이미지, 과목, 문제 설정 유지
-    // 기존 학습 문제와 학습 결과도 변경하지 않음
+  const refreshUploadHistory = async () => {
+    await loadHistory().catch(() => {
+      console.error('학습 기록 갱신 실패:');
+    });
+  };
 
-  } finally {
-    setLoading(false);
-  }
-};
+  const handleUploadSubmit = async () => {
+    const file = validateUploadInput();
+    if (!file) return;
+
+    setLoading(true);
+    try {
+      const formData = buildUploadFormData(file);
+      const data = await requestGeneratedQuizzes(formData);
+      applyGeneratedQuiz(data, file);
+      await refreshUploadHistory();
+    } catch (error) {
+      showUploadError(error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // =========================================================
   // 9. 정답 선택
