@@ -15,6 +15,7 @@ public class SignupRequest {
     private String member_phone;
     // 기존 추천인의 코드이며, 신규 회원에게 발급할 member_code와 다릅니다.
     private String referral_code;
+    private String verificationToken;
 
     public MemberVO toMember() {
         MemberVO member = new MemberVO();

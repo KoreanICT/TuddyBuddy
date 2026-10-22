@@ -33,6 +33,7 @@ import kr.co.ictedu.back.member.service.MemberService;
 import kr.co.ictedu.back.member.service.MemberService.PasswordChangeResult;
 import kr.co.ictedu.back.member.vo.MemberVO;
 import kr.co.ictedu.back.member.dto.SignupRequest;
+import kr.co.ictedu.back.member.service.VerifiedSignupService;
 import kr.co.ictedu.back.securityauth.AuthCookies;
 import kr.co.ictedu.back.securityauth.MemberRoles;
 
@@ -46,6 +47,9 @@ public class MemberController {
 
     @Autowired
     private MemberService memberService;
+
+    @Autowired
+    private VerifiedSignupService verifiedSignup;
 
     @Autowired
     private PagingService pagingService;
@@ -68,7 +72,7 @@ public class MemberController {
     @PostMapping("/signup")
     public ResponseEntity<?> memberjoin(@RequestBody SignupRequest request) {
         try {
-            memberService.create(request.toMember(), request.getReferral_code());
+            verifiedSignup.signup(request);
             return ResponseEntity.ok("회원가입이 완료되었습니다.");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
