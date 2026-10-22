@@ -34,6 +34,7 @@ interface QuizModalProps {
   setSelectedCategoryId: (value: number | null) => void;
   selectedSubjectId: number | null;
   setSelectedSubjectId: (value: number | null) => void;
+  pointCost: number;
 
 }
 
@@ -60,6 +61,7 @@ export const QuizModal: React.FC<QuizModalProps> = ({
   setSelectedCategoryId,
   selectedSubjectId,
   setSelectedSubjectId,
+  pointCost,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -271,19 +273,38 @@ export const QuizModal: React.FC<QuizModalProps> = ({
                 문항 수 
               </label>
 
-              <select
-                className={styles.selectInput}
-                name="quizCount"
-                value={quizCount}
-                disabled={loading}
-                onChange={(e) =>
-                  setQuizCount(Number(e.target.value))
-                }
+              <div
+                className={styles.quizCountControl}
+                role="group"
+                aria-label="문항 수 선택"
               >
-                <option value={3}>3문항</option>
-                <option value={5}>5문항</option>
-                <option value={10}>10문항</option>
-              </select>
+                <button
+                  type="button"
+                  className={styles.quizCountButton}
+                  aria-label="문항 수 줄이기"
+                  disabled={loading || quizCount <= 1}
+                  onClick={() => setQuizCount(Math.max(1, quizCount - 1))}
+                >
+                  −
+                </button>
+                <output
+                  className={styles.quizCountValue}
+                  aria-live="polite"
+                  aria-atomic="true"
+                >
+                  {quizCount}<span>문항</span>
+                </output>
+                <button
+                  type="button"
+                  className={styles.quizCountButton}
+                  aria-label="문항 수 늘리기"
+                  disabled={loading || quizCount >= 10}
+                  onClick={() => setQuizCount(Math.min(10, quizCount + 1))}
+                >
+                  +
+                </button>
+              </div>
+              <p className={styles.quizCountHint}>1~10문항 선택</p>
             </div>
           </div>
 
@@ -306,6 +327,10 @@ export const QuizModal: React.FC<QuizModalProps> = ({
               }
             />
           </div>
+
+          <p className={styles.pointCostNotice}>
+            문제 생성과 저장이 완료되면 1회당 {pointCost.toLocaleString()}P가 차감됩니다.
+          </p>
         </div>
 
         {/* 모달 하단 */}
@@ -333,7 +358,7 @@ export const QuizModal: React.FC<QuizModalProps> = ({
             )}
             {loading
               ? 'AI가 문제를 생성하는 중...'
-              : '문제 생성 시작'}
+              : `${pointCost.toLocaleString()}P로 문제 생성`}
           </button>
         </div>
       </div>

@@ -7,7 +7,7 @@ import styles from './focusStudyPanel.module.css';
 
 type PauseReason = 'manual' | 'absence' | 'unavailable' | null;
 type StartRequest = { kind: 'start'; minutes: number } | { kind: 'resume' };
-const FOCUS_PAUSE_SECONDS = 5;
+const STUDY_CONFIRM_MS = 2000;
 
 const FocusStudyPanel: React.FC = () => {
     const timer = UseTimer();
@@ -18,6 +18,7 @@ const FocusStudyPanel: React.FC = () => {
     const phaseRef = useRef<'off' | 'preparing' | 'starting' | 'active'>('off');
     const requestRef = useRef<StartRequest | null>(null);
     const lastResultRef = useRef<DetectResponse | null>(null);
+    const studyingSinceRef = useRef<number | null>(null);
     const pauseReasonRef = useRef<PauseReason>(null);
     const [mode, setMode] = useState<'normal' | 'focus'>('normal');
     const [detecting, setDetecting] = useState(false);
@@ -99,6 +100,7 @@ const FocusStudyPanel: React.FC = () => {
         phaseRef.current = 'off';
         requestRef.current = null;
         lastResultRef.current = null;
+        studyingSinceRef.current = null;
         setDetecting(false);
         setPreparing(false);
     }, []);
@@ -120,9 +122,10 @@ const FocusStudyPanel: React.FC = () => {
         requestRef.current = request;
         phaseRef.current = 'preparing';
         lastResultRef.current = null;
+        studyingSinceRef.current = null;
         setPreparing(true);
         setPreviewCollapsed(false);
-        setNotice('카메라와 감지를 연결하고 있습니다. 얼굴 또는 움직임이 감지되면 학습이 시작됩니다.');
+        setNotice('카메라와 감지를 연결하고 있습니다. 얼굴 또는 움직임이 2초간 연속 감지되면 학습이 시작됩니다.');
         setDetecting(true);
     };
 
@@ -133,12 +136,14 @@ const FocusStudyPanel: React.FC = () => {
             disconnect();
             setReason(null);
             setNotice('목표 시간을 완료했습니다. 종료 및 저장을 눌러 기록을 저장해주세요.');
-        } else if (!data.studying && data.not_studying_seconds >= FOCUS_PAUSE_SECONDS && state.status === 'running') {
+        } else if (!data.studying && data.stopped && state.status === 'running') {
             if (current.pause()) {
                 setReason('absence');
-                setNotice('5초 동안 학습 상태가 감지되지 않아 자동으로 일시정지했습니다. 복귀하면 재개됩니다.');
+                studyingSinceRef.current = null;
+                setNotice('서버에서 5초 이상 학습 미감지를 확인해 자동으로 일시정지했습니다. 학습이 2초간 연속 감지되면 재개됩니다.');
             }
         } else if (data.studying && state.status === 'paused' && pauseReasonRef.current === 'absence') {
+            if (studyingSinceRef.current === null || performance.now() - studyingSinceRef.current < STUDY_CONFIRM_MS) return;
             if (current.resume()) {
                 setReason(null);
                 setNotice('학습 상태가 다시 감지되어 타이머를 재개했습니다.');
@@ -149,7 +154,13 @@ const FocusStudyPanel: React.FC = () => {
     const onResult = (data: DetectResponse) => {
         if (!mountedRef.current || phaseRef.current === 'off') return;
         lastResultRef.current = data;
+        if (data.studying) {
+            if (studyingSinceRef.current === null) studyingSinceRef.current = performance.now();
+        } else {
+            studyingSinceRef.current = null;
+        }
         if (phaseRef.current === 'preparing' && data.studying) {
+            if (studyingSinceRef.current === null || performance.now() - studyingSinceRef.current < STUDY_CONFIRM_MS) return;
             const request = requestRef.current;
             if (!request) return;
             phaseRef.current = 'starting';
@@ -168,7 +179,7 @@ const FocusStudyPanel: React.FC = () => {
                 }
                 phaseRef.current = 'active';
                 setReason(null);
-                setNotice('집중 학습 중입니다. 5초 동안 학습 상태가 감지되지 않으면 자동으로 일시정지합니다.');
+                setNotice('집중 학습 중입니다. 서버가 5초 이상 학습 미감지를 확인하면 자동으로 일시정지합니다.');
                 if (lastResultRef.current) applyResult(lastResultRef.current);
             })();
         } else if (phaseRef.current === 'active') {
@@ -179,7 +190,7 @@ const FocusStudyPanel: React.FC = () => {
     const start = async (minutes: number) => {
         if (mode === 'normal') return timer.start(minutes);
         prepare({ kind: 'start', minutes });
-        return false; // 실제 시작은 첫 학습 감지와 서버 세션 생성 이후입니다.
+        return false; // 실제 시작은 2초 연속 학습 감지와 서버 세션 생성 이후입니다.
     };
 
     const pause = () => {
@@ -268,7 +279,7 @@ const FocusStudyPanel: React.FC = () => {
                 startLabel={preparing ? '감지 준비 중...' : mode === 'focus' ? '집중 학습 시작' : '시작'} />
             {!detecting && notice && <p className={styles.notice} role="status">{notice}</p>}
             {mode === 'focus' && !detecting && <p className={styles.description}>
-                시작하면 작은 카메라 창이 열립니다. 첫 학습 감지 후 타이머가 시작됩니다.
+                시작하면 작은 카메라 창이 열립니다. 학습이 2초간 연속 감지되면 타이머가 시작됩니다.
             </p>}
             {detecting && createPortal(
                 <aside ref={windowRef} className={styles.focusWindow} role="dialog" aria-modal="false" aria-label="집중 학습 감지"

@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import kr.co.ictedu.back.member.service.MemberService;
+import kr.co.ictedu.back.member.dto.KakaoSignupRequest;
 import kr.co.ictedu.back.member.vo.MemberVO;
 import kr.co.ictedu.back.securityjwt.JwtTokenProvider;
 import kr.co.ictedu.back.securityauth.RefreshTokenService;
@@ -58,7 +59,7 @@ public class KakaoSignupController {
     // ==========================================
     @PostMapping("/signup")
     public ResponseEntity<?> kakaoSignup(
-            @RequestBody Map<String, Object> request,
+            @RequestBody KakaoSignupRequest request,
             HttpServletRequest servletRequest, HttpServletResponse servletResponse) {
 
         String currentStep = "가입 요청 확인";
@@ -69,36 +70,36 @@ public class KakaoSignupController {
             // 1. 프론트엔드 요청값
             // ==========================================
             String signupToken =
-                    getString(request, "signupToken").trim();
+                    text(request.getSignupToken()).trim();
 
             String verificationToken =
-                    getString(request, "verificationToken").trim();
+                    text(request.getVerificationToken()).trim();
 
             String requestedEmail =
-                    getString(request, "email")
+                    text(request.getEmail())
                     .trim()
                     .toLowerCase(Locale.ROOT);
 
             String name =
-                    getString(request, "name").trim();
+                    text(request.getName()).trim();
 
             String nick =
-                    getString(request, "nick").trim();
+                    text(request.getNick()).trim();
 
             String phone =
-                    getString(request, "phone").trim();
+                    text(request.getPhone()).trim();
 
             // ==========================================
             // 2. 필수 약관 동의 확인
             // ==========================================
             boolean termsAgree =
                     Boolean.TRUE.equals(
-                        request.get("termsAgree")
+                        request.getTermsAgree()
                     );
 
             boolean privacyAgree =
                     Boolean.TRUE.equals(
-                        request.get("privacyAgree")
+                        request.getPrivacyAgree()
                     );
 
             if (!termsAgree || !privacyAgree) {
@@ -204,6 +205,8 @@ public class KakaoSignupController {
             // ==========================================
             // 6. 가입용 Redis 토큰 일회성 소비
             // ==========================================
+            // 잘못된 추천인 입력은 가입용 임시 토큰을 소모하기 전에 안내합니다.
+            String referralCode = memberService.validateReferralCode(request.getReferral_code());
             currentStep = "카카오 가입 토큰 소비";
 
             KakaoSignupRedisDao.SignupInfo consumedInfo =
@@ -259,7 +262,8 @@ public class KakaoSignupController {
                         email,
                         name,
                         nick,
-                        phone
+                        phone,
+                        referralCode
                     );
 
             // ==========================================
@@ -388,15 +392,8 @@ public class KakaoSignupController {
     // ==========================================
     // 요청 문자열 안전하게 추출
     // ==========================================
-    private String getString(
-            Map<String, Object> request,
-            String key) {
-
-        Object value = request.get(key);
-
-        return value instanceof String
-                ? (String) value
-                : "";
+    private String text(String value) {
+        return value == null ? "" : value;
     }
 
     // ==========================================

@@ -11,8 +11,8 @@ import org.apache.ibatis.annotations.Param;
 @Mapper
 public interface StatisticsDao {
 	
-	// 카테고리 목록 조회
-    List<String> selectCategories_Statistics(
+	// 카테고리 ID와 이름 조회
+    List<Map<String, Object>> selectCategories_Statistics(
     		@Param("memberNum") Long memberNum);
     
     // 회원의 모든 카테고리별 풀이 로그 조회
