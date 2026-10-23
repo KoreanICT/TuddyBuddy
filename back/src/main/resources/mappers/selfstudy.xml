@@ -200,9 +200,9 @@
 
 		</selectKey>
 		INSERT INTO selfstudy_results ( selfstudy_results_id, quiz_session_id,
-		member_num, selfstudy_total_score, submitted_at ) VALUES (
+		member_num, selfstudy_total_score, quiz_time_seconds, submitted_at ) VALUES (
 		#{selfstudy_results_id}, #{quiz_session_id}, #{member_num},
-		#{selfstudy_total_score}, SYSDATE ) </insert>
+		#{selfstudy_total_score}, #{quiz_time_seconds}, SYSDATE ) </insert>
 
 
 	<!-- 결과 1개 조회 -->
@@ -210,7 +210,7 @@
 		resultType="selfStudyResultVO">
 
 		SELECT selfstudy_results_id, quiz_session_id, member_num,
-		selfstudy_total_score, submitted_at
+		selfstudy_total_score, quiz_time_seconds, submitted_at
 		FROM selfstudy_results
 		WHERE selfstudy_results_id = #{resultId}
 
@@ -222,7 +222,7 @@
 		resultType="selfStudyResultVO">
 
 		SELECT selfstudy_results_id, quiz_session_id, member_num,
-		selfstudy_total_score, submitted_at
+		selfstudy_total_score, quiz_time_seconds, submitted_at
 		FROM selfstudy_results
 		WHERE member_num = #{memberNum}
 		ORDER BY submitted_at DESC

@@ -46,6 +46,11 @@ public class SelfStudySubmissionService {
             throw new IllegalArgumentException("회원 정보가 없습니다.");
         }
 
+        Long quizTimeSeconds = request.getQuiz_time_seconds();
+        if (quizTimeSeconds != null && (quizTimeSeconds < 0 || quizTimeSeconds > 14_400)) {
+            throw new IllegalArgumentException("문제 풀이 시간은 0~240분 범위여야 합니다.");
+        }
+
         if (request.getResponses() == null|| request.getResponses().isEmpty()) {
             throw new IllegalArgumentException("제출할 답안이 없습니다.");
         }
@@ -130,6 +135,7 @@ public class SelfStudySubmissionService {
                 request.getMember_num());
 
         result.setSelfstudy_total_score(totalScore);
+        result.setQuiz_time_seconds(quizTimeSeconds == null ? 0L : quizTimeSeconds);
 
         int insertResult =
                 selfStudyDao.insertSelfStudyResult(result);

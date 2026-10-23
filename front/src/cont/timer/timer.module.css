@@ -41,9 +41,15 @@
 .badge {
   padding: 4px 7px;
   border-radius: 20px;
-  background: #eef2ff;
-  color: #4f46e5;
+  background: color-mix(in srgb, #eef2ff, #fee2e2 var(--timer-urgency, 0%));
+  color: color-mix(in srgb, #4f46e5, #b91c1c var(--timer-urgency, 0%));
   font-size: 11px;
+  transition: background-color 0.8s ease, color 0.8s ease;
+}
+
+.expiredBadge {
+  background: #fee2e2;
+  color: #b91c1c;
 }
 
 .toggleButton {
@@ -72,11 +78,17 @@
 }
 
 .time {
-  color: #334155;
+  color: color-mix(in srgb, #334155, #dc2626 var(--timer-urgency, 0%));
   font-size: clamp(28px, 3vw, 36px);
   font-weight: 700;
   letter-spacing: 1px;
   font-variant-numeric: tabular-nums;
+  transition: color 0.8s ease, text-shadow 0.8s ease;
+}
+
+.timeExpired {
+  color: #dc2626;
+  animation: timerExpiredPulse 1.2s ease-in-out infinite alternate;
 }
 
 .elapsed {
@@ -86,17 +98,40 @@
 }
 
 .progressTrack {
-  height: 6px;
+  height: 10px;
   overflow: hidden;
   border-radius: 10px;
-  background: #e9edf5;
+  background: color-mix(in srgb, #e9edf5, #fee2e2 var(--timer-urgency, 0%));
+  transition: background-color 0.8s ease, box-shadow 0.8s ease;
 }
 
 .progressFill {
   height: 100%;
   border-radius: inherit;
-  background: #6366f1;
-  transition: width 0.3s ease;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, #6366f1, #ef4444 var(--timer-urgency, 0%)),
+    color-mix(in srgb, #818cf8, #dc2626 var(--timer-urgency, 0%))
+  );
+  transition: width 0.3s ease, background 0.8s ease;
+}
+
+.progressTrackExpired {
+  background: #fee2e2;
+  box-shadow: 0 0 0 2px rgb(220 38 38 / 12%);
+}
+
+.progressFillExpired {
+  background: #ef4444;
+}
+
+@keyframes timerExpiredPulse {
+  from { text-shadow: 0 0 0 rgb(220 38 38 / 0%); }
+  to { text-shadow: 0 0 12px rgb(220 38 38 / 28%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .timeExpired { animation: none; }
 }
 
 .setting {

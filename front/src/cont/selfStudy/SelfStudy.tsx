@@ -14,6 +14,8 @@ import { SelfStudyHeader } from './SelfStudyHeader';
 import { MainTabContent } from './MainTabContent';
 import { RightSidebar } from './RightSidebar';
 import QuizModal from './QuizModal';
+import { UseTimer } from '../timer/UseTimer';
+import { SharedTimerProvider } from '../timer/UseTimer';
 
 import {
   Quiz,
@@ -140,6 +142,7 @@ const normalizeResult = (data: any): SelfStudyResult => ({
       'selfstudy_total_score'
     ) ?? 0
   ),
+  quizTimeSeconds: Number(getValue(data, 'quizTimeSeconds', 'quiz_time_seconds') ?? 0),
   submittedAt: getValue(
     data,
     'submittedAt',
@@ -189,6 +192,8 @@ const resolveImageUrl = (value?: string): string | null => {
 };
 
 const SelfStudy: React.FC = () => {
+  const quizTimer = UseTimer();
+  const [quizTimerMinutes, setQuizTimerMinutes] = useState(25);
   const { token, member_num } = useSelector(
     (state: RootState) => state.auth
   );
@@ -218,8 +223,6 @@ const SelfStudy: React.FC = () => {
 
   const [quizTimerStartedAt, setQuizTimerStartedAt] =
     useState<number | null>(null);
-  const [quizTimerRunning, setQuizTimerRunning] = useState(false);
-  const [quizElapsedSeconds, setQuizElapsedSeconds] = useState(0);
 
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -280,28 +283,13 @@ const SelfStudy: React.FC = () => {
 
   const resetQuizTimer = useCallback(() => {
     setQuizTimerStartedAt(null);
-    setQuizTimerRunning(false);
-    setQuizElapsedSeconds(0);
   }, []);
-
-  useEffect(() => {
-    if (quizTimerStartedAt === null || !quizTimerRunning) return;
-
-    const updateElapsedTime = () => {
-      setQuizElapsedSeconds(
-        Math.floor((Date.now() - quizTimerStartedAt) / 1000)
-      );
-    };
-
-    updateElapsedTime();
-    const intervalId = window.setInterval(updateElapsedTime, 1000);
-    return () => window.clearInterval(intervalId);
-  }, [quizTimerStartedAt, quizTimerRunning]);
 
   const handleStartQuiz = () => {
     if (
       quizSessionId === null ||
       quizList.length === 0 ||
+      submitting ||
       quizTimerStartedAt !== null ||
       submitted
     ) {
@@ -309,8 +297,6 @@ const SelfStudy: React.FC = () => {
     }
 
     setQuizTimerStartedAt(Date.now());
-    setQuizElapsedSeconds(0);
-    setQuizTimerRunning(true);
   };
 
   useEffect(() => {
@@ -958,10 +944,8 @@ const SelfStudy: React.FC = () => {
 
     if (!requireLogin()) return;
 
-    setQuizElapsedSeconds(
-      Math.floor((Date.now() - quizTimerStartedAt) / 1000)
-    );
-    setQuizTimerRunning(false);
+    const elapsedAtSubmit = quizTimer.getSnapshot().elapsedSeconds;
+    quizTimer.pause();
     setSubmitting(true);
 
     try {
@@ -973,6 +957,7 @@ const SelfStudy: React.FC = () => {
           headers: getAuthHeaders(true),
           body: JSON.stringify({
             quiz_sessionid: quizSessionId,
+            quiz_time_seconds: elapsedAtSubmit,
             responses: quizList.map((quiz) => ({
               quiz_id: quiz.quizId,
               quiz_user_response: quiz.quizUserResponse,
@@ -996,6 +981,8 @@ const SelfStudy: React.FC = () => {
         )
       );
 
+      // 답안 저장이 성공한 시점에 화면에서 사용한 타이머 구간도 저장합니다.
+      await quizTimer.finish();
       setSubmitted(true);
 
       // 제출한 점수 및 결과를 학습 기록 목록에 반영
@@ -1005,8 +992,8 @@ const SelfStudy: React.FC = () => {
 
       alert(
         error instanceof Error
-          ? error.message
-          : '답안 저장 실패'
+          ? `${error.message}\n오른쪽 타이머가 일시정지되었습니다. 재개 후 다시 제출할 수 있습니다.`
+          : '답안 저장 실패. 오른쪽 타이머가 일시정지되었습니다. 재개 후 다시 제출할 수 있습니다.'
       );
     } finally {
       setSubmitting(false);
@@ -1037,12 +1024,20 @@ const SelfStudy: React.FC = () => {
     <div className={styles.container}>
       <SelfStudyHeader />
 
+      <SharedTimerProvider
+        timer={quizTimer}
+        quizTimerMinutes={quizTimerMinutes}
+        setQuizTimerMinutes={setQuizTimerMinutes}
+        quizReady={quizSessionId !== null && quizList.length > 0 && !submitted}
+        quizStarted={quizTimerStartedAt !== null}
+        quizSubmitting={submitting}
+        quizCompleted={submitted}
+        onQuizStarted={handleStartQuiz}
+      >
       <div className={styles.layoutWrapper}>
         <MainTabContent
           onSubmit={handleSubmitQuiz}
-          onStartQuiz={handleStartQuiz}
           quizStarted={quizTimerStartedAt !== null}
-          quizElapsedSeconds={quizElapsedSeconds}
           submitting={submitting}
           submitted={submitted}
           score={score}
@@ -1072,6 +1067,7 @@ const SelfStudy: React.FC = () => {
           onDeleteSession={handleDeleteSession}
         />
       </div>
+      </SharedTimerProvider>
 
       <QuizModal
         isOpen={isModalOpen}

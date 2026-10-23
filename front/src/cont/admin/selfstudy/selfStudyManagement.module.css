@@ -111,6 +111,24 @@
   background: #f1f5f9;
 }
 
+.dangerButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 15px;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  background: #fff7f7;
+  color: #b91c1c;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.dangerButton:hover { background: #fee2e2; }
+.dangerButton:disabled { opacity: .5; cursor: not-allowed; }
+
 .table {
   width: 100%;
 

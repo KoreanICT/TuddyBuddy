@@ -14,6 +14,7 @@ const SelfStudyManagement: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState<AdminTab>('content');
+  const [showCategoryTrash, setShowCategoryTrash] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -53,6 +54,15 @@ const SelfStudyManagement: React.FC = () => {
     if (!window.confirm(`카테고리 "${category.categoryName}"을(를) ${verb}할까요?\n기존 데이터는 삭제되지 않습니다.`)) return;
     await run(() => selfStudyAdminApi.setCategoryStatus(category.categoryId, next));
   };
+  const permanentlyDeleteCategory = async (category: Category) => {
+    if (category.categoryStatus !== 'N') return;
+    const confirmed = window.confirm(
+      `"${category.categoryName}" 카테고리를 영구 삭제할까요?\n` +
+      '삭제하면 복구할 수 없습니다. 비활성화는 기존 데이터와 학습 기록을 보존하면서 목록에서 숨기는 방법입니다.'
+    );
+    if (!confirmed) return;
+    await run(() => selfStudyAdminApi.permanentlyDeleteCategory(category.categoryId));
+  };
   const addSubject = async () => {
     if (selectedCategoryId === null) { window.alert('카테고리를 먼저 선택하세요.'); return; }
     const category = categories.find(c => c.categoryId === selectedCategoryId);
@@ -76,6 +86,7 @@ const SelfStudyManagement: React.FC = () => {
   const visibleSubjects = selectedCategoryId === null ? subjects : subjects.filter(s => s.categoryId === selectedCategoryId);
   const busy = loading || saving;
   const selectedCategory = categories.find(c => c.categoryId === selectedCategoryId);
+  const visibleCategories = categories.filter(c => showCategoryTrash ? c.categoryStatus === 'N' : c.categoryStatus === 'Y');
 
   return (
     <div className={styles.page}>
@@ -91,18 +102,18 @@ const SelfStudyManagement: React.FC = () => {
         {activeTab === 'content' ? <>
         {error && <p className={styles.error} role="alert">{error}</p>}
         <section className={styles.panel}>
-          <div className={styles.panelHeader}><h2>카테고리 관리</h2><button type="button" className={styles.addButton} disabled={busy} onClick={() => void addCategory()}><Plus size={16}/> 카테고리 등록</button></div>
+          <div className={styles.panelHeader}><div><h2>{showCategoryTrash ? '카테고리 휴지통' : '카테고리 관리'}</h2><p className={styles.panelDescription}>비활성화는 데이터를 보존합니다. 휴지통에서 영구 삭제할 수 있습니다.</p></div><div className={styles.actions}><button type="button" className={styles.secondaryButton} disabled={busy} aria-pressed={showCategoryTrash} onClick={() => setShowCategoryTrash(value => !value)}>{showCategoryTrash ? '활성 카테고리 보기' : '휴지통 보기'}</button>{!showCategoryTrash && <button type="button" className={styles.addButton} disabled={busy} onClick={() => void addCategory()}><Plus size={16}/> 카테고리 등록</button>}</div></div>
           <table className={styles.table}><thead><tr><th>번호</th><th>카테고리명</th><th>상태</th><th>관리</th></tr></thead><tbody>
-            {categories.map(c => <tr key={c.categoryId} className={selectedCategoryId === c.categoryId ? styles.selected : ''}>
+            {visibleCategories.map(c => <tr key={c.categoryId} className={selectedCategoryId === c.categoryId ? styles.selected : ''}>
               <td>{c.categoryId}</td>
               <td><button type="button" className={styles.linkButton} onClick={() => setSelectedCategoryId(c.categoryId)}>{c.categoryName}</button></td>
               <td>{c.categoryStatus === 'Y' ? '활성' : '비활성'}</td>
               <td><div className={styles.actions}>
                 <button type="button" className={styles.secondaryButton} disabled={busy} onClick={() => void editCategory(c)}><Pencil size={14}/> 수정</button>
-                <button type="button" className={styles.secondaryButton} disabled={busy} onClick={() => void toggleCategory(c)}>{c.categoryStatus === 'Y' ? <Trash2 size={14}/> : <RotateCcw size={14}/>} {c.categoryStatus === 'Y' ? '삭제(비활성)' : '복구'}</button>
+                {c.categoryStatus === 'Y' ? <button type="button" className={styles.secondaryButton} disabled={busy} onClick={() => void toggleCategory(c)}><Trash2 size={14}/> 삭제(비활성)</button> : <><button type="button" className={styles.secondaryButton} disabled={busy} onClick={() => void toggleCategory(c)}><RotateCcw size={14}/> 복구</button><button type="button" className={styles.dangerButton} disabled={busy} onClick={() => void permanentlyDeleteCategory(c)}><Trash2 size={14}/> 완전 삭제</button></>}
               </div></td>
             </tr>)}
-            {!loading && categories.length === 0 && <tr><td colSpan={4} className={styles.empty}>등록된 카테고리가 없습니다.</td></tr>}
+            {!loading && visibleCategories.length === 0 && <tr><td colSpan={4} className={styles.empty}>{showCategoryTrash ? '휴지통에 카테고리가 없습니다.' : '등록된 활성 카테고리가 없습니다.'}</td></tr>}
           </tbody></table>
         </section>
         <section className={styles.panel}>

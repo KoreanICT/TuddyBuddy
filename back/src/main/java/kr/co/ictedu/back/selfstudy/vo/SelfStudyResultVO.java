@@ -27,6 +27,8 @@ public class SelfStudyResultVO {
     private Long member_num;
     @Schema(description = "셀프스터디 총점", example = "80")
     private Integer selfstudy_total_score;
+    @Schema(description = "문제 풀이에 걸린 시간(초)", example = "742")
+    private Long quiz_time_seconds;
     @Schema(description = "제출 일시", example = "2026-10-14T10:30:00")
     private LocalDateTime submitted_at;
 }
