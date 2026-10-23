@@ -77,7 +77,7 @@ public class SelfStudyAdminController {
         return ResponseEntity.ok(Map.of("message", "카테고리 상태가 변경되었습니다."));
     }
 
-    @Operation(summary = "비활성 카테고리 완전 삭제", description = "연결된 과목이 없는 비활성 카테고리만 삭제합니다.")
+    @Operation(summary = "카테고리 완전 삭제", description = "카테고리와 연결된 과목, 문제 세션, 문제, 제출 결과, 답안을 영구 삭제합니다.")
     @DeleteMapping("/categories/{categoryId}")
     public ResponseEntity<?> permanentlyDeleteCategory(@PathVariable("categoryId") Long categoryId) {
         authenticatedMember.requireAdmin();

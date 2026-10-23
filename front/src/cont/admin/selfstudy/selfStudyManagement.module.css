@@ -134,8 +134,32 @@
 
   border-collapse: collapse;
 
-  text-align: left;
+  text-align: center;
   font-size: 14px;
+}
+
+.tableScroll {
+  overflow-x: auto;
+}
+
+.categoryTable {
+  min-width: 780px;
+  table-layout: fixed;
+}
+.categoryTable .actions {
+  justify-content: center;
+}
+
+.categoryIdColumn { width: 10%; }
+.categoryNameColumn { width: 38%; }
+.categoryStatusColumn { width: 12%; }
+.categoryActionsColumn { width: 40%; }
+
+.actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
 .table th {
@@ -469,17 +493,45 @@
 }
 
 .rankTrack {
-  height: 6px;
-  overflow: hidden;
+  position: relative;
+  height: 16px;
+  margin-right: 5px;
+}
+
+.rankTrack::before {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  left: 0;
+  height: 5px;
   border-radius: 999px;
-  background: #f1f5f9;
+  background: #e2e8f0;
+  content: '';
+  transform: translateY(-50%);
 }
 
 .rankTrack i {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
+  position: absolute;
+  top: 50%;
+  left: 0;
+  height: 5px;
+  border-radius: 999px;
   background: #60a5fa;
+  transform: translateY(-50%);
+}
+
+.rankTrack i::after {
+  position: absolute;
+  top: 50%;
+  right: -5px;
+  width: 10px;
+  height: 10px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: #2563eb;
+  box-shadow: 0 0 0 1px #2563eb;
+  content: '';
+  transform: translateY(-50%);
 }
 
 .usageMessage {

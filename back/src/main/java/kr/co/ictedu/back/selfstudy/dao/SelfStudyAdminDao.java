@@ -26,9 +26,17 @@ public interface SelfStudyAdminDao {
             @Param("categoryId") Long categoryId,
             @Param("status") String status);
 
-    int countSubjectsByCategory(@Param("categoryId") Long categoryId);
-
     int deleteCategory(@Param("categoryId") Long categoryId);
+
+    int deleteQuizResponsesByCategory(@Param("categoryId") Long categoryId);
+
+    int deleteResultsByCategory(@Param("categoryId") Long categoryId);
+
+    int deleteQuizzesByCategory(@Param("categoryId") Long categoryId);
+
+    int deleteQuizSessionsByCategory(@Param("categoryId") Long categoryId);
+
+    int deleteSubjectsByCategory(@Param("categoryId") Long categoryId);
 
     List<SubjectVO> selectAllSubjects();
 
