@@ -104,17 +104,29 @@ public class GroupController {
 	@ApiResponse(responseCode = "500", description = "스터디그룹 생성 실패")
     @PostMapping(value="/add", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Map<String, Object>> addGroup(
-            @RequestHeader("memberNum") Long memberNum,
+            Authentication authentication,
             @RequestPart("groupData") GroupCreateRequest request,
             @RequestPart(
                     value = "thumbnail",
                     required = false
             ) MultipartFile thumbnail) {
 
+    	if (authentication == null
+                || !authentication.isAuthenticated()
+                || authentication instanceof AnonymousAuthenticationToken) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        }
+
+        MemberVO member = memberService.getMemberByEmail(authentication.getName());
+
+        if (member == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        }
+        
         Long groupNum = service.addGroup(
                 request,
                 thumbnail,
-                memberNum
+                member.getMember_num()
         );
 
         Map<String, Object> result = new HashMap<>();
