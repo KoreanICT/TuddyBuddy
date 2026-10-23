@@ -50,11 +50,18 @@
 		AND UPPER(TRIM(subject_name)) = UPPER(TRIM(#{subjectName}))
 	</select>
 
-	<select id="selectAnySubjectByName" resultType="subjectVO">
-		SELECT subject_id, category_id, subject_name, subject_status, usage_count, created_at
-		FROM subjects
-		WHERE UPPER(TRIM(subject_name)) = UPPER(TRIM(#{subjectName}))
-		  AND ROWNUM = 1
+	<!-- 해시 기반 이미지 경로로 이미 생성된 세션의 분류 재사용 -->
+	<select id="selectSessionByImageHash" resultType="quizSessionVO">
+		SELECT quiz_session_id, subject_id, member_num, quiz_image_url, quiz_type,
+		       quiz_difficulty, quiz_count, quiz_prompt, created_at
+		FROM (
+			SELECT quiz_session_id, subject_id, member_num, quiz_image_url, quiz_type,
+			       quiz_difficulty, quiz_count, quiz_prompt, created_at
+			FROM quiz_sessions
+			WHERE quiz_image_url LIKE '/imgfile/quiz/' || #{imageHash} || '.%'
+			ORDER BY created_at DESC
+		)
+		WHERE ROWNUM = 1
 	</select>
 
 	<insert id="insertSubject" parameterType="subjectVO">

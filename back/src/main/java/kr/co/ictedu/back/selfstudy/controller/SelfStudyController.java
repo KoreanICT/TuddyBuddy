@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import kr.co.ictedu.back.selfstudy.dto.QuizGenerateRequestDto;
+import kr.co.ictedu.back.selfstudy.dto.QuizGenerateResponseDto;
 import kr.co.ictedu.back.selfstudy.dto.QuizSubmitRequestDto;
 import kr.co.ictedu.back.selfstudy.service.SelfStudyService;
 import kr.co.ictedu.back.selfstudy.vo.CategoryVO;
@@ -61,6 +62,13 @@ public class SelfStudyController {
 
 
 	@Operation(summary = "AI 퀴즈 생성")
+	@PostMapping("/classify")
+	public ResponseEntity<QuizGenerateResponseDto> classifyQuiz(@ModelAttribute QuizGenerateRequestDto request) {
+		request.setMember_num(authenticatedMember.requireId());
+		return ResponseEntity.ok(selfStudyService.classifyImage(request));
+	}
+
+	@Operation(summary = "확정 분류로 AI 퀴즈 생성")
 	@PostMapping("/generate")
 	public ResponseEntity<?> generateQuiz(@ModelAttribute QuizGenerateRequestDto request) {
 
