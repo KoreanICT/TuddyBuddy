@@ -75,19 +75,22 @@ public class SelfStudyAdminService {
         }
     }
 
-    // 과목이 남아 있는 카테고리는 기존 학습 이력 보존을 위해 완전 삭제하지 않습니다.
+    // 카테고리와 연결된 셀프스터디 데이터를 자식부터 영구 삭제합니다.
     @Transactional
     public void permanentlyDeleteCategory(Long categoryId) {
         if (categoryId == null || categoryId <= 0) {
             throw new IllegalArgumentException("올바른 카테고리 번호가 필요합니다.");
         }
-        if (selfStudyAdminDao.countSubjectsByCategory(categoryId) > 0) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "이 카테고리에 과목이 있어 완전 삭제할 수 없습니다. 과목과 학습 기록을 보존하려면 비활성 상태로 두세요.");
-        }
+
+        selfStudyAdminDao.deleteQuizResponsesByCategory(categoryId);
+        selfStudyAdminDao.deleteResultsByCategory(categoryId);
+        selfStudyAdminDao.deleteQuizzesByCategory(categoryId);
+        selfStudyAdminDao.deleteQuizSessionsByCategory(categoryId);
+        selfStudyAdminDao.deleteSubjectsByCategory(categoryId);
+
         if (selfStudyAdminDao.deleteCategory(categoryId) != 1) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-                    "비활성 카테고리를 찾을 수 없습니다.");
+                    "카테고리를 찾을 수 없습니다.");
         }
     }
 

@@ -55,13 +55,15 @@ const SelfStudyManagement: React.FC = () => {
     await run(() => selfStudyAdminApi.setCategoryStatus(category.categoryId, next));
   };
   const permanentlyDeleteCategory = async (category: Category) => {
-    if (category.categoryStatus !== 'N') return;
     const confirmed = window.confirm(
-      `"${category.categoryName}" 카테고리를 영구 삭제할까요?\n` +
-      '삭제하면 복구할 수 없습니다. 비활성화는 기존 데이터와 학습 기록을 보존하면서 목록에서 숨기는 방법입니다.'
+      `"${category.categoryName}" 카테고리와 연결된 과목 및 셀프스터디 데이터를 영구 삭제할까요?\n` +
+      '생성된 문제, 제출 결과, 답안도 함께 삭제되며 복구할 수 없습니다. 보존하려면 삭제(비활성)를 사용해주세요.'
     );
     if (!confirmed) return;
-    await run(() => selfStudyAdminApi.permanentlyDeleteCategory(category.categoryId));
+    await run(async () => {
+      await selfStudyAdminApi.permanentlyDeleteCategory(category.categoryId);
+      if (selectedCategoryId === category.categoryId) setSelectedCategoryId(null);
+    });
   };
   const addSubject = async () => {
     if (selectedCategoryId === null) { window.alert('카테고리를 먼저 선택하세요.'); return; }
@@ -92,7 +94,7 @@ const SelfStudyManagement: React.FC = () => {
     <div className={styles.page}>
       <div className={styles.container}>
         <header className={styles.header}>
-          <div><h1>셀프스터디 관리</h1><p>{activeTab === 'content' ? 'AI 학습 카테고리와 과목을 관리합니다. 삭제는 비활성화로 처리됩니다.' : '선택 기간별 문제 생성과 학습 결과를 확인합니다.'}</p></div>
+          <div><h1>셀프스터디 관리</h1><p>{activeTab === 'content' ? 'AI 학습 카테고리와 과목을 관리합니다. 비활성 삭제는 데이터를 보존하고, 영구 삭제는 되돌릴 수 없습니다.' : '선택 기간별 문제 생성과 학습 결과를 확인합니다.'}</p></div>
           {activeTab === 'content' && <button type="button" className={styles.secondaryButton} disabled={busy} onClick={() => void load()}><RefreshCw size={16}/> 새로고침</button>}
         </header>
         <div className={styles.tabs} aria-label="셀프스터디 관리자 메뉴">
@@ -102,19 +104,31 @@ const SelfStudyManagement: React.FC = () => {
         {activeTab === 'content' ? <>
         {error && <p className={styles.error} role="alert">{error}</p>}
         <section className={styles.panel}>
-          <div className={styles.panelHeader}><div><h2>{showCategoryTrash ? '카테고리 휴지통' : '카테고리 관리'}</h2><p className={styles.panelDescription}>비활성화는 데이터를 보존합니다. 휴지통에서 영구 삭제할 수 있습니다.</p></div><div className={styles.actions}><button type="button" className={styles.secondaryButton} disabled={busy} aria-pressed={showCategoryTrash} onClick={() => setShowCategoryTrash(value => !value)}>{showCategoryTrash ? '활성 카테고리 보기' : '휴지통 보기'}</button>{!showCategoryTrash && <button type="button" className={styles.addButton} disabled={busy} onClick={() => void addCategory()}><Plus size={16}/> 카테고리 등록</button>}</div></div>
-          <table className={styles.table}><thead><tr><th>번호</th><th>카테고리명</th><th>상태</th><th>관리</th></tr></thead><tbody>
+          <div className={styles.panelHeader}><div><h2>{showCategoryTrash ? '카테고리 휴지통' : '카테고리 관리'}</h2><p className={styles.panelDescription}>비활성 삭제는 데이터를 보존합니다. 영구 삭제하면 연결된 과목과 문제·학습 기록도 함께 삭제됩니다.</p></div><div className={styles.actions}><button type="button" className={styles.secondaryButton} disabled={busy} aria-pressed={showCategoryTrash} onClick={() => setShowCategoryTrash(value => !value)}>{showCategoryTrash ? '활성 카테고리 보기' : '휴지통 보기'}</button>{!showCategoryTrash && <button type="button" className={styles.addButton} disabled={busy} onClick={() => void addCategory()}><Plus size={16}/> 카테고리 등록</button>}</div></div>
+          <div className={styles.tableScroll}>
+          <table className={`${styles.table} ${styles.categoryTable}`}>
+            <colgroup>
+              <col className={styles.categoryIdColumn} />
+              <col className={styles.categoryNameColumn} />
+              <col className={styles.categoryStatusColumn} />
+              <col className={styles.categoryActionsColumn} />
+            </colgroup>
+            <thead><tr><th>번호</th><th>카테고리명</th><th>상태</th><th>관리</th></tr></thead><tbody>
             {visibleCategories.map(c => <tr key={c.categoryId} className={selectedCategoryId === c.categoryId ? styles.selected : ''}>
               <td>{c.categoryId}</td>
               <td><button type="button" className={styles.linkButton} onClick={() => setSelectedCategoryId(c.categoryId)}>{c.categoryName}</button></td>
               <td>{c.categoryStatus === 'Y' ? '활성' : '비활성'}</td>
               <td><div className={styles.actions}>
                 <button type="button" className={styles.secondaryButton} disabled={busy} onClick={() => void editCategory(c)}><Pencil size={14}/> 수정</button>
-                {c.categoryStatus === 'Y' ? <button type="button" className={styles.secondaryButton} disabled={busy} onClick={() => void toggleCategory(c)}><Trash2 size={14}/> 삭제(비활성)</button> : <><button type="button" className={styles.secondaryButton} disabled={busy} onClick={() => void toggleCategory(c)}><RotateCcw size={14}/> 복구</button><button type="button" className={styles.dangerButton} disabled={busy} onClick={() => void permanentlyDeleteCategory(c)}><Trash2 size={14}/> 완전 삭제</button></>}
+                {c.categoryStatus === 'Y'
+                  ? <button type="button" className={styles.secondaryButton} disabled={busy} onClick={() => void toggleCategory(c)}><Trash2 size={14}/> 비활성화</button>
+                  : <button type="button" className={styles.secondaryButton} disabled={busy} onClick={() => void toggleCategory(c)}><RotateCcw size={14}/> 복구</button>}
+                <button type="button" className={styles.dangerButton} disabled={busy} onClick={() => void permanentlyDeleteCategory(c)}><Trash2 size={14}/> 완전 삭제</button>
               </div></td>
             </tr>)}
             {!loading && visibleCategories.length === 0 && <tr><td colSpan={4} className={styles.empty}>{showCategoryTrash ? '휴지통에 카테고리가 없습니다.' : '등록된 활성 카테고리가 없습니다.'}</td></tr>}
           </tbody></table>
+          </div>
         </section>
         <section className={styles.panel}>
           <div className={styles.panelHeader}><h2>과목 관리</h2><button type="button" className={styles.addButton} disabled={busy || selectedCategoryId === null || selectedCategory?.categoryStatus !== 'Y'} onClick={() => void addSubject()}><Plus size={16}/> 과목 등록</button></div>
@@ -243,13 +257,13 @@ const UsageDashboard: React.FC = () => {
           <section className={styles.panel}>
             <div className={styles.panelHeader}><div><h2>카테고리별 이용 순위</h2><p className={styles.panelDescription}>문제 생성 세션 수 기준</p></div></div>
             {usage.categoryRanking.length === 0 ? <p className={styles.empty}>카테고리 이용 기록이 없습니다.</p> : <ol className={styles.rankingList}>
-              {usage.categoryRanking.map((item, index) => <li key={item.categoryId} className={styles.rankingItem}><span className={styles.rankNumber}>{index + 1}</span><div className={styles.rankInfo}><div className={styles.rankLabel}><strong>{item.categoryName}</strong><span>{item.generatedCount.toLocaleString()}건</span></div><div className={styles.rankTrack}><i style={{ width: `${item.generatedCount / maxCategoryCount * 100}%` }} /></div></div></li>)}
+              {usage.categoryRanking.map((item, index) => <li key={item.categoryId} className={styles.rankingItem}><span className={styles.rankNumber}>{index + 1}</span><div className={styles.rankInfo}><div className={styles.rankLabel}><strong>{item.categoryName}</strong><span>{item.generatedCount.toLocaleString()}건</span></div><div className={styles.rankTrack} aria-hidden="true"><i style={{ width: `${item.generatedCount / maxCategoryCount * 100}%` }} /></div></div></li>)}
             </ol>}
           </section>
           <section className={styles.panel}>
             <div className={styles.panelHeader}><div><h2>과목별 이용 순위</h2><p className={styles.panelDescription}>문제 생성 세션 수 기준 · 상위 10개</p></div></div>
             {usage.subjectRanking.length === 0 ? <p className={styles.empty}>과목 이용 기록이 없습니다.</p> : <ol className={styles.rankingList}>
-              {usage.subjectRanking.slice(0, 10).map((item, index) => <li key={item.subjectId} className={styles.rankingItem}><span className={styles.rankNumber}>{index + 1}</span><div className={styles.rankInfo}><div className={styles.rankLabel}><strong>{item.subjectName}<small>{item.categoryName}</small></strong><span>{item.generatedCount.toLocaleString()}건</span></div><div className={styles.rankTrack}><i style={{ width: `${item.generatedCount / maxSubjectCount * 100}%` }} /></div></div></li>)}
+              {usage.subjectRanking.slice(0, 10).map((item, index) => <li key={item.subjectId} className={styles.rankingItem}><span className={styles.rankNumber}>{index + 1}</span><div className={styles.rankInfo}><div className={styles.rankLabel}><strong>{item.subjectName}<small>{item.categoryName}</small></strong><span>{item.generatedCount.toLocaleString()}건</span></div><div className={styles.rankTrack} aria-hidden="true"><i style={{ width: `${item.generatedCount / maxSubjectCount * 100}%` }} /></div></div></li>)}
             </ol>}
           </section>
         </div>
