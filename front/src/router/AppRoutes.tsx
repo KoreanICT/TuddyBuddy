@@ -47,6 +47,7 @@ import Login from "../login/Login";
 import RequireAuth from "../login/auth/RequireAuthProps";
 import { ROLE_ACCESS } from "../login/auth/roles";
 import ActivityLogManagement from "../cont/admin/activity/ActivityLogManagement";
+import { NotificationList } from "../notification/NotificationList";
 
 interface RouteItem {
     path: string;
@@ -113,11 +114,12 @@ const AppRoutes: React.FC = () => {
         { path: '/auth/signup', element: <Signup /> },
         { path: '/auth/kakao/callback', element: <KakaoCallback /> },
         { path: '/auth/mypage', element: <RequireAuth allowedRoles={ROLE_ACCESS.member}><MyPage /></RequireAuth> },
-        
+
         { path: '/point_history', element: <RequireAuth allowedRoles={ROLE_ACCESS.member}><PointHistory /></RequireAuth> },
         { path: '/member_edit', element: <RequireAuth allowedRoles={ROLE_ACCESS.member}><Member_Edit /></RequireAuth> },
         { path: '/auth/kakao/signup', element: <KakaoSignup /> },
         { path: '*', element: <NotFound /> },
+        { path: "/notification", element: <NotificationList /> },
     ];
 
     return (

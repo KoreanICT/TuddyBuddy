@@ -110,15 +110,17 @@ export const Detail_Member: React.FC<GetGroupNum> = ({ groupNum }) => {
     return (
         <div className={styles.detail_content_wrapper}>
             <div className={styles.detail_section_card}>
-                <h3 className={styles.section_title}>멤버 목록 ({members.length})</h3>
-                <button
-                    type="button"
-                    className={styles.transferbtn}
-                    disabled={!canQuit}
-                    onClick={handleQuit}
-                >
-                    스터디룸 탈퇴
-                </button>
+                <div className={styles.memberHeader}>
+                    <h3 className={styles.section_title}>멤버 목록 ({members.length})</h3>
+                    <button
+                        type="button"
+                        className={styles.exitroombtn}
+                        disabled={!canQuit}
+                        onClick={handleQuit}
+                    >
+                        스터디룸 탈퇴
+                    </button>
+                </div>
                 {/* 멤버 카드 횡방향 목록 컨테이너 */}
                 <div className={styles.member_grid}>
                     {members.map((member) => (
