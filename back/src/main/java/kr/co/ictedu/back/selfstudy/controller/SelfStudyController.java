@@ -43,7 +43,7 @@ public class SelfStudyController {
 	        AuthenticatedMember authenticatedMember
 	) {
 	    this.selfStudyService = selfStudyService;
-	    this.authenticatedMember = authenticatedMember;
+	    this.authenticatedMember = authenticatedMember; 
 	}
 
 	@Operation(summary = "카테고리 목록 조회")

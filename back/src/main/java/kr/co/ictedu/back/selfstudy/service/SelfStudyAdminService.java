@@ -14,7 +14,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import kr.co.ictedu.back.selfstudy.dao.SelfStudyAdminDao;
 import kr.co.ictedu.back.selfstudy.vo.CategoryVO;
-import kr.co.ictedu.back.selfstudy.vo.SelfStudyUsageVO;
+import kr.co.ictedu.back.selfstudy.vo.SelfStudyUsageSummaryVO;
 import kr.co.ictedu.back.selfstudy.vo.SubjectVO;
 
 @Service
@@ -90,7 +90,7 @@ public class SelfStudyAdminService {
 
         var fromDateTime = fromDate.atStartOfDay();
         var toDateExclusive = toDate.plusDays(1).atStartOfDay();
-        SelfStudyUsageVO.Summary summary = selfStudyAdminDao.selectUsageSummary(fromDateTime, toDateExclusive);
+        SelfStudyUsageSummaryVO summary = selfStudyAdminDao.selectUsageSummary(fromDateTime, toDateExclusive);
 
         return new SelfStudyUsageResponse(
                 new SelfStudyUsageResponse.Summary(
