@@ -1,9 +1,10 @@
-import { BACKEND_URL } from '../login/authHttp';
+import { BACKEND_URL, memberSessionConfig } from '../login/authHttp';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { clearSession } from '../login/session';
+import { clearSession, currentToken, memberSessionKey, sessionIdentity } from '../login/session';
+import MemberSessionBoundary from './MemberSessionBoundary';
 
 import './Member_edit.css';
 
@@ -43,8 +44,14 @@ interface PasswordChangeResponse {
     message: string;
 }
 
-const Member_edit: React.FC = () => {
+const MemberEditContent: React.FC<{ sessionKey: string }> = ({ sessionKey }) => {
     const navigate = useNavigate();
+    const operations = useRef(new AbortController());
+    useEffect(() => {
+        operations.current = new AbortController();
+        return () => operations.current.abort();
+    }, []);
+    const isCurrentSession = () => !operations.current.signal.aborted && memberSessionKey() === sessionKey;
 
     // 회원정보
     const [formData, setFormData] = useState<MemberForm>({
@@ -124,7 +131,7 @@ const Member_edit: React.FC = () => {
 
     // 로그인 토큰 조회
     const getToken = () => {
-        return localStorage.getItem('token');
+        return currentToken();
     };
 
     // 로그인한 회원정보 조회
@@ -146,14 +153,15 @@ const Member_edit: React.FC = () => {
             try {
                 const response = await axios.get<MemberVO>(
                     `${API_URL}/api/member/me`,
-                    {
+                    memberSessionConfig(sessionKey, {
                         headers: {
                             Authorization: `Bearer ${token}`
                         },
                         signal: controller.signal
-                    }
+                    })
                 );
 
+                if (controller.signal.aborted || !isCurrentSession()) return;
                 const member = response.data;
 
                 setFormData({
@@ -169,7 +177,7 @@ const Member_edit: React.FC = () => {
                 setCheckedNickname(member.member_nick || '');
 
             } catch (err) {
-                if (axios.isCancel(err)) return;
+                if (axios.isCancel(err) || !isCurrentSession()) return;
 
                 console.error('회원정보 조회 실패:');
 
@@ -185,7 +193,7 @@ const Member_edit: React.FC = () => {
                     setError('회원정보를 불러오는 중 오류가 발생했습니다.');
                 }
             } finally {
-                if (!controller.signal.aborted) {
+                if (!controller.signal.aborted && isCurrentSession()) {
                     setLoading(false);
                 }
             }
@@ -194,7 +202,7 @@ const Member_edit: React.FC = () => {
         fetchMemberInfo();
 
         return () => controller.abort();
-    }, []);
+    }, [sessionKey]);
 
     // 회원정보 입력값 변경
     const handleInputChange = (
@@ -253,7 +261,7 @@ const Member_edit: React.FC = () => {
 
     // 닉네임 중복확인
     const handleNicknameCheck = async () => {
-        if (nicknameChecking || saving || passwordChanging) return;
+        if (nicknameChecking || saving || passwordChanging || !isCurrentSession()) return;
 
         const nickname = formData.nickname.trim();
         const validationError = validateNickname(nickname);
@@ -277,13 +285,15 @@ const Member_edit: React.FC = () => {
         try {
             const response = await axios.get<number>(
                 `${API_URL}/api/member/nickCheck`,
-                {
+                memberSessionConfig(sessionKey, {
                     params: {
                         nick: nickname
-                    }
-                }
+                    },
+                    signal: operations.current.signal
+                })
             );
 
+            if (!isCurrentSession()) return;
             const count = Number(response.data);
 
             if (count === 0) {
@@ -296,11 +306,12 @@ const Member_edit: React.FC = () => {
             }
 
         } catch (err) {
+            if (!isCurrentSession() || axios.isCancel(err)) return;
             console.error('닉네임 중복확인 오류:');
             setCheckedNickname('');
             setNicknameMessage('닉네임 중복확인 중 오류가 발생했습니다.');
         } finally {
-            setNicknameChecking(false);
+            if (isCurrentSession()) setNicknameChecking(false);
         }
     };
 
@@ -308,7 +319,7 @@ const Member_edit: React.FC = () => {
     const handleMemberUpdate = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (saving || loading || nicknameChecking || passwordChanging) {
+        if (saving || loading || nicknameChecking || passwordChanging || !isCurrentSession()) {
             return;
         }
 
@@ -351,13 +362,15 @@ const Member_edit: React.FC = () => {
                     member_nick: nickname,
                     member_phone: phone
                 },
-                {
+                memberSessionConfig(sessionKey, {
                     headers: {
                         Authorization: `Bearer ${token}`
-                    }
-                }
+                    },
+                    signal: operations.current.signal
+                })
             );
 
+            if (!isCurrentSession()) return;
             if (response.data > 0) {
                 console.log('===== 회원정보 수정 성공 =====');
 
@@ -369,6 +382,7 @@ const Member_edit: React.FC = () => {
             }
 
         } catch (err) {
+            if (!isCurrentSession() || axios.isCancel(err)) return;
             console.error('회원정보 수정 오류:');
 
             if (axios.isAxiosError(err)) {
@@ -390,7 +404,7 @@ const Member_edit: React.FC = () => {
                 setError('회원정보 수정 중 오류가 발생했습니다.');
             }
         } finally {
-            setSaving(false);
+            if (isCurrentSession()) setSaving(false);
         }
     };
 
@@ -410,7 +424,7 @@ const Member_edit: React.FC = () => {
 
     // 일반 회원 비밀번호 변경
     const handleChangePassword = async () => {
-        if (isKakao || loading || saving || passwordChanging) return;
+        if (isKakao || loading || saving || passwordChanging || !isCurrentSession()) return;
 
         setPasswordError('');
         setPasswordMessage('');
@@ -460,16 +474,20 @@ const Member_edit: React.FC = () => {
                     newPassword,
                     newPasswordCheck
                 },
-                {
+                memberSessionConfig(sessionKey, {
                     headers: {
                         Authorization: `Bearer ${token}`
-                    }
-                }
+                    },
+                    signal: operations.current.signal
+                })
             );
 
+            if (!isCurrentSession()) return;
             if (response.data.success === true) {
                 clearSession();
+                const logoutIdentity = sessionIdentity();
                 window.alert('비밀번호가 변경되었습니다. 새 비밀번호로 다시 로그인해주세요.');
+                if (sessionIdentity() !== logoutIdentity || currentToken()) return;
                 navigate('/auth/member?redirect=%2Fauth%2Fmypage', { replace: true });
 
                 // 비밀번호 입력값 초기화
@@ -487,7 +505,7 @@ const Member_edit: React.FC = () => {
             }
 
         } catch (err) {
-
+            if (!isCurrentSession() || axios.isCancel(err)) return;
             if (axios.isAxiosError(err)) {
                 if (err.response?.status === 401) {
                     setPasswordError('로그인이 만료되었습니다. 다시 로그인해주세요.');
@@ -503,7 +521,7 @@ const Member_edit: React.FC = () => {
                 setPasswordError('비밀번호 변경 중 오류가 발생했습니다.');
             }
         } finally {
-            setPasswordChanging(false);
+            if (isCurrentSession()) setPasswordChanging(false);
         }
     };
 
@@ -793,5 +811,7 @@ const Member_edit: React.FC = () => {
         </div>
     );
 };
+
+const Member_edit: React.FC = () => <MemberSessionBoundary>{key => <MemberEditContent sessionKey={key} />}</MemberSessionBoundary>;
 
 export default Member_edit;

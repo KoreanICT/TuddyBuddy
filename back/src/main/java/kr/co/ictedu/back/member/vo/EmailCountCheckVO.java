@@ -13,4 +13,9 @@ import lombok.Setter;
 public class EmailCountCheckVO {
 	private boolean success;
 	private String reason;
+	private String verificationToken;
+
+	public EmailCountCheckVO(boolean success, String reason) {
+		this(success, reason, null);
+	}
 }

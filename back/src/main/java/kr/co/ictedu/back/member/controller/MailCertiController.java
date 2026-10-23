@@ -10,9 +10,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import kr.co.ictedu.back.member.dao.CertiNumRedisDao;
 import kr.co.ictedu.back.member.service.EmailSender;
 import kr.co.ictedu.back.member.service.MemberService;
+import kr.co.ictedu.back.member.service.SignupEmailVerificationService;
 import kr.co.ictedu.back.member.vo.EmailCheckVO;
 import kr.co.ictedu.back.member.vo.EmailCountCheckVO;
 
@@ -28,10 +28,10 @@ public class MailCertiController {
     private EmailSender emailSender;
 
     @Autowired
-    private CertiNumRedisDao certiNumRedisDao;
+    private MemberService memberService;
 
     @Autowired
-    private MemberService memberService;
+    private SignupEmailVerificationService signupVerification;
 
     // 닉네임 중복 확인
     @PostMapping("/nickCheck")
@@ -50,12 +50,11 @@ public class MailCertiController {
     @PostMapping("/emailCheck")
     public int sendEmail(@RequestBody EmailCheckVO email) {
 
-        System.out.println("이메일 인증 요청: " + email.getEmail());
-
-        int checkEmail = emailSender.duplicateEmail(email.getEmail());
+        String normalizedEmail = SignupEmailVerificationService.normalizeEmail(email.getEmail());
+        int checkEmail = emailSender.duplicateEmail(normalizedEmail);
 
         if (checkEmail == 0) {
-            emailSender.sendEmail(email.getEmail());
+            emailSender.sendEmail(normalizedEmail);
             return 0;
         }
 
@@ -67,42 +66,6 @@ public class MailCertiController {
     public ResponseEntity<EmailCountCheckVO> verifyCertificationNumber(
             @RequestBody EmailCheckVO dto) {
 
-        String email = dto.getEmail();
-        String code = dto.getCode();
-
-        boolean hasKey = certiNumRedisDao.hasKey(email);
-        int attempts = certiNumRedisDao.getAttempt(email);
-
-        // 인증번호 만료
-        if (!hasKey) {
-            return ResponseEntity.ok(
-                    new EmailCountCheckVO(false, "expired")
-            );
-        }
-
-        // 3회 이상 실패
-        if (attempts >= 3) {
-            return ResponseEntity.ok(
-                    new EmailCountCheckVO(false, "exceeded")
-            );
-        }
-
-        String savedCode = certiNumRedisDao.getCertiRedisNum(email);
-
-        // 인증 성공
-        if (savedCode != null && savedCode.equals(code)) {
-            certiNumRedisDao.delCertiRedisNum(email);
-
-            return ResponseEntity.ok(
-                    new EmailCountCheckVO(true, "ok")
-            );
-        }
-
-        // 인증 실패 횟수 증가
-        certiNumRedisDao.incrAttempt(email);
-
-        return ResponseEntity.ok(
-                new EmailCountCheckVO(false, "wrong")
-        );
+        return ResponseEntity.ok(signupVerification.verifyCode(dto.getEmail(), dto.getCode()));
     }
 }

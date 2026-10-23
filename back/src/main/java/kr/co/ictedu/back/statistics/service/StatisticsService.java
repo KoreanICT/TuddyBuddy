@@ -48,11 +48,15 @@ public class StatisticsService {
 		// 분석이 정상 완료되지 않으면 포인트 차감과 로그도 함께 롤백한다.
 		pointService.usePoint(memberNum, 1_000L, description);
 
+		//역할: 차트와 LLM이 함께 사용하는 회차별 시험 이력 조회
+		List<Map<String, Object>> historyList = validateHistoryList(
+				statisticsDao.selectHistoryStatistics(memberNum));
+
 		// (1) LLM 데이터(피드백) 추출 메서드 호출
-		StatisticsDTO llmFeedback = getLlmFeedbackData(memberNum);
+		StatisticsDTO llmFeedback = getLlmFeedbackData(memberNum, historyList);
 		System.out.println("llmFeedback데이터: " + llmFeedback);
 		// (2) 차트 데이터 추출 메서드 호출
-		Map<String, Object> chartData = getChartData(memberNum);
+		Map<String, Object> chartData = getChartData(memberNum, historyList);
 		System.out.println("chart데이터: " + chartData);
 		// (3) 두 데이터를 하나의 맵으로 묶어서 리액트로 반환
 		Map<String, Object> finalResult = new HashMap<>();
@@ -65,7 +69,7 @@ public class StatisticsService {
 	/**
 	 * 2. DB 조인 쿼리를 활용한 LLM 피드백 데이터 추출 및 FastAPI 통신 메서드
 	 */
-	private StatisticsDTO getLlmFeedbackData(Long memberNum) {
+	private StatisticsDTO getLlmFeedbackData(Long memberNum, List<Map<String, Object>> historyList) {
 		// (1) 모든 제출 결과에서 회원의 전체 카테고리 풀이 로그 조회
 		//역할: 전체 카테고리 풀이 로그 목록 검증
 		List<Map<String, Object>> quizLogs = validateQuizLogs(
@@ -75,6 +79,7 @@ public class StatisticsService {
 		Map<String, Object> requestPayload = new HashMap<>();
 		requestPayload.put("user_id", memberNum);
 		requestPayload.put("quiz_logs", quizLogs);
+		requestPayload.put("category_scores", historyList);
 
 		// (3) FastAPI의 카테고리별 피드백 응답 수신
 		RestTemplate restTemplate = new RestTemplate();
@@ -89,12 +94,10 @@ public class StatisticsService {
 	/**
 	 * 3. 차트 데이터(history, prediction, subjectShare) 추출 메서드
 	 */
-	private Map<String, Object> getChartData(Long memberNum) {
+	private Map<String, Object> getChartData(Long memberNum, List<Map<String, Object>> historyList) {
 		Map<String, Object> chartData = new HashMap<>();
 
-		// DB에서 실제 history 데이터 조회
-		//역할: 히스토리 조회 결과 null 검증
-		List<Map<String, Object>> historyList = validateHistoryList(statisticsDao.selectHistoryStatistics(memberNum));
+		// DB에서 조회한 회차별 시험 이력을 차트 데이터로 재사용
 		System.out.println("historyList : " + historyList);
 		chartData.put("history", historyList);
 
