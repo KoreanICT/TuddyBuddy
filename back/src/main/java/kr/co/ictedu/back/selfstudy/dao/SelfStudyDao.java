@@ -26,9 +26,10 @@ public interface SelfStudyDao {
             @Param("categoryId") Long categoryId,
             @Param("subjectName") String subjectName);
 
-    SubjectVO selectAnySubjectByName(@Param("subjectName") String subjectName);
+    QuizSessionVO selectSessionByImageHash(@Param("imageHash") String imageHash);
     int insertSubject(SubjectVO subject);
     List<SubjectVO> selectSubjects(@Param("categoryId") Long categoryId);
+    List<Map<String, Object>> selectAiCatalogRows();
 
 
     // Quiz Session
@@ -48,6 +49,7 @@ public interface SelfStudyDao {
 
     // Response
     int insertQuizResponse(QuizResponseVO vo);
+    void insertQuizResponses(@Param("responses") List<QuizResponseVO> responses);
     List<QuizResponseVO> selectQuizResponses(@Param("resultId") Long resultId);
 
     // Delete

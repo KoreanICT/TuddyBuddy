@@ -233,17 +233,23 @@ const SelfStudy: React.FC = () => {
 
   const [generatedCategoryName, setGeneratedCategoryName] = useState('');
   const [generatedSubjectName, setGeneratedSubjectName] = useState('');
-  const [classificationMode, setClassificationMode] = useState<'auto' | 'manual'>('auto');
   const [categories, setCategories] = useState<Category[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
   const [selectedSubjectId, setSelectedSubjectId] = useState<number | null>(null);
+  const [classificationHash, setClassificationHash] = useState<string | null>(null);
+  const [classificationCached, setClassificationCached] = useState(false);
+  const [classificationLoading, setClassificationLoading] = useState(false);
+  const [classificationError, setClassificationError] = useState('');
+  const [proposedCategoryName, setProposedCategoryName] = useState('');
+  const [proposedSubjectName, setProposedSubjectName] = useState('');
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const [selectedFile, setSelectedFile] =
     useState<File | null>(null);
+  const classificationRequestRef = useRef(0);
 
   const [previewUrl, setPreviewUrl] =
     useState<string | null>(null);
@@ -653,14 +659,30 @@ const SelfStudy: React.FC = () => {
   // 6. 이미지 첨부
   // =========================================================
 
-  const handleFileChange = (
+  const handleFileChange = async (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
     const file = e.target.files?.[0];
 
     if (!file) return;
+    if (
+      !['image/jpeg', 'image/png', 'image/webp'].includes(file.type) ||
+      file.size > 10 * 1024 * 1024
+    ) {
+      alert('10MB 이하의 JPG, PNG, WebP 이미지를 선택해주세요.');
+      e.target.value = '';
+      return;
+    }
 
     setSelectedFile(file);
+    e.target.value = '';
+    setSelectedCategoryId(null);
+    setSelectedSubjectId(null);
+    setClassificationHash(null);
+    setClassificationCached(false);
+    setClassificationError('');
+    setProposedCategoryName('');
+    setProposedSubjectName('');
 
     if (previewUrlRef.current) {
       URL.revokeObjectURL(previewUrlRef.current);
@@ -670,6 +692,22 @@ const SelfStudy: React.FC = () => {
 
     previewUrlRef.current = newUrl;
     setPreviewUrl(newUrl);
+
+    const requestId = ++classificationRequestRef.current;
+    setClassificationLoading(true);
+    try {
+      const result = await requestImageClassification(file);
+      if (requestId !== classificationRequestRef.current) return;
+      setClassificationHash(String(result.imageHash));
+      setClassificationCached(Boolean(result.cached));
+      setProposedCategoryName(String(result.categoryName));
+      setProposedSubjectName(String(result.subjectName));
+    } catch (error) {
+      if (requestId !== classificationRequestRef.current) return;
+      setClassificationError(error instanceof Error ? error.message : '이미지 분류에 실패했습니다.');
+    } finally {
+      if (requestId === classificationRequestRef.current) setClassificationLoading(false);
+    }
   };
 
   // =========================================================
@@ -678,6 +716,9 @@ const SelfStudy: React.FC = () => {
 
   const handleCloseModal = () => {
     if (loading) return;
+
+    classificationRequestRef.current += 1;
+    setClassificationLoading(false);
 
     setIsModalOpen(false);
     setSelectedFile(null);
@@ -691,6 +732,11 @@ const SelfStudy: React.FC = () => {
     setQuizPrompt('');
     setSelectedCategoryId(null);
     setSelectedSubjectId(null);
+    setClassificationHash(null);
+    setClassificationCached(false);
+    setClassificationError('');
+    setProposedCategoryName('');
+    setProposedSubjectName('');
   };
 
   // =========================================================
@@ -698,12 +744,7 @@ const SelfStudy: React.FC = () => {
   // =========================================================
 
   const validateUploadInput = (): File | null => {
-    if (loading) return null;
-
-    if (classificationMode === 'manual' && selectedSubjectId === null) {
-      alert('직접 지정 모드에서는 카테고리와 과목을 선택해주세요.');
-      return null;
-    }
+    if (loading || classificationLoading) return null;
 
     if (!selectedFile) {
       alert('문제 생성에 사용할 이미지를 첨부해주세요.');
@@ -720,25 +761,43 @@ const SelfStudy: React.FC = () => {
 
     if (!requireLogin()) return null;
 
-    const confirmed = window.confirm(
-      `AI 문제 생성 1회당 ${SELF_STUDY_GENERATION_POINT_COST.toLocaleString()}P가 사용됩니다.\n` +
-      '문제 생성과 저장이 완료된 경우에만 차감됩니다. 계속하시겠습니까?'
-    );
-
-    return confirmed ? selectedFile : null;
+    return selectedFile;
   };
 
-  const buildUploadFormData = (file: File): FormData => {
+  const buildUploadFormData = (file: File, forGeneration = false): FormData => {
     const formData = new FormData();
     formData.append('file', file);
-    if (classificationMode === 'manual' && selectedSubjectId !== null) {
-      formData.append('subject_id', String(selectedSubjectId));
+    if (forGeneration) {
+      formData.append('image_hash', classificationHash ?? '');
+      const categoryName = selectedCategoryId === null
+        ? proposedCategoryName.trim()
+        : categories.find((category) => category.categoryId === selectedCategoryId)?.categoryName ?? '';
+      const subjectName = selectedSubjectId === null
+        ? proposedSubjectName.trim()
+        : subjects.find((subject) => subject.subjectId === selectedSubjectId)?.subjectName ?? '';
+      formData.append('category_name', categoryName);
+      formData.append('subject_name', subjectName);
+      formData.append('quiz_type', quizType);
+      formData.append('quiz_difficulty', quizDifficulty);
+      formData.append('quiz_count', String(quizCount));
+      formData.append('quiz_prompt', quizPrompt);
     }
-    formData.append('quiz_type', quizType);
-    formData.append('quiz_difficulty', quizDifficulty);
-    formData.append('quiz_count', String(quizCount));
-    formData.append('quiz_prompt', quizPrompt);
     return formData;
+  };
+
+  const requestImageClassification = async (file: File) => {
+    const response = await authenticatedFetch(
+      `${BACKEND_URL}/api/selfstudy/classify`,
+      { method: 'POST', credentials: 'include', headers: getAuthHeaders(), body: buildUploadFormData(file) }
+    );
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      throw new Error(data.message || data.detail || '이미지 분류에 실패했습니다.');
+    }
+    if (!data.imageHash || !data.categoryName || !data.subjectName) {
+      throw new Error('이미지 분류 응답이 올바르지 않습니다.');
+    }
+    return data;
   };
 
   const requestGeneratedQuizzes = async (formData: FormData) => {
@@ -809,6 +868,8 @@ const SelfStudy: React.FC = () => {
 
     setIsModalOpen(false);
     setSelectedFile(null);
+    setSelectedCategoryId(null);
+    setSelectedSubjectId(null);
 
     if (previewUrlRef.current) {
       URL.revokeObjectURL(previewUrlRef.current);
@@ -817,6 +878,11 @@ const SelfStudy: React.FC = () => {
 
     setPreviewUrl(null);
     setQuizPrompt('');
+    setClassificationHash(null);
+    setClassificationCached(false);
+    setClassificationError('');
+    setProposedCategoryName('');
+    setProposedSubjectName('');
   };
 
   const showUploadError = (error: unknown) => {
@@ -847,9 +913,24 @@ const SelfStudy: React.FC = () => {
     const file = validateUploadInput();
     if (!file) return;
 
+    const effectiveCategoryName = selectedCategoryId === null
+      ? proposedCategoryName.trim()
+      : categories.find((category) => category.categoryId === selectedCategoryId)?.categoryName ?? '';
+    const effectiveSubjectName = selectedSubjectId === null
+      ? proposedSubjectName.trim()
+      : subjects.find((subject) => subject.subjectId === selectedSubjectId)?.subjectName ?? '';
+    if (!effectiveCategoryName || !effectiveSubjectName) {
+      alert('AI 분류를 기다리거나 카테고리와 과목을 선택해주세요.');
+      return;
+    }
+    if (!window.confirm(
+      `AI 문제 생성 1회당 ${SELF_STUDY_GENERATION_POINT_COST.toLocaleString()}P가 사용됩니다.\n` +
+      '문제 생성과 저장이 완료된 경우에만 차감됩니다. 계속하시겠습니까?'
+    )) return;
+
     setLoading(true);
     try {
-      const formData = buildUploadFormData(file);
+      const formData = buildUploadFormData(file, true);
       const data = await requestGeneratedQuizzes(formData);
       applyGeneratedQuiz(data, file);
       await refreshUploadHistory();
@@ -1084,8 +1165,8 @@ const SelfStudy: React.FC = () => {
         setQuizPrompt={setQuizPrompt}
         handleFileChange={handleFileChange}
         handleUploadSubmit={handleUploadSubmit}
-        classificationMode={classificationMode}
-        setClassificationMode={setClassificationMode}
+        classificationLoading={classificationLoading}
+        classificationError={classificationError}
         categories={categories}
         subjects={subjects}
         selectedCategoryId={selectedCategoryId}
@@ -1093,6 +1174,9 @@ const SelfStudy: React.FC = () => {
         selectedSubjectId={selectedSubjectId}
         setSelectedSubjectId={setSelectedSubjectId}
         pointCost={SELF_STUDY_GENERATION_POINT_COST}
+        classificationCached={classificationCached}
+        categoryName={proposedCategoryName}
+        subjectName={proposedSubjectName}
       />
     </div>
   );

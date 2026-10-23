@@ -346,15 +346,6 @@ function TimerView({ timer, minutes, setMinutes, startLabel = '시작', embedded
                     ))}
                 </ul>
               )}
-
-              <button
-                type="button"
-                className={styles.refreshButton}
-                onClick={refresh}
-                disabled={busy}
-              >
-                기록 새로고침
-              </button>
             </details>
           </div>}
 
