@@ -1,7 +1,8 @@
 //김진규
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import axios from 'axios';
 import { useAuth } from '../../login/hooks/useAuth';
+import { BACKEND_URL } from '../../login/authHttp';
 import styles from './productSelector.module.css';
 
 //const apiUrl = process.env.BACKEND_URL;
@@ -11,17 +12,17 @@ export interface Product {
   id: number;
   porint: number;
   price: number;
+  image: string;
+  portraitAlt: string;
 }
 
 export const MOCK_PRODUCTS: Product[] = [
-  { id: 1, porint: 1000, price: 1000 },
-  { id: 2, porint: 2000, price: 2000 },
-  { id: 3, porint: 3000, price: 3000 },
-  { id: 4, porint: 4000, price: 4000 },
-  { id: 5, porint: 5000, price: 5000 },
-  { id: 6, porint: 10000, price: 10000 },
-  // { id: 7, name: '상품 7', price: 7000 },
-  // { id: 8, name: '상품 8', price: 8000 },
+  { id: 1, porint: 1000, price: 1000, image: '/images/point-products/tuddy-1000.png', portraitAlt: '워싱턴 스타일 터디' },
+  { id: 2, porint: 2000, price: 2000, image: '/images/point-products/buddy-2000.png', portraitAlt: '제퍼슨 스타일 버디' },
+  { id: 3, porint: 5000, price: 5000, image: '/images/point-products/tuddy-5000.png', portraitAlt: '링컨 스타일 터디' },
+  { id: 4, porint: 10000, price: 10000, image: '/images/point-products/buddy-10000.png', portraitAlt: '해밀턴 스타일 버디' },
+  { id: 5, porint: 20000, price: 20000, image: '/images/point-products/tuddy-20000.png', portraitAlt: '잭슨 스타일 터디' },
+  { id: 6, porint: 50000, price: 50000, image: '/images/point-products/buddy-50000.png', portraitAlt: '그랜트 스타일 버디' },
 ];
 
 interface ProductSelectorProps {
@@ -32,6 +33,57 @@ export const ProductSelector: React.FC<ProductSelectorProps> = ({ onSelectOrder 
   const { token, memberNum } = useAuth();
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [currentPoint, setCurrentPoint] = useState<number | null>(null);
+  const [pointLoading, setPointLoading] = useState(true);
+  const [pointError, setPointError] = useState('');
+  const [pointRefreshKey, setPointRefreshKey] = useState(0);
+
+  // 기존 마이페이지 회원 조회 API의 point 값을 사용해 현재 잔액을 확인합니다.
+  const loadCurrentPoint = useCallback(async () => {
+    if (memberNum == null || !Number.isFinite(memberNum) || memberNum <= 0
+      || typeof token !== 'string' || token.trim() === '') {
+      setCurrentPoint(null);
+      setPointError('로그인 정보를 확인할 수 없습니다. 다시 로그인해 주세요.');
+      setPointLoading(false);
+      return;
+    }
+
+    setPointLoading(true);
+    setPointError('');
+    try {
+      const response = await axios.get<{ member_num: number; point: number | string }>(
+        `${BACKEND_URL}/api/member/me`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const balance = Number(response.data.point);
+      if (Number(response.data.member_num) !== memberNum || !Number.isFinite(balance)) {
+        throw new Error('회원 포인트 응답을 확인할 수 없습니다.');
+      }
+      setCurrentPoint(balance);
+    } catch (error) {
+      console.error('현재 포인트 조회 실패:', error);
+      setCurrentPoint(null);
+      setPointError('현재 포인트를 불러오지 못했습니다. 다시 확인해 주세요.');
+    } finally {
+      setPointLoading(false);
+    }
+  }, [memberNum, token]);
+
+  // 화면 진입·로그인 변경·결제 완료 후 잔액을 자동 조회해 상태와 UI를 갱신합니다.
+  useEffect(() => {
+    if (document.visibilityState === 'visible') void loadCurrentPoint();
+  }, [loadCurrentPoint, pointRefreshKey]);
+
+  // 다른 화면이나 결제창을 다녀와 다시 보일 때 최신 잔액을 조회하도록 useEffect를 재실행합니다.
+  useEffect(() => {
+    const refreshWhenVisible = () => {
+      if (document.visibilityState === 'visible') {
+        setPointRefreshKey((key) => key + 1);
+      }
+    };
+    document.addEventListener('visibilitychange', refreshWhenVisible);
+    return () => document.removeEventListener('visibilitychange', refreshWhenVisible);
+  }, []);
   
   const handleSelectProduct = (product: Product) => {
     setSelectedProduct(product);
@@ -70,9 +122,13 @@ export const ProductSelector: React.FC<ProductSelectorProps> = ({ onSelectOrder 
       }
 
       // 3. 백엔드 사후 검증 호출
-      const verifyResponse = await axios.post(`${process.env.REACT_APP_BACK_END_URL}/api/point/pointAdd`, {
+      const verifyResponse = await axios.post(`${BACKEND_URL}/api/point/pointAdd`, {
             paymentId: response.paymentId,
-            payment: { ...selectedProduct, memberNum },
+            payment: {
+              porint: selectedProduct.porint,
+              price: selectedProduct.price,
+              memberNum,
+            },
             description:"포인트 결제",
             point_type:"PAYMENT"
       }, {
@@ -86,6 +142,7 @@ export const ProductSelector: React.FC<ProductSelectorProps> = ({ onSelectOrder 
       console.log(verifyResponse);
 
       if (verifyResponse.status >= 200 && verifyResponse.status < 300) {
+        setPointRefreshKey((key) => key + 1);
         alert('결제가 완료되었습니다!');
       } else {
         alert('결제 검증에 실패했습니다.');
@@ -103,6 +160,18 @@ export const ProductSelector: React.FC<ProductSelectorProps> = ({ onSelectOrder 
   return (
     <div className={`container ${styles.wrapper}`}>
       <div className={styles.card}>
+        <div className={styles.balancePanel} aria-live="polite">
+          <div>
+            <span className={styles.balanceLabel}>현재 보유 포인트</span>
+            {pointLoading ? (
+              <strong className={styles.balanceStatus}>잔액을 확인하고 있어요…</strong>
+            ) : pointError ? (
+              <span className={styles.balanceError} role="alert">{pointError}</span>
+            ) : (
+              <strong className={styles.balanceAmount}>{currentPoint?.toLocaleString('ko-KR')}P</strong>
+            )}
+          </div>
+        </div>
         <h2 className={styles.title}>상품 선택</h2>
 
         <div className={styles.grid}>
@@ -114,11 +183,13 @@ export const ProductSelector: React.FC<ProductSelectorProps> = ({ onSelectOrder 
                 type="button"
                 className={`${styles.productItem} ${isSelected ? styles.selected : ''}`}
                 onClick={() => handleSelectProduct(product)}
+                aria-pressed={isSelected}
               >
-                <span className={styles.productName}>{product.porint} point</span>
-                <span className={styles.productPrice}>
-                  {product.price.toLocaleString()}원
+                <span className={styles.productCopy}>
+                  <span className={styles.productName}>{product.porint.toLocaleString('ko-KR')} point</span>
+                  <span className={styles.productPrice}>{product.price.toLocaleString('ko-KR')}원</span>
                 </span>
+                <img className={styles.productPortrait} src={product.image} alt={product.portraitAlt} />
               </button>
             );
           })}
@@ -128,7 +199,7 @@ export const ProductSelector: React.FC<ProductSelectorProps> = ({ onSelectOrder 
           <div className={styles.selectedInfo}>
             {selectedProduct ? (
               <>
-                선택한 상품: <strong>{selectedProduct.porint}</strong> (
+                선택한 상품: <strong>{selectedProduct.porint.toLocaleString('ko-KR')}P</strong> (
                 {selectedProduct.price.toLocaleString()}원)
               </>
             ) : (
