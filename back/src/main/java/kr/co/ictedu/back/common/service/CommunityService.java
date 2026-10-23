@@ -118,4 +118,10 @@ public class CommunityService {
 	public int like(CommunityVO vo) {
 		return communityDao.like(vo);
 	}
+	
+	// 9. 게시글 조회수 증가
+	public int increaseViewCount(int id) {
+		return communityDao.increaseViewCount(id);
+	}
+	
 }

@@ -1,6 +1,9 @@
 package kr.co.ictedu.back.common.vo;
 
+import java.util.Date;
+
 import org.springframework.stereotype.Component;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -16,4 +19,6 @@ public class CommunityVO {
 	private String nickname; // 사용자 닉네임
 	private String category; // 커뮤니티 페이지 게시글 카테고리
 	private int likeCount; // 좋아요 개수
+	private Date communityDate; // 게시글 작성일
+	private int viewCount; // 게시글 조회수
 }
