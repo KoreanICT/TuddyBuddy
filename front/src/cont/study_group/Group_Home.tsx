@@ -5,6 +5,7 @@ import { Group_List } from './Group_List';
 import styles from './group.module.css';
 import { Group_Create } from './Group_Create';
 import { Group_InviteModal } from './Group_InviteModal';
+import { useNavigate } from 'react-router-dom';
 
 export const Group_Home: React.FC = () => {
     const [currentTab, setCurrentTab] = useState<'public' | 'my'>('public');
@@ -18,6 +19,12 @@ export const Group_Home: React.FC = () => {
     const openCreateModal = () => setIsModalOpen(true);
     const closeCreateModal = () => setIsModalOpen(false);
     const [selectedGroupNum, setSelectedGroupNum] = useState<number | null>(null);
+
+    const navigate = useNavigate();
+
+    const onSubmitSuccess = (groupNum: number) => {
+        navigate(`/group/detail/${groupNum}`);
+    }
 
     return (
         <div className="container">
@@ -48,7 +55,7 @@ export const Group_Home: React.FC = () => {
                     <div className={styles.study_modal_overlay} onClick={() => setIsModalOpen(false)}>
                         <div className={styles.study_modal_box} onClick={(e) => e.stopPropagation()}>
                             
-                            <Group_Create isOpen={isModalOpen} onClose={closeCreateModal} />
+                            <Group_Create isOpen={isModalOpen} onClose={closeCreateModal} onSubmitSuccess={onSubmitSuccess}/>
                         </div>
                     </div>
                 )}

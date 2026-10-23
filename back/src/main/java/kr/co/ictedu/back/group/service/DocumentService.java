@@ -39,11 +39,13 @@ public class DocumentService {
 		if (!Files.exists(uploadPath)) {
             Files.createDirectories(uploadPath);
         }
-		String originalName = file.getOriginalFilename();
+		String originalFileName = file.getOriginalFilename();
+		String originalName = "";
 		String extension = "";
 		
-		if (originalName != null && originalName.contains(".")) {
-			extension = originalName.substring(originalName.lastIndexOf(".")+1);
+		if (originalFileName != null && originalFileName.contains(".")) {
+			extension = originalFileName.substring(originalFileName.lastIndexOf(".")+1);
+			originalName = originalFileName.substring(0, originalFileName.lastIndexOf("."));
 		}
 		
 		String storedName = UUID.randomUUID().toString() + (extension.isEmpty() ? "" : "." + extension);
@@ -101,11 +103,13 @@ public class DocumentService {
 			
 			Files.createDirectories(uploadPath);
 			
-			String originalName = file.getOriginalFilename();
+			String originalFileName = file.getOriginalFilename();
+			String originalName = "";
 			String extension = "";
 			
-			if (originalName != null && originalName.contains(".")) {
-				extension = originalName.substring(originalName.lastIndexOf(".")+1);
+			if (originalFileName != null && originalFileName.contains(".")) {
+				extension = originalFileName.substring(originalFileName.lastIndexOf(".")+1);
+				originalName = originalFileName.substring(0, originalFileName.lastIndexOf("."));
 			}
 			String storedName = UUID.randomUUID().toString() + (extension.isEmpty() ? "" : "." + extension);
 			Path target = uploadPath.resolve(storedName);

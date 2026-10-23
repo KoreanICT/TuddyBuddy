@@ -115,8 +115,8 @@ export const Project_TDL: React.FC<GetGroupNum> = ({ groupNum }) => {
 
         try{
             setIsSaving(true);
-            await api.post(
-                `/detail/patchTdl/${editingTdl.tdl_num}`,
+            await api.patch(
+                `/detail/tdl/patchTdl/${editingTdl.tdl_num}`,
                 {
                     tdl_name, tdl_detail, repeat_type, due_at
                 }

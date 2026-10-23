@@ -154,7 +154,7 @@ const UserMenu: React.FC = () => {
             to="/auth/mypage"
             onClick={closeMenu}
           >
-            내정보
+            마이페이지
           </NavLink>
 
           <NavLink

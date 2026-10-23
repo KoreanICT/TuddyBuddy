@@ -21,6 +21,6 @@ public class ScheduleVO {
 	private String schedule_detail;
 	private LocalDateTime created_at;
 	private LocalDateTime updated_at;
-	private LocalDateTime start_at;
-	private LocalDateTime end_at;
+	private LocalDate start_at;
+	private LocalDate end_at;
 }

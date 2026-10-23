@@ -15,6 +15,7 @@ import kr.co.ictedu.back.group.vo.TdlVO;
 
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -54,7 +55,8 @@ public class TdlController {
 		service.updateTdl(tdlNum, tdlvo);
 		return ResponseEntity.ok("TDL 변경 완료.");
 	}
-	@Delete("/deleteTdl/{tdlNum}")
+	
+	@DeleteMapping("/deleteTdl/{tdlNum}")
 	public ResponseEntity<String> deleteTdl(@RequestHeader("memberNum") Long memberNum, @PathVariable("tdlNum") Long tdlNum) {
 		service.deleteTdl(tdlNum);
 		return ResponseEntity.ok("삭제 완료.");
