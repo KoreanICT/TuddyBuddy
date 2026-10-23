@@ -1,5 +1,5 @@
 // 최솔
-import React, { useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Category, Subject } from './types';
 import styles from './selfstudy.module.css';
 
@@ -64,6 +64,34 @@ export const QuizModal: React.FC<QuizModalProps> = ({
   pointCost,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [generationElapsedSeconds, setGenerationElapsedSeconds] = useState(0);
+  const estimatedMinutes = quizCount <= 3
+    ? '1~2'
+    : quizCount <= 6
+      ? '2~4'
+      : '3~6';
+  // 예상 범위의 상한을 남은 시간 카운트다운 기준으로 사용합니다.
+  const estimatedDurationSeconds = (quizCount <= 3 ? 2 : quizCount <= 6 ? 4 : 6) * 60;
+  const generationRemainingSeconds = Math.max(
+    0,
+    estimatedDurationSeconds - generationElapsedSeconds
+  );
+  const generationProgressPercent = Math.round(
+    (generationRemainingSeconds / estimatedDurationSeconds) * 100
+  );
+  const formattedRemainingTime = `${String(Math.floor(generationRemainingSeconds / 60)).padStart(2, '0')}:${String(generationRemainingSeconds % 60).padStart(2, '0')}`;
+
+  useEffect(() => {
+    if (!loading) {
+      setGenerationElapsedSeconds(0);
+      return;
+    }
+    const startedAt = Date.now();
+    const updateElapsed = () => setGenerationElapsedSeconds(Math.floor((Date.now() - startedAt) / 1000));
+    updateElapsed();
+    const intervalId = window.setInterval(updateElapsed, 1000);
+    return () => window.clearInterval(intervalId);
+  }, [loading]);
 
   if (!isOpen) {
     return null;
@@ -331,6 +359,29 @@ export const QuizModal: React.FC<QuizModalProps> = ({
           <p className={styles.pointCostNotice}>
             문제 생성과 저장이 완료되면 1회당 {pointCost.toLocaleString()}P가 차감됩니다.
           </p>
+          {loading && <div className={styles.generationProgress} role="status" aria-live="polite">
+            <div className={styles.generationProgressLabel}>
+              <strong>AI가 문제를 생성하고 있습니다</strong>
+              <span>
+                {generationRemainingSeconds > 0
+                  ? `남은 예상 시간 ${formattedRemainingTime}`
+                  : '예상 시간 초과 · 생성 중'}
+              </span>
+            </div>
+            <p>예상 소요 시간: 약 {estimatedMinutes}분</p>
+            <div
+              className={styles.generationProgressTrack}
+              role="progressbar"
+              aria-label="예상 남은 시간"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={generationProgressPercent}
+              aria-valuetext={generationRemainingSeconds > 0 ? `약 ${formattedRemainingTime} 남음` : '예상 시간 초과, 생성 중'}
+            >
+              <span style={{ width: `${generationProgressPercent}%` }} />
+            </div>
+            <small>남은 시간은 예상치이며, 실제 생성 시간은 문항 수와 서버 상태에 따라 달라질 수 있습니다.</small>
+          </div>}
         </div>
 
         {/* 모달 하단 */}

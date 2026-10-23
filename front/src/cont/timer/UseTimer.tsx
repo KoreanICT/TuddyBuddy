@@ -1,14 +1,81 @@
 
  //최솔
-import { useCallback, useEffect, useRef, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { TimerEngine } from './TimerEngine';
 import { TimerSession, TimerSummary } from './types';
 import { timerApi } from './timerApi';
 
+interface TimerContextValue {
+  timer: TimerControls;
+  quizTimerMinutes: number;
+  setQuizTimerMinutes: (minutes: number) => void;
+  quizTimerStarterRef: React.MutableRefObject<(() => Promise<boolean>) | null>;
+  startQuizTimer: () => Promise<boolean>;
+  quizReady: boolean;
+  quizStarted: boolean;
+  quizSubmitting: boolean;
+  quizCompleted: boolean;
+  onQuizStarted: () => void;
+}
+
+const SharedTimerContext = createContext<TimerContextValue | null>(null);
+
+export const SharedTimerProvider: React.FC<{
+  timer: TimerControls;
+  quizTimerMinutes: number;
+  setQuizTimerMinutes: (minutes: number) => void;
+  quizReady: boolean;
+  quizStarted: boolean;
+  quizSubmitting: boolean;
+  quizCompleted: boolean;
+  onQuizStarted: () => void;
+  children: React.ReactNode;
+}> = ({ timer, quizTimerMinutes, setQuizTimerMinutes, quizReady, quizStarted, quizSubmitting, quizCompleted, onQuizStarted, children }) => {
+  const quizTimerStarterRef = useRef<(() => Promise<boolean>) | null>(null);
+  const startQuizTimer = useCallback(async () => {
+    if (!quizTimerStarterRef.current) return false;
+    return quizTimerStarterRef.current();
+  }, []);
+  const value = useMemo(() => ({
+    timer,
+    quizTimerMinutes,
+    setQuizTimerMinutes,
+    quizTimerStarterRef,
+    startQuizTimer,
+    quizReady,
+    quizStarted,
+    quizSubmitting,
+    quizCompleted,
+    onQuizStarted,
+  }), [timer, quizTimerMinutes, setQuizTimerMinutes, startQuizTimer, quizReady, quizStarted, quizSubmitting, quizCompleted, onQuizStarted]);
+
+  return <SharedTimerContext.Provider value={value}>{children}</SharedTimerContext.Provider>;
+};
+
+export const useSharedTimerContext = () => useContext(SharedTimerContext);
+
 export function UseTimer() {
+  const shared = useSharedTimerContext();
+  const ownTimer = useTimerCore(!shared);
+
+  return useMemo(() => {
+    if (!shared) return ownTimer;
+    return {
+      ...shared.timer,
+      start: async (minutes: number, canRun?: () => boolean) => {
+        const started = await shared.timer.start(minutes, canRun);
+        if (started && shared.quizReady) shared.onQuizStarted();
+        return started;
+      },
+    };
+  }, [shared, ownTimer]);
+}
+
+export type TimerControls = ReturnType<typeof useTimerCore>;
+
+function useTimerCore(enabled: boolean) {
   const engine = useRef(new TimerEngine());
   const lock = useRef(false);
-  const minutesRef = useRef(25);
 
   const [snapshot, setSnapshot] = useState(
     () => engine.current.snapshot(Date.now())
@@ -36,6 +103,7 @@ export function UseTimer() {
 
   // 최초 실행 시 저장된 기록 조회
   useEffect(() => {
+    if (!enabled) return;
     void refresh().catch((e) => {
       setError(
         e instanceof Error
@@ -43,11 +111,11 @@ export function UseTimer() {
           : '학습 기록 조회 실패'
       );
     });
-  }, [refresh]);
+  }, [enabled, refresh]);
 
   // 타이머 실행 중 1초마다 갱신
   useEffect(() => {
-    if (snapshot.status !== 'running') {
+    if (!enabled || snapshot.status !== 'running') {
       return;
     }
 
@@ -65,10 +133,11 @@ export function UseTimer() {
       window.clearInterval(id);
       document.removeEventListener('visibilitychange', visible);
     };
-  }, [update, snapshot.status]);
+  }, [enabled, update, snapshot.status]);
 
   // 미저장 타이머가 있을 때 페이지 이탈 경고
   useEffect(() => {
+    if (!enabled) return;
     const warn = (e: BeforeUnloadEvent) => {
       const state = engine.current.snapshot(Date.now()).status;
 
@@ -87,7 +156,7 @@ export function UseTimer() {
     return () => {
       window.removeEventListener('beforeunload', warn);
     };
-  }, []);
+  }, [enabled]);
 
  // 타이머 시작
 const start = async (minutes: number, canRun: () => boolean = () => true) => {
@@ -124,7 +193,6 @@ const start = async (minutes: number, canRun: () => boolean = () => true) => {
     // 타이머 시간은 클라이언트에서 관리
     engine.current.start(minutes, Date.now());
 
-    minutesRef.current = minutes;
     update();
     return true;
 

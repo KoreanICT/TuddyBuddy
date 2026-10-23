@@ -1,6 +1,7 @@
 //최솔
-import { useState } from 'react';
+import { useState, type CSSProperties } from 'react';
 import { UseTimer } from './UseTimer';
+import { useSharedTimerContext } from './UseTimer';
 import styles from './timer.module.css';
 
 export type TimerControls = ReturnType<typeof UseTimer>;
@@ -9,24 +10,58 @@ interface TimerProps {
   timer?: TimerControls;
   startLabel?: string;
   embedded?: boolean;
+  quizMode?: boolean;
+  startDisabled?: boolean;
+  controlsDisabled?: boolean;
+  onStarted?: () => void;
+  quizStarted?: boolean;
+  quizCompleted?: boolean;
 }
 
 // 단독 사용도 유지하며, 집중 학습에서는 부모의 타이머 하나를 공유합니다.
 export default function Timer(props: TimerProps) {
+  const [localMinutes, setLocalMinutes] = useState(25);
+  const shared = useSharedTimerContext();
+  const minutes = shared?.quizTimerMinutes ?? localMinutes;
+  const setMinutes = shared?.setQuizTimerMinutes ?? setLocalMinutes;
+  if (shared && props.timer) {
+    shared.quizTimerStarterRef.current = async () => {
+      const timer = props.timer!;
+      const status = timer.getSnapshot().status;
+
+      // 일반 학습 타이머가 남아 있으면 먼저 저장한 뒤 문제 풀이 타이머를 시작합니다.
+      if (status === 'running' || status === 'paused' || status === 'pending') {
+        await timer.finish();
+        if (timer.getSnapshot().status !== 'saved') return false;
+      }
+
+      return timer.start(minutes);
+    };
+  }
+  const quizMode = props.quizMode ?? Boolean(
+    shared && (shared.quizReady || (shared.quizStarted && !shared.quizCompleted))
+  );
+  const quizStarted = props.quizStarted ?? shared?.quizStarted;
+  const quizCompleted = props.quizCompleted ?? shared?.quizCompleted;
+  const startDisabled = props.startDisabled ?? Boolean(
+    shared && ((shared.quizStarted && !shared.quizCompleted) || shared.quizSubmitting)
+  );
+  const controlsDisabled = props.controlsDisabled ?? Boolean(shared && shared.quizSubmitting);
+  const startLabel = shared?.quizReady ? '시험 시작' : props.startLabel;
   return props.timer
-    ? <TimerView timer={props.timer} startLabel={props.startLabel} embedded={props.embedded} />
-    : <StandaloneTimer startLabel={props.startLabel} />;
+    ? <TimerView timer={props.timer} minutes={minutes} setMinutes={setMinutes} startLabel={startLabel} embedded={props.embedded} quizMode={quizMode} startDisabled={startDisabled} controlsDisabled={controlsDisabled} onStarted={props.onStarted} quizStarted={quizStarted} quizCompleted={quizCompleted} />
+    : <StandaloneTimer startLabel={startLabel} />;
 }
 
 function StandaloneTimer({ startLabel }: { startLabel?: string }) {
   const timer = UseTimer();
-  return <TimerView timer={timer} startLabel={startLabel} />;
+  const [minutes, setMinutes] = useState(25);
+  return <TimerView timer={timer} minutes={minutes} setMinutes={setMinutes} startLabel={startLabel} />;
 }
 
-function TimerView({ timer, startLabel = '시작', embedded = false }: {
-  timer: TimerControls; startLabel?: string; embedded?: boolean;
+function TimerView({ timer, minutes, setMinutes, startLabel = '시작', embedded = false, quizMode = false, startDisabled = false, controlsDisabled = false, onStarted, quizStarted = false, quizCompleted = false }: {
+  timer: TimerControls; minutes: number; setMinutes: (minutes: number) => void; startLabel?: string; embedded?: boolean; quizMode?: boolean; startDisabled?: boolean; controlsDisabled?: boolean; onStarted?: () => void; quizStarted?: boolean; quizCompleted?: boolean;
 }) {
-  const [minutes, setMinutes] = useState(25);
   const [collapsed, setCollapsed] = useState(false);
 
   const {
@@ -69,33 +104,66 @@ function TimerView({ timer, startLabel = '시작', embedded = false }: {
     minutes <= 240;
 
   const totalSeconds = minutes * 60;
+  const showSavedQuizResult = quizMode && quizCompleted && status === 'saved';
+  const displayedElapsedSeconds = quizMode && !quizStarted ? 0 : elapsedSeconds;
+  const displayedRemainingSeconds = quizMode && !quizStarted ? totalSeconds : remainingSeconds;
+  const timeExpired =
+    status !== 'idle' &&
+    displayedRemainingSeconds === 0 &&
+    (status === 'paused' || status === 'pending' || status === 'saved');
+  const warningThresholdSeconds = totalSeconds * 0.3;
+  const urgency =
+    warningThresholdSeconds > 0 &&
+    displayedRemainingSeconds <= warningThresholdSeconds &&
+    (status !== 'saved' || timeExpired)
+      ? Math.min(
+          1,
+          Math.max(
+            0,
+            (warningThresholdSeconds - displayedRemainingSeconds) /
+              warningThresholdSeconds
+          )
+        )
+      : 0;
+  const urgencyStyle = {
+    '--timer-urgency': `${Math.round(urgency * 100)}%`,
+  } as CSSProperties & { '--timer-urgency': string };
 
   const progress =
     totalSeconds > 0
       ? Math.min(
           100,
-          Math.max(0, (elapsedSeconds / totalSeconds) * 100)
+          Math.max(0, (displayedElapsedSeconds / totalSeconds) * 100)
         )
       : 0;
 
   const statusText: Record<string, string> = {
     idle: '대기 중',
-    running: '학습 중',
+    running: quizMode ? '문제 풀이 중' : '학습 중',
     paused: '일시정지',
     pending: '저장 대기',
     saved: '저장 완료',
   };
 
+  const startTimer = async () => {
+    const started = await start(minutes);
+    if (started) onStarted?.();
+  };
+
   return (
-    <section className={`${styles.card} ${embedded ? styles.embedded : ''}`}>
+    <section className={`${styles.card} ${embedded ? styles.embedded : ''}`} style={urgencyStyle}>
       <div className={styles.header}>
         <div className={styles.heading}>
           <span className={styles.title}>
-            학습 타이머
+            {quizMode ? '문제 풀이 타이머' : '학습 타이머'}
           </span>
 
-          <span className={styles.badge}>
-            {statusText[status] ?? status}
+          <span className={`${styles.badge} ${timeExpired ? styles.expiredBadge : ''}`}>
+            {timeExpired
+              ? '시간 종료'
+              : quizMode && !quizStarted && status === 'saved'
+                ? '대기 중'
+                : (statusText[status] ?? status)}
           </span>
         </div>
 
@@ -112,14 +180,16 @@ function TimerView({ timer, startLabel = '시작', embedded = false }: {
       {collapsed ? (
         <div className={styles.compact}>
           <span>
-            {isActive ? '남은 시간' : '누적 학습 시간'}
+            {quizMode
+              ? (showSavedQuizResult ? '저장된 풀이 시간' : '남은 풀이 시간')
+              : (isActive ? '남은 시간' : '누적 학습 시간')}
           </span>
 
           <strong>
             {formatTime(
-              isActive
-                ? remainingSeconds
-                : summary.totalTimeSeconds
+              quizMode
+                ? (showSavedQuizResult ? displayedElapsedSeconds : displayedRemainingSeconds)
+                : (isActive ? remainingSeconds : summary.totalTimeSeconds)
             )}
           </strong>
         </div>
@@ -127,35 +197,37 @@ function TimerView({ timer, startLabel = '시작', embedded = false }: {
         <>
           <div className={styles.clock}>
             <span className={styles.caption}>
-              남은 학습 시간
+              {quizMode
+                ? (showSavedQuizResult ? '저장된 문제 풀이 시간' : '남은 문제 풀이 시간')
+                : '남은 학습 시간'}
             </span>
 
-            <strong className={styles.time}>
-              {formatTime(remainingSeconds)}
+            <strong className={`${styles.time} ${timeExpired ? styles.timeExpired : ''}`}>
+              {formatTime(quizMode && showSavedQuizResult ? displayedElapsedSeconds : displayedRemainingSeconds)}
             </strong>
 
             <span className={styles.elapsed}>
-              현재 학습 시간{' '}
-              {formatTime(elapsedSeconds)}
+            {quizMode ? '현재 풀이 시간 ' : '현재 학습 시간 '}
+              {formatTime(displayedElapsedSeconds)}
             </span>
           </div>
 
           <div
-            className={styles.progressTrack}
+            className={`${styles.progressTrack} ${timeExpired ? styles.progressTrackExpired : ''}`}
             role="progressbar"
-            aria-label="학습 진행률"
+            aria-label={quizMode ? '문제 풀이 진행률' : '학습 진행률'}
             aria-valuemin={0}
             aria-valuemax={100}
             aria-valuenow={Math.round(progress)}
           >
             <div
-              className={styles.progressFill}
+              className={`${styles.progressFill} ${timeExpired ? styles.progressFillExpired : ''}`}
               style={{ width: `${progress}%` }}
             />
           </div>
 
           <div className={styles.setting}>
-            <span>학습 시간 설정</span>
+            <span>{quizMode ? '풀이 제한 시간 설정' : '학습 시간 설정'}</span>
 
             <div className={styles.inputGroup}>
               <input
@@ -170,7 +242,7 @@ function TimerView({ timer, startLabel = '시작', embedded = false }: {
                 onChange={(e) =>
                   setMinutes(Number(e.target.value))
                 }
-                aria-label="학습 시간(분)"
+                aria-label={quizMode ? '문제 풀이 제한 시간(분)' : '학습 시간(분)'}
               />
 
               <span>분</span>
@@ -188,8 +260,8 @@ function TimerView({ timer, startLabel = '시작', embedded = false }: {
               <button
                 type="button"
                 className={styles.primaryButton}
-                onClick={() => void start(minutes)}
-                disabled={busy || !isValidMinutes}
+                onClick={() => void startTimer()}
+                disabled={busy || startDisabled || !isValidMinutes}
               >
                 {startLabel}
               </button>
@@ -200,7 +272,7 @@ function TimerView({ timer, startLabel = '시작', embedded = false }: {
                 type="button"
                 className={styles.secondaryButton}
                 onClick={pause}
-                disabled={busy}
+                disabled={busy || controlsDisabled}
               >
                 일시정지
               </button>
@@ -212,18 +284,18 @@ function TimerView({ timer, startLabel = '시작', embedded = false }: {
                   type="button"
                   className={styles.primaryButton}
                   onClick={resume}
-                  disabled={busy}
+                  disabled={busy || controlsDisabled}
                 >
                   재개
                 </button>
               )}
 
-            {isActive && (
+            {isActive && (!quizMode || status === 'pending') && (
               <button
                 type="button"
                 className={styles.secondaryButton}
                 onClick={() => void finish()}
-                disabled={busy}
+                disabled={busy || (!quizMode && controlsDisabled)}
               >
                 {status === 'pending'
                   ? '저장 재시도'
@@ -232,20 +304,20 @@ function TimerView({ timer, startLabel = '시작', embedded = false }: {
             )}
           </div>
 
-          <p className={styles.help}>
+          {!quizMode && <p className={styles.help}>
             학습 중에는 타이머를 일시정지하거나
             종료할 수 있습니다.
-          </p>
+          </p>}
 
-          <div className={styles.total}>
+          {!quizMode && <div className={styles.total}>
             <span>누적 학습 시간</span>
 
             <strong>
               {formatTime(summary.totalTimeSeconds)}
             </strong>
-          </div>
+          </div>}
 
-          <div className={styles.history}>
+          {!quizMode && <div className={styles.history}>
             <details>
               <summary>학습 기록 보기</summary>
 
@@ -284,7 +356,7 @@ function TimerView({ timer, startLabel = '시작', embedded = false }: {
                 기록 새로고침
               </button>
             </details>
-          </div>
+          </div>}
 
           {error && (
             <p className={styles.error} role="alert">

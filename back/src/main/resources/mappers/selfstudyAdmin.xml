@@ -30,6 +30,14 @@
 		WHERE category_id = #{categoryId}
 	</update>
 
+	<select id="countSubjectsByCategory" resultType="int">
+		SELECT COUNT(*) FROM subjects WHERE category_id = #{categoryId}
+	</select>
+
+	<delete id="deleteCategory">
+		DELETE FROM categories WHERE category_id = #{categoryId} AND category_status = 'N'
+	</delete>
+
 	<!-- 관리자 전체 과목 조회 -->
 	<select id="selectAllSubjects" resultType="subjectVO">
 		SELECT subject_id, category_id, subject_name, subject_status, usage_count,created_at

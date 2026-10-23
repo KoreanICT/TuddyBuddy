@@ -45,6 +45,7 @@ export interface SelfStudyResult {
   quizSessionId: number;
   memberNum?: number;
   selfstudyTotalScore: number;
+  quizTimeSeconds?: number;
   submittedAt?: string;
 }
 

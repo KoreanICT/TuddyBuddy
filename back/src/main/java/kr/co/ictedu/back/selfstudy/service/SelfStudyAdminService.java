@@ -75,6 +75,22 @@ public class SelfStudyAdminService {
         }
     }
 
+    // 과목이 남아 있는 카테고리는 기존 학습 이력 보존을 위해 완전 삭제하지 않습니다.
+    @Transactional
+    public void permanentlyDeleteCategory(Long categoryId) {
+        if (categoryId == null || categoryId <= 0) {
+            throw new IllegalArgumentException("올바른 카테고리 번호가 필요합니다.");
+        }
+        if (selfStudyAdminDao.countSubjectsByCategory(categoryId) > 0) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "이 카테고리에 과목이 있어 완전 삭제할 수 없습니다. 과목과 학습 기록을 보존하려면 비활성 상태로 두세요.");
+        }
+        if (selfStudyAdminDao.deleteCategory(categoryId) != 1) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                    "비활성 카테고리를 찾을 수 없습니다.");
+        }
+    }
+
     // 과목 전체 조회 (비활성 포함)
     public List<SubjectVO> getSubjects() {
         return selfStudyAdminDao.selectAllSubjects();
