@@ -17,6 +17,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
+//WebSocket 요청에 전달된 로그인 사용자 정보를 확인합니다.
+import java.security.Principal;
+
 import kr.co.ictedu.back.activity.service.ActivityLogService;
 import kr.co.ictedu.back.activity.vo.ActivityLogVO;
 import kr.co.ictedu.back.member.dao.MemberDAO;
@@ -209,6 +212,7 @@ public class ActivityLogAspect {
 			case "friendRequestList" -> "FRIEND_RECEIVED_LIST";
 			case "friendResponseList" -> "FRIEND_SENT_LIST";
 			case "friendDetail" -> "FRIEND_DETAIL_VIEW";
+			case "friendCancel" -> "FRIEND_REQUEST_CANCEL";
 			default -> null;
 		};
 		return recordSelectedActivity(jp, "FRIEND", action);
@@ -233,6 +237,7 @@ public class ActivityLogAspect {
 			case "reportReplyDetail" -> "REPORT_REPLY_VIEW";
 			case "reportReplyUpdate" -> "REPORT_REPLY_UPDATE";
 			case "reportReplyDelete" -> "REPORT_REPLY_DELETE";
+			case "reportStatistics" -> "REPORT_STATISTICS_VIEW";
 			default -> null;
 		};
 		return recordSelectedActivity(jp, "REPORT", action);
@@ -323,6 +328,9 @@ public class ActivityLogAspect {
 	        case "writePost" -> "COMMUNITY_POST_CREATE";
 	        case "posts" -> "COMMUNITY_POST_LIST";
 	        case "myPosts" -> "COMMUNITY_MY_POST_LIST";
+	        case "updatePost" -> "COMMUNITY_POST_UPDATE";
+	        case "deletePost" -> "COMMUNITY_POST_DELETE";
+	        case "like" -> "COMMUNITY_POST_LIKE";
 			default -> null;
 		};
 		return recordSelectedActivity(jp, "COMMUNITY", action);
@@ -386,6 +394,71 @@ public class ActivityLogAspect {
 	public Object dashboardActivities(ProceedingJoinPoint jp) throws Throwable {
 		return recordActivity(jp, "ADMIN", "ADMIN_DASHBOARD_VIEW");
 	}
+
+	// =====================================================
+	// 21. 커뮤니티 - 댓글
+	// =====================================================
+	@Around("execution(* kr.co.ictedu.back.common.controller.CommentController.*(..))")
+	public Object communityCommentActivities(ProceedingJoinPoint jp) throws Throwable {
+		String action = switch (jp.getSignature().getName()) {
+        case "getComments" -> "COMMUNITY_COMMENT_LIST";
+        case "createComment" -> "COMMUNITY_COMMENT_CREATE";
+        case "updateComment" -> "COMMUNITY_COMMENT_UPDATE";
+        case "deleteComment" -> "COMMUNITY_COMMENT_DELETE";
+			default -> null;
+		};
+		return recordSelectedActivity(jp, "COMMUNITY", action);
+	}
+
+	// =====================================================
+	// 22. 그룹 개요
+	// =====================================================
+	@Around("execution(* kr.co.ictedu.back.group.controller.OverviewController.getUpcomingSchedules(..))")
+	public Object groupUpcomingScheduleActivity(ProceedingJoinPoint jp) throws Throwable {
+
+		return recordSelectedActivity(jp, "GROUP", "GROUP_UPCOMING_SCHEDULE_VIEW");
+	}	
+
+	// =====================================================
+	// 23. 그룹 채팅 이전 대화
+	// 그룹 채팅의 이전 메시지를 조회하는 HTTP 요청입니다.
+	// 내 닉네임 조회는 보조 요청이므로 기록하지 않습니다.
+	// =====================================================
+	@Around("execution(* kr.co.ictedu.back.groupchat.controller.GroupChatRestController.getHistory(..))")
+	public Object groupChatHistoryActivity(ProceedingJoinPoint jp) throws Throwable {
+
+		return recordSelectedActivity(jp, "GROUP", "GROUP_CHAT_HISTORY_VIEW");
+	}		
+	
+	// =====================================================
+	// 24. 그룹 채팅 메시지 전송 처리
+	// =====================================================
+	@Around("execution(* kr.co.ictedu.back.groupchat.controller.GroupChatController.handleChatMessage(..))")
+	public Object groupChatMessageActivity(ProceedingJoinPoint jp) throws Throwable {
+		
+		// WebSocket은 Controller에 전달된 Principal로 회원을 확인합니다.
+		Long memberNum = findGroupChatMemberNum(jp);
+		
+		Object response;
+		
+		try {
+			// 기존 채팅 Controller와 Service를 실행합니다.
+			// Service가 메시지 저장을 완료하면 정상 반환합니다.
+			response = jp.proceed();
+		} catch (Throwable e) {
+			// 채팅 처리에서 예외가 발생하면 실패 로그를 요청합니다.
+			// 기존 saveLog()가 로그 전달 오류를 처리합니다.
+			saveLog(memberNum, "GROUP", "GROUP_CHAT_MESSAGE_SEND", "FAILURE");
+			// 기존 채팅의 예외 처리는 그대로 유지합니다.
+			throw e;
+		}
+		
+		// 메시지 저장 Service가 정상 반환한 경우 성공을 기록합니다.
+		saveLog(memberNum, "GROUP", "GROUP_CHAT_MESSAGE_SEND", "SUCCESS");
+		// 기존 채팅 메시지를 그대로 반환합니다.
+		return response;
+	}	
+	
 	
 	// =====================================================
 	// 공통 처리 1: 기록 대상 여부 확인
@@ -448,7 +521,29 @@ public class ActivityLogAspect {
 	}
 
 	// =====================================================
-	// 공통 처리 4: VO 생성 및 비동기 저장 요청
+	// 공통 처리 4: 그룹 채팅용 회원 번호 확인
+	// =====================================================
+	private Long findGroupChatMemberNum(ProceedingJoinPoint jp) {
+		try {
+			// Controller에 전달된 인수 중 Principal을 찾습니다.
+			for (Object argument: jp.getArgs()) {
+				if (argument instanceof Principal principal) {
+					// 현재 프로젝트의 Principal 이름은 회원 이메일입니다.
+					MemberVO member = memberDAO.getMemberByEmail(principal.getName());
+					return member == null ? null : member.getMember_num();
+				}
+			}
+		} catch (Exception e) {
+			// 로그용 회원 조회 실패가 채팅 기능을 막지 않도록 합니다.
+			log.warn("그룹 채팅 활동 로그 회원 확인 실패");
+		}
+		// 회원을 확인할 수 없으면 기존 saveLog()에서 저장을 생략합니다.
+		return null;
+	}
+
+	
+	// =====================================================
+	// 공통 처리 5: VO 생성 및 비동기 저장 요청
 	// =====================================================
 	private void saveLog(Long memberNum, String category, String action, String result) {
 		try {
