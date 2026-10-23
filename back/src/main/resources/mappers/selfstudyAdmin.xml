@@ -58,7 +58,7 @@
 	</update>
 
 	<!-- 선택 기간 셀프스터디 이용 요약 -->
-	<select id="selectUsageSummary" resultType="kr.co.ictedu.back.selfstudy.vo.SelfStudyUsageVO$Summary">
+	<select id="selectUsageSummary" resultType="selfStudyUsageSummaryVO">
 		SELECT
 			(SELECT COUNT(*) FROM quiz_sessions
 			 WHERE created_at &gt;= #{fromDate} AND created_at &lt; #{toDateExclusive}) AS generated_count,
@@ -72,7 +72,7 @@
 	</select>
 
 	<!-- 날짜별 문제 생성 및 결과 제출 추이 -->
-	<select id="selectDailyUsageTrend" resultType="kr.co.ictedu.back.selfstudy.vo.SelfStudyUsageVO$DailyTrend">
+	<select id="selectDailyUsageTrend" resultType="selfStudyDailyTrendVO">
 		SELECT
 			TO_CHAR(activity_date, 'YYYY-MM-DD') AS usage_date,
 			SUM(generated_count) AS generated_count,
@@ -93,7 +93,7 @@
 	</select>
 
 	<!-- 카테고리별 문제 생성 순위 -->
-	<select id="selectCategoryUsageRanking" resultType="kr.co.ictedu.back.selfstudy.vo.SelfStudyUsageVO$CategoryRanking">
+	<select id="selectCategoryUsageRanking" resultType="selfStudyCategoryRankingVO">
 		SELECT c.category_id, c.category_name, COUNT(*) AS generated_count
 		FROM quiz_sessions qs
 		JOIN subjects s ON s.subject_id = qs.subject_id
@@ -104,7 +104,7 @@
 	</select>
 
 	<!-- 과목별 문제 생성 순위 -->
-	<select id="selectSubjectUsageRanking" resultType="kr.co.ictedu.back.selfstudy.vo.SelfStudyUsageVO$SubjectRanking">
+	<select id="selectSubjectUsageRanking" resultType="selfStudySubjectRankingVO">
 		SELECT s.subject_id, s.subject_name, c.category_name, COUNT(*) AS generated_count
 		FROM quiz_sessions qs
 		JOIN subjects s ON s.subject_id = qs.subject_id

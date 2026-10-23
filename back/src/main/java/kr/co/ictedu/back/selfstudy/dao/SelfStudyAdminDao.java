@@ -7,7 +7,10 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import kr.co.ictedu.back.selfstudy.vo.CategoryVO;
-import kr.co.ictedu.back.selfstudy.vo.SelfStudyUsageVO;
+import kr.co.ictedu.back.selfstudy.vo.SelfStudyCategoryRankingVO;
+import kr.co.ictedu.back.selfstudy.vo.SelfStudyDailyTrendVO;
+import kr.co.ictedu.back.selfstudy.vo.SelfStudySubjectRankingVO;
+import kr.co.ictedu.back.selfstudy.vo.SelfStudyUsageSummaryVO;
 import kr.co.ictedu.back.selfstudy.vo.SubjectVO;
 
 @Mapper
@@ -33,19 +36,19 @@ public interface SelfStudyAdminDao {
             @Param("subjectId") Long subjectId,
             @Param("status") String status);
 
-    SelfStudyUsageVO.Summary selectUsageSummary(
+    SelfStudyUsageSummaryVO selectUsageSummary(
             @Param("fromDate") java.time.LocalDateTime fromDate,
             @Param("toDateExclusive") java.time.LocalDateTime toDateExclusive);
 
-    List<SelfStudyUsageVO.DailyTrend> selectDailyUsageTrend(
+    List<SelfStudyDailyTrendVO> selectDailyUsageTrend(
             @Param("fromDate") java.time.LocalDateTime fromDate,
             @Param("toDateExclusive") java.time.LocalDateTime toDateExclusive);
 
-    List<SelfStudyUsageVO.CategoryRanking> selectCategoryUsageRanking(
+    List<SelfStudyCategoryRankingVO> selectCategoryUsageRanking(
             @Param("fromDate") java.time.LocalDateTime fromDate,
             @Param("toDateExclusive") java.time.LocalDateTime toDateExclusive);
 
-    List<SelfStudyUsageVO.SubjectRanking> selectSubjectUsageRanking(
+    List<SelfStudySubjectRankingVO> selectSubjectUsageRanking(
             @Param("fromDate") java.time.LocalDateTime fromDate,
             @Param("toDateExclusive") java.time.LocalDateTime toDateExclusive);
 }

@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1120" viewBox="0 0 1600 1120" role="img" aria-labelledby="title desc">
+  <title id="title">TuddyBuddy AI 퀴즈 생성 기능 아키텍처</title>
+  <desc id="desc">사용자가 이미지를 올리면 Spring이 요청과 과목 카탈로그를 준비하고 퀴즈 AI FastAPI가 자료 분석, RAG, Gemini 생성, Groq 검증을 수행한다. Spring은 검증된 결과와 이미지를 저장하고 포인트를 처리한다.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f8fbff"/><stop offset="1" stop-color="#edf5ff"/></linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%"><feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#15345b" flood-opacity=".09"/></filter>
+    <marker id="blueArrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="#2876da"/></marker>
+    <marker id="greenArrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="#2e9b5f"/></marker>
+    <marker id="purpleArrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="#7057bd"/></marker>
+    <style>
+      text{font-family:"Pretendard","Noto Sans KR","Malgun Gothic",sans-serif;fill:#132544}.title{font-size:42px;font-weight:800;letter-spacing:-1px}.sub{font-size:19px;fill:#60718b}.head{font-size:21px;font-weight:800}.label{font-size:16px;font-weight:750}.body{font-size:13px;fill:#4e6078}.small{font-size:12px;fill:#60718b}.tiny{font-size:11px;fill:#60718b}.blue{fill:#1456b8}.greenText{fill:#167343}.purpleText{fill:#6045aa}.amberText{fill:#8a5b00}.card{fill:#fff;stroke:#cbd9eb;stroke-width:1.4}.blueCard{fill:#f4f9ff;stroke:#b9d4f5;stroke-width:1.4}.greenCard{fill:#f4fcf7;stroke:#b5e0c4;stroke-width:1.4}.purpleCard{fill:#f8f6ff;stroke:#d0c4f2;stroke-width:1.4}.amberCard{fill:#fff9ec;stroke:#efd99d;stroke-width:1.4}
+    </style>
+  </defs>
+  <rect width="1600" height="1120" fill="url(#bg)"/><circle cx="1510" cy="8" r="145" fill="#dcecff" opacity=".3"/>
+  <text x="52" y="68" class="title"><tspan fill="#1456b8">TuddyBuddy</tspan> AI 퀴즈 생성</text>
+  <text x="55" y="105" class="sub">이미지 자료에서 문제를 만들고 AI가 정답과 해설을 검증한 뒤 학습 세션으로 저장합니다.</text>
+  <rect x="1340" y="45" width="210" height="38" rx="19" fill="#f0ebff"/><text x="1445" y="70" text-anchor="middle" class="small purpleText" style="font-weight:700">동기 multipart 흐름</text>
+
+  <!-- Input and Spring -->
+  <rect x="48" y="140" width="1504" height="180" rx="20" class="card" filter="url(#shadow)"/>
+  <text x="76" y="177" class="head">① 사용자의 생성 요청 · Spring 사전 검증</text>
+  <rect x="82" y="201" width="250" height="86" rx="14" class="blueCard"/>
+  <text x="207" y="231" text-anchor="middle" class="label">React SelfStudy</text><text x="207" y="255" text-anchor="middle" class="body">이미지 · 유형 · 난이도</text><text x="207" y="276" text-anchor="middle" class="small">문항 수 · 선택 과목 · 추가 요청</text>
+  <path d="M340 244H393" stroke="#2876da" stroke-width="3" marker-end="url(#blueArrow)"/><text x="366" y="231" text-anchor="middle" class="tiny blue">multipart</text>
+  <rect x="403" y="194" width="510" height="100" rx="15" fill="#effbf3" stroke="#8dcba3" stroke-width="1.5"/>
+  <text x="658" y="226" text-anchor="middle" class="label greenText">Spring SelfStudyController · Service</text><text x="658" y="252" text-anchor="middle" class="body">로그인 회원 확인 · 파일 형식·10MB 제한</text><text x="658" y="276" text-anchor="middle" class="small">요청 필드 검증 · 과목 카탈로그 조회 · 이미지 바이트 전달</text>
+  <path d="M921 244H974" stroke="#2876da" stroke-width="3" marker-end="url(#blueArrow)"/><text x="947" y="231" text-anchor="middle" class="tiny blue">HTTP multipart</text>
+  <rect x="984" y="201" width="270" height="86" rx="14" class="purpleCard"/>
+  <text x="1119" y="231" text-anchor="middle" class="label purpleText">Spring QuizAiClient</text><text x="1119" y="255" text-anchor="middle" class="body">AI API 토큰 · 타임아웃</text><text x="1119" y="276" text-anchor="middle" class="small">POST /api/ai/generate-quiz</text>
+  <rect x="1282" y="201" width="230" height="86" rx="14" class="card"/>
+  <text x="1397" y="231" text-anchor="middle" class="label">입력 조건</text><text x="1397" y="255" text-anchor="middle" class="body">JPG · PNG · WebP</text><text x="1397" y="276" text-anchor="middle" class="small">객관식 · OX · 단답형</text>
+
+  <!-- AI pipeline -->
+  <rect x="48" y="342" width="1504" height="465" rx="20" class="card" filter="url(#shadow)"/>
+  <rect x="48" y="342" width="9" height="465" rx="4" fill="#7057bd"/>
+  <text x="76" y="380" class="head">② 퀴즈 AI FastAPI 내부 파이프라인</text>
+  <rect x="1260" y="358" width="260" height="32" rx="16" fill="#f0ebff"/><text x="1390" y="379" text-anchor="middle" class="small purpleText" style="font-weight:700">자료 분석 → 생성 → 검증</text>
+  <rect x="82" y="415" width="300" height="130" rx="14" class="purpleCard"/>
+  <text x="232" y="446" text-anchor="middle" class="label purpleText">① 이미지 자료 분석</text><text x="232" y="474" text-anchor="middle" class="body">텍스트·주제·핵심 내용 추출</text><text x="232" y="498" text-anchor="middle" class="body">언어·분류 정보 구성</text><text x="232" y="524" text-anchor="middle" class="small">StudyMaterial 생성</text>
+  <path d="M390 480H430" stroke="#7057bd" stroke-width="2.8" marker-end="url(#purpleArrow)"/>
+  <rect x="440" y="415" width="300" height="130" rx="14" class="blueCard"/>
+  <text x="590" y="446" text-anchor="middle" class="label blue">② 요청별 RAG 검색</text><text x="590" y="474" text-anchor="middle" class="body">학습 청크 임베딩·유사도 비교</text><text x="590" y="498" text-anchor="middle" class="body">문항에 쓸 근거 청크 선택</text><text x="590" y="524" text-anchor="middle" class="small">검색된 학습 자료로 생성 범위 제한</text>
+  <path d="M748 480H788" stroke="#7057bd" stroke-width="2.8" marker-end="url(#purpleArrow)"/>
+  <rect x="798" y="415" width="300" height="130" rx="14" class="amberCard"/>
+  <text x="948" y="446" text-anchor="middle" class="label amberText">③ Gemini 문제 생성</text><text x="948" y="474" text-anchor="middle" class="body">문제 · 보기 · 정답 · 해설</text><text x="948" y="498" text-anchor="middle" class="body">선택한 유형·난이도·개수 반영</text><text x="948" y="524" text-anchor="middle" class="small">구조화 JSON 응답</text>
+  <path d="M1106 480H1146" stroke="#7057bd" stroke-width="2.8" marker-end="url(#purpleArrow)"/>
+  <rect x="1156" y="415" width="350" height="130" rx="14" class="greenCard"/>
+  <text x="1331" y="446" text-anchor="middle" class="label greenText">④ 결정적 검증</text><text x="1331" y="474" text-anchor="middle" class="body">스키마 · 문항 수 · 출처 근거 확인</text><text x="1331" y="498" text-anchor="middle" class="body">원본 자료와 문제 유사도 검사</text><text x="1331" y="524" text-anchor="middle" class="small">통과하지 못한 후보는 검증 단계로 이동</text>
+
+  <rect x="82" y="581" width="425" height="142" rx="15" class="greenCard"/>
+  <text x="294" y="614" text-anchor="middle" class="label greenText">⑤ Groq 독립 교차검증</text><text x="294" y="644" text-anchor="middle" class="body">생성 정답을 가리고 독립 풀이 요청</text><text x="294" y="670" text-anchor="middle" class="body">정답 근거·정답 일치·해설 사실성 확인</text><text x="294" y="699" text-anchor="middle" class="small">문항별 통과 / 실패 이유 반환</text>
+  <path d="M515 652H562" stroke="#2e9b5f" stroke-width="2.8" marker-end="url(#greenArrow)"/><text x="538" y="640" text-anchor="middle" class="tiny greenText">실패</text>
+  <rect x="572" y="581" width="388" height="142" rx="15" class="purpleCard"/>
+  <text x="766" y="614" text-anchor="middle" class="label purpleText">실패 문항 재생성</text><text x="766" y="644" text-anchor="middle" class="body">검증 실패 이유를 생성 단계에 전달</text><text x="766" y="670" text-anchor="middle" class="body">재생성 후 형식·유사도·AI 검증 반복</text><text x="766" y="699" text-anchor="middle" class="small">요청한 문항 수가 모두 승인되어야 반환</text>
+  <path d="M1455 550V570H766V574" fill="none" stroke="#7057bd" stroke-width="2.1" stroke-dasharray="6 5" marker-end="url(#purpleArrow)"/><text x="1175" y="567" class="tiny purpleText">형식·유사도 실패</text>
+  <path d="M766 730 C766 773 948 773 948 552" fill="none" stroke="#7057bd" stroke-width="2.1" stroke-dasharray="6 5" marker-end="url(#purpleArrow)"/>
+  <path d="M1331 550V566H294V574" fill="none" stroke="#2e9b5f" stroke-width="2.4" marker-end="url(#greenArrow)"/><text x="1080" y="561" class="tiny greenText">형식·유사도 통과 → 독립 검증</text>
+  <rect x="1010" y="581" width="496" height="142" rx="15" fill="#f7f9fc" stroke="#d7dfeb" stroke-width="1.4"/>
+  <text x="1258" y="614" text-anchor="middle" class="label">반환 데이터</text><text x="1258" y="644" text-anchor="middle" class="body">categoryName · subjectName · quizzes[]</text><text x="1258" y="670" text-anchor="middle" class="body">문제 · 보기 · 정답 · 해설</text><text x="1258" y="699" text-anchor="middle" class="small">Python 내부용 출처 청크 ID는 응답에서 제외</text>
+  <path d="M507 652V746H1258V730" fill="none" stroke="#2e9b5f" stroke-width="2.4" marker-end="url(#greenArrow)"/><text x="870" y="741" text-anchor="middle" class="tiny greenText">Groq 정답·해설 검증 통과</text>
+
+  <!-- Persistence -->
+  <rect x="48" y="829" width="1504" height="204" rx="20" class="card" filter="url(#shadow)"/>
+  <text x="76" y="866" class="head">③ Spring 최종 검증 · 파일 / DB 저장 · 화면 응답</text>
+  <rect x="82" y="891" width="320" height="103" rx="14" class="purpleCard"/>
+  <text x="242" y="921" text-anchor="middle" class="label purpleText">AI 응답 재검증</text><text x="242" y="948" text-anchor="middle" class="body">문항 수 · 필수 필드 · 보기와 정답</text><text x="242" y="974" text-anchor="middle" class="small">실패하면 저장 단계로 가지 않음</text>
+  <path d="M410 943H450" stroke="#2876da" stroke-width="2.8" marker-end="url(#blueArrow)"/>
+  <rect x="460" y="891" width="330" height="103" rx="14" class="blueCard"/>
+  <text x="625" y="921" text-anchor="middle" class="label blue">이미지 파일 저장</text><text x="625" y="948" text-anchor="middle" class="body">검증 성공 후 DB 트랜잭션 전에 보관</text><text x="625" y="974" text-anchor="middle" class="small">퀴즈 세션에 이미지 경로 연결</text>
+  <path d="M798 943H838" stroke="#2e9b5f" stroke-width="2.8" marker-end="url(#greenArrow)"/>
+  <rect x="848" y="891" width="380" height="103" rx="14" class="greenCard"/>
+  <text x="1038" y="921" text-anchor="middle" class="label greenText">DB 트랜잭션</text><text x="1038" y="948" text-anchor="middle" class="body">포인트 차감 · 분류 저장 · 세션/문제 저장</text><text x="1038" y="974" text-anchor="middle" class="small">DB 저장 오류 시 트랜잭션 롤백</text>
+  <path d="M1236 943H1276" stroke="#2e9b5f" stroke-width="2.8" marker-end="url(#greenArrow)"/>
+  <rect x="1286" y="891" width="226" height="103" rx="14" class="blueCard"/>
+  <text x="1399" y="921" text-anchor="middle" class="label">React SelfStudy</text><text x="1399" y="948" text-anchor="middle" class="body">세션 ID + 문제 목록</text><text x="1399" y="974" text-anchor="middle" class="small">퀴즈 풀이 화면 표시</text>
+
+  <rect x="48" y="1050" width="1504" height="42" rx="13" fill="#fff4f1" stroke="#f0c7bd"/>
+  <text x="72" y="1077" class="small" fill="#994a3a"><tspan style="font-weight:750">실패 처리:</tspan> AI·응답 검증 실패는 저장 전에 중단됩니다. DB 오류 시 DB·포인트는 롤백되며, 먼저 저장한 이미지 파일은 별도 정리가 필요할 수 있습니다.</text>
+</svg>
