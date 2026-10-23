@@ -397,7 +397,7 @@ const MyPageContent: React.FC<{ sessionKey: string }> = ({ sessionKey }) => {
                         }
                         onClick={() => setActiveMenu('example3')}
                     >
-                        나의 스터디 그룹 - 중령오진석
+                        나의 스터디 그룹
                     </button>
                 </aside>
 

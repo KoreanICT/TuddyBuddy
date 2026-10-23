@@ -47,8 +47,7 @@ public class MemoController {
 	@ApiResponse(responseCode = "500", description = "메모 리스트 조회 실패")
 	@GetMapping("/getMemos/{groupNum}")
 	public ResponseEntity<List<MemoListDTO>> getMemos(@RequestHeader("memberNum") Long memberNum, @PathVariable("groupNum") Long groupNum) {
-		Long member_num = 1L;
-		List<MemoListDTO> list = service.getMemos(groupNum, member_num);
+		List<MemoListDTO> list = service.getMemos(groupNum, memberNum);
 		return ResponseEntity.ok(list);
 	}
 	

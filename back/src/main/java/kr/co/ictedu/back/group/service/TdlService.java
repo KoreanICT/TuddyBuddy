@@ -25,7 +25,6 @@ public class TdlService {
 	}
 	
 	public List<TdlRequestDTO> getTdls(Long memberNum, Long groupNum) {
-		dao.getTdls(groupNum, memberNum);
 		
 		return dao.getTdls(groupNum,memberNum);
 	}
