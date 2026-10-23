@@ -108,8 +108,6 @@ public class SelfStudyController {
 
 		request.setMember_num(authenticatedMember.requireId());
 
-		selfStudyService.requireSessionOwner(request.getQuiz_sessionid(), request.getMember_num());
-
 		return selfStudyService.submitQuiz(request);
 	}
 

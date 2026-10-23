@@ -90,6 +90,20 @@
 
 	</select>
 
+	<!-- AI 분류용 활성 카테고리와 과목을 조인 한 번으로 조회 -->
+	<select id="selectAiCatalogRows" resultType="map">
+		SELECT c.category_id AS "categoryId",
+		       c.category_name AS "categoryName",
+		       s.subject_id AS "subjectId",
+		       s.subject_name AS "subjectName"
+		FROM categories c
+		LEFT JOIN subjects s
+		       ON s.category_id = c.category_id
+		      AND s.subject_status = 'Y'
+		WHERE c.category_status = 'Y'
+		ORDER BY c.category_id, s.subject_id
+	</select>
+
 
 	<!-- =====================================================
          Quiz Session
@@ -258,6 +272,25 @@
 		quiz_id, quiz_user_response, quiz_correct, submitted_at ) VALUES (
 		#{quiz_responses_id}, #{selfstudy_results_id}, #{quiz_id},
 		#{quiz_user_response}, #{quiz_correct}, SYSDATE ) </insert>
+
+	<!-- 제출된 문제별 답안을 Oracle 한 번 호출로 저장 -->
+	<insert id="insertQuizResponses">
+		BEGIN
+			<foreach collection="responses" item="response">
+				INSERT INTO quiz_responses (
+					quiz_responses_id, selfstudy_results_id, quiz_id,
+					quiz_user_response, quiz_correct, submitted_at
+				) VALUES (
+					quiz_responses_seq.NEXTVAL,
+					#{response.selfstudy_results_id},
+					#{response.quiz_id},
+					#{response.quiz_user_response},
+					#{response.quiz_correct},
+					SYSDATE
+				);
+			</foreach>
+		END;
+	</insert>
 
 
 	<!-- 결과별 사용자 답변 조회 -->
