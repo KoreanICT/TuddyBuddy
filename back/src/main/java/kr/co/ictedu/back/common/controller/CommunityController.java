@@ -252,4 +252,32 @@ public class CommunityController {
 	        return ResponseEntity.status(500).body("좋아요 처리 중 오류");
 	    }
 	}
+	
+
+	// =========================================================
+	// 8. 게시글 조회수 증가
+	// POST /api/community/view
+	// =========================================================
+	@PostMapping("/view")
+	public ResponseEntity<?> increaseViewCount(@RequestBody CommunityVO vo) {
+	    try {
+
+	        System.out.println("조회수 증가 게시글 번호 = " + vo.getId());
+
+	        int result = communityService.increaseViewCount(vo.getId());
+
+	        System.out.println("조회수 UPDATE 결과 = " + result);
+
+	        if (result > 0) {
+	            return ResponseEntity.ok("조회수 증가 성공");
+	        } else {
+	            return ResponseEntity.status(500).body("조회수 증가 실패");
+	        }
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        return ResponseEntity.status(500).body("조회수 처리 중 오류");
+	    }
+	}
+	
 }
