@@ -123,7 +123,7 @@
    Feedback & Consulting Section
    -------------------------------------------------------------------------- */
 .feedback-card {
-    border-left: 6px solid #dc2626;
+    border-left: 6px solid var(--primary);
 }
 
 .feedback-section {
@@ -131,8 +131,8 @@
 }
 
 .mentor-speech-box {
-    background-color: #fef2f2;
-    border: 1px solid #fecaca;
+    background-color: var(--background-secondary);
+    border: 1px solid var(--border);
     padding: 18px 20px;
     border-radius: var(--radius-md);
 }
@@ -140,7 +140,7 @@
 .mentor-speech-box p {
     font-size: 15px;
     font-weight: 600;
-    color: #991b1b;
+    color: var(--text);
     line-height: 1.6;
 }
 
@@ -491,6 +491,217 @@
     text-align: center;
 }
 
+/* 종합 화면은 이미 받아온 전체 회차 이력에서 계산한 요약·비교 차트를 보여줍니다. */
+.analytics-page .analytics-overview {
+    margin-bottom: 28px;
+    padding: 24px;
+}
+
+.analytics-page .analytics-overview-heading {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.analytics-page .analytics-overview-icon {
+    display: flex;
+    width: 42px;
+    height: 42px;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary);
+    background: var(--background-secondary);
+    border-radius: 50%;
+}
+
+.analytics-page .analytics-overview-heading h1 {
+    margin: 0 0 4px;
+    color: var(--text);
+    font-size: 20px;
+}
+
+.analytics-page .analytics-overview-heading p {
+    color: var(--text-secondary);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.analytics-page .analytics-overview-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.analytics-page .analytics-overview-summary article {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 6px;
+    padding: 16px 18px;
+    background: var(--background-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+}
+
+.analytics-page .analytics-overview-summary span {
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+.analytics-page .analytics-overview-summary strong {
+    color: var(--text);
+    font-size: 21px;
+    font-weight: 700;
+}
+
+.analytics-page .analytics-overview-charts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.analytics-page .analytics-overview-chart {
+    min-width: 0;
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+}
+
+.analytics-page .analytics-overview-chart h2 {
+    margin-bottom: 8px;
+    color: var(--text);
+    font-size: 14px;
+}
+
+.analytics-page .analytics-overview-chart-body {
+    width: 100%;
+    height: 260px;
+}
+
+.analytics-page .analytics-overview-empty {
+    display: grid;
+    min-height: 220px;
+    place-items: center;
+    color: var(--text-secondary);
+    font-size: 13px;
+    text-align: center;
+}
+
+.analytics-page .analytics-header .header-title h2 {
+    margin-bottom: 4px;
+    color: var(--text);
+    font-size: 20px;
+}
+
+/* 긴 응답이 열 너비를 밀어내지 않도록 통계 피드백 영역 안에서만 줄바꿈을 적용합니다. */
+.analytics-page .feedback-card .consulting-grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+    gap: 28px;
+}
+
+.analytics-page .feedback-card .consulting-col {
+    min-width: 0;
+}
+
+.analytics-page .feedback-card .section-title {
+    min-height: 24px;
+    margin-bottom: 18px;
+    line-height: 1.5;
+}
+
+.analytics-page .feedback-card .weakness-list {
+    gap: 12px;
+}
+
+.analytics-page .feedback-card .weakness-item .reason,
+.analytics-page .feedback-card .consulting-path .step-text {
+    overflow-wrap: anywhere;
+    line-height: 1.6;
+}
+
+.analytics-page .feedback-card .consulting-path li {
+    min-width: 0;
+}
+
+.analytics-page .feedback-card .feedback-category-header {
+    color: var(--primary);
+}
+
+.analytics-page .feedback-card .feedback-category-header h2 {
+    color: var(--text);
+}
+
+.analytics-page .analytics-purchase-modal-balance {
+    display: grid;
+    gap: 10px;
+    margin-bottom: 12px;
+    padding: 16px;
+    background: var(--background-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+}
+
+.analytics-page .analytics-purchase-modal-balance > div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.analytics-page .analytics-purchase-modal-balance strong {
+    color: var(--text);
+    font-size: 15px;
+}
+
+.analytics-page .analytics-purchase-modal-balance .analytics-purchase-balance-after {
+    margin-top: 2px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+    color: var(--text);
+    font-weight: 700;
+}
+
+.analytics-page .analytics-purchase-modal-balance .analytics-purchase-balance-after strong {
+    color: var(--primary);
+    font-size: 17px;
+}
+
+.analytics-page .analytics-purchase-balance-status,
+.analytics-page .analytics-purchase-balance-error p {
+    color: var(--text-secondary);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.analytics-page .analytics-purchase-balance-error {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.analytics-page .analytics-purchase-balance-error button {
+    padding: 6px 10px;
+    color: var(--primary);
+    background: var(--background);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.analytics-page .analytics-purchase-insufficient {
+    margin: 0 0 12px;
+    color: #b45309;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
 @media (max-width: 600px) {
     .analytics-page .analytics-gate-card {
         margin: 24px 12px;
@@ -499,5 +710,25 @@
 
     .analytics-page .analytics-gate-card h2 {
         font-size: 18px;
+    }
+
+    .analytics-page .analytics-overview {
+        padding: 18px;
+    }
+
+    .analytics-page .analytics-overview-summary {
+        grid-template-columns: 1fr;
+    }
+
+    .analytics-page .analytics-overview-charts {
+        grid-template-columns: 1fr;
+    }
+
+    .analytics-page .analytics-overview-chart-body {
+        height: 240px;
+    }
+
+    .analytics-page .analytics-purchase-modal {
+        padding: 22px 18px;
     }
 }
