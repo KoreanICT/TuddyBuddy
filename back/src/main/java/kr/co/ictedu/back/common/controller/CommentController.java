@@ -15,9 +15,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-import kr.co.ictedu.back.common.dao.CommentDao;
+
 import kr.co.ictedu.back.common.service.CommentService;
 import kr.co.ictedu.back.common.service.CommunityService;
+import kr.co.ictedu.back.common.vo.CommentVO;
 import kr.co.ictedu.back.common.vo.CommunityVO;
 import kr.co.ictedu.back.member.service.MemberService;
 import kr.co.ictedu.back.member.vo.MemberVO;
@@ -45,10 +46,10 @@ public class CommentController {
     // /api/community/comment/list?postId=1
     // =========================================================
     @GetMapping("/list")
-    public ResponseEntity<List<CommentDao>> getComments(
+    public ResponseEntity<List<CommentVO>> getComments(
             @RequestParam("postId") int postId) {
 
-        List<CommentDao> comments =
+        List<CommentVO> comments =
                 commentService.getComments(postId);
 
         return ResponseEntity.ok(comments);
@@ -70,7 +71,7 @@ public class CommentController {
     @PostMapping("/write")
     public ResponseEntity<?> createComment(
             @RequestParam("postId") int postId,
-            @RequestBody CommentDao comment,
+            @RequestBody CommentVO comment,
             Authentication authentication) {
 
         try {

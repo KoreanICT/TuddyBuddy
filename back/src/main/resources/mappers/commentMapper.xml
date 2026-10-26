@@ -6,7 +6,7 @@
 	<!-- 댓글 목록 -->
 	<select id="selectComments"
 		parameterType="int"
-		resultType="kr.co.ictedu.back.common.dao.CommentDao">
+		resultType="CommentVO">
 
 		SELECT
 		C.COMMENT_NUM AS commentNum,
@@ -26,7 +26,7 @@
 
 	<!-- 댓글 작성 -->
 	<insert id="insertComment"
-		parameterType="kr.co.ictedu.back.common.dao.CommentDao">
+		parameterType="CommentVO">
 
 		INSERT INTO COMMUNITY_COMMENT (
 		COMMENT_NUM,
