@@ -17,6 +17,7 @@ import { Detail_Document } from './Detail_Document';
 import { Project_TDL } from './Project_TDL';
 import { getFirstLetter } from './GroupAPI';
 import { Group_EditModal } from './Group_Edit';
+import ReportButton from '../report/ReportButton';
 
 interface GroupHeaderData {
     group_title: string;
@@ -109,10 +110,10 @@ export const Group_Detail: React.FC = () => {
                             <p className={styles.group_desc}>{groupData?.group_desc}</p>
                         </div>
                         <div className={styles.header_menu_wrapper} ref={menuRef}>
-                            {/* 스터디룸 변경 관리 버튼 */}
-                            <button>
-
-                            </button>
+                            {groupData && (
+                                <ReportButton type="study" targetNum={parsedGroupNum}
+                                    aria-label="스터디 신고">신고</ReportButton>
+                            )}
                             {groupData?.is_leader === 1 && (
                                 <button
                                     type="button"

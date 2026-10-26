@@ -20,11 +20,13 @@
 	</insert>
 
 	<select id="searchTags" resultType="tagvo">
-		SELECT tag_num, tag_name, tag_color
-		FROM studytag WHERE LOWER(tag_name)
-		LIKE '%' || LOWER(#{keyword}) || '%'
-		ORDER BY tag_name
-		FETCH FIRST 10 ROWS ONLY
+		SELECT * FROM (
+			SELECT tag_num, tag_name, tag_color
+			FROM studytag WHERE LOWER(tag_name)
+			LIKE '%' || LOWER(#{keyword}) || '%'
+			ORDER BY tag_name
+		)
+		WHERE ROWNUM &lt;= 10
 	</select>
 
 	<select id="findTagByName" resultType="tagvo">
