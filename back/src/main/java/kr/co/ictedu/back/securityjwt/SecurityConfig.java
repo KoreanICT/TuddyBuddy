@@ -68,6 +68,8 @@ public class SecurityConfig {
 				.formLogin((login) -> login.disable()).httpBasic((basic) -> basic.disable())
 				.authorizeHttpRequests((auth) -> auth
 						.dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
+						.requestMatchers(HttpMethod.GET, "/swagger-ui.html", "/swagger-ui/**",
+								"/v3/api-docs", "/v3/api-docs/**").permitAll()
 						.requestMatchers("/api/auth/**").permitAll() // /api/auth/** 에서 오는 모든 요청은 허용
 						.requestMatchers(HttpMethod.GET, "/api/education-news").permitAll()
 						.requestMatchers("/api/notice/noticeList","/api/notice/noticeDetail").permitAll() // 공지사항 비회원도 접근 가능하게 변경

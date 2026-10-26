@@ -42,9 +42,6 @@ export const Detail_Overview: React.FC<GetGroupNum> = ({ groupNum }) => {
             setTdls(response.data.tdls ?? []);
             setSchedules(response.data.schedules ?? []);
 
-            console.log(tdls);
-            console.log(schedules);
-            console.log(tdlSummary);
         } catch (error) {
             console.error("개요 조회 실패", error);
         } finally {
@@ -61,9 +58,9 @@ export const Detail_Overview: React.FC<GetGroupNum> = ({ groupNum }) => {
 
     const chartData = useMemo(() => {
         return tdlSummary.map((item) => ({
-            name: item.status === "To Do" ? "할 일" : item.status === "In Progress" ? "진행 중" : item.status === "Done" ? "완료" : item.status,
+            name: item.status === "To Do" ? "할 일" : item.status === "In Progress" ? "진행 중" : item.status === "Done" ? "완료" : item.status === "Incomplete" ? "미완료" : item.status,
             value: item.count,
-            fill: item.status === "To Do" ? "#f59e0b" : item.status === "In Progress" ? "#3b82f6" : "#22c55e"
+            fill: item.status === "To Do" ? "#f59e0b" : item.status === "In Progress" ? "#3b82f6" : item.status === "Done" ? "#22c55e" : "#e94716"
         }));
     }, [tdlSummary])
 
@@ -143,7 +140,7 @@ export const Detail_Overview: React.FC<GetGroupNum> = ({ groupNum }) => {
                                                 {completionRate}%
                                             </strong>
                                             <span>
-                                                완료
+                                                완료율
                                             </span>
                                         </div>
                                     </div>

@@ -9,6 +9,6 @@ import lombok.Setter;
 public class AttendanceDayVO {
     /** DB 한국 날짜 기준 출석일(YYYY-MM-DD). */
     private String attendanceDate;
-    /** 해당 출석에 기록된 지급 포인트이며 현재 신규 출석은 0을 저장한다. */
+    /** 해당 출석에 기록된 지급 포인트. 과거 보상 미지급 기록은 0이다. */
     private long rewardPoint;
 }

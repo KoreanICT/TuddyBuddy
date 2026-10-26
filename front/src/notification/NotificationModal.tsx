@@ -2,6 +2,8 @@ import React, { useMemo, useRef, useState } from 'react';
 import styles from './notification.module.css';
 import { answerJoin, NotificationData } from './NotificationAPI';
 import { useNotification } from './NotificationProvider';
+import { Link } from 'react-router-dom';
+import { reportNotificationLink } from './reportNotificationLink';
 
 interface NotificationModalProps {
     notifications: NotificationData[];
@@ -83,6 +85,7 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({ notificati
     const getTypeLabel = (type: string): string => {
         switch (type) {
             case 'JOIN': return '스터디룸 참여';
+            case 'STUDY_DELETED': return '스터디 삭제';
             case 'REPORT': return '신고';
             case 'COMMENT': return '댓글';
             default: return '';
@@ -118,6 +121,7 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({ notificati
                         <button
                             type="button"
                             onClick={retry}
+                            className={styles.retrybtn}
                             disabled={loading}
                         >
                             다시 시도
@@ -187,12 +191,17 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({ notificati
                                 {isSelected && (
                                     <div className={styles.notificationContent}>
                                         <p>{notification.message}</p>
+                                        {notification.category === 'STUDY_DELETED' && <p><Link to="/group" onClick={onClose}>스터디 목록으로 이동</Link></p>}
+                                        {reportNotificationLink(notification.category, notification.target_url) && (
+                                            <p><Link to={notification.target_url} onClick={onClose}>신고 내용 확인</Link></p>
+                                        )}
 
                                         {notification.category === "JOIN" && (
-                                            <div>
+                                            <div className={styles.allowbtnWrapper}>
                                                 <button
                                                     type="button"
                                                     disabled={pendingId !== null || loading}
+                                                    className={styles.allowbtn}
                                                     onClick={() => {
                                                         void handleAnswer(id, true);
                                                     }}
@@ -203,6 +212,7 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({ notificati
                                                 <button
                                                     type="button"
                                                     disabled={pendingId !== null || loading}
+                                                    className={styles.refusebtn}
                                                     onClick={() => {
                                                         void handleAnswer(id, false);
                                                     }}
@@ -213,11 +223,11 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({ notificati
                                         )}
 
                                         {notification.category === "JOIN_APPROVED" && (
-                                            <p>수락 처리된 알림입니다.</p>
+                                            <p className={styles.allowText}>수락 처리된 알림입니다.</p>
                                         )}
 
                                         {notification.category === "JOIN_REJECTED" && (
-                                            <p>거절 처리된 알림입니다.</p>
+                                            <p className={styles.refuseText}>거절 처리된 알림입니다.</p>
                                         )}
                                     </div>
                                 )}

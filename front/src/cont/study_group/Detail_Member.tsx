@@ -89,6 +89,7 @@ export const Detail_Member: React.FC<GetGroupNum> = ({ groupNum }) => {
             await api.delete(
                 `/group/detail/groupQuit/${groupNum}`
             )
+            navigate("/group");
         } catch (error) {
             console.error("탈퇴하는데 실패했습니다. 잠시후 다시 시도해주세요.");
         }
@@ -140,6 +141,7 @@ export const Detail_Member: React.FC<GetGroupNum> = ({ groupNum }) => {
 
                                     <button
                                         type="button"
+                                        className={styles.leader_badge}
                                         onClick={() => handleTransferLeader(member.member_num, member.member_nick)}
                                     >
                                         방장 위임

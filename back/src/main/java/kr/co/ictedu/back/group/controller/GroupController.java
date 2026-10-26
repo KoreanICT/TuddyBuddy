@@ -63,8 +63,10 @@ public class GroupController {
     }
     
     @PostMapping("/joingroup/{groupNum}")
-    public ResponseEntity<String> joinGroup(@PathVariable("groupNum") Long groupNum, @RequestHeader("memberNum") Long memberNum) {
-    	service.joinGroup(groupNum, memberNum);
+    public ResponseEntity<String> joinGroup(@PathVariable("groupNum") Long groupNum, Authentication authentication) {
+    	MemberVO member = getMember(authentication);
+    	
+    	service.joinGroup(groupNum, member.getMember_num());
     	return ResponseEntity.ok("참가 완료");
     }
 
@@ -73,13 +75,13 @@ public class GroupController {
 	@ApiResponse(responseCode = "500", description = "그룹 리스트 조회 실패")
     @GetMapping("/getmyrooms")
     public ResponseEntity<List<GroupListDTO>> getMyGroups(
-            @RequestHeader("memberNum") Long memberNum) {
+    		Authentication authentication) {
     	
-    	List<GroupListDTO> list = service.getMyGroups(memberNum);
+    	MemberVO member = getMember(authentication);
     	
-        return ResponseEntity.ok(
-                list
-        );
+    	List<GroupListDTO> list = service.getMyGroups(member.getMember_num());
+    	
+        return ResponseEntity.ok(list);
     }
     
     @Operation(summary = "공개된 그룹 리스트 조회", description = "공개된 그룹들의 리스트를 조회합니다.")
@@ -87,14 +89,12 @@ public class GroupController {
 	@ApiResponse(responseCode = "500", description = "그룹 리스트 조회 실패")
     @GetMapping("/getpublicrooms")
     public ResponseEntity<List<PublicGroupListDTO>> getPublicGroups(
-            @RequestHeader(
-                    value = "memberNum",
-                    required = false
-            ) Long memberNum) {
+    		Authentication authentication) {
 
+    	MemberVO member = getMember(authentication);
         // 비로그인 요청은 memberNum이 null
         return ResponseEntity.ok(
-                service.getPublicGroups(memberNum)
+                service.getPublicGroups(member.getMember_num())
         );
     }
     
@@ -111,22 +111,9 @@ public class GroupController {
                     required = false
             ) MultipartFile thumbnail) {
 
-    	if (authentication == null
-                || !authentication.isAuthenticated()
-                || authentication instanceof AnonymousAuthenticationToken) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
-        }
-
-        MemberVO member = memberService.getMemberByEmail(authentication.getName());
-
-        if (member == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
-        }
+    	MemberVO member = getMember(authentication);
         
-        Long groupNum = service.addGroup(
-                request,
-                thumbnail,
-                member.getMember_num()
+        Long groupNum = service.addGroup(request,thumbnail,member.getMember_num()
         );
 
         Map<String, Object> result = new HashMap<>();
@@ -141,12 +128,14 @@ public class GroupController {
 	@ApiResponse(responseCode = "500", description = "참가 실패")
     @PostMapping("/join/invite")
     public ResponseEntity<Map<String, Object>> joinByInviteCode(
-            @RequestHeader("memberNum") Long memberNum,
+    		Authentication authentication,
             @RequestBody GroupInviteRequest request) {
 
+    	MemberVO member = getMember(authentication);
+    	
         Long groupNum = service.joinByInviteCode(
                 request.getInviteCode(),
-                memberNum
+                member.getMember_num()
         );
 
         Map<String, Object> result = new HashMap<>();
@@ -161,17 +150,7 @@ public class GroupController {
             @PathVariable("groupNum") Long groupNum,
             Authentication authentication) {
 
-        if (authentication == null
-                || !authentication.isAuthenticated()
-                || authentication instanceof AnonymousAuthenticationToken) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
-        }
-
-        MemberVO member = memberService.getMemberByEmail(authentication.getName());
-
-        if (member == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
-        }
+    	MemberVO member = getMember(authentication);
 
         service.requestJoin(groupNum, member.getMember_num());
 
@@ -184,20 +163,24 @@ public class GroupController {
             @RequestParam("accept") boolean accept,
             Authentication authentication) {
 
-        if (authentication == null
-                || !authentication.isAuthenticated()
-                || authentication instanceof AnonymousAuthenticationToken) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
-        }
-
-        MemberVO member = memberService.getMemberByEmail(authentication.getName());
-
-        if (member == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
-        }
+        MemberVO member = getMember(authentication);
 
         return ResponseEntity.ok(
             service.answerJoin(member.getMember_num(),notificationNum,accept)
         );
     }
+    
+    private MemberVO getMember(Authentication authentication) {
+		if (authentication == null || !authentication.isAuthenticated()
+				|| authentication instanceof AnonymousAuthenticationToken) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+		}
+
+		MemberVO member = memberService.getMemberByEmail(authentication.getName());
+
+		if (member == null) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+		}
+		return member;
+	} 
 }

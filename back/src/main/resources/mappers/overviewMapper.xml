@@ -3,17 +3,22 @@
 <mapper namespace="kr.co.ictedu.back.group.dao.OverviewDao">
 	
 	<select id="getUpcomingSchedules" resultType="overviewscheduledto">
-		SELECT schedule_num, schedule_name, schedule_date, start_at FROM schedule
-		WHERE group_num = #{group_num} AND schedule_date &gt; TRUNC(SYSDATE)
-		ORDER BY schedule_date ASC, start_at ASC FETCH FIRST 3 ROWS ONLY
+		SELECT * FROM (
+			SELECT schedule_num, schedule_name, schedule_date, start_at FROM schedule
+			WHERE group_num = #{group_num} AND schedule_date &gt; TRUNC(SYSDATE)
+			ORDER BY schedule_date ASC, start_at ASC
+		)
+		WHERE ROWNUM &lt;= 3
 	</select>
 	
 	<select id="getUpcomingTdls" resultType="overviewtdldto">
-		SELECT tdl_num, tdl_name, status, due_at FROM tdl
-		WHERE group_num = #{group_num} AND due_at IS NOT NULL
-		AND due_at >= SYSDATE AND status != 'Done'
-		ORDER BY due_at ASC
-		FETCH FIRST 3 ROWS ONLY
+		SELECT * FROM (
+			SELECT tdl_num, tdl_name, status, due_at FROM tdl
+			WHERE group_num = #{group_num} AND due_at IS NOT NULL
+			AND due_at >= SYSDATE AND status != 'Done'
+			ORDER BY due_at ASC
+		)
+		WHERE ROWNUM &lt;= 3
 	</select>
 	
 	<select id="getOverviewTdlSummary" resultType="map">

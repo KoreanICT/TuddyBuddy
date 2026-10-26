@@ -196,6 +196,7 @@ export interface MemoData {
     content: string;
     created_at: string;
     updated_at?: string;
+    can_manage: number;
 }
 
 /**

@@ -34,6 +34,13 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 	@Override
 	protected boolean shouldNotFilter(HttpServletRequest request) {
 		String path = request.getRequestURI().substring(request.getContextPath().length());
+		// Documentation remains accessible even if the browser sends an expired JWT.
+		if ("GET".equals(request.getMethod()) && (
+				"/swagger-ui.html".equals(path) || "/swagger-ui".equals(path)
+				|| path.startsWith("/swagger-ui/") || "/v3/api-docs".equals(path)
+				|| path.startsWith("/v3/api-docs/"))) {
+			return true;
+		}
 		return "/api/auth/refresh".equals(path) || "/api/auth/logout".equals(path);
 	}
 

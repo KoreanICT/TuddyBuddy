@@ -1,3 +1,4 @@
+// 작성자 : 오진석
 package kr.co.ictedu.back.notification.controller;
 
 import java.util.List;
@@ -35,32 +36,40 @@ public class NotificationController {
 	private MemberService memberService;
 
 	@GetMapping("/subscribe")
-	public SseEmitter subscribe(@RequestHeader("memberNum") Long memberNum) {
-		return service.subscribe(memberNum);
+	public SseEmitter subscribe(Authentication authentication) {
+		MemberVO member = getMember(authentication);
+		
+		return service.subscribe(member.getMember_num());
 	}
 
 	@GetMapping("/unread")
-	public ResponseEntity<List<NotificationDTO>> getUnreadNotifications(@RequestHeader("memberNum") Long memberNum) {
-		List<NotificationDTO> list = service.getUnreadNotifications(memberNum);
+	public ResponseEntity<List<NotificationDTO>> getUnreadNotifications(Authentication authentication) {
+		MemberVO member = getMember(authentication);
+		
+		List<NotificationDTO> list = service.getUnreadNotifications(member.getMember_num());
 		return ResponseEntity.ok(list);
 	}
 
 	@GetMapping("/getAllNotification")
-	public ResponseEntity<List<NotificationDTO>> getAllNotification(@RequestHeader("memberNum") Long memberNum) {
-		List<NotificationDTO> list = service.getNotifications(memberNum);
+	public ResponseEntity<List<NotificationDTO>> getAllNotification(Authentication authentication) {
+		MemberVO member = getMember(authentication);
+		
+		List<NotificationDTO> list = service.getNotifications(member.getMember_num());
 		return ResponseEntity.ok(list);
 	}
 
 	@PatchMapping("/read/{notificationNum}")
-	public ResponseEntity<String> readNotification(@RequestHeader("memberNum") Long memberNum,
+	public ResponseEntity<String> readNotification(Authentication authentication,
 			@PathVariable("notificationNum") Long notificationNum) {
-		service.readNotification(memberNum, notificationNum);
+		MemberVO member = getMember(authentication);
+		service.readNotification(member.getMember_num(), notificationNum);
 		return ResponseEntity.ok("읽음 처리 완료");
 	}
 
 	@PatchMapping("/readAll")
-	public ResponseEntity<String> readAll(@RequestHeader("memberNum") Long memberNum) {
-		service.readAll(memberNum);
+	public ResponseEntity<String> readAll(Authentication authentication) {
+		MemberVO member = getMember(authentication);
+		service.readAll(member.getMember_num());
 		return ResponseEntity.ok("전체 읽음 처리 완료");
 	}
 

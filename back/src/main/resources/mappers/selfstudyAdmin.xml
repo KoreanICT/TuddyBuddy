@@ -102,6 +102,39 @@
 		WHERE subject_id = #{subjectId}
 	</update>
 
+	<!-- 과목의 답안, 결과, 문제, 세션을 자식부터 영구 삭제 -->
+	<delete id="deleteQuizResponsesBySubject">
+		DELETE FROM quiz_responses
+		WHERE selfstudy_results_id IN (
+			SELECT sr.selfstudy_results_id
+			FROM selfstudy_results sr
+			JOIN quiz_sessions qs ON qs.quiz_session_id = sr.quiz_session_id
+			WHERE qs.subject_id = #{subjectId}
+		)
+	</delete>
+
+	<delete id="deleteResultsBySubject">
+		DELETE FROM selfstudy_results
+		WHERE quiz_session_id IN (
+			SELECT quiz_session_id FROM quiz_sessions WHERE subject_id = #{subjectId}
+		)
+	</delete>
+
+	<delete id="deleteQuizzesBySubject">
+		DELETE FROM quizzes
+		WHERE quiz_session_id IN (
+			SELECT quiz_session_id FROM quiz_sessions WHERE subject_id = #{subjectId}
+		)
+	</delete>
+
+	<delete id="deleteQuizSessionsBySubject">
+		DELETE FROM quiz_sessions WHERE subject_id = #{subjectId}
+	</delete>
+
+	<delete id="deleteSubject">
+		DELETE FROM subjects WHERE subject_id = #{subjectId}
+	</delete>
+
 	<!-- 선택 기간 셀프스터디 이용 요약 -->
 	<select id="selectUsageSummary" resultType="selfStudyUsageSummaryVO">
 		SELECT
@@ -150,14 +183,16 @@
 
 	<!-- 과목별 문제 생성 순위 -->
 	<select id="selectSubjectUsageRanking" resultType="selfStudySubjectRankingVO">
-		SELECT s.subject_id, s.subject_name, c.category_name, COUNT(*) AS generated_count
-		FROM quiz_sessions qs
-		JOIN subjects s ON s.subject_id = qs.subject_id
-		JOIN categories c ON c.category_id = s.category_id
-		WHERE qs.created_at &gt;= #{fromDate} AND qs.created_at &lt; #{toDateExclusive}
-		GROUP BY s.subject_id, s.subject_name, c.category_name
-		ORDER BY generated_count DESC, c.category_name, s.subject_name
-		FETCH FIRST 10 ROWS ONLY
+		SELECT * FROM (
+			SELECT s.subject_id, s.subject_name, c.category_name, COUNT(*) AS generated_count
+			FROM quiz_sessions qs
+			JOIN subjects s ON s.subject_id = qs.subject_id
+			JOIN categories c ON c.category_id = s.category_id
+			WHERE qs.created_at &gt;= #{fromDate} AND qs.created_at &lt; #{toDateExclusive}
+			GROUP BY s.subject_id, s.subject_name, c.category_name
+			ORDER BY generated_count DESC, c.category_name, s.subject_name
+		)
+		WHERE ROWNUM &lt;= 10
 	</select>
 
 </mapper>

@@ -366,4 +366,7 @@
 
 	</insert>
 
+    <select id="findManagerNums" resultType="long">
+        SELECT member_num FROM member WHERE authority IN ('ADMIN', 'SUB_ADMIN')
+    </select>
 </mapper>

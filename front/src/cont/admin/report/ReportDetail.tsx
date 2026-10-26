@@ -151,6 +151,7 @@ const ReportDetail: React.FC = () => {
 
             alert(`신고 상태가 "${getStatusText(status)}" 상태로 변경되었습니다.`);
 
+            window.dispatchEvent(new Event('report-status-changed'));
             // 수정된 상태를 화면에 반영
             setReport(prev => prev ? { ...prev, status } : null);
 

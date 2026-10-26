@@ -1,6 +1,7 @@
 //김진규
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import { AlertTriangle, BookOpen, Brain, MessageSquareQuote, TrendingUp, BarChart3 } from 'lucide-react';
 import { CategoryOption, ChartDataState, LLMFeedbackState, PersistedStatisticsAnalysis, StatisticsApiResponse } from './types';
 import { StatisticsDetailCharts, StatisticsOverviewCharts } from './StatisticsCharts';
@@ -13,6 +14,7 @@ const STATISTICS_ANALYSIS_STORAGE_KEY = 'tuddybuddy:statistics-analysis';
 export default function PerformanceAnalytics() {
     // 로그인한 회원의 식별자와 백엔드 요청에 사용할 JWT를 인증 훅에서 가져옵니다.
     const { memberNum, token } = useAuth();
+    const navigate = useNavigate();
 
     // /getCategories 응답의 카테고리 목록과 현재 선택한 DB category_id를 저장합니다.
     const [categories, setCategories] = useState<CategoryOption[]>([]);
@@ -315,6 +317,16 @@ export default function PerformanceAnalytics() {
         }
     };
 
+    // 잔액이 부족하면 분석 요청 대신 기존 포인트 구매 화면으로 이동합니다.
+    const handlePurchaseModalAction = () => {
+        if (pointBalance !== null && pointBalance < 1_000) {
+            setShowPurchaseModal(false);
+            navigate('/point');
+            return;
+        }
+        void handleStartAnalysis();
+    };
+
     // 전체 응답의 회차 이력으로 카테고리별 평균과 응시 횟수를 계산합니다.
     const allHistory = allStatistics?.chartData.history ?? [];
     const overviewMetrics = categories.map((category) => {
@@ -432,10 +444,10 @@ export default function PerformanceAnalytics() {
                                     <button
                                         className="analytics-purchase-confirm"
                                         type="button"
-                                        onClick={handleStartAnalysis}
-                                        disabled={pointBalanceLoading || pointBalanceError !== '' || pointBalance === null || pointBalance < 1_000}
+                                        onClick={handlePurchaseModalAction}
+                                        disabled={pointBalanceLoading || pointBalanceError !== '' || pointBalance === null}
                                     >
-                                        {pointBalance !== null && pointBalance < 1_000 ? '포인트 충전이 필요해요' : '확인하고 분석 시작'}
+                                        {pointBalance !== null && pointBalance < 1_000 ? '포인트 충전하러 가기' : '확인하고 분석 시작'}
                                     </button>
                                 </div>
                             </section>
