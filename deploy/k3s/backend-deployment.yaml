@@ -36,6 +36,17 @@ spec:
               value: /app/upload/group
             - name: QUIZ_IMAGE_DIRECTORY
               value: /app/upload/quiz
+            - name: CORS_ALLOWED_ORIGINS
+              value: http://54.180.24.149:30000,http://localhost:3000
+            - name: AUTH_ALLOWED_ORIGINS
+              value: http://54.180.24.149:30000,http://localhost:3000
+            - name: SECURITY_VALUE
+              value: "54.180.24.149"
+            - name: KAKAO_REDIRECT_URI
+              value: http://54.180.24.149:30000/auth/kakao/callback
+            # HTTP test deployment; set true after enabling HTTPS.
+            - name: AUTH_REFRESH_COOKIE_SECURE
+              value: "false"
             - name: TZ
               value: Asia/Seoul
             - name: JAVA_TOOL_OPTIONS
