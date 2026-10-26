@@ -23,8 +23,8 @@
 				AND chat_num &lt; #{before_chat_num}
 			</if>
 			ORDER BY created_at DESC, chat_num DESC
-			FETCH FIRST 100 ROWS ONLY
 		)
+		WHERE ROWNUM &lt;= 100
 		ORDER BY created_at ASC, chat_num ASC
 	</select>
 	

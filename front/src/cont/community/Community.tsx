@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { BACKEND_URL } from "../../login/authHttp";
 import { useAuth } from "../../login/hooks/useAuth";
+import ReportButton from "../report/ReportButton";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 interface Post {
@@ -1334,14 +1335,16 @@ const Community: React.FC = () => {
                     </h4>
                   </div>
 
-                  <button
-                    type="button"
-                    className="btn-close"
-                    aria-label="게시글 닫기"
-                    onClick={() =>
-                      setSelectedPost(null)
-                    }
-                  />
+                  <div className="d-flex align-items-center gap-3 ms-3">
+                    <ReportButton type="community" targetNum={selectedPost.postNum}
+                      aria-label="게시글 신고">신고</ReportButton>
+                    <button
+                      type="button"
+                      className="btn-close"
+                      aria-label="게시글 닫기"
+                      onClick={() => setSelectedPost(null)}
+                    />
+                  </div>
                 </div>
 
                 {/* 모달 본문 */}

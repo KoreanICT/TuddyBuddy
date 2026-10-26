@@ -150,14 +150,16 @@
 
 	<!-- 과목별 문제 생성 순위 -->
 	<select id="selectSubjectUsageRanking" resultType="selfStudySubjectRankingVO">
-		SELECT s.subject_id, s.subject_name, c.category_name, COUNT(*) AS generated_count
-		FROM quiz_sessions qs
-		JOIN subjects s ON s.subject_id = qs.subject_id
-		JOIN categories c ON c.category_id = s.category_id
-		WHERE qs.created_at &gt;= #{fromDate} AND qs.created_at &lt; #{toDateExclusive}
-		GROUP BY s.subject_id, s.subject_name, c.category_name
-		ORDER BY generated_count DESC, c.category_name, s.subject_name
-		FETCH FIRST 10 ROWS ONLY
+		SELECT * FROM (
+			SELECT s.subject_id, s.subject_name, c.category_name, COUNT(*) AS generated_count
+			FROM quiz_sessions qs
+			JOIN subjects s ON s.subject_id = qs.subject_id
+			JOIN categories c ON c.category_id = s.category_id
+			WHERE qs.created_at &gt;= #{fromDate} AND qs.created_at &lt; #{toDateExclusive}
+			GROUP BY s.subject_id, s.subject_name, c.category_name
+			ORDER BY generated_count DESC, c.category_name, s.subject_name
+		)
+		WHERE ROWNUM &lt;= 10
 	</select>
 
 </mapper>
