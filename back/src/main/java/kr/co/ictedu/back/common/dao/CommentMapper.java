@@ -4,14 +4,15 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
+import kr.co.ictedu.back.common.vo.CommentVO;
 import kr.co.ictedu.back.common.vo.CommunityVO;
 
 @Mapper
 public interface CommentMapper {
 
-    List<CommentDao> selectComments(int postId);
+    List<CommentVO> selectComments(int postId);
 
-    int insertComment(CommentDao comment);
+    int insertComment(CommentVO comment);
 
     int deleteComment(int commentNum);
     
