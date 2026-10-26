@@ -60,4 +60,5 @@ export const selfStudyAdminApi = {
   createSubject: async (categoryId: number, name: string): Promise<void> => { await client.post('/subjects', { category_id: categoryId, subject_name: name }); },
   updateSubject: async (id: number, name: string): Promise<void> => { await client.put(`/subjects/${id}`, { subject_name: name }); },
   setSubjectStatus: async (id: number, status: Status): Promise<void> => { await client.patch(`/subjects/${id}/status`, { status }); },
+  permanentlyDeleteSubject: async (id: number): Promise<void> => { await client.delete(`/subjects/${id}`); },
 };

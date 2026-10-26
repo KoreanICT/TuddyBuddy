@@ -4,7 +4,7 @@ import { beginAuthAttempt, clearSession, currentToken, memberSessionKey, refresh
 export const BACKEND_URL = (process.env.REACT_APP_BACK_END_URL || 'http://localhost/back').replace(/\/$/, '');
 const backend = new URL(BACKEND_URL, window.location.origin);
 // Only known historical backend origins may be redirected; arbitrary external URLs never receive credentials.
-const legacyOrigins = new Set(['http://localhost', 'http://127.0.0.1', 'http://192.168.0.19', 'http://192.168.0.20', 'http://192.168.0.44']);
+const legacyOrigins = new Set(['http://localhost', 'http://127.0.0.1', 'http://192.168.0.19', 'http://192.168.0.20', 'http://192.168.0.11']);
 const rawClient = axios.create({ withCredentials: true, timeout: 15000 });
 let refreshFlight: Promise<string> | null = null;
 let authQueue: Promise<unknown> = Promise.resolve();

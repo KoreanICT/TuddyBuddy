@@ -42,9 +42,6 @@ export const Detail_Overview: React.FC<GetGroupNum> = ({ groupNum }) => {
             setTdls(response.data.tdls ?? []);
             setSchedules(response.data.schedules ?? []);
 
-            console.log(tdls);
-            console.log(schedules);
-            console.log(tdlSummary);
         } catch (error) {
             console.error("개요 조회 실패", error);
         } finally {

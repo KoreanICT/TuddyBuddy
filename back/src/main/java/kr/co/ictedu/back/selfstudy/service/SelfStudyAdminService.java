@@ -179,6 +179,24 @@ public class SelfStudyAdminService {
         }
     }
 
+    // 과목과 연결된 셀프스터디 데이터를 자식부터 영구 삭제합니다.
+    @Transactional
+    public void permanentlyDeleteSubject(Long subjectId) {
+        if (subjectId == null || subjectId <= 0) {
+            throw new IllegalArgumentException("올바른 과목 번호가 필요합니다.");
+        }
+
+        selfStudyAdminDao.deleteQuizResponsesBySubject(subjectId);
+        selfStudyAdminDao.deleteResultsBySubject(subjectId);
+        selfStudyAdminDao.deleteQuizzesBySubject(subjectId);
+        selfStudyAdminDao.deleteQuizSessionsBySubject(subjectId);
+
+        if (selfStudyAdminDao.deleteSubject(subjectId) != 1) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                    "과목을 찾을 수 없습니다.");
+        }
+    }
+
     private void validateStatus(String status) {
         if (!"Y".equals(status) && !"N".equals(status)) {
             throw new IllegalArgumentException("상태값은 Y 또는 N이어야 합니다.");

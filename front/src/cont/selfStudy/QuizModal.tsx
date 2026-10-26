@@ -185,7 +185,7 @@ export const QuizModal: React.FC<QuizModalProps> = ({
                     id="classificationCategory"
                     className={styles.selectInput}
                     value={selectedCategoryId ?? (categoryName ? 'suggested' : '')}
-                    disabled={loading || classificationLoading || classificationCached}
+                    disabled={loading || classificationLoading}
                     onChange={(event) => {
                       const value = event.target.value;
                       setSelectedCategoryId(value && value !== 'suggested' ? Number(value) : null);
@@ -212,7 +212,7 @@ export const QuizModal: React.FC<QuizModalProps> = ({
                     id="classificationSubject"
                     className={styles.selectInput}
                     value={selectedSubjectId ?? (subjectName ? 'suggested' : '')}
-                    disabled={loading || classificationLoading || classificationCached || selectedCategoryId === null}
+                    disabled={loading || classificationLoading}
                     onChange={(event) => {
                       const value = event.target.value;
                       setSelectedSubjectId(value && value !== 'suggested' ? Number(value) : null);
