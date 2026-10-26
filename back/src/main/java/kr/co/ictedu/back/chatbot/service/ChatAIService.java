@@ -12,9 +12,9 @@ import org.springframework.stereotype.Service;
 // Spring Boot에서 다른 HTTP 서버/API를 호출하기 위한 도구
 import org.springframework.web.client.RestClient;
 
-import kr.co.ictedu.back.chatbot.dto.ChatAIRequest;
-import kr.co.ictedu.back.chatbot.dto.ChatAIResponse;
-import kr.co.ictedu.back.chatbot.dto.ChatFastAPIRequest;
+import kr.co.ictedu.back.chatbot.vo.ChatAIRequestVO;
+import kr.co.ictedu.back.chatbot.vo.ChatAIResponseVO;
+import kr.co.ictedu.back.chatbot.vo.ChatFastAPIRequestVO;
 
 
 // FastAPI 통신
@@ -46,11 +46,11 @@ public class ChatAIService {
 	
 
 	// FastAPI에 질문을 전달하고 AI 응답 반환
-	public ChatAIResponse askAI(ChatAIRequest request) {
+	public ChatAIResponseVO askAI(ChatAIRequestVO request) {
 		
 		// FastAPI에 전달할 데이터 생성
-		ChatFastAPIRequest fastAPIRequest = 
-				new ChatFastAPIRequest(
+		ChatFastAPIRequestVO fastAPIRequest = 
+				new ChatFastAPIRequestVO(
 						request.getQuestion(),
 						request.getUser_type()
 				);
@@ -60,6 +60,6 @@ public class ChatAIService {
 				.contentType(MediaType.APPLICATION_JSON)// 요청 데이터 형식을 JSON으로 지정
 				.body(fastAPIRequest)							// Java 객체 -> 요청 Body(JSON)
 				.retrieve()								// HTTP 응답 처리
-				.body(ChatAIResponse.class);			// 응답 Body(JSON) -> Java 객체
+				.body(ChatAIResponseVO.class);			// 응답 Body(JSON) -> Java 객체
 	}
 }
