@@ -5,12 +5,15 @@
 
 	<!-- 신고 등록 -->
 	<insert id="add" parameterType="revo">
+		<selectKey keyProperty="num" resultType="long" order="BEFORE">
+			SELECT report_seq.NEXTVAL FROM dual
+		</selectKey>
 		INSERT INTO report (
 		num, member_num, type, category, content, status, created_date,
 		target_num
 		)
 		VALUES (
-		report_seq.NEXTVAL, #{member_num}, #{type}, #{category},
+		#{num}, #{member_num}, #{type}, #{category},
 		#{content}, 'PENDING', SYSDATE, #{target_num}
 		)
 	</insert>

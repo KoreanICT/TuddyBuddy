@@ -15,6 +15,7 @@ import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -82,11 +83,11 @@ public class DocumentController {
 	@ApiResponse(responseCode = "500", description = "다운로드 실패")
 	@GetMapping("/download/{documentNum}")
 	public ResponseEntity<Resource> downloadDocument(
-            @RequestHeader("memberNum") Long memberNum,
+            Authentication authentication,
             @PathVariable("documentNum") Long documentNum)
             throws IOException {
 
-        DocumentVO document = service.getDocument(documentNum);
+        DocumentVO document = service.getDownloadDocument(documentNum, authentication);
 
         if (document == null) {
             return ResponseEntity.notFound().build();
@@ -100,7 +101,7 @@ public class DocumentController {
         }
 
         String encodedFileName = URLEncoder.encode(
-                document.getOriginal_name(),
+                document.getOriginal_name() + (document.getDocument_type() == null || document.getDocument_type().isBlank() ? "" : "." + document.getDocument_type()),
                 StandardCharsets.UTF_8
         ).replace("+", "%20");
 

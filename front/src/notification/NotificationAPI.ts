@@ -1,6 +1,6 @@
 import api from "../cont/study_group/api";
 
-export type NotificationType = 'JOIN' | 'REPORT' | 'COMMENT';
+export type NotificationType = 'JOIN' | 'REPORT' | 'COMMENT' | 'STUDY_DELETED';
 
 export interface NotificationData {
     notification_num: number;

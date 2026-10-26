@@ -143,6 +143,7 @@ const ReportReply: React.FC = () => {
             replyFormData.append('report_num', String(report.num));
 
             replyFormData.append('status', status);
+            replyFormData.append('sendNotification', String(sendNotification));
 
             await axios.post(
                 'http://localhost:80/back/api/report/reportReplyAdd',
@@ -150,10 +151,7 @@ const ReportReply: React.FC = () => {
                 { headers: getAuthHeaders() }
             );
 
-            // TODO: 알림 기능 구현 후 연결
-            if (sendNotification) {
-                console.log('신고자 알림 기능 연동 예정');
-            }
+            window.dispatchEvent(new Event('report-status-changed'));
 
             alert('신고 답변이 등록되었습니다.');
             navigate(`/admin/reportDetail/${report.num}`);

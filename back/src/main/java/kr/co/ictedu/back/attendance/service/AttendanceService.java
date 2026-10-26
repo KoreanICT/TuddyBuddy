@@ -17,24 +17,27 @@ import org.springframework.web.server.ResponseStatusException;
 import kr.co.ictedu.back.attendance.dao.AttendanceDao;
 import kr.co.ictedu.back.attendance.vo.AttendanceStatusVO;
 import kr.co.ictedu.back.attendance.vo.AttendanceDayVO;
+import kr.co.ictedu.back.point.service.PointService;
 
-/** 한국 날짜 기준 출석 규칙과 트랜잭션을 담당하며 회원 포인트 잔액은 변경하지 않는다. */
+/** 한국 날짜 기준 출석 저장과 포인트 보상을 하나의 트랜잭션으로 처리한다. */
 @Service
 public class AttendanceService {
     // 다른 유일 제약 오류를 출석 중복으로 오인하지 않도록 출석 전용 제약 이름만 찾는다.
     private static final Pattern DUPLICATE_CONSTRAINT = Pattern.compile(
             "(?i)(?<![A-Z0-9_])UQ_ATTENDANCE_MEMBER_DAY(?![A-Z0-9_])");
     private final AttendanceDao attendance;
+    private final PointService points;
 
     /** MyBatis DAO를 주입받아 SQL 실행을 데이터 계층에 맡긴다. */
-    public AttendanceService(AttendanceDao attendance) {
+    public AttendanceService(AttendanceDao attendance, PointService points) {
         this.attendance = attendance;
+        this.points = points;
     }
 
     /**
      * 출석 성공 응답.
      * @param attendanceDate 서버 DB가 정한 출석일(YYYY-MM-DD)
-     * @param rewardPoint 이번 출석의 지급 포인트이며 현재 정책은 0
+     * @param rewardPoint 이번 출석의 지급 포인트
      * @param message 사용자에게 표시할 완료 안내
      */
     public record AttendanceCheckResponse(String attendanceDate, long rewardPoint, String message) { }
@@ -53,7 +56,7 @@ public class AttendanceService {
                 ? items.stream().anyMatch(item -> today.toString().equals(item.getAttendanceDate()))
                 : attendance.existsToday(memberNum, today.toString()) > 0;
         return new AttendanceStatusVO(month.toString(), today.toString(), "Asia/Seoul",
-                checkedToday, 0L, items);
+                checkedToday, PointService.ATTENDANCE_REWARD, items);
     }
 
     /** 출석 저장을 하나의 트랜잭션으로 처리하며 실패하면 저장을 롤백한다. */
@@ -63,7 +66,7 @@ public class AttendanceService {
         LocalDate today = LocalDate.parse(attendance.getToday());
         try {
             // 사전 조회만으로는 동시 요청을 막을 수 없으므로 DB 회원·날짜 UNIQUE 제약이 최종 판단한다.
-            if (attendance.insertToday(memberNum, today.toString()) != 1) {
+            if (attendance.insertToday(memberNum, today.toString(), PointService.ATTENDANCE_REWARD) != 1) {
                 throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "출석을 저장하지 못했습니다.");
             }
         } catch (DataIntegrityViolationException e) {
@@ -73,7 +76,9 @@ public class AttendanceService {
             }
             throw e;
         }
-        return new AttendanceCheckResponse(today.toString(), 0L, "출석이 완료되었습니다.");
+        points.addAttendanceReward(memberNum, today + " 출석 보상");
+        return new AttendanceCheckResponse(today.toString(), PointService.ATTENDANCE_REWARD,
+                "출석이 완료되었습니다. 300P가 지급되었습니다.");
     }
 
     /** 월 형식과 범위를 검사한다. 월 첫날을 만들어 SQL에 전달하므로 임의 날짜 입력은 사용하지 않는다. */

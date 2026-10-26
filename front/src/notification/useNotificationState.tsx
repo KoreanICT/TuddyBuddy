@@ -64,6 +64,13 @@ export const useNotificationState = (token: string | null, memberNum: number | n
     const pendingReadsRef = useRef<Map<number, Promise<void>>>(new Map());
 
     useEffect(() => {
+        if (owner === null) return;
+        const refresh = () => setRetryCount(value => value + 1);
+        window.addEventListener('notification-refresh', refresh);
+        return () => window.removeEventListener('notification-refresh', refresh);
+    }, [owner]);
+
+    useEffect(() => {
         const generation: number = ++generationRef.current;
         const controller = new AbortController();
 

@@ -1,6 +1,14 @@
 //작성자 : 오진석
 package kr.co.ictedu.back.group.service;
 
+import kr.co.ictedu.back.member.dao.MemberDAO;
+import kr.co.ictedu.back.group.dao.GroupDao;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
+import kr.co.ictedu.back.securityauth.MemberRoles;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -20,6 +28,28 @@ import kr.co.ictedu.back.group.vo.DocumentVO;
 
 @Service
 public class DocumentService {
+    @Autowired
+    private MemberDAO members;
+    @Autowired
+    private GroupDao groups;
+
+    public DocumentVO getDownloadDocument(Long documentNum,
+            Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()
+                || authentication instanceof AnonymousAuthenticationToken)
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        var member = members.getMemberByEmail(authentication.getName());
+        if (member == null)
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        DocumentVO document = dao.getDocumentById(documentNum);
+        if (document == null)
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        if (!MemberRoles.isManager(member.getAuthority())
+                && groups.countGroupMember(document.getGroup_num(), member.getMember_num()) == 0)
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "스터디 멤버 또는 관리자만 다운로드할 수 있습니다.");
+        return document;
+    }
 
 	@Autowired
 	private DocumentDao dao;

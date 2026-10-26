@@ -2,6 +2,8 @@ import React, { useMemo, useRef, useState } from 'react';
 import styles from './notification.module.css';
 import { answerJoin, NotificationData } from './NotificationAPI';
 import { useNotification } from './NotificationProvider';
+import { Link } from 'react-router-dom';
+import { reportNotificationLink } from './reportNotificationLink';
 
 interface NotificationModalProps {
     notifications: NotificationData[];
@@ -83,6 +85,7 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({ notificati
     const getTypeLabel = (type: string): string => {
         switch (type) {
             case 'JOIN': return '스터디룸 참여';
+            case 'STUDY_DELETED': return '스터디 삭제';
             case 'REPORT': return '신고';
             case 'COMMENT': return '댓글';
             default: return '';
@@ -187,6 +190,10 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({ notificati
                                 {isSelected && (
                                     <div className={styles.notificationContent}>
                                         <p>{notification.message}</p>
+                                        {notification.category === 'STUDY_DELETED' && <p><Link to="/group" onClick={onClose}>스터디 목록으로 이동</Link></p>}
+                                        {reportNotificationLink(notification.category, notification.target_url) && (
+                                            <p><Link to={notification.target_url} onClick={onClose}>신고 내용 확인</Link></p>
+                                        )}
 
                                         {notification.category === "JOIN" && (
                                             <div>

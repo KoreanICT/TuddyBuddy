@@ -3,6 +3,8 @@ import styles from './notification.module.css'
 import { getAllNotifications, deleteNotification } from "./NotificationAPI";
 import type { NotificationData } from "./NotificationAPI";
 import { useNotification } from "./NotificationProvider";
+import { Link } from 'react-router-dom';
+import { reportNotificationLink } from './reportNotificationLink';
 
 export const NotificationList: React.FC = () => {
     const [notifications, setNotifications] =
@@ -11,11 +13,20 @@ export const NotificationList: React.FC = () => {
     const [loading, setLoading] = useState<boolean>(true);
     const [deleting, setDeleting] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
+    const [revision, setRevision] = useState(0);
+
+    useEffect(() => {
+        const refresh = () => setRevision(value => value + 1);
+        window.addEventListener('notification-refresh', refresh);
+        return () => window.removeEventListener('notification-refresh', refresh);
+    }, []);
 
     const { changeNotification } = useNotification();
 
     useEffect(() => {
         const controller = new AbortController();
+        setLoading(true);
+        setError(null);
 
         const loadNotifications = async (): Promise<void> => {
             try {
@@ -42,7 +53,7 @@ export const NotificationList: React.FC = () => {
         return () => {
             controller.abort();
         };
-    }, []);
+    }, [revision]);
 
     const handleDelete = async (
         notification: NotificationData
@@ -125,6 +136,7 @@ export const NotificationList: React.FC = () => {
                                     ? "신고"
                                     : notification.category === "COMMENT"
                                         ? "댓글"
+                                        : notification.category === "STUDY_DELETED" ? "스터디 삭제"
                                         : "스터디"}
                             </span>
 
@@ -167,6 +179,10 @@ export const NotificationList: React.FC = () => {
                             )}
 
                             <footer className={styles.contentFooter}>
+                                {notification.category === 'STUDY_DELETED' && <Link to="/group">스터디 목록으로 이동</Link>}
+                                {reportNotificationLink(notification.category, notification.target_url) && (
+                                    <Link to={notification.target_url}>신고 내용 확인</Link>
+                                )}
                                 <span className={styles.fullDate}>
                                     {new Date(
                                         notification.created_at

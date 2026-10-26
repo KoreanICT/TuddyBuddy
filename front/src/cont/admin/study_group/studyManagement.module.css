@@ -1,209 +1,28 @@
-.page {
-  padding: 32px;
-
-  min-height: 100%;
-
-  background: #f8fafc;
-}
-
-.container {
-  max-width: 1100px;
-
-  margin: 0 auto;
-}
-
-.header,.panelHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-}
-
-.header {
-  margin-bottom: 28px;
-}
-
-.header h1 {
-  margin: 0 0 8px;
-
-  font-size: 26px;
-  font-weight: 700;
-
-  color: #172033;
-}
-
-.header p {
-  margin: 0;
-
-  color: #64748b;
-
-  font-size: 14px;
-}
-
-.panel {
-  background: #fff;
-
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-
-  margin-bottom: 22px;
-
-  overflow: hidden;
-}
-
-.panelHeader {
-  padding: 20px;
-
-  border-bottom: 1px solid #e2e8f0;
-}
-
-.panelHeader h2 {
-  font-size: 18px;
-
-  margin: 0;
-
-  color: #172033;
-}
-
-.addButton,.secondaryButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-
-  padding: 10px 15px;
-
-  border-radius: 8px;
-
-  cursor: pointer;
-
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.addButton {
-  background: #2563eb;
-
-  border: 0;
-
-  color: white;
-}
-
-.addButton:hover {
-  background: #1d4ed8;
-}
-
-.addButton:disabled {
-  opacity: .5;
-
-  cursor: not-allowed;
-}
-
-.secondaryButton {
-  background: white;
-
-  border: 1px solid #dbe2ea;
-
-  color: #334155;
-}
-
-.secondaryButton:hover {
-  background: #f1f5f9;
-}
-
-.table {
-  width: 100%;
-
-  border-collapse: collapse;
-
-  text-align: left;
-  font-size: 14px;
-}
-
-.table th {
-  background: #f8fafc;
-  color: #475569;
-
-  font-weight: 600;
-}
-
-.table th,.table td {
-  padding: 15px 20px;
-
-  border-bottom: 1px solid #e2e8f0;
-}
-
-.table tr:last-child td {
-  border-bottom: 0;
-}
-
-.selected {
-  background: #eff6ff;
-}
-
-.linkButton {
-  background: none;
-
-  border: 0;
-
-  color: #2563eb;
-
-  font: inherit;
-
-  cursor: pointer;
-
-  text-align: left;
-}
-
-.filter {
-  padding: 16px 20px;
-
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.filter label {
-  font-size: 14px;
-
-  color: #475569;
-}
-
-.filter select {
-  border: 1px solid #dbe2ea;
-
-  padding: 10px 12px;
-
-  border-radius: 8px;
-
-  background: white;
-}
-
-.empty {
-  text-align: center;
-
-  color: #94a3b8;
-
-  padding: 32px !important;
-}
-
-.error {
-  color: #b91c1c;
-  background: #fef2f2;
-
-  padding: 12px 16px;
-
-  border-radius: 8px;
-}
-
-.actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.secondaryButton:disabled {
-  opacity: .5;
-
-  cursor: not-allowed;
-}
+.searchLabel { display: flex; align-items: center; flex-shrink: 0; margin: 0; color: #475569; font-size: 14px; }
+.tableScroll { overflow-x: auto; }
+.table { min-width: 720px; }
+.visibility { display: inline-block; padding: 4px 8px; border-radius: 6px; background: #eff6ff; color: #2563eb; font-size: 12px; white-space: nowrap; }
+.error { padding: 12px 16px; border: 1px solid #fecaca; border-radius: 8px; background: #fef2f2; color: #b91c1c; }
+.table button:disabled { opacity: .4; cursor: not-allowed; }
+@media (max-width: 768px) { .searchLabel { width: 100%; } }
+
+.overlay { position: fixed; inset: 0; z-index: 2100; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(15, 23, 42, .5); backdrop-filter: blur(3px); }
+.confirmDialog { position: relative; width: 100%; max-width: 460px; max-height: 90vh; overflow-y: auto; padding: 30px; border-radius: 18px; background: #fff; color: #172033; box-shadow: 0 24px 64px rgba(15, 23, 42, .24); }
+.closeButton { position: absolute; top: 16px; right: 16px; display: inline-flex; padding: 6px; border: 0; border-radius: 6px; background: transparent; color: #64748b; cursor: pointer; }
+.warningIcon { display: flex; align-items: center; justify-content: center; width: 54px; height: 54px; margin-bottom: 20px; border-radius: 16px; background: #fef2f2; color: #dc2626; }
+.confirmDialog h2 { margin: 0 0 10px; font-size: 23px; font-weight: 700; }
+.description, .deleteScope { color: #64748b; font-size: 14px; line-height: 1.6; }
+.targetCard { display: flex; flex-direction: column; gap: 8px; margin: 20px 0 14px; padding: 16px; border: 1px solid #e2e8f0; border-radius: 10px; background: #f8fafc; }
+.targetCard strong { font-size: 16px; overflow-wrap: anywhere; }
+.targetCard span { font-size: 13px; color: #64748b; }
+.notificationNote { display: flex; align-items: flex-start; gap: 8px; margin: 18px 0 24px; padding: 12px; border-radius: 8px; background: #eff6ff; color: #1d4ed8; font-size: 13px; line-height: 1.6; }
+.notificationNote svg { flex-shrink: 0; margin-top: 2px; }
+.confirmActions { display: flex; gap: 10px; }
+.cancelButton, .confirmButton { display: inline-flex; align-items: center; justify-content: center; gap: 7px; flex: 1; padding: 12px 16px; border: 1px solid #dbe2ea; border-radius: 9px; font-size: 14px; font-weight: 600; cursor: pointer; }
+.cancelButton { background: #fff; color: #475569; }
+.cancelButton:hover { background: #f8fafc; }
+.confirmButton { background: #dc2626; color: #fff; border-color: #dc2626; }
+.confirmButton:hover:not(:disabled) { background: #b91c1c; }
+.confirmDialog button:disabled { opacity: .5; cursor: not-allowed; }
+.confirmDialog button:focus-visible { outline: 2px solid #2563eb; outline-offset: 3px; }
+@media (max-width: 480px) { .confirmDialog { padding: 24px 20px; } .confirmDialog h2 { font-size: 21px; } }
