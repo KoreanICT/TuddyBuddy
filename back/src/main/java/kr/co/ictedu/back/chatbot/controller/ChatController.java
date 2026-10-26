@@ -19,11 +19,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
-import kr.co.ictedu.back.chatbot.dto.ChatAIRequest;
-import kr.co.ictedu.back.chatbot.dto.ChatAIResponse;
 import kr.co.ictedu.back.chatbot.service.ChatBotService;
 import kr.co.ictedu.back.chatbot.service.ChatMessageService;
 import kr.co.ictedu.back.chatbot.service.ChatSessionService;
+import kr.co.ictedu.back.chatbot.vo.ChatAIRequestVO;
+import kr.co.ictedu.back.chatbot.vo.ChatAIResponseVO;
 import kr.co.ictedu.back.chatbot.vo.ChatMessageVO;
 import kr.co.ictedu.back.chatbot.vo.ChatSessionVO;
 import kr.co.ictedu.back.member.dao.MemberDAO;
@@ -210,7 +210,7 @@ public class ChatController {
 	@ApiResponse(responseCode = "500", description = "AI 답변 처리 중 서버 오류")
 	@ApiResponse(responseCode = "503", description = "AI 서버 연결 실패, 응답 시간 초과 또는 빈 AI 답변으로 서비스 이용 불가")
 	@PostMapping("/ai")
-	public ChatAIResponse askAI(@RequestBody ChatAIRequest request, Authentication authentication,
+	public ChatAIResponseVO askAI(@RequestBody ChatAIRequestVO request, Authentication authentication,
 			HttpServletRequest httpRequest) {
 		
 		// 요청한 채팅 세션 조회
