@@ -163,6 +163,7 @@ const actionNames: Record<string, string> = {
     SCHEDULE_LIST: '일정 목록 조회',
     SCHEDULE_UPDATE: '일정 수정',
     SCHEDULE_DELETE: '일정 삭제',
+    GROUP_UPCOMING_SCHEDULE_VIEW: '그룹 예정 일정 조회',
 
     // =====================================================
     // 7. 그룹 할 일·TDL
@@ -172,6 +173,12 @@ const actionNames: Record<string, string> = {
     TDL_LIST: '할 일 목록 조회',
     TDL_STATUS_CHANGE: '할 일 상태 변경',
     TDL_UPDATE: '할 일 수정',
+
+    // =====================================================
+    // 7-1. 그룹 채팅 활동 
+    // =====================================================
+    GROUP_CHAT_MESSAGE_SEND: '그룹 채팅 메시지 전송',
+    GROUP_CHAT_HISTORY_VIEW: '그룹 채팅 이전 대화 조회',
 
     // =====================================================
     // 8. 학습·AI 문제 생성·답안 제출
@@ -218,6 +225,7 @@ const actionNames: Record<string, string> = {
     FRIEND_RECEIVED_LIST: '받은 친구 요청 조회',
     FRIEND_SENT_LIST: '보낸 친구 요청 조회',
     FRIEND_DETAIL_VIEW: '친구 상세 조회',
+    FRIEND_REQUEST_CANCEL: '보낸 친구 요청 취소',
 
     // =====================================================
     // 12. 신고·신고 답변
@@ -230,6 +238,7 @@ const actionNames: Record<string, string> = {
     REPORT_TARGET_VIEW: '신고 대상 조회',
     REPORT_UPDATE: '신고 수정',
     REPORT_DELETE: '신고 삭제',
+    REPORT_STATISTICS_VIEW: '신고 통계 조회',
 
     // 기존 Aspect의 코드명을 그대로 유지합니다.
     // STATUS가 아니라 STATES로 작성되어 있는 코드입니다.
@@ -305,9 +314,19 @@ const actionNames: Record<string, string> = {
     // 19. 커뮤니티
     // =====================================================
 
+    // 커뮤니티 게시글
     COMMUNITY_POST_CREATE: '게시글 작성',
     COMMUNITY_POST_LIST: '게시글 목록 조회',
     COMMUNITY_MY_POST_LIST: '내 게시글 조회',
+    COMMUNITY_POST_UPDATE: '게시글 수정',
+    COMMUNITY_POST_DELETE: '게시글 삭제',
+    COMMUNITY_POST_LIKE: '게시글 좋아요',
+
+    // 커뮤니티 댓글 활동
+    COMMUNITY_COMMENT_LIST: '댓글 목록 조회',
+    COMMUNITY_COMMENT_CREATE: '댓글 작성',
+    COMMUNITY_COMMENT_UPDATE: '댓글 수정',
+    COMMUNITY_COMMENT_DELETE: '댓글 삭제',
 
     // =====================================================
     // 20. 알림

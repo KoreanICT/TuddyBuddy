@@ -1,5 +1,7 @@
 package kr.co.ictedu.back.selfstudy.service;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -31,14 +33,26 @@ public class SelfStudyCatalogService {
     }
 
     public List<Map<String, Object>> getAiCatalog() {
-        return selfStudyDao.selectCategories().stream()
-                .map(category -> Map.<String, Object>of(
-                        "categoryId", category.getCategory_id(),
-                        "categoryName", category.getCategory_name(),
-                        "subjects", selfStudyDao.selectSubjects(category.getCategory_id()).stream()
-                                .map(subject -> Map.of(
-                                        "subjectId", subject.getSubject_id(),
-                                        "subjectName", subject.getSubject_name()))
-                                .toList())).toList();
+        Map<Long, Map<String, Object>> catalogByCategory = new LinkedHashMap<>();
+        for (Map<String, Object> row : selfStudyDao.selectAiCatalogRows()) {
+            Long categoryId = ((Number) row.get("categoryId")).longValue();
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> subjects = (List<Map<String, Object>>) catalogByCategory
+                    .computeIfAbsent(categoryId, id -> {
+                        Map<String, Object> category = new LinkedHashMap<>();
+                        category.put("categoryId", id);
+                        category.put("categoryName", row.get("categoryName"));
+                        category.put("subjects", new ArrayList<Map<String, Object>>());
+                        return category;
+                    }).get("subjects");
+
+            if (row.get("subjectId") != null) {
+                Map<String, Object> subject = new LinkedHashMap<>();
+                subject.put("subjectId", ((Number) row.get("subjectId")).longValue());
+                subject.put("subjectName", row.get("subjectName"));
+                subjects.add(subject);
+            }
+        }
+        return new ArrayList<>(catalogByCategory.values());
     }
 }

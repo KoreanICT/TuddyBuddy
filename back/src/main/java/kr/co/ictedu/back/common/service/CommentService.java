@@ -4,8 +4,8 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import kr.co.ictedu.back.common.dao.CommentDao;
 import kr.co.ictedu.back.common.dao.CommentMapper;
+import kr.co.ictedu.back.common.vo.CommentVO;
 import kr.co.ictedu.back.common.vo.CommunityVO;
 
 @Service
@@ -17,11 +17,11 @@ public class CommentService {
         this.commentMapper = commentMapper;
     }
 
-    public List<CommentDao> getComments(int postId) {
+    public List<CommentVO> getComments(int postId) {
         return commentMapper.selectComments(postId);
     }
 
-    public int createComment(CommentDao comment) {
+    public int createComment(CommentVO comment) {
 
         if (comment.getContent() == null ||
             comment.getContent().trim().isEmpty()) {

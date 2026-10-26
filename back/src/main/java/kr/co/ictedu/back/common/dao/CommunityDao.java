@@ -40,4 +40,7 @@ public interface CommunityDao {
     
     // 8. 좋아요 누르기
     int like(CommunityVO vo);
+    
+    // 9. 게시글 조회수 증가
+    int increaseViewCount(int id);
 }

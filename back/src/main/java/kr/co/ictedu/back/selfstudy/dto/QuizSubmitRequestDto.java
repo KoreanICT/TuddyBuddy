@@ -20,6 +20,8 @@ public class QuizSubmitRequestDto {
     private Long subject_id;
     @Schema(description = "회원 번호", example = "1")
     private Long member_num;
+    @Schema(description = "문제 풀이에 걸린 시간(초)", example = "742")
+    private Long quiz_time_seconds;
 
     @Schema(description = "사용자 문제 답변 목록")
     private List<QuizResponseDto> responses;

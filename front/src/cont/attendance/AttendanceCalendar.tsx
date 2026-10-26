@@ -7,7 +7,7 @@ import styles from './attendanceCalendar.module.css';
 
 interface AttendanceItem {
     attendanceDate: string;
-    rewardPoint: 0;
+    rewardPoint: number;
 }
 
 interface AttendanceMonth {
@@ -15,7 +15,7 @@ interface AttendanceMonth {
     today: string;
     timezone: 'Asia/Seoul';
     checkedToday: boolean;
-    rewardPerCheck: 0;
+    rewardPerCheck: number;
     items: AttendanceItem[];
 }
 
@@ -40,11 +40,11 @@ const validDate = (value: unknown): value is string => {
 const validMonthResponse = (value: AttendanceMonth, month: string) => {
     if (!value || value.month !== month || value.timezone !== 'Asia/Seoul' ||
         !validDate(value.today) || typeof value.checkedToday !== 'boolean' ||
-        value.rewardPerCheck !== 0 || !Array.isArray(value.items)) return false;
+        !Number.isSafeInteger(value.rewardPerCheck) || value.rewardPerCheck < 0 || !Array.isArray(value.items)) return false;
     const dates = new Set<string>();
     for (const item of value.items) {
         if (!item || !validDate(item.attendanceDate) || !item.attendanceDate.startsWith(month + '-') ||
-            item.attendanceDate > value.today || item.rewardPoint !== 0 || dates.has(item.attendanceDate)) return false;
+            item.attendanceDate > value.today || !Number.isSafeInteger(item.rewardPoint) || item.rewardPoint < 0 || dates.has(item.attendanceDate)) return false;
         dates.add(item.attendanceDate);
     }
     return !value.today.startsWith(month + '-') || dates.has(value.today) === value.checkedToday;
@@ -155,8 +155,10 @@ const AttendanceCalendar: React.FC = () => {
         const unchanged = () => !controller.signal.aborted && scopeRef.current === scope && sessionIdentity() === authIdentity;
         try {
             // The server determines member, current Seoul date and reward. No body is sent.
-            await axios.post(`${BACKEND_URL}/api/attendance/check`, undefined, { signal: controller.signal, timeout: 15000 });
-            if (unchanged()) setNotice('요청이 처리되었습니다. 서버에서 출석 기록을 다시 확인합니다.');
+            const response = await axios.post<{ rewardPoint: number }>(`${BACKEND_URL}/api/attendance/check`, undefined, { signal: controller.signal, timeout: 15000 });
+            if (unchanged()) setNotice(Number.isSafeInteger(response.data?.rewardPoint) && response.data.rewardPoint >= 0
+                ? `출석 완료! ${response.data.rewardPoint}P가 지급되었습니다.`
+                : '요청이 처리되었습니다. 서버에서 출석 기록을 다시 확인합니다.');
         } catch (error) {
             if (!unchanged() || axios.isCancel(error)) return;
             const status = axios.isAxiosError(error) ? error.response?.status : undefined;
@@ -241,7 +243,7 @@ const AttendanceCalendar: React.FC = () => {
                     <p className={styles.checkState}>{result ? result.checkedToday ? '오늘 출석을 완료했습니다.' : '오늘의 출석을 남겨보세요.' : '기록을 확인한 후 출석할 수 있습니다.'}</p>
                     <button type="button" className={styles.checkButton} disabled={!result || loading || saving || result.checkedToday} onClick={() => void checkAttendance()}>{saving ? '처리 중…' : result?.checkedToday ? '오늘 출석 완료 ✓' : '오늘 출석하기'}</button>
                     <div className={styles.monthCount}><span>선택한 달의 출석</span><strong>{result ? `${result.items.length}일` : '—'}</strong></div>
-                    <p className={styles.reward}>보상 0P · 포인트 지급 없음</p>
+                    <p className={styles.reward}>{result ? `출석 보상 ${result.rewardPerCheck}P · 하루 한 번 지급` : '출석 보상 확인 중'}</p>
                 </aside>
             </div>
             <p className={styles.notice} role="status" aria-live="polite" aria-atomic="true">{notice}</p>

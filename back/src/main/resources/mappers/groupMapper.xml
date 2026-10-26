@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <!--작성자 : 오진석 -->
-<mapper namespace="kr.co.ictedu.back.group.dao.GroupDao">	
+<mapper namespace="kr.co.ictedu.back.group.dao.GroupDao">
+
 	<insert id="addGroup" parameterType="groupvo">
-        <selectKey
+		<selectKey
 			keyProperty="group_num" resultType="long" order="BEFORE">
 			SELECT group_seq.NEXTVAL FROM dual
 		</selectKey> INSERT INTO
@@ -11,50 +12,42 @@
 		group_maxMembers, group_thumbnail, group_invitecode, created_at ) VALUES
 		( #{group_num}, #{group_title}, #{group_desc}, #{group_isPrivate},
 		#{group_maxMembers}, #{group_thumbnail, jdbcType=VARCHAR},
-		#{group_invitecode, jdbcType=VARCHAR}, SYSDATE ) 
+		#{group_invitecode, jdbcType=VARCHAR}, SYSDATE ) </insert>
+
+	<insert id="joinGroup">
+		INSERT INTO group_member (is_leader, group_num, member_num)
+		VALUES (0, #{group_num}, #{member_num})
 	</insert>
-	
+
 	<select id="searchTags" resultType="tagvo">
-		SELECT
-		tag_num,
-		tag_name,
-		tag_color
-		FROM studytag
-		WHERE LOWER(tag_name)
-		LIKE
-		'%' || LOWER(#{keyword}) || '%'
-		ORDER BY tag_name
-		FETCH FIRST 10 ROWS ONLY
+		SELECT * FROM (
+			SELECT tag_num, tag_name, tag_color
+			FROM studytag WHERE LOWER(tag_name)
+			LIKE '%' || LOWER(#{keyword}) || '%'
+			ORDER BY tag_name
+		)
+		WHERE ROWNUM &lt;= 10
 	</select>
-	
+
 	<select id="findTagByName" resultType="tagvo">
-		SELECT
-		tag_num,
-		tag_name,
-		tag_color
+		SELECT tag_num, tag_name, tag_color
 		FROM studytag
 		WHERE LOWER(tag_name) = LOWER(#{tag_name})
 	</select>
-	
+
 	<insert id="addTag" parameterType="tagvo">
 		<selectKey keyProperty="tag_num" resultType="long" order="BEFORE">
 			SELECT studytag_seq.NEXTVAL FROM dual
 		</selectKey> INSERT INTO
 		studytag ( tag_num, tag_name, tag_color ) VALUES (#{tag_num},
-		#{tag_name}, #{tag_color} ) 
-	</insert>
+		#{tag_name}, #{tag_color} ) </insert>
 
 	<!-- ==========================================
          GROUP_TAG INSERT
          ========================================== -->
 	<insert id="addGroupTag">
-		INSERT INTO group_tag (
-		group_num,
-		tag_num
-		) VALUES (
-		#{group_num},
-		#{tag_num}
-		)
+		INSERT INTO group_tag (group_num,tag_num)
+		VALUES (#{group_num},#{tag_num})
 	</insert>
 
 	<insert id="addGroupMember" parameterType="groupmembervo">
@@ -63,19 +56,21 @@
 	</insert>
 
 	<select id="findGroupByInviteCode" resultType="groupvo">
-		SELECT group_num, group_title, group_desc, group_isPrivate, group_maxMembers, group_thumbnail,group_invitecode, created_at 
+		SELECT group_num, group_title, group_desc, group_isPrivate,
+		group_maxMembers, group_thumbnail,group_invitecode, created_at
 		FROM studygroup
 		WHERE group_invitecode = #{invite_code}
 	</select>
-	
+
 	<select id="countGroupMember" resultType="int">
-		SELECT count(*) FROM group_member WHERE group_num = #{group_num} AND member_num=#{member_num}
+		SELECT count(*) FROM group_member WHERE group_num = #{group_num} AND
+		member_num=#{member_num}
 	</select>
-	
+
 	<select id="countGroupMembers" resultType="int">
 		SELECT count(*) FROM group_member WHERE group_num = #{group_num}
 	</select>
-	
+
 	<resultMap id="groupListMap" type="grouplistdto">
 		<id property="group_num" column="group_num" />
 		<result property="group_title" column="group_title" />
@@ -94,18 +89,21 @@
 		<result property="tag_name" column="tag_name" />
 		<result property="tag_color" column="tag_color" />
 	</resultMap>
-	
+
 	<select id="getMyGroupsProc" statementType="CALLABLE" parameterType="map">
-    {
-        CALL GET_MY_GROUPS_PROC(
-            #{member_num, mode=IN, jdbcType=NUMERIC},
-            #{group_cursor, mode=OUT, jdbcType=CURSOR, javaType=java.sql.ResultSet, resultMap=groupListMap},
-            #{tag_cursor, mode=OUT, jdbcType=CURSOR, javaType=java.sql.ResultSet, resultMap=groupTagMap}
-        )
-    }
+		{
+		CALL GET_MY_GROUPS_PROC(
+		#{member_num, mode=IN, jdbcType=NUMERIC},
+		#{group_cursor, mode=OUT, jdbcType=CURSOR, javaType=java.sql.ResultSet,
+		resultMap=groupListMap},
+		#{tag_cursor, mode=OUT, jdbcType=CURSOR, javaType=java.sql.ResultSet,
+		resultMap=groupTagMap}
+		)
+		}
 	</select>
-	
-	<resultMap id="publicGroupListMap" type="kr.co.ictedu.back.group.dto.PublicGroupListDTO">
+
+	<resultMap id="publicGroupListMap"
+		type="kr.co.ictedu.back.group.dto.PublicGroupListDTO">
 		<id property="group_num" column="group_num" />
 		<result property="group_title" column="group_title" />
 		<result property="group_desc" column="group_desc" />
@@ -114,14 +112,33 @@
 		<result property="created_at" column="created_at" />
 		<result property="current_members" column="current_members" />
 	</resultMap>
-	
-	<select id="getPublicGroupsProc" statementType="CALLABLE" parameterType="map">
-    {
-        CALL GET_PUBLIC_GROUPS_PROC(
-            #{member_num, mode=IN, jdbcType=NUMERIC},
-            #{group_cursor, mode=OUT, jdbcType=CURSOR, javaType=java.sql.ResultSet, resultMap=publicGroupListMap},
-            #{tag_cursor, mode=OUT, jdbcType=CURSOR, javaType=java.sql.ResultSet, resultMap=groupTagMap}
-        )
-    }
+
+	<select id="getPublicGroupsProc" statementType="CALLABLE"
+		parameterType="map">
+		{
+		CALL GET_PUBLIC_GROUPS_PROC(
+		#{member_num, mode=IN, jdbcType=NUMERIC},
+		#{group_cursor, mode=OUT, jdbcType=CURSOR, javaType=java.sql.ResultSet,
+		resultMap=publicGroupListMap},
+		#{tag_cursor, mode=OUT, jdbcType=CURSOR, javaType=java.sql.ResultSet,
+		resultMap=groupTagMap}
+		)
+		}
+	</select>
+
+	<select id="getJoinGroup" resultType="groupvo">
+		SELECT group_num, group_title, group_isPrivate, group_maxMembers
+		FROM studygroup WHERE group_num = #{group_num}
+		FOR UPDATE
+	</select>
+
+	<select id="getGroupLeader" resultType="java.lang.Long">
+		SELECT member_num FROM group_member WHERE group_num = #{group_num}
+		AND is_leader = 1
+	</select>
+
+	<select id="getMemberNick" resultType="string">
+		SELECT member_nick FROM member
+		WHERE member_num = #{member_num}
 	</select>
 </mapper>

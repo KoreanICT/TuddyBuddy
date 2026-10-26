@@ -14,7 +14,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import kr.co.ictedu.back.selfstudy.dao.SelfStudyAdminDao;
 import kr.co.ictedu.back.selfstudy.vo.CategoryVO;
-import kr.co.ictedu.back.selfstudy.vo.SelfStudyUsageVO;
+import kr.co.ictedu.back.selfstudy.vo.SelfStudyUsageSummaryVO;
 import kr.co.ictedu.back.selfstudy.vo.SubjectVO;
 
 @Service
@@ -75,6 +75,25 @@ public class SelfStudyAdminService {
         }
     }
 
+    // 카테고리와 연결된 셀프스터디 데이터를 자식부터 영구 삭제합니다.
+    @Transactional
+    public void permanentlyDeleteCategory(Long categoryId) {
+        if (categoryId == null || categoryId <= 0) {
+            throw new IllegalArgumentException("올바른 카테고리 번호가 필요합니다.");
+        }
+
+        selfStudyAdminDao.deleteQuizResponsesByCategory(categoryId);
+        selfStudyAdminDao.deleteResultsByCategory(categoryId);
+        selfStudyAdminDao.deleteQuizzesByCategory(categoryId);
+        selfStudyAdminDao.deleteQuizSessionsByCategory(categoryId);
+        selfStudyAdminDao.deleteSubjectsByCategory(categoryId);
+
+        if (selfStudyAdminDao.deleteCategory(categoryId) != 1) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                    "카테고리를 찾을 수 없습니다.");
+        }
+    }
+
     // 과목 전체 조회 (비활성 포함)
     public List<SubjectVO> getSubjects() {
         return selfStudyAdminDao.selectAllSubjects();
@@ -90,7 +109,7 @@ public class SelfStudyAdminService {
 
         var fromDateTime = fromDate.atStartOfDay();
         var toDateExclusive = toDate.plusDays(1).atStartOfDay();
-        SelfStudyUsageVO.Summary summary = selfStudyAdminDao.selectUsageSummary(fromDateTime, toDateExclusive);
+        SelfStudyUsageSummaryVO summary = selfStudyAdminDao.selectUsageSummary(fromDateTime, toDateExclusive);
 
         return new SelfStudyUsageResponse(
                 new SelfStudyUsageResponse.Summary(
@@ -157,6 +176,24 @@ public class SelfStudyAdminService {
         if (selfStudyAdminDao.updateSubjectStatus(subjectId, status) != 1) {
             throw new ResponseStatusException(
                     HttpStatus.NOT_FOUND, "과목을 찾을 수 없습니다.");
+        }
+    }
+
+    // 과목과 연결된 셀프스터디 데이터를 자식부터 영구 삭제합니다.
+    @Transactional
+    public void permanentlyDeleteSubject(Long subjectId) {
+        if (subjectId == null || subjectId <= 0) {
+            throw new IllegalArgumentException("올바른 과목 번호가 필요합니다.");
+        }
+
+        selfStudyAdminDao.deleteQuizResponsesBySubject(subjectId);
+        selfStudyAdminDao.deleteResultsBySubject(subjectId);
+        selfStudyAdminDao.deleteQuizzesBySubject(subjectId);
+        selfStudyAdminDao.deleteQuizSessionsBySubject(subjectId);
+
+        if (selfStudyAdminDao.deleteSubject(subjectId) != 1) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                    "과목을 찾을 수 없습니다.");
         }
     }
 

@@ -2,6 +2,9 @@
 
 package kr.co.ictedu.back.report.service;
 
+import kr.co.ictedu.back.notification.NotificationPublisher;
+import kr.co.ictedu.back.notification.NotificationEvent.Category;
+
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +20,8 @@ import kr.co.ictedu.back.report.vo.ReportVO;
 
 @Service
 public class ReportReplyService {
+    @Autowired
+    private NotificationPublisher notifications;
 	
 	@Autowired
 	private ReportReplyDao reportReplyDao;
@@ -34,6 +39,11 @@ public class ReportReplyService {
 
 	@Transactional
 	public void addWithStatus(ReportReplyVO vo, String status) {
+		addWithStatus(vo, status, true);
+	}
+
+	@Transactional
+	public void addWithStatus(ReportReplyVO vo, String status, boolean sendNotification) {
 		ReportVO report = lockReport(vo.getReport_num());
 		if (reportReplyDao.countByReport(report.getNum()) > 0) {
 			throw new ResponseStatusException(HttpStatus.CONFLICT, "이미 답변이 등록된 신고입니다.");
@@ -47,6 +57,11 @@ public class ReportReplyService {
 		if (reportDao.updateStatus(statusUpdate) != 1) {
 			throw new ResponseStatusException(HttpStatus.CONFLICT, "신고 상태 변경에 실패했습니다.");
 		}
+        if (sendNotification) {
+            notifications.send(report.getMember_num(), Category.REPORT,
+                    "신고 답변이 등록되었습니다", "신고 #" + report.getNum() + "에 대한 관리자 답변을 확인해주세요.",
+                    "/report/replyDetail/" + report.getNum());
+        }
 	}
 
 	public List<ReportReplyVO> list(Long member_num) {

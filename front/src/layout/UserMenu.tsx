@@ -11,8 +11,8 @@ import { ROLE_ACCESS } from '../login/auth/roles';
 import RoleGate from '../login/auth/RoleGate';
 import { useRoleAccess } from '../login/hooks/useRoleAccess';
 import { useNotification } from '../notification/NotificationProvider';
-import NotificationModal from '../notification/NotificationModal';
-
+import { NotificationModal } from '../notification/NotificationModal';
+import { NotificationList } from "../notification/NotificationList";
 const UserMenu: React.FC = () => {
 
   // Redux JWT 로그인 상태
@@ -20,7 +20,7 @@ const UserMenu: React.FC = () => {
 
   const dispatch = useAppDispatch();
 
-  const { notifications, hasNewNotification, setHasNewNotification } = useNotification();
+  const { notifications, hasNewNotification, retry } = useNotification();
 
   // 내 계정 사이드 메뉴
   const [isOpen, setIsOpen] = useState(false);
@@ -28,6 +28,7 @@ const UserMenu: React.FC = () => {
   // 로그인/회원가입 팝업
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [IsNotiOpen, setIsNotiOpen] = useState(false);
+
   const closeMenu = () => {
     setIsOpen(false);
   };
@@ -82,8 +83,8 @@ const UserMenu: React.FC = () => {
             type="button"
             className={styles.profileButton}
             onClick={() => {
+              retry();
               setIsNotiOpen(true);
-              setHasNewNotification(false);
             }}
             aria-label="알림 목록 열기"
           >
@@ -96,7 +97,10 @@ const UserMenu: React.FC = () => {
           {IsNotiOpen && (
             <NotificationModal
               notifications={notifications}
-              onClose={() => setIsNotiOpen(false)}
+              onClose={() => {
+                retry();
+                setIsNotiOpen(false)
+              }}
             />
           )}
         </div>
@@ -151,7 +155,7 @@ const UserMenu: React.FC = () => {
             to="/auth/mypage"
             onClick={closeMenu}
           >
-            내정보
+            마이페이지
           </NavLink>
 
           <NavLink
@@ -187,6 +191,13 @@ const UserMenu: React.FC = () => {
             onClick={closeMenu}
           >
             내 친구
+          </NavLink>
+
+          <NavLink
+            to="/notification"
+            onClick={closeMenu}
+          >
+            알림
           </NavLink>
         </nav>
 

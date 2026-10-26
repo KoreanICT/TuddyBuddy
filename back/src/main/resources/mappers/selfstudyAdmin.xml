@@ -30,6 +30,51 @@
 		WHERE category_id = #{categoryId}
 	</update>
 
+	<!-- 카테고리의 답안, 결과, 문제, 세션, 과목을 자식부터 영구 삭제 -->
+	<delete id="deleteQuizResponsesByCategory">
+		DELETE FROM quiz_responses
+		WHERE selfstudy_results_id IN (
+			SELECT sr.selfstudy_results_id
+			FROM selfstudy_results sr
+			JOIN quiz_sessions qs ON qs.quiz_session_id = sr.quiz_session_id
+			JOIN subjects s ON s.subject_id = qs.subject_id
+			WHERE s.category_id = #{categoryId}
+		)
+	</delete>
+
+	<delete id="deleteResultsByCategory">
+		DELETE FROM selfstudy_results
+		WHERE quiz_session_id IN (
+			SELECT qs.quiz_session_id
+			FROM quiz_sessions qs
+			JOIN subjects s ON s.subject_id = qs.subject_id
+			WHERE s.category_id = #{categoryId}
+		)
+	</delete>
+
+	<delete id="deleteQuizzesByCategory">
+		DELETE FROM quizzes
+		WHERE quiz_session_id IN (
+			SELECT qs.quiz_session_id
+			FROM quiz_sessions qs
+			JOIN subjects s ON s.subject_id = qs.subject_id
+			WHERE s.category_id = #{categoryId}
+		)
+	</delete>
+
+	<delete id="deleteQuizSessionsByCategory">
+		DELETE FROM quiz_sessions
+		WHERE subject_id IN (SELECT subject_id FROM subjects WHERE category_id = #{categoryId})
+	</delete>
+
+	<delete id="deleteSubjectsByCategory">
+		DELETE FROM subjects WHERE category_id = #{categoryId}
+	</delete>
+
+	<delete id="deleteCategory">
+		DELETE FROM categories WHERE category_id = #{categoryId}
+	</delete>
+
 	<!-- 관리자 전체 과목 조회 -->
 	<select id="selectAllSubjects" resultType="subjectVO">
 		SELECT subject_id, category_id, subject_name, subject_status, usage_count,created_at
@@ -57,8 +102,41 @@
 		WHERE subject_id = #{subjectId}
 	</update>
 
+	<!-- 과목의 답안, 결과, 문제, 세션을 자식부터 영구 삭제 -->
+	<delete id="deleteQuizResponsesBySubject">
+		DELETE FROM quiz_responses
+		WHERE selfstudy_results_id IN (
+			SELECT sr.selfstudy_results_id
+			FROM selfstudy_results sr
+			JOIN quiz_sessions qs ON qs.quiz_session_id = sr.quiz_session_id
+			WHERE qs.subject_id = #{subjectId}
+		)
+	</delete>
+
+	<delete id="deleteResultsBySubject">
+		DELETE FROM selfstudy_results
+		WHERE quiz_session_id IN (
+			SELECT quiz_session_id FROM quiz_sessions WHERE subject_id = #{subjectId}
+		)
+	</delete>
+
+	<delete id="deleteQuizzesBySubject">
+		DELETE FROM quizzes
+		WHERE quiz_session_id IN (
+			SELECT quiz_session_id FROM quiz_sessions WHERE subject_id = #{subjectId}
+		)
+	</delete>
+
+	<delete id="deleteQuizSessionsBySubject">
+		DELETE FROM quiz_sessions WHERE subject_id = #{subjectId}
+	</delete>
+
+	<delete id="deleteSubject">
+		DELETE FROM subjects WHERE subject_id = #{subjectId}
+	</delete>
+
 	<!-- 선택 기간 셀프스터디 이용 요약 -->
-	<select id="selectUsageSummary" resultType="kr.co.ictedu.back.selfstudy.vo.SelfStudyUsageVO$Summary">
+	<select id="selectUsageSummary" resultType="selfStudyUsageSummaryVO">
 		SELECT
 			(SELECT COUNT(*) FROM quiz_sessions
 			 WHERE created_at &gt;= #{fromDate} AND created_at &lt; #{toDateExclusive}) AS generated_count,
@@ -72,7 +150,7 @@
 	</select>
 
 	<!-- 날짜별 문제 생성 및 결과 제출 추이 -->
-	<select id="selectDailyUsageTrend" resultType="kr.co.ictedu.back.selfstudy.vo.SelfStudyUsageVO$DailyTrend">
+	<select id="selectDailyUsageTrend" resultType="selfStudyDailyTrendVO">
 		SELECT
 			TO_CHAR(activity_date, 'YYYY-MM-DD') AS usage_date,
 			SUM(generated_count) AS generated_count,
@@ -93,7 +171,7 @@
 	</select>
 
 	<!-- 카테고리별 문제 생성 순위 -->
-	<select id="selectCategoryUsageRanking" resultType="kr.co.ictedu.back.selfstudy.vo.SelfStudyUsageVO$CategoryRanking">
+	<select id="selectCategoryUsageRanking" resultType="selfStudyCategoryRankingVO">
 		SELECT c.category_id, c.category_name, COUNT(*) AS generated_count
 		FROM quiz_sessions qs
 		JOIN subjects s ON s.subject_id = qs.subject_id
@@ -104,15 +182,17 @@
 	</select>
 
 	<!-- 과목별 문제 생성 순위 -->
-	<select id="selectSubjectUsageRanking" resultType="kr.co.ictedu.back.selfstudy.vo.SelfStudyUsageVO$SubjectRanking">
-		SELECT s.subject_id, s.subject_name, c.category_name, COUNT(*) AS generated_count
-		FROM quiz_sessions qs
-		JOIN subjects s ON s.subject_id = qs.subject_id
-		JOIN categories c ON c.category_id = s.category_id
-		WHERE qs.created_at &gt;= #{fromDate} AND qs.created_at &lt; #{toDateExclusive}
-		GROUP BY s.subject_id, s.subject_name, c.category_name
-		ORDER BY generated_count DESC, c.category_name, s.subject_name
-		FETCH FIRST 10 ROWS ONLY
+	<select id="selectSubjectUsageRanking" resultType="selfStudySubjectRankingVO">
+		SELECT * FROM (
+			SELECT s.subject_id, s.subject_name, c.category_name, COUNT(*) AS generated_count
+			FROM quiz_sessions qs
+			JOIN subjects s ON s.subject_id = qs.subject_id
+			JOIN categories c ON c.category_id = s.category_id
+			WHERE qs.created_at &gt;= #{fromDate} AND qs.created_at &lt; #{toDateExclusive}
+			GROUP BY s.subject_id, s.subject_name, c.category_name
+			ORDER BY generated_count DESC, c.category_name, s.subject_name
+		)
+		WHERE ROWNUM &lt;= 10
 	</select>
 
 </mapper>

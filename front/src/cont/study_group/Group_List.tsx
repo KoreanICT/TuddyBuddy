@@ -2,9 +2,10 @@ import api from './api';
 //작성자 : 오진석
 import React, { useEffect, useState } from 'react';
 import styles from './group.module.css';
-import { TagItem } from './GroupAPI';
+import { TagItem, getFirstLetter } from './GroupAPI';
 import { NavLink } from 'react-router-dom';
-import { getFirstLetter } from './GroupAPI';
+import { requestJoin } from '../../notification/NotificationAPI';
+
 interface GroupPublicProps {
     mode: 'my' | 'public';
     searchType: 'name' | 'tag';
@@ -52,28 +53,49 @@ export const Group_List: React.FC<GroupPublicProps> = ({ mode, searchType, searc
     const [groups, setGroups] = useState<GroupListItem[]>([]);
     const [mygroups, setMygroups] = useState<GroupListItem[]>([]);
     const [loading, setLoading] = useState(false);
+    const [requesting, setRequesting] = useState<boolean>(false);
+
+    const handleRequestJoin = async (
+        groupNum: number
+    ): Promise<void> => {
+        if (requesting) return;
+
+        setRequesting(true);
+
+        try {
+            await requestJoin(groupNum);
+            window.alert("방장에게 참여 요청을 보냈습니다.");
+        } catch {
+            window.alert(
+                "참여 요청에 실패했습니다. 로그인, 중복 신청, 정원을 확인해주세요."
+            );
+        } finally {
+            setRequesting(false);
+        }
+    };
+
+    const loadGroups = async () => {
+        setLoading(true);
+
+        try {
+            if (mode === 'my') {
+                const data = await getMyGroups();
+
+                setMygroups(data);
+            } else {
+                const data = await getPublicGroups();
+
+                setGroups(data);
+            }
+        } catch (error) {
+            console.error('스터디룸 조회 실패:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
 
-        const loadGroups = async () => {
-            setLoading(true);
-
-            try {
-                if (mode === 'my') {
-                    const data = await getMyGroups();
-                
-                    setMygroups(data);
-                } else {
-                    const data = await getPublicGroups();
-                    
-                    setGroups(data);
-                }
-            } catch (error) {
-                console.error('스터디룸 조회 실패:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
         loadGroups();
     }, [mode]);
 
@@ -172,6 +194,9 @@ export const Group_List: React.FC<GroupPublicProps> = ({ mode, searchType, searc
                                                 type="button"
                                                 disabled={isFull}
                                                 className={`${styles.study_action_btn} ${isFull ? styles.disabled : styles.primary}`}
+                                                onClick={() => {
+                                                    handleRequestJoin(group.group_num);
+                                                }}
                                             >
                                                 {isFull ? '정원 초과' : '참여하기'}
                                             </button>

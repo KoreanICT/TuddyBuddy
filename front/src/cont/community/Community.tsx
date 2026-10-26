@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { BACKEND_URL } from "../../login/authHttp";
 import { useAuth } from "../../login/hooks/useAuth";
+import ReportButton from "../report/ReportButton";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 interface Post {
@@ -12,6 +13,8 @@ interface Post {
   category: string;
   author: string;
   likeCount?: number;
+  communityDate?: string;
+  viewCount?: number;
 }
 
 interface Comment {
@@ -98,6 +101,8 @@ const Community: React.FC = () => {
             signal: controller.signal,
           }
         );
+
+        console.log("게시글 목록 서버 응답:", response.data);
 
         if (!controller.signal.aborted) {
           setListing(response.data);
@@ -457,6 +462,63 @@ const Community: React.FC = () => {
     }
   };
 
+  // ==========================================================
+  // 게시글 조회수 증가
+  // 게시글 상세 모달을 열 때 서버에 조회수 증가 요청
+  // ==========================================================
+  const increaseViewCount = async (postNum: number) => {
+    try {
+      if (!Number.isFinite(postNum) || postNum <= 0) {
+        return;
+      }
+
+      const response = await axios.post(
+        `${BACKEND_URL}/api/community/view`,
+        {
+          id: postNum,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      console.log("조회수 증가 상태 코드:", response.status);
+      console.log("조회수 서버 응답:", response.data);
+
+      // 현재 상세 게시글 조회수 +1
+      setSelectedPost((prev) =>
+        prev && prev.postNum === postNum
+          ? {
+            ...prev,
+            viewCount: (prev.viewCount ?? 0) + 1,
+          }
+          : prev
+      );
+
+      // 목록의 조회수도 +1
+      setListing((prev) => {
+        if (!prev) return prev;
+
+        return {
+          ...prev,
+          data: prev.data.map((post) =>
+            post.postNum === postNum
+              ? {
+                ...post,
+                viewCount: (post.viewCount ?? 0) + 1,
+              }
+              : post
+          ),
+        };
+      });
+    } catch (error) {
+      // 조회수 실패 때문에 게시글 열기 자체가 막히지는 않도록 처리
+      console.error("조회수 증가 실패:", error);
+    }
+  };
+
 
   // ==========================================================
   // 좋아요 기능
@@ -483,7 +545,7 @@ const Community: React.FC = () => {
 
     try {
       console.log("좋아요 요청:", {
-        postNum: postNum,
+        id: postNum,
         url: `${BACKEND_URL}/api/community/like`,
       });
 
@@ -722,6 +784,23 @@ const Community: React.FC = () => {
     }
   };
 
+  const formatCommunityDate = (date?: string) => {
+    if (!date) return "-";
+
+    const parsedDate = new Date(date);
+
+    if (Number.isNaN(parsedDate.getTime())) {
+      return date;
+    }
+
+    const year = parsedDate.getFullYear();
+    const month = String(parsedDate.getMonth() + 1).padStart(2, "0");
+    const day = String(parsedDate.getDate()).padStart(2, "0");
+
+    return `${year}.${month}.${day}`;
+  };
+
+
   const getBadgeStyle = (category: string) => {
     switch (category) {
       case "합격후기":
@@ -900,7 +979,10 @@ const Community: React.FC = () => {
                   key={post.postNum}
                   type="button"
                   className="card border-0 shadow-sm rounded-4 p-4 text-start w-100"
-                  onClick={() => setSelectedPost(post)}
+                  onClick={() => {
+                    setSelectedPost(post);
+                    void increaseViewCount(post.postNum);
+                  }}
                 >
                   <span
                     className={`badge rounded-pill fw-semibold mb-2 ${getBadgeStyle(
@@ -934,10 +1016,23 @@ const Community: React.FC = () => {
                   </span>
 
                   <span className="d-flex justify-content-between align-items-center pt-2 border-top w-100">
-                    <span className="small fw-semibold text-dark">
-                      {post.author || "회원"}
+                    <span className="small text-secondary">
+                      <span className="fw-semibold text-dark">
+                        {post.author || "회원"}
+                      </span>
+                      <span className="mx-2">·</span>
+                      <span>
+                        {formatCommunityDate(post.communityDate)}
+                      </span>
+                      <span className="mx-2">·</span>
+                      <span>
+                        👁 {post.viewCount ?? 0}
+                      </span>
+                      <span className="mx-2">·</span>
+                      <span>
+                        ❤️ {post.likeCount ?? 0}
+                      </span>
                     </span>
-
                     <span className="small text-primary fw-semibold">
                       자세히 보기 →
                     </span>
@@ -1240,14 +1335,16 @@ const Community: React.FC = () => {
                     </h4>
                   </div>
 
-                  <button
-                    type="button"
-                    className="btn-close"
-                    aria-label="게시글 닫기"
-                    onClick={() =>
-                      setSelectedPost(null)
-                    }
-                  />
+                  <div className="d-flex align-items-center gap-3 ms-3">
+                    <ReportButton type="community" targetNum={selectedPost.postNum}
+                      aria-label="게시글 신고">신고</ReportButton>
+                    <button
+                      type="button"
+                      className="btn-close"
+                      aria-label="게시글 닫기"
+                      onClick={() => setSelectedPost(null)}
+                    />
+                  </div>
                 </div>
 
                 {/* 모달 본문 */}
@@ -1261,11 +1358,24 @@ const Community: React.FC = () => {
                   {/* 작성자 + 좋아요 */}
                   <div className="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
 
-                    <span className="fw-semibold text-dark">
-                      {selectedPost.author || "회원"}
-                    </span>
+                    <div className="d-flex align-items-center gap-2 flex-wrap">
+                      <span className="fw-semibold text-dark">
+                        {selectedPost.author || "회원"}
+                      </span>
 
-                    {/* 좋아요 버튼 */}
+                      <span className="text-muted">·</span>
+
+                      <span className="small text-muted">
+                        {formatCommunityDate(selectedPost.communityDate)}
+                      </span>
+
+                      <span className="text-muted">·</span>
+
+                      <span className="small text-muted">
+                        👁 {selectedPost.viewCount ?? 0}
+                      </span>
+                    </div>
+
                     <button
                       type="button"
                       className="btn btn-outline-danger btn-sm rounded-pill px-3 fw-semibold"

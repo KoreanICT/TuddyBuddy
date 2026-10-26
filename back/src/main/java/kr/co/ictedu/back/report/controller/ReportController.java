@@ -281,10 +281,11 @@ public class ReportController {
             @Parameter(description = "신고 답변 등록 정보")
             @ModelAttribute ReportReplyVO vo,
             @RequestParam(value = "status", defaultValue = "COMPLETED") String status,
+            @RequestParam(value = "sendNotification", defaultValue = "true") boolean sendNotification,
             Authentication authentication) {
 
         vo.setAdmin_num(requireManager(authentication).getMember_num());
-        reportReplyService.addWithStatus(vo, status);
+        reportReplyService.addWithStatus(vo, status, sendNotification);
         return ResponseEntity.ok().body("신고 답변 등록 성공!");
     }
 

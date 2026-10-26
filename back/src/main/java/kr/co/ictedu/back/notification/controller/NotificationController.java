@@ -1,17 +1,27 @@
+// 작성자 : 오진석
 package kr.co.ictedu.back.notification.controller;
 
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import kr.co.ictedu.back.member.service.MemberService;
+import kr.co.ictedu.back.member.vo.MemberVO;
 import kr.co.ictedu.back.notification.dto.NotificationDTO;
 import kr.co.ictedu.back.notification.service.NotificationService;
 
@@ -21,33 +31,74 @@ public class NotificationController {
 
 	@Autowired
 	private NotificationService service;
-	
+
+	@Autowired
+	private MemberService memberService;
+
 	@GetMapping("/subscribe")
-	public SseEmitter subscribe(@RequestHeader("member_num") Long memberNum) {
-		return service.subscribe(memberNum);
+	public SseEmitter subscribe(Authentication authentication) {
+		MemberVO member = getMember(authentication);
+		
+		return service.subscribe(member.getMember_num());
 	}
-	
+
 	@GetMapping("/unread")
-	public ResponseEntity<List<NotificationDTO>> getUnreadNotifications(@RequestHeader("member_num") Long memberNum) {
-		List<NotificationDTO> list = service.getUnreadNotifications(memberNum);
+	public ResponseEntity<List<NotificationDTO>> getUnreadNotifications(Authentication authentication) {
+		MemberVO member = getMember(authentication);
+		
+		List<NotificationDTO> list = service.getUnreadNotifications(member.getMember_num());
 		return ResponseEntity.ok(list);
 	}
-	
+
 	@GetMapping("/getAllNotification")
-	public ResponseEntity<List<NotificationDTO>> getAllNotification(@RequestHeader("member_num") Long memberNum) {
-		List<NotificationDTO> list = service.getNotifications(memberNum);
+	public ResponseEntity<List<NotificationDTO>> getAllNotification(Authentication authentication) {
+		MemberVO member = getMember(authentication);
+		
+		List<NotificationDTO> list = service.getNotifications(member.getMember_num());
 		return ResponseEntity.ok(list);
 	}
-	
+
 	@PatchMapping("/read/{notificationNum}")
-	public ResponseEntity<String> readNotification(@RequestHeader("member_num") Long memberNum, @PathVariable("notificationNum") Long notificationNum) {
-		service.readNotification(memberNum, notificationNum);
+	public ResponseEntity<String> readNotification(Authentication authentication,
+			@PathVariable("notificationNum") Long notificationNum) {
+		MemberVO member = getMember(authentication);
+		service.readNotification(member.getMember_num(), notificationNum);
 		return ResponseEntity.ok("읽음 처리 완료");
 	}
-	
+
 	@PatchMapping("/readAll")
-	public ResponseEntity<String> readAll(@RequestHeader("member_num") Long memberNum) {
-		service.readAll(memberNum);
+	public ResponseEntity<String> readAll(Authentication authentication) {
+		MemberVO member = getMember(authentication);
+		service.readAll(member.getMember_num());
 		return ResponseEntity.ok("전체 읽음 처리 완료");
+	}
+
+	@DeleteMapping("/delete/{notificationNum}")
+	public ResponseEntity<String> deleteNotification(
+	        @PathVariable("notificationNum") Long notificationNum,
+	        Authentication authentication) {
+
+	    MemberVO member = getMember(authentication);
+
+	    service.deleteNotification(
+	        member.getMember_num(),
+	        notificationNum
+	    );
+
+	    return ResponseEntity.ok("삭제 완료");
+	}
+	
+	private MemberVO getMember(Authentication authentication) {
+		if (authentication == null || !authentication.isAuthenticated()
+				|| authentication instanceof AnonymousAuthenticationToken) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+		}
+
+		MemberVO member = memberService.getMemberByEmail(authentication.getName());
+
+		if (member == null) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+		}
+		return member;
 	}
 }

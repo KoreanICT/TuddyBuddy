@@ -89,6 +89,7 @@ export const Detail_Member: React.FC<GetGroupNum> = ({ groupNum }) => {
             await api.delete(
                 `/group/detail/groupQuit/${groupNum}`
             )
+            navigate("/group");
         } catch (error) {
             console.error("탈퇴하는데 실패했습니다. 잠시후 다시 시도해주세요.");
         }
@@ -110,15 +111,17 @@ export const Detail_Member: React.FC<GetGroupNum> = ({ groupNum }) => {
     return (
         <div className={styles.detail_content_wrapper}>
             <div className={styles.detail_section_card}>
-                <h3 className={styles.section_title}>멤버 목록 ({members.length})</h3>
-                <button
-                    type="button"
-                    className={styles.transferbtn}
-                    disabled={!canQuit}
-                    onClick={handleQuit}
-                >
-                    스터디룸 탈퇴
-                </button>
+                <div className={styles.memberHeader}>
+                    <h3 className={styles.section_title}>멤버 목록 ({members.length})</h3>
+                    <button
+                        type="button"
+                        className={styles.exitroombtn}
+                        disabled={!canQuit}
+                        onClick={handleQuit}
+                    >
+                        스터디룸 탈퇴
+                    </button>
+                </div>
                 {/* 멤버 카드 횡방향 목록 컨테이너 */}
                 <div className={styles.member_grid}>
                     {members.map((member) => (
@@ -138,6 +141,7 @@ export const Detail_Member: React.FC<GetGroupNum> = ({ groupNum }) => {
 
                                     <button
                                         type="button"
+                                        className={styles.leader_badge}
                                         onClick={() => handleTransferLeader(member.member_num, member.member_nick)}
                                     >
                                         방장 위임

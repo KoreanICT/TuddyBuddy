@@ -196,6 +196,7 @@ export interface MemoData {
     content: string;
     created_at: string;
     updated_at?: string;
+    can_manage: number;
 }
 
 /**
@@ -254,16 +255,6 @@ export interface DiagramResponse {
     created_at: string;
     updated_at?: string;
 }
-export const getDiagram = async (
-    groupNum: number
-): Promise<DiagramResponse | null> => {
-
-    const response = await api.get<DiagramResponse | null>(
-        `/detail/diagram/${groupNum}`
-    );
-
-    return response.data;
-};
 
 /**
  * 참조 문서 관련 API

@@ -24,12 +24,12 @@ public class NotificationEventListener {
 		NotificationDTO dto = new NotificationDTO();
 		
 		dto.setMember_num(event.getMemberNum());
-		dto.setCategory(event.getType().toString());
+		dto.setCategory(event.getCategory().toString());
 		dto.setMessage(event.getMessage());
 		dto.setTitle(event.getTitle());
 		dto.setTarget_url(event.getUrl());
 		dto.setIs_checked(0);
 		
-		notificationService.send(event.getMemberNum(), dto);
+		notificationService.createNotification(dto);
 	}
 }

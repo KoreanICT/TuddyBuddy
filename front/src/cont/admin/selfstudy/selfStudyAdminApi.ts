@@ -56,7 +56,9 @@ export const selfStudyAdminApi = {
   createCategory: async (name: string): Promise<void> => { await client.post('/categories', { category_name: name }); },
   updateCategory: async (id: number, name: string): Promise<void> => { await client.put(`/categories/${id}`, { category_name: name }); },
   setCategoryStatus: async (id: number, status: Status): Promise<void> => { await client.patch(`/categories/${id}/status`, { status }); },
+  permanentlyDeleteCategory: async (id: number): Promise<void> => { await client.delete(`/categories/${id}`); },
   createSubject: async (categoryId: number, name: string): Promise<void> => { await client.post('/subjects', { category_id: categoryId, subject_name: name }); },
   updateSubject: async (id: number, name: string): Promise<void> => { await client.put(`/subjects/${id}`, { subject_name: name }); },
   setSubjectStatus: async (id: number, status: Status): Promise<void> => { await client.patch(`/subjects/${id}/status`, { status }); },
+  permanentlyDeleteSubject: async (id: number): Promise<void> => { await client.delete(`/subjects/${id}`); },
 };

@@ -4,6 +4,7 @@ import styles from './detail.module.css'
 import { Detail_DocumentModal } from './Detail_DocumentModal';
 import { GetGroupNum, formatFileSize } from './GroupAPI'
 import api from './api';
+import ReportButton from '../report/ReportButton';
 
 interface DocumentData {
     document_num: number;
@@ -137,9 +138,11 @@ export const Detail_Document: React.FC<GetGroupNum> = ({ groupNum }) => {
                                         다운로드 {document.hit}
                                     </span>
                                     <span>
-                                        {document.updated_at ? document.updated_at : document.created_at}
+                                        {document.updated_at ? document.updated_at.replace('T', ' ').slice(0, 16) : document.created_at.replace('T', ' ').slice(0, 16)}
                                     </span>
                                 </div>
+                                <ReportButton type="document" targetNum={document.document_num}
+                                    aria-label={`${document.document_title} 자료 신고`}>신고</ReportButton>
                                 {document.can_manage === 1 && (
                                     <>
                                         <button 
