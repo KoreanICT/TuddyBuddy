@@ -8,8 +8,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.server.ResponseStatusException;
 
-import kr.co.ictedu.back.chatbot.dto.ChatAIRequest;
-import kr.co.ictedu.back.chatbot.dto.ChatAIResponse;
+import kr.co.ictedu.back.chatbot.vo.ChatAIRequestVO;
+import kr.co.ictedu.back.chatbot.vo.ChatAIResponseVO;
 import kr.co.ictedu.back.chatbot.vo.ChatMessageVO;
 import kr.co.ictedu.back.chatbot.vo.ChatSessionVO;
 
@@ -32,7 +32,7 @@ public class ChatBotService {
 	private ChatSessionService chatSessionService;
 
 	// 사용자 질문 DB 저장
-	public void saveUserMessage(ChatAIRequest request) {
+	public void saveUserMessage(ChatAIRequestVO request) {
 		ChatMessageVO message = new ChatMessageVO();
 		message.setChat_num(request.getChat_num());
 		message.setMessage_sender("user");
@@ -42,12 +42,12 @@ public class ChatBotService {
 	}
 
 	// ChatAIService을 통해 FastAPI 호출
-	public ChatAIResponse askAI(ChatAIRequest request) {
+	public ChatAIResponseVO askAI(ChatAIRequestVO request) {
 		return chatAIService.askAI(request);
 	}
 
 	// AI 답변 DB 저장
-	public void saveBotMessage(ChatAIRequest request, ChatAIResponse response) {
+	public void saveBotMessage(ChatAIRequestVO request, ChatAIResponseVO response) {
 		ChatMessageVO message = new ChatMessageVO();
 		message.setChat_num(request.getChat_num());
 		message.setMessage_sender("bot");
@@ -57,7 +57,7 @@ public class ChatBotService {
 	}
 
 	// 전체 챗봇 처리
-	public ChatAIResponse chat(ChatAIRequest request) {
+	public ChatAIResponseVO chat(ChatAIRequestVO request) {
 
 		// 질문 유효성 검증
 		if (request.getQuestion() == null || request.getQuestion().trim().isEmpty()) {
@@ -82,7 +82,7 @@ public class ChatBotService {
 
 		try {
 			// FastAPI 호출
-			ChatAIResponse response = askAI(request);
+			ChatAIResponseVO response = askAI(request);
 			
 			// 응답이 없거나 답변이 비어 있으면 오류 처리
 			if (
@@ -102,7 +102,7 @@ public class ChatBotService {
 		} catch (RestClientException e) { // RestClientException : HTTP 통신 관련 예외 클래스
 
 			// AI 서버 통신 오류 안내
-			ChatAIResponse errorResponse = new ChatAIResponse();
+			ChatAIResponseVO errorResponse = new ChatAIResponseVO();
 
 			errorResponse.setAnswer("죄송합니다. 현재 답변을 가져오지 못했습니다. 잠시 후 다시 시도해 주세요.");
 

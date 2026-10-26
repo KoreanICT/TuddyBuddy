@@ -47,6 +47,12 @@ public class ActivityLogAspect {
 			case "joinByInviteCode" -> "GROUP_JOIN";
 			case "getMyGroups" -> "GROUP_MY_LIST";
 			case "getPublicGroups" -> "GROUP_PUBLIC_LIST";
+			case "requestJoin" -> "GROUP_JOIN_REQUEST";
+			// 방장이 가입 신청을 승인하거나 거절한 활동입니다.
+			// 현재 Controller 인수 순서:
+			// answerJoin(notificationNum, accept, authentication)
+			// 따라서 두 번째 인수인 [1]이 승인 여부입니다.
+			case "answerJoin" -> Boolean.TRUE.equals(jp.getArgs()[1]) ? "GROUP_JOIN_APPROVE" : "GROUP_JOIN_REJECT";
 			default -> null;
 		};
 		return recordSelectedActivity(jp, "GROUP", action);
@@ -97,6 +103,7 @@ public class ActivityLogAspect {
 	        case "getMethodName" -> "TDL_LIST";
 	        case "updateTdlStatus" -> "TDL_STATUS_CHANGE";
 	        case "updateTdl" -> "TDL_UPDATE";
+	        case "deleteTdl" -> "TDL_DELETE";
 			default -> null;
 		};
 		return recordSelectedActivity(jp, "GROUP", action);
@@ -162,6 +169,7 @@ public class ActivityLogAspect {
 			case "getResult" -> "QUIZ_RESULT_VIEW";
 			case "getResponses" -> "QUIZ_RESPONSE_LIST";
 			case "deleteSession" -> "QUIZ_SESSION_DELETE";
+			case "classifyQuiz" -> "QUIZ_CLASSIFY";
 			default -> null;
 		};
 		return recordSelectedActivity(jp, "SELFSTUDY", action);
@@ -274,6 +282,7 @@ public class ActivityLogAspect {
 			case "memberList" -> "ADMIN_MEMBER_LIST";
 			case "withdrawManagedMember" -> "ADMIN_MEMBER_WITHDRAW";
 			case "updateAuthority" -> "ADMIN_MEMBER_AUTHORITY_CHANGE";
+			case "getMyPointHistory" -> "MEMBER_POINT_HISTORY_VIEW";
 			default -> null;
 		};
 		return recordSelectedActivity(jp, "MEMBER", action);
@@ -301,6 +310,7 @@ public class ActivityLogAspect {
 			case "updateSubject" -> "ADMIN_SUBJECT_UPDATE";
 			case "updateSubjectStatus" -> "ADMIN_SUBJECT_STATUS_CHANGE";
 			case "getUsage" -> "ADMIN_SELFSTUDY_USAGE_VIEW";
+			case "permanentlyDeleteCategory" -> "ADMIN_CATEGORY_DELETE";
 			default -> null;
 		};
 		return recordSelectedActivity(jp, "SELFSTUDY", action);
@@ -331,6 +341,7 @@ public class ActivityLogAspect {
 	        case "updatePost" -> "COMMUNITY_POST_UPDATE";
 	        case "deletePost" -> "COMMUNITY_POST_DELETE";
 	        case "like" -> "COMMUNITY_POST_LIKE";
+	        case "increaseViewCount" -> "COMMUNITY_POST_VIEW";
 			default -> null;
 		};
 		return recordSelectedActivity(jp, "COMMUNITY", action);
@@ -346,6 +357,7 @@ public class ActivityLogAspect {
 	        case "getAllNotification" -> "NOTIFICATION_LIST";
 	        case "readNotification" -> "NOTIFICATION_READ";
 	        case "readAll" -> "NOTIFICATION_READ_ALL";
+	        case "deleteNotification" -> "NOTIFICATION_DELETE";
 			default -> null;
 		};
 		return recordSelectedActivity(jp, "NOTIFICATION", action);
