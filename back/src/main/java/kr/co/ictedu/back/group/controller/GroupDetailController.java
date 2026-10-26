@@ -1,6 +1,7 @@
 //작성자 : 오진석
 package kr.co.ictedu.back.group.controller;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 
 import java.util.HashMap;
@@ -8,6 +9,8 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -17,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -24,6 +28,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.co.ictedu.back.group.dto.GroupDetailHeaderDTO;
 import kr.co.ictedu.back.group.dto.GroupUpdateDTO;
 import kr.co.ictedu.back.group.service.GroupDetailService;
+import kr.co.ictedu.back.member.service.MemberService;
+import kr.co.ictedu.back.member.vo.MemberVO;
 
 
 @Tag(name = "스터디룹 상세 API", description = "스터디룸의 상세 정보 및 소속 멤버 조회, 수정, 삭제 API")
@@ -34,16 +40,20 @@ public class GroupDetailController {
 	@Autowired
 	private GroupDetailService service;
 	
+	@Autowired
+	private MemberService memberService;
+	
 	@Operation(summary = "스터디룸 헤더 조회", description = "스터디룸의 헤더 영역의 데이터를 조회합니다.")
 	@ApiResponse(responseCode = "200", description = "헤더 데이터 조회 성공")
 	@ApiResponse(responseCode = "500", description = "헤더 데이터 조회 실패")
 	@GetMapping("/{groupNum}")
     public ResponseEntity<GroupDetailHeaderDTO> getHeader(
-            @RequestHeader("memberNum") Long memberNum,
+            Authentication authentication,
             @PathVariable("groupNum") Long groupNum) {
 
+		MemberVO member = getMember(authentication);
         return ResponseEntity.ok(
-                service.getHeader(memberNum, groupNum)
+                service.getHeader(member.getMember_num(), groupNum)
         );
     }
 	
@@ -52,7 +62,7 @@ public class GroupDetailController {
 	@ApiResponse(responseCode = "500", description = "헤더 데이터 조회 실패")
 	@GetMapping("/edit/{groupNum}") 
 	public ResponseEntity<GroupUpdateDTO> getUpdateData(
-            @RequestHeader("memberNum") Long memberNum,
+			Authentication authentication,
             @PathVariable("groupNum") Long groupNum) {
 
         // 현재 서비스에는 요청자 번호를 받는 인자가 없음
@@ -81,11 +91,13 @@ public class GroupDetailController {
 	@ApiResponse(responseCode = "500", description = "멤버 리스트 조회 실패")
 	@GetMapping("/getMemberlist/{groupNum}")
 	 public ResponseEntity<Map<String, Object>> getMembers(
-	            @RequestHeader("memberNum") Long memberNum,
+			 Authentication authentication,
 	            @PathVariable("groupNum") Long groupNum) {
+		
+		MemberVO member = getMember(authentication);
 
 	        return ResponseEntity.ok(
-	                service.getMembers(groupNum, memberNum)
+	                service.getMembers(groupNum, member.getMember_num())
 	        );
 	    }
 	
@@ -94,10 +106,12 @@ public class GroupDetailController {
 	@ApiResponse(responseCode = "500", description = "위임 실패")
 	@PatchMapping("/transferLeader/{groupNum}/{memberNum}")
 	public ResponseEntity<String> transferLeader(
-            @RequestHeader("memberNum") Long currentMemberNum,
+			Authentication authentication,
             @PathVariable("groupNum") Long groupNum,
             @PathVariable("memberNum") Long targetMemberNum) {
 
+		MemberVO member = getMember(authentication);
+		Long currentMemberNum = member.getMember_num();
         service.transferLeader(
                 groupNum,
                 currentMemberNum,
@@ -112,10 +126,12 @@ public class GroupDetailController {
 	@ApiResponse(responseCode = "500", description = "강퇴 실패")
 	@DeleteMapping("/kickMember/{groupNum}/{memberNum}")
 	public ResponseEntity<String> kickMember(
-            @RequestHeader("memberNum") Long currentMemberNum,
+			Authentication authentication,
             @PathVariable("groupNum") Long groupNum,
             @PathVariable("memberNum") Long targetMemberNum) {
 
+		MemberVO member = getMember(authentication);
+		Long currentMemberNum = member.getMember_num();
         service.kickMember(
                 groupNum,
                 currentMemberNum,
@@ -130,10 +146,12 @@ public class GroupDetailController {
 	@ApiResponse(responseCode = "500", description = "탈퇴 실패")
 	@DeleteMapping("/groupQuit/{groupNum}")
 	public ResponseEntity<String> groupQuit(
-            @RequestHeader("memberNum") Long memberNum,
+			Authentication authentication,
             @PathVariable("groupNum") Long groupNum) {
 
-        service.groupQuit(groupNum, memberNum);
+		MemberVO member = getMember(authentication);
+		
+        service.groupQuit(groupNum, member.getMember_num());
 
         return ResponseEntity.ok("탈퇴 완료.");
     }
@@ -143,11 +161,27 @@ public class GroupDetailController {
 	@ApiResponse(responseCode = "500", description = "삭제 실패")
 	@DeleteMapping("/deleteGroup/{groupNum}")
 	public ResponseEntity<String> deleteGroup(
-            @RequestHeader("memberNum") Long memberNum,
+			Authentication authentication,
             @PathVariable("groupNum") Long groupNum) {
 
-        service.deleteGroup(groupNum, memberNum);
+		MemberVO member = getMember(authentication);
+		
+        service.deleteGroup(groupNum, member.getMember_num());
 
         return ResponseEntity.ok("탈퇴 완료.");
     }
+	
+	private MemberVO getMember(Authentication authentication) {
+		if (authentication == null || !authentication.isAuthenticated()
+				|| authentication instanceof AnonymousAuthenticationToken) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+		}
+
+		MemberVO member = memberService.getMemberByEmail(authentication.getName());
+
+		if (member == null) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+		}
+		return member;
+	}
 }
