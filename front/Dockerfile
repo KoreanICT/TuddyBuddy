@@ -11,7 +11,8 @@ ARG REACT_APP_KAKAO_REST_API_KEY
 ENV REACT_APP_BACK_END_URL=${REACT_APP_BACK_END_URL} \
     REACT_APP_DETECT_API_URL=${REACT_APP_DETECT_API_URL} \
     REACT_APP_KAKAO_REST_API_KEY=${REACT_APP_KAKAO_REST_API_KEY}
-RUN yarn build
+RUN test -n "$REACT_APP_KAKAO_REST_API_KEY" || (echo "Kakao REST API build argument is required" >&2; exit 1); \
+    yarn build
 
 FROM nginx:alpine
 COPY nginx.conf /etc/nginx/conf.d/default.conf

@@ -37,12 +37,20 @@ pipeline {
         }
         stage('Build and save image') {
             steps {
-                sh '''
-                    set -eu
-                    docker build -t "$IMAGE_NAME:$IMAGE_TAG" front
-                    docker save "$IMAGE_NAME:$IMAGE_TAG" \
-                        -o "$WORKSPACE/$IMAGE_NAME-$IMAGE_TAG.tar"
-                '''
+                withCredentials([string(credentialsId: 'tuddybuddy-kakao-rest-api-key', variable: 'REACT_APP_KAKAO_REST_API_KEY')]) {
+                    sh '''
+                        set -eu
+                        set +x
+                        test -n "$REACT_APP_KAKAO_REST_API_KEY"
+                        docker build \
+                            --build-arg REACT_APP_BACK_END_URL=/back \
+                            --build-arg REACT_APP_DETECT_API_URL=/detect \
+                            --build-arg REACT_APP_KAKAO_REST_API_KEY \
+                            -t "$IMAGE_NAME:$IMAGE_TAG" front
+                        docker save "$IMAGE_NAME:$IMAGE_TAG" \
+                            -o "$WORKSPACE/$IMAGE_NAME-$IMAGE_TAG.tar"
+                    '''
+                }
             }
         }
         stage('Transfer deployment') {
