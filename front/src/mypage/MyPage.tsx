@@ -388,17 +388,6 @@ const MyPageContent: React.FC<{ sessionKey: string }> = ({ sessionKey }) => {
                     >
                         친구 목록
                     </button>
-
-                    <button
-                        className={
-                            activeMenu === 'example3'
-                                ? 'sidebar-menu active'
-                                : 'sidebar-menu'
-                        }
-                        onClick={() => setActiveMenu('example3')}
-                    >
-                        나의 스터디 그룹
-                    </button>
                 </aside>
 
                 {/* 오른쪽 본문 */}
@@ -653,17 +642,7 @@ const MyPageContent: React.FC<{ sessionKey: string }> = ({ sessionKey }) => {
                     {/* 친구 목록 */}
                     {activeMenu === 'friend' && <MyFriend />}
 
-                    {/* 나의 스터디 그룹 */}
-                    {activeMenu === 'example3' && (
-                        <div className="menu-panel">
-                            <h2>나의 스터디 그룹</h2>
-
-                            <p>
-                                내가 참여한 스터디 그룹을 보여주는 영역입니다.
-                            </p>
-                        </div>
-                    )}
-
+                   
                 </main>
                 {showPointHistory && (
                     <div ref={pointHistoryDialog} role="dialog" aria-modal="true" aria-label="포인트 내역">
