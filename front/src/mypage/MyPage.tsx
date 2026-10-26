@@ -1,4 +1,6 @@
-import { BACKEND_URL } from '../login/authHttp';
+import { BACKEND_URL, memberSessionConfig } from '../login/authHttp';
+import { currentToken, memberSessionKey, sessionIdentity } from '../login/session';
+import MemberSessionBoundary from './MemberSessionBoundary';
 
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -8,7 +10,7 @@ import './MyPage.css';
 import MyReportList from './report/MyReportList';
 import MyFriend from './friend/MyFriend';
 import MyPosts from './posts/MyPosts';
-import PointHistory from './PointHistory';
+import PointHistory, { PointHistoryItem } from './PointHistory';
 import Modal from '../cont/modal/Modal';
 import { useAppDispatch } from '../login/reducers/store';
 import { logoutAction } from '../login/authActions/authActions';
@@ -32,9 +34,15 @@ interface MemberVO {
     member_login_type?: string;
 }
 
-const MyPage: React.FC = () => {
+const MyPageContent: React.FC<{ sessionKey: string }> = ({ sessionKey }) => {
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
+    const operations = useRef(new AbortController());
+    useEffect(() => {
+        operations.current = new AbortController();
+        return () => operations.current.abort();
+    }, []);
+    const isCurrentSession = () => !operations.current.signal.aborted && memberSessionKey() === sessionKey;
     const [withdrawOpen, setWithdrawOpen] = useState(false);
     const [withdrawConfirmed, setWithdrawConfirmed] = useState(false);
     const [withdrawing, setWithdrawing] = useState(false);
@@ -43,8 +51,48 @@ const MyPage: React.FC = () => {
     // 메뉴 상태
     const [activeMenu, setActiveMenu] = useState('info');
     const [showPointHistory, setShowPointHistory] = useState(false);
+    const [pointHistory, setPointHistory] = useState<PointHistoryItem[]>([]);
+    const [pointHistoryLoading, setPointHistoryLoading] = useState(false);
+    const [pointHistoryError, setPointHistoryError] = useState('');
     const pointHistoryButton = useRef<HTMLButtonElement>(null);
     const pointHistoryDialog = useRef<HTMLDivElement>(null);
+
+    const openPointHistory = async () => {
+        if (!isCurrentSession()) return;
+
+        setShowPointHistory(true);
+        setPointHistoryLoading(true);
+        setPointHistoryError('');
+
+        const token = currentToken();
+        if (!token) {
+            setPointHistoryError('로그인이 필요합니다. 다시 로그인한 뒤 확인해주세요.');
+            setPointHistoryLoading(false);
+            return;
+        }
+
+        try {
+            const response = await axios.get<PointHistoryItem[]>(
+                `${API_URL}/api/member/point-history`,
+                memberSessionConfig(sessionKey, {
+                    headers: { Authorization: `Bearer ${token}` },
+                    signal: operations.current.signal,
+                })
+            );
+
+            if (!isCurrentSession()) return;
+            if (!Array.isArray(response.data)) {
+                throw new Error('포인트 내역 응답 형식이 올바르지 않습니다.');
+            }
+            setPointHistory(response.data);
+        } catch (error) {
+            if (axios.isCancel(error) || !isCurrentSession()) return;
+            console.error('포인트 내역 조회 실패:', error);
+            setPointHistoryError('포인트 내역을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.');
+        } finally {
+            if (isCurrentSession()) setPointHistoryLoading(false);
+        }
+    };
 
     useEffect(() => {
         if (!showPointHistory) return;
@@ -82,7 +130,7 @@ const MyPage: React.FC = () => {
 
     const copyReferralCode = async () => {
         const code = member?.member_code;
-        if (!code || copyingReferral) return;
+        if (!code || copyingReferral || !isCurrentSession()) return;
         setCopyingReferral(true);
         setReferralCopyMessage('');
         try {
@@ -94,13 +142,15 @@ const MyPage: React.FC = () => {
                 referralInput.current?.select();
                 if (!document.execCommand('copy')) throw new Error('Clipboard unavailable');
             }
+            if (!isCurrentSession()) return;
             setReferralCopyMessage('추천인 코드를 복사했습니다.');
         } catch {
+            if (!isCurrentSession()) return;
             referralInput.current?.focus();
             referralInput.current?.select();
             setReferralCopyMessage('자동 복사가 제한되어 있습니다. 코드를 선택해 직접 복사해주세요.');
         } finally {
-            setCopyingReferral(false);
+            if (isCurrentSession()) setCopyingReferral(false);
         }
     };
 
@@ -127,19 +177,20 @@ const MyPage: React.FC = () => {
             try {
                 const response = await axios.get<MemberVO>(
                     `${API_URL}/api/member/me`,
-                    {
+                    memberSessionConfig(sessionKey, {
                         headers: {
                             Authorization: `Bearer ${token}`
                         },
                         signal: controller.signal
-                    }
+                    })
                 );
 
+                if (controller.signal.aborted || !isCurrentSession()) return;
                 setMember(response.data);
                 setError('');
 
             } catch (error) {
-                if (axios.isCancel(error)) return;
+                if (axios.isCancel(error) || !isCurrentSession()) return;
 
                 console.error('마이페이지 회원정보 조회 실패:');
                 setMember(null);
@@ -158,7 +209,7 @@ const MyPage: React.FC = () => {
                     setError('회원정보를 불러오는 중 오류가 발생했습니다.');
                 }
             } finally {
-                if (!controller.signal.aborted) {
+                if (!controller.signal.aborted && isCurrentSession()) {
                     setLoading(false);
                 }
             }
@@ -169,7 +220,7 @@ const MyPage: React.FC = () => {
         return () => {
             controller.abort();
         };
-    }, []);
+    }, [sessionKey]);
 
     // 포인트 표시
     const formatPoint = (point?: number | null) => {
@@ -237,11 +288,12 @@ const MyPage: React.FC = () => {
 
     // 회원정보 수정 페이지 이동
     const handleMemberEdit = () => {
+        if (!isCurrentSession()) return;
         navigate('/member_edit');
     };
 
     const handleWithdraw = async () => {
-        if (!withdrawConfirmed || withdrawing || withdrawLock.current) return;
+        if (!withdrawConfirmed || withdrawing || withdrawLock.current || !isCurrentSession()) return;
 
         const token = localStorage.getItem('token');
         if (!token) {
@@ -254,10 +306,12 @@ const MyPage: React.FC = () => {
         setWithdrawError('');
 
         try {
-            await axios.delete(`${API_URL}/api/member/withdraw`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            await axios.delete(`${API_URL}/api/member/withdraw`, memberSessionConfig(sessionKey, {
+                headers: { Authorization: `Bearer ${token}` },
+                signal: operations.current.signal
+            }));
         } catch (err) {
+            if (!isCurrentSession() || axios.isCancel(err)) return;
             const status = axios.isAxiosError(err) ? err.response?.status : undefined;
             if (status === 401) {
                 setWithdrawError('로그인이 만료되었습니다. 다시 로그인한 후 시도해주세요.');
@@ -273,8 +327,13 @@ const MyPage: React.FC = () => {
             return;
         }
 
-        await dispatch(logoutAction());
+        if (!isCurrentSession()) return;
+        const logout = dispatch(logoutAction());
+        const logoutIdentity = sessionIdentity();
+        await logout;
+        if (sessionIdentity() !== logoutIdentity || currentToken()) return;
         window.alert('회원탈퇴가 완료되었습니다.');
+        if (sessionIdentity() !== logoutIdentity || currentToken()) return;
         navigate('/', { replace: true });
     };
 
@@ -338,7 +397,7 @@ const MyPage: React.FC = () => {
                         }
                         onClick={() => setActiveMenu('example3')}
                     >
-                        나의 스터디 그룹 - 중령오진석
+                        나의 스터디 그룹
                     </button>
                 </aside>
 
@@ -422,7 +481,7 @@ const MyPage: React.FC = () => {
                                             className="point-link"
                                             ref={pointHistoryButton}
                                             aria-haspopup="dialog"
-                                            onClick={() => setShowPointHistory(true)}
+                                            onClick={() => void openPointHistory()}
                                         >
                                             포인트 내역 보기
                                         </button>
@@ -609,7 +668,12 @@ const MyPage: React.FC = () => {
                 {showPointHistory && (
                     <div ref={pointHistoryDialog} role="dialog" aria-modal="true" aria-label="포인트 내역">
                         <Modal isOpen={showPointHistory} onClose={() => setShowPointHistory(false)} title="포인트 내역">
-                            <PointHistory embedded />
+                            <PointHistory
+                                history={pointHistory}
+                                loading={pointHistoryLoading}
+                                error={pointHistoryError}
+                                embedded
+                            />
                         </Modal>
                     </div>
                 )}
@@ -617,5 +681,7 @@ const MyPage: React.FC = () => {
         </div>
     );
 };
+
+const MyPage: React.FC = () => <MemberSessionBoundary>{key => <MyPageContent sessionKey={key} />}</MemberSessionBoundary>;
 
 export default MyPage;

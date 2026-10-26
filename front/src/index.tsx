@@ -21,8 +21,8 @@ const root = ReactDOM.createRoot(
 
 root.render(
   <Provider store={store}>
-    {/* <NotificationProvider> */}
+    <NotificationProvider>
       <App />
-    {/* </NotificationProvider> */}
+    </NotificationProvider>
   </Provider>
 );

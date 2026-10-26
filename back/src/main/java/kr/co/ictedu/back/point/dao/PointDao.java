@@ -23,8 +23,8 @@ public interface PointDao {
 	//추천인 코드 소유 회원 조회
 	Long select_member_num_by_code(@Param("member_code") String member_code);
 	
-	//n번 회원의 모든 포인트 로그를 조회 - point테이블
-	List<PointVO> select_point_log(Long num);
+	//회원번호에 해당하는 전체 포인트 로그를 조회 - point테이블
+	List<PointVO> select_point_log(@Param("memberNum") Long memberNum);
 	
 	//포인트로그 insert - point테이블
 	void insertPoint(PointVO vo);

@@ -99,7 +99,7 @@ export const Group_Detail: React.FC = () => {
                             {groupData?.group_thumbnail ? (
                                 <img src={`http://localhost/back/api/group/thumbnail/${encodeURIComponent(
                                     groupData.group_thumbnail
-                                )}`} alt={groupData.group_title} className={styles.group_thumnail_img} />
+                                )}`} alt="" className={styles.study_thumbnail_img} />
                             ) : (
                                 getFirstLetter(groupData?.group_title ?? '')
                             )}

@@ -1,5 +1,5 @@
-import axios, { AxiosHeaders, AxiosInstance, InternalAxiosRequestConfig } from 'axios';
-import { beginAuthAttempt, clearSession, currentToken, refreshBlocked, saveSession, sessionFromResponse, sessionGeneration, sessionIdentity } from './session';
+import axios, { AxiosHeaders, AxiosInstance, AxiosRequestConfig, InternalAxiosRequestConfig } from 'axios';
+import { beginAuthAttempt, clearSession, currentToken, memberSessionKey, refreshBlocked, saveSession, sessionFromResponse, sessionGeneration, sessionIdentity } from './session';
 
 export const BACKEND_URL = (process.env.REACT_APP_BACK_END_URL || 'http://localhost/back').replace(/\/$/, '');
 const backend = new URL(BACKEND_URL, window.location.origin);
@@ -81,7 +81,14 @@ export function refreshAccessToken(): Promise<string> {
   return flight;
 }
 
-type AuthConfig = InternalAxiosRequestConfig & { _authRetried?: boolean; _authEpoch?: number; _authToken?: string; _authBackend?: boolean };
+type AuthConfig = InternalAxiosRequestConfig & { _authRetried?: boolean; _authEpoch?: number; _authToken?: string; _authBackend?: boolean; _memberSessionKey?: string };
+
+/** 화면을 조회한 세션이 그대로일 때만 요청 전송·응답 반영·토큰 갱신 재시도를 허용합니다. */
+export function memberSessionConfig(key: string, config: AxiosRequestConfig = {}): AxiosRequestConfig & { _memberSessionKey: string } {
+  return { ...config, _memberSessionKey: key };
+}
+const sessionChanged = (request: AuthConfig) => request._memberSessionKey !== undefined &&
+  (!request._memberSessionKey || request._memberSessionKey !== memberSessionKey());
 const installedClients = new WeakSet<AxiosInstance>();
 
 export function installAuthInterceptors(client: AxiosInstance) {
@@ -89,6 +96,7 @@ export function installAuthInterceptors(client: AxiosInstance) {
   installedClients.add(client);
   client.interceptors.request.use(config => {
     const request = config as AuthConfig;
+    if (sessionChanged(request)) throw new axios.CanceledError('로그인 계정이 변경되었습니다.');
     if (request._authRetried && request._authEpoch !== sessionGeneration()) {
       throw new axios.CanceledError('인증 상태가 변경되었습니다.');
     }
@@ -111,8 +119,12 @@ export function installAuthInterceptors(client: AxiosInstance) {
     else request.headers.delete('Authorization');
     return request;
   });
-  client.interceptors.response.use(response => response, async error => {
+  client.interceptors.response.use(response => {
+    if (sessionChanged(response.config as AuthConfig)) throw new axios.CanceledError('로그인 계정이 변경되었습니다.');
+    return response;
+  }, async error => {
     const request = error.config as AuthConfig | undefined;
+    if (request && sessionChanged(request)) throw new axios.CanceledError('로그인 계정이 변경되었습니다.');
     if (!request || !request._authBackend || error.response?.status !== 401 || request._authRetried ||
         isAuthEndpoint(request.url || '') || request.signal?.aborted || !request._authToken ||
         request._authEpoch !== sessionGeneration() || !currentToken()) throw error;

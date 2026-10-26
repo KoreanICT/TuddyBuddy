@@ -10,8 +10,6 @@ import {
     Controls,
     MiniMap,
     Panel,
-    Node,
-    Edge,
     OnConnect,
     NodeMouseHandler,
     Connection,
@@ -19,15 +17,13 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import styles from './project.module.css'
-import { GetGroupNum, GetIsleaderandGroupNum } from './GroupAPI'
-import { CustomNodeData, DiagramData, DiagramSaveRequest, DiagramResponse } from './GroupAPI';
+import { GetIsleaderandGroupNum } from './GroupAPI'
+import { DiagramData, DiagramSaveRequest, DiagramResponse } from './GroupAPI';
 import { AppNode, AppEdge } from './Type';
 
 const initialNodes: AppNode[] = [];
 
 const initialEdges: AppEdge[] = [];
-
-const backendUrl = process.env.REACT_APP_BACK_END_URL;
 
 export const Project_Course: React.FC<GetIsleaderandGroupNum> = ({groupNum, isLeader}) => {
 

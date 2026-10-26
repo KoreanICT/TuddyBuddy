@@ -35,7 +35,34 @@ public class QuizAiClient {
 		client = RestClient.builder().baseUrl(baseUrl).requestFactory(factory).build();
 	}
 
-	public AiQuizResponseDto generate(QuizGenerateRequestDto r, byte[] image, List<Map<String, Object>> catalog) {
+	public AiQuizResponseDto classify(QuizGenerateRequestDto r, byte[] image, List<Map<String, Object>> catalog) {
+		var parts = imageParts(r, image, catalog);
+		try {
+			var response = request("/api/ai/classify", parts).body(AiQuizResponseDto.class);
+			if (response == null || blank(response.categoryName()) || blank(response.subjectName()))
+				throw new ResponseStatusException(BAD_GATEWAY, "AI 분류 응답이 올바르지 않습니다.");
+			return response;
+		} catch (RestClientException e) {
+			throw new ResponseStatusException(BAD_GATEWAY, "AI 서버 분류 요청에 실패했습니다. 서버 주소, API 키, 실행 상태를 확인해주세요.", e);
+		}
+	}
+
+	public AiQuizResponseDto generate(QuizGenerateRequestDto r, byte[] image,
+			List<Map<String, Object>> catalog, String categoryName, String subjectName) {
+		var parts = imageParts(r, image, catalog);
+		parts.add("category_name", categoryName);
+		parts.add("subject_name", subjectName);
+		try {
+			var response = request("/api/ai/generate-quiz", parts).body(AiQuizResponseDto.class);
+			validate(response, r);
+			return response;
+		} catch (RestClientException e) {
+			throw new ResponseStatusException(BAD_GATEWAY, "AI 서버 호출에 실패했습니다. 서버 주소, API 키, 실행 상태를 확인해주세요.", e);
+		}
+	}
+
+	private LinkedMultiValueMap<String, Object> imageParts(QuizGenerateRequestDto r, byte[] image,
+			List<Map<String, Object>> catalog) {
 		var parts = new LinkedMultiValueMap<String, Object>();
 		var headers = new org.springframework.http.HttpHeaders();
 		headers.setContentType(MediaType.parseMediaType(r.getFile().getContentType()));
@@ -49,20 +76,17 @@ public class QuizAiClient {
 			parts.add("subject_id", r.getSubject_id().toString());
 		}
 		parts.add("catalog_json", json.writeValueAsString(catalog));
-		parts.add("quiz_type", r.getQuiz_type());
-		parts.add("quiz_difficulty", r.getQuiz_difficulty());
-		parts.add("quiz_count", r.getQuiz_count().toString());
+		if (r.getQuiz_type() != null) parts.add("quiz_type", r.getQuiz_type());
+		if (r.getQuiz_difficulty() != null) parts.add("quiz_difficulty", r.getQuiz_difficulty());
+		if (r.getQuiz_count() != null) parts.add("quiz_count", r.getQuiz_count().toString());
 		parts.add("quiz_prompt", r.getQuiz_prompt() == null ? "" : r.getQuiz_prompt());
-		try {
-			var request = client.post().uri("/api/ai/generate-quiz").contentType(MediaType.MULTIPART_FORM_DATA);
-			if (!token.isBlank())
-				request.header("X-AI-Token", token);
-			var response = request.body(parts).retrieve().body(AiQuizResponseDto.class);
-			validate(response, r);
-			return response;
-		} catch (RestClientException e) {
-			throw new ResponseStatusException(BAD_GATEWAY, "AI 서버 호출에 실패했습니다. 서버 주소, API 키, 실행 상태를 확인해주세요.", e);
-		}
+		return parts;
+	}
+
+	private RestClient.ResponseSpec request(String uri, LinkedMultiValueMap<String, Object> parts) {
+		var request = client.post().uri(uri).contentType(MediaType.MULTIPART_FORM_DATA);
+		if (!token.isBlank()) request.header("X-AI-Token", token);
+		return request.body(parts).retrieve();
 	}
 
 	private void validate(AiQuizResponseDto response, QuizGenerateRequestDto r) {

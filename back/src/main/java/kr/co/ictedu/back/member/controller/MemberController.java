@@ -33,6 +33,9 @@ import kr.co.ictedu.back.member.service.MemberService;
 import kr.co.ictedu.back.member.service.MemberService.PasswordChangeResult;
 import kr.co.ictedu.back.member.vo.MemberVO;
 import kr.co.ictedu.back.member.dto.SignupRequest;
+import kr.co.ictedu.back.member.service.VerifiedSignupService;
+import kr.co.ictedu.back.point.service.PointService;
+import kr.co.ictedu.back.point.vo.PointVO;
 import kr.co.ictedu.back.securityauth.AuthCookies;
 import kr.co.ictedu.back.securityauth.MemberRoles;
 
@@ -48,6 +51,9 @@ public class MemberController {
     private MemberService memberService;
 
     @Autowired
+    private VerifiedSignupService verifiedSignup;
+
+    @Autowired
     private PagingService pagingService;
 
     @Autowired
@@ -55,6 +61,9 @@ public class MemberController {
 
     @Autowired
     private LoginLogService loginLogs;
+
+    @Autowired
+    private PointService pointService;
 
     // 관리자 회원가입
     @PostMapping("/admin/signup")
@@ -68,7 +77,7 @@ public class MemberController {
     @PostMapping("/signup")
     public ResponseEntity<?> memberjoin(@RequestBody SignupRequest request) {
         try {
-            memberService.create(request.toMember(), request.getReferral_code());
+            verifiedSignup.signup(request);
             return ResponseEntity.ok("회원가입이 완료되었습니다.");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
@@ -153,6 +162,26 @@ public class MemberController {
         System.out.println("===== 마이페이지 회원정보 조회 성공 =====");
 
         return ResponseEntity.ok(response);
+    }
+
+    // 마이페이지 포인트 내역 조회 (JWT 회원만 본인 내역 조회)
+    @GetMapping("/point-history")
+    public ResponseEntity<?> getMyPointHistory(Authentication authentication) {
+        if (!isLoggedIn(authentication)) {
+            return ResponseEntity.status(401).body(
+                    Map.of("success", false, "message", "로그인이 필요합니다.")
+            );
+        }
+
+        MemberVO member = memberService.getMemberByEmail(authentication.getName());
+        if (member == null) {
+            return ResponseEntity.status(404).body(
+                    Map.of("success", false, "message", "회원정보를 찾을 수 없습니다.")
+            );
+        }
+
+        List<PointVO> pointHistory = pointService.selectPointHistory(member.getMember_num());
+        return ResponseEntity.ok(pointHistory);
     }
 
     // 회원정보 수정 (JWT) - 닉네임, 전화번호 변경

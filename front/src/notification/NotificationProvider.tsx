@@ -1,101 +1,42 @@
-import { createContext, useContext, useEffect, useState } from "react";
-import { fetchEventSource } from '@microsoft/fetch-event-source';
-import { NotificationData } from "./NotificationAPI";
-import { useSelector } from 'react-redux';
-import { RootState } from "../login/reducers";
-import api from "../cont/study_group/api";
+import React, { createContext, useContext } from "react";
+import { useSelector } from "react-redux";
+import type { RootState } from "../login/reducers";
+import { useNotificationState } from "./useNotificationState";
+import type { NotificationState } from "./useNotificationState";
 
-interface NotificationContextType {
-    notifications: NotificationData[];
-    hasNewNotification: boolean;
-    setHasNewNotification: React.Dispatch<React.SetStateAction<boolean>>;
-    markAsRead: (notificationNum: number) => Promise<void>;
-}
+interface NotificationProviderProps {children: React.ReactNode;}
 
-const NotificationContext = createContext<NotificationContextType>({
-    notifications: [],
-    hasNewNotification: false,
-    setHasNewNotification: () => {},
-    markAsRead: async () => {}
-})
+const NotificationContext = createContext<NotificationState | undefined>(undefined);
 
-export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-
-    const [notifications, setNotifications] = useState<NotificationData[]>([]);
-    const token = useSelector((state: RootState) => state.auth.token)
-    const member_num = useSelector((state: RootState) => state.auth.member_num)
-    const [hasNewNotification, setHasNewNotification] = useState(false);
-
-    const markAsRead = async (notificationNum: number) => {
-        try {
-            await api.patch(
-                `/notification/read/${notificationNum}`
-            );
-
-            setNotifications((prev) => prev.map((item) => item.notification_num === notificationNum ? {...item, is_read: 1} : item))
-        } catch (error) {
-            console.error('알림 읽음 처리 실패', error);
-        }
-    }
-    useEffect(() => {
-
-        if (!token || member_num === null) {
-            return;
-        }
-
-        const controller = new AbortController();
-
-        fetchEventSource('http://localhost/back/api/notification/subscribe',
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    member_num: String(member_num)
-                },
-                signal: controller.signal,
-                onmessage(event) {
-                    if (event.event !== 'notification') {
-                        return;
-                    }
-
-                    const data = JSON.parse(event.data) as NotificationData;
-
-                    setNotifications((prev) => [data, ...prev]);
-
-                    setHasNewNotification(true);
-                }
-            }
+export const NotificationProvider:
+    React.FC<NotificationProviderProps> = ({ children }) => {
+        const token = useSelector(
+            (state: RootState) => state.auth.token
         );
-        return () => {controller.abort()};
-    },[token, member_num])
 
-    useEffect(() => {
-        if(!token || member_num === null) {
-            return;
-        }
+        const memberNum = useSelector(
+            (state: RootState) => state.auth.member_num
+        );
 
-        const loadUnreadNotifications = async() => {
-            try {
-                const response = await api.get<NotificationData[]>(
-                    '/notification/unread'
-                );
-                setNotifications(response.data);
-                if (response.data.length > 0) {
-                    setHasNewNotification(true);
-                }
-            } catch(error) {
-                console.error('알림 조회 실패', error);
-            }
-        };
+        const notificationState: NotificationState = useNotificationState(token, memberNum);
 
-        loadUnreadNotifications();
+        return (
+            <NotificationContext.Provider
+                value={notificationState}
+            >
+                {children}
+            </NotificationContext.Provider>
+        );
+    };
 
-    },[token, member_num])
+export const useNotification = (): NotificationState => {
+    const context = useContext(NotificationContext);
 
-    return (
-        <NotificationContext.Provider value={{notifications, hasNewNotification, setHasNewNotification, markAsRead}}>
-            {children}
-        </NotificationContext.Provider>
-    );
+    if (context === undefined) {
+        throw new Error(
+            "useNotification은 NotificationProvider 내부에서 사용해야 합니다."
+        );
+    }
+
+    return context;
 };
-
-export const useNotification = () =>  useContext(NotificationContext);

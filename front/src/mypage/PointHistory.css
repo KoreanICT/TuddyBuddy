@@ -193,12 +193,16 @@
    모바일 화면
 ======================================== */
 
-.point-history-page .point-history-unconnected {
+.point-history-page .point-history-status {
   margin: 0;
   padding: 24px 30px;
   color: #737c94;
   font-size: 14px;
   line-height: 1.7;
+}
+
+.point-history-page .point-history-error {
+  color: #b42318;
 }
 
 .point-history-page.point-history-embedded {
@@ -230,7 +234,7 @@
     padding: 0;
   }
 
-  .point-history-page .point-history-unconnected {
+  .point-history-page .point-history-status {
     padding: 20px;
   }
 

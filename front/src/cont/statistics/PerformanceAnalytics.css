@@ -123,7 +123,7 @@
    Feedback & Consulting Section
    -------------------------------------------------------------------------- */
 .feedback-card {
-    border-left: 6px solid #dc2626;
+    border-left: 6px solid var(--primary);
 }
 
 .feedback-section {
@@ -131,8 +131,8 @@
 }
 
 .mentor-speech-box {
-    background-color: #fef2f2;
-    border: 1px solid #fecaca;
+    background-color: var(--background-secondary);
+    border: 1px solid var(--border);
     padding: 18px 20px;
     border-radius: var(--radius-md);
 }
@@ -140,7 +140,7 @@
 .mentor-speech-box p {
     font-size: 15px;
     font-weight: 600;
-    color: #991b1b;
+    color: var(--text);
     line-height: 1.6;
 }
 
@@ -242,4 +242,493 @@
 
 .consulting-path .step-text {
     line-height: 1.5;
+}
+
+/* --------------------------------------------------------------------------
+   Analysis purchase gate (scoped to PerformanceAnalytics)
+   -------------------------------------------------------------------------- */
+.analytics-page .analytics-gate-card {
+    max-width: 620px;
+    margin: 48px auto;
+    padding: 32px;
+    background-color: var(--background);
+    border: 1px solid var(--border);
+    border-top: 4px solid var(--primary);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
+    text-align: center;
+}
+
+.analytics-page .analytics-gate-icon {
+    display: flex;
+    width: 52px;
+    height: 52px;
+    margin: 0 auto 14px;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary);
+    background-color: var(--background-secondary);
+    border-radius: 50%;
+}
+
+.analytics-page .analytics-gate-eyebrow {
+    margin-bottom: 8px;
+    color: var(--primary);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+}
+
+.analytics-page .analytics-gate-card h2 {
+    margin-bottom: 10px;
+    color: var(--text);
+    font-size: 21px;
+    font-weight: 700;
+    line-height: 1.4;
+}
+
+.analytics-page .analytics-gate-description {
+    max-width: 480px;
+    margin: 0 auto 20px;
+    color: var(--text-secondary);
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.analytics-page .analytics-gate-benefits {
+    display: grid;
+    gap: 10px;
+    max-width: 400px;
+    margin: 0 auto 20px;
+    padding: 16px 18px;
+    color: var(--text);
+    background-color: var(--background-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    list-style: none;
+    text-align: left;
+}
+
+.analytics-page .analytics-gate-benefits li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.analytics-page .analytics-gate-benefits svg {
+    flex: 0 0 auto;
+    color: var(--primary);
+}
+
+.analytics-page .analytics-gate-price {
+    display: flex;
+    max-width: 400px;
+    margin: 0 auto 8px;
+    padding: 14px 18px;
+    align-items: center;
+    justify-content: space-between;
+    background-color: var(--background);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.analytics-page .analytics-gate-price strong {
+    color: var(--text);
+    font-size: 21px;
+    font-weight: 700;
+}
+
+.analytics-page .analytics-gate-error {
+    margin-bottom: 14px;
+    padding: 10px 12px;
+    color: #991b1b;
+    background-color: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    text-align: left;
+}
+
+.analytics-page .analytics-gate-button {
+    width: 100%;
+    max-width: 400px;
+    min-height: 48px;
+    padding: 12px 18px;
+    color: #fff;
+    background-color: var(--primary);
+    border: 1px solid var(--primary);
+    border-radius: var(--radius-md);
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.analytics-page .analytics-gate-button:hover:not(:disabled) {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+.analytics-page .analytics-gate-button:disabled {
+    opacity: 0.65;
+    cursor: wait;
+}
+
+.analytics-page .analytics-purchase-modal-backdrop {
+    position: fixed;
+    z-index: 1100;
+    inset: 0;
+    display: flex;
+    padding: 20px;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(15, 23, 42, 0.56);
+}
+
+.analytics-page .analytics-purchase-modal {
+    width: min(100%, 480px);
+    padding: 28px;
+    background-color: var(--background);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 16px 48px rgba(15, 23, 42, 0.22);
+}
+
+.analytics-page .analytics-purchase-modal-icon {
+    display: flex;
+    width: 46px;
+    height: 46px;
+    margin-bottom: 14px;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary);
+    background-color: var(--background-secondary);
+    border-radius: 50%;
+}
+
+.analytics-page .analytics-purchase-modal h2 {
+    margin-bottom: 8px;
+    color: var(--text);
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.analytics-page .analytics-purchase-modal-description {
+    margin-bottom: 18px;
+    color: var(--text-secondary);
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.analytics-page .analytics-purchase-modal-price {
+    display: flex;
+    margin-bottom: 12px;
+    padding: 14px 16px;
+    align-items: center;
+    justify-content: space-between;
+    color: var(--text-secondary);
+    background-color: var(--background-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-size: 14px;
+}
+
+.analytics-page .analytics-purchase-modal-price strong {
+    color: var(--text);
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.analytics-page .analytics-purchase-modal-notice {
+    margin-bottom: 22px;
+    color: var(--text-secondary);
+    font-size: 13px;
+    line-height: 1.65;
+}
+
+.analytics-page .analytics-purchase-modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.analytics-page .analytics-purchase-modal-actions button {
+    min-height: 42px;
+    padding: 10px 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.analytics-page .analytics-purchase-cancel {
+    color: var(--text);
+    background-color: var(--background);
+}
+
+.analytics-page .analytics-purchase-modal-actions .analytics-purchase-confirm {
+    color: #fff;
+    background-color: var(--primary);
+    border-color: var(--primary);
+}
+
+.analytics-page .analytics-subject-errors-chart {
+    min-height: 220px;
+}
+
+.analytics-page .analytics-subject-errors-empty {
+    display: flex;
+    min-height: 220px;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    font-size: 13px;
+    text-align: center;
+}
+
+/* 종합 화면은 이미 받아온 전체 회차 이력에서 계산한 요약·비교 차트를 보여줍니다. */
+.analytics-page .analytics-overview {
+    margin-bottom: 28px;
+    padding: 24px;
+}
+
+.analytics-page .analytics-overview-heading {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.analytics-page .analytics-overview-icon {
+    display: flex;
+    width: 42px;
+    height: 42px;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary);
+    background: var(--background-secondary);
+    border-radius: 50%;
+}
+
+.analytics-page .analytics-overview-heading h1 {
+    margin: 0 0 4px;
+    color: var(--text);
+    font-size: 20px;
+}
+
+.analytics-page .analytics-overview-heading p {
+    color: var(--text-secondary);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.analytics-page .analytics-overview-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.analytics-page .analytics-overview-summary article {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 6px;
+    padding: 16px 18px;
+    background: var(--background-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+}
+
+.analytics-page .analytics-overview-summary span {
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+.analytics-page .analytics-overview-summary strong {
+    color: var(--text);
+    font-size: 21px;
+    font-weight: 700;
+}
+
+.analytics-page .analytics-overview-charts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.analytics-page .analytics-overview-chart {
+    min-width: 0;
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+}
+
+.analytics-page .analytics-overview-chart h2 {
+    margin-bottom: 8px;
+    color: var(--text);
+    font-size: 14px;
+}
+
+.analytics-page .analytics-overview-chart-body {
+    width: 100%;
+    height: 260px;
+}
+
+.analytics-page .analytics-overview-empty {
+    display: grid;
+    min-height: 220px;
+    place-items: center;
+    color: var(--text-secondary);
+    font-size: 13px;
+    text-align: center;
+}
+
+.analytics-page .analytics-header .header-title h2 {
+    margin-bottom: 4px;
+    color: var(--text);
+    font-size: 20px;
+}
+
+/* 긴 응답이 열 너비를 밀어내지 않도록 통계 피드백 영역 안에서만 줄바꿈을 적용합니다. */
+.analytics-page .feedback-card .consulting-grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+    gap: 28px;
+}
+
+.analytics-page .feedback-card .consulting-col {
+    min-width: 0;
+}
+
+.analytics-page .feedback-card .section-title {
+    min-height: 24px;
+    margin-bottom: 18px;
+    line-height: 1.5;
+}
+
+.analytics-page .feedback-card .weakness-list {
+    gap: 12px;
+}
+
+.analytics-page .feedback-card .weakness-item .reason,
+.analytics-page .feedback-card .consulting-path .step-text {
+    overflow-wrap: anywhere;
+    line-height: 1.6;
+}
+
+.analytics-page .feedback-card .consulting-path li {
+    min-width: 0;
+}
+
+.analytics-page .feedback-card .feedback-category-header {
+    color: var(--primary);
+}
+
+.analytics-page .feedback-card .feedback-category-header h2 {
+    color: var(--text);
+}
+
+.analytics-page .analytics-purchase-modal-balance {
+    display: grid;
+    gap: 10px;
+    margin-bottom: 12px;
+    padding: 16px;
+    background: var(--background-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+}
+
+.analytics-page .analytics-purchase-modal-balance > div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.analytics-page .analytics-purchase-modal-balance strong {
+    color: var(--text);
+    font-size: 15px;
+}
+
+.analytics-page .analytics-purchase-modal-balance .analytics-purchase-balance-after {
+    margin-top: 2px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+    color: var(--text);
+    font-weight: 700;
+}
+
+.analytics-page .analytics-purchase-modal-balance .analytics-purchase-balance-after strong {
+    color: var(--primary);
+    font-size: 17px;
+}
+
+.analytics-page .analytics-purchase-balance-status,
+.analytics-page .analytics-purchase-balance-error p {
+    color: var(--text-secondary);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.analytics-page .analytics-purchase-balance-error {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.analytics-page .analytics-purchase-balance-error button {
+    padding: 6px 10px;
+    color: var(--primary);
+    background: var(--background);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.analytics-page .analytics-purchase-insufficient {
+    margin: 0 0 12px;
+    color: #b45309;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+@media (max-width: 600px) {
+    .analytics-page .analytics-gate-card {
+        margin: 24px 12px;
+        padding: 24px 18px;
+    }
+
+    .analytics-page .analytics-gate-card h2 {
+        font-size: 18px;
+    }
+
+    .analytics-page .analytics-overview {
+        padding: 18px;
+    }
+
+    .analytics-page .analytics-overview-summary {
+        grid-template-columns: 1fr;
+    }
+
+    .analytics-page .analytics-overview-charts {
+        grid-template-columns: 1fr;
+    }
+
+    .analytics-page .analytics-overview-chart-body {
+        height: 240px;
+    }
+
+    .analytics-page .analytics-purchase-modal {
+        padding: 22px 18px;
+    }
 }

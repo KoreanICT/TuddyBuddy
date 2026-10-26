@@ -15,6 +15,10 @@ export const sessionGeneration = () => generation;
 export const refreshBlocked = () => localStorage.getItem(BLOCKED_KEY) === 'true';
 export const currentToken = () => refreshBlocked() ? '' : localStorage.getItem('token') || '';
 export const sessionIdentity = () => localStorage.getItem(GENERATION_KEY) || '';
+// Access Token 갱신에는 유지되고, 계정 전환·재로그인에는 달라지는 화면/요청 소유자입니다.
+export const memberSessionKey = () => currentToken()
+  ? JSON.stringify([sessionIdentity(), localStorage.getItem('member_num'), localStorage.getItem('username')])
+  : '';
 export const beginAuthAttempt = () => {
   activeIdentity = `${Date.now()}-${Math.random()}`;
   localStorage.setItem(GENERATION_KEY, activeIdentity);
@@ -56,6 +60,10 @@ export function clearSession() {
   beginAuthAttempt();
   localStorage.setItem(BLOCKED_KEY, 'true');
   ['token', 'username', 'member_num', 'authority'].forEach(key => localStorage.removeItem(key));
+  // 로그아웃하면 결제된 평가분석 결과도 폐기하여 다음 로그인에서 다시 결제하도록 합니다.
+  Object.keys(localStorage)
+    .filter(key => key === 'tuddybuddy:statistics-analysis' || key.startsWith('tuddybuddy:statistics-analysis:'))
+    .forEach(key => localStorage.removeItem(key));
   publishSession(null);
 }
 

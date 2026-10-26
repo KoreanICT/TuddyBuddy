@@ -6,15 +6,15 @@ import lombok.Getter;
 public class NotificationEvent {
 
 	private final Long memberNum;
-	private final NotificationType type;
+	private final Category category;
 	private final String title;
 	private final String message;
 	private final String url;
 	
-	public enum NotificationType {JOIN, REPORT, COMMENT}
-	public NotificationEvent(Long memberNum, NotificationType type, String title, String message, String url) {
+	public enum Category {JOIN, JOIN_APPROVED, JOIN_REJECTED, REPORT, COMMENT}
+	public NotificationEvent(Long memberNum, Category category, String title, String message, String url) {
 		this.memberNum = memberNum;
-		this.type = type;
+		this.category = category;
 		this.title = title;
 		this.message = message;
 		this.url = url;

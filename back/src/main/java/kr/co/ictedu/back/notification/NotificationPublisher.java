@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
-import kr.co.ictedu.back.notification.NotificationEvent.NotificationType;
+import kr.co.ictedu.back.notification.NotificationEvent.Category;
 
 @Component
 public class NotificationPublisher {
@@ -12,7 +12,7 @@ public class NotificationPublisher {
 	@Autowired
 	private ApplicationEventPublisher publisher;
 	
-	public void send(Long memberNum, NotificationType type, String title, String message, String url) {
-		publisher.publishEvent(new NotificationEvent(memberNum, type, title, message, url));
+	public void send(Long memberNum, Category category, String title, String message, String url) {
+		publisher.publishEvent(new NotificationEvent(memberNum, category, title, message, url));
 	}
 }

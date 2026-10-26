@@ -92,129 +92,262 @@ const categoryNames: Record<string, string> = {
     NOTICE: '공지사항',
     MEMBER: '회원',
     STATISTICS: '통계',
-    POINT: '포인트'
+    POINT: '포인트',
+    ATTENDANCE: '출석',
+    COMMUNITY: '커뮤니티',
+    NOTIFICATION: '알림',
+    EDUCATION_NEWS: '교육 뉴스',
+    ADMIN: '관리자'
 };
 
-// 활동의 한글 이름입니다.
-// 여기에 없는 코드는 영문 그대로 표시합니다.
+// DB에 저장된 활동 코드를 화면에 표시할 한글로 바꿉니다.
+//
+// 왼쪽: Aspect에서 저장하는 영문 코드
+// 오른쪽: 관리자 화면에 표시할 한글 이름
 const actionNames: Record<string, string> = {
-    // 그룹
+
+    // =====================================================
+    // 1. 그룹 생성·가입·목록
+    // =====================================================
+
     GROUP_CREATE: '그룹 생성',
     GROUP_JOIN: '그룹 가입',
-    GROUP_MY_LIST: '내 그룹 조회',
-    GROUP_PUBLIC_LIST: '공개 그룹 조회',
+    GROUP_MY_LIST: '내 그룹 목록 조회',
+    GROUP_PUBLIC_LIST: '공개 그룹 목록 조회',
+
+    // =====================================================
+    // 2. 그룹 상세·수정·그룹원 관리
+    // =====================================================
+
     GROUP_DETAIL_VIEW: '그룹 상세 조회',
+    GROUP_EDIT_FORM_VIEW: '그룹 수정 화면 조회',
+    GROUP_MEMBER_LIST: '그룹원 목록 조회',
     GROUP_UPDATE: '그룹 수정',
+    GROUP_LEADER_TRANSFER: '그룹장 위임',
+    GROUP_MEMBER_KICK: '그룹원 강퇴',
     GROUP_LEAVE: '그룹 탈퇴',
     GROUP_DELETE: '그룹 삭제',
-    GROUP_MEMBER_LIST: '그룹원 조회',
-    GROUP_MEMBER_KICK: '그룹원 강퇴',
-    GROUP_LEADER_TRANSFER: '그룹장 위임',
-    GROUP_EDIT_FORM_VIEW: '그룹 수정 화면 조회',
 
-    // 문서
+    // =====================================================
+    // 3. 그룹 문서
+    // =====================================================
+
     DOCUMENT_UPLOAD: '문서 업로드',
     DOCUMENT_LIST: '문서 목록 조회',
     DOCUMENT_DOWNLOAD_REQUEST: '문서 다운로드 요청',
+    DOCUMENT_EDIT_FORM_VIEW: '문서 수정 화면 조회',
     DOCUMENT_UPDATE: '문서 수정',
     DOCUMENT_DELETE: '문서 삭제',
-    DOCUMENT_EDIT_FORM_VIEW: '문서 수정 화면 조회',
 
-    // 메모
+    // =====================================================
+    // 4. 그룹 메모
+    // =====================================================
+
     MEMO_CREATE: '메모 작성',
-    MEMO_LIST: '메모 조회',
+    MEMO_LIST: '메모 목록 조회',
     MEMO_UPDATE: '메모 수정',
     MEMO_DELETE: '메모 삭제',
 
-    // 다이어그램
+    // =====================================================
+    // 5. 그룹 다이어그램
+    // =====================================================
+
     DIAGRAM_SAVE: '다이어그램 저장',
     DIAGRAM_VIEW: '다이어그램 조회',
 
-    // 퀴즈
+    // =====================================================
+    // 6. 그룹 일정
+    // =====================================================
+
+    SCHEDULE_CREATE: '일정 등록',
+    SCHEDULE_LIST: '일정 목록 조회',
+    SCHEDULE_UPDATE: '일정 수정',
+    SCHEDULE_DELETE: '일정 삭제',
+    GROUP_UPCOMING_SCHEDULE_VIEW: '그룹 예정 일정 조회',
+
+    // =====================================================
+    // 7. 그룹 할 일·TDL
+    // =====================================================
+
+    TDL_CREATE: '할 일 등록',
+    TDL_LIST: '할 일 목록 조회',
+    TDL_STATUS_CHANGE: '할 일 상태 변경',
+    TDL_UPDATE: '할 일 수정',
+
+    // =====================================================
+    // 7-1. 그룹 채팅 활동 
+    // =====================================================
+    GROUP_CHAT_MESSAGE_SEND: '그룹 채팅 메시지 전송',
+    GROUP_CHAT_HISTORY_VIEW: '그룹 채팅 이전 대화 조회',
+
+    // =====================================================
+    // 8. 학습·AI 문제 생성·답안 제출
+    // =====================================================
+
     QUIZ_GENERATE: 'AI 문제 생성',
     QUIZ_SUBMIT: '답안 제출',
-    QUIZ_SESSION_LIST: '학습 이력 조회',
-    QUIZ_SESSION_VIEW: '학습 세션 조회',
-    QUIZ_SESSION_DELETE: '학습 세션 삭제',
+    QUIZ_SESSION_LIST: '학습 세션 목록 조회',
+    QUIZ_SESSION_VIEW: '학습 세션 상세 조회',
     QUIZ_LIST: '문제 목록 조회',
     QUIZ_RESULT_LIST: '학습 결과 목록 조회',
-    QUIZ_RESULT_VIEW: '학습 결과 조회',
+    QUIZ_RESULT_VIEW: '학습 결과 상세 조회',
     QUIZ_RESPONSE_LIST: '답안 내역 조회',
+    QUIZ_SESSION_DELETE: '학습 세션 삭제',
 
-    // 타이머
+    // =====================================================
+    // 9. 타이머
+    // =====================================================
+
     TIMER_SESSION_CREATE: '타이머 생성',
     TIMER_SESSION_SAVE: '타이머 기록 저장',
     TIMER_SUMMARY_VIEW: '타이머 요약 조회',
 
-    // 챗봇
+    // =====================================================
+    // 10. 챗봇
+    // =====================================================
+
     CHAT_MESSAGE_PROCESS: '챗봇 질문 처리',
     CHAT_SESSION_CREATE: '챗봇 대화 생성',
-    CHAT_SESSION_VIEW: '챗봇 대화 조회',
+    CHAT_SESSION_VIEW: '챗봇 대화 상세 조회',
     CHAT_SESSION_LIST: '챗봇 대화 목록 조회',
-    CHAT_MESSAGE_LIST: '챗봇 메시지 조회',
-    CHAT_MEMBER_MESSAGE_LIST: '회원 챗봇 메시지 조회',
+    CHAT_MESSAGE_LIST: '챗봇 메시지 목록 조회',
+    CHAT_MEMBER_MESSAGE_LIST: '회원 챗봇 메시지 목록 조회',
 
-    // 친구
+    // =====================================================
+    // 11. 친구
+    // =====================================================
+
     FRIEND_REQUEST: '친구 요청',
-    FRIEND_ACCEPT: '친구 수락',
-    FRIEND_REJECT: '친구 거절',
+    FRIEND_ACCEPT: '친구 요청 수락',
+    FRIEND_REJECT: '친구 요청 거절',
     FRIEND_DELETE: '친구 삭제',
     FRIEND_LIST: '친구 목록 조회',
     FRIEND_RECEIVED_LIST: '받은 친구 요청 조회',
     FRIEND_SENT_LIST: '보낸 친구 요청 조회',
     FRIEND_DETAIL_VIEW: '친구 상세 조회',
+    FRIEND_REQUEST_CANCEL: '보낸 친구 요청 취소',
 
-    //신고
+    // =====================================================
+    // 12. 신고·신고 답변
+    // =====================================================
+
     REPORT_CREATE: '신고 접수',
-    REPORT_STATUS_CHANGE: '신고 상태 변경',
-    REPORT_REPLY_CREATE: '신고 답변 작성',
     REPORT_MY_LIST: '내 신고 목록 조회',
     REPORT_ADMIN_LIST: '관리자 신고 목록 조회',
     REPORT_DETAIL_VIEW: '신고 상세 조회',
     REPORT_TARGET_VIEW: '신고 대상 조회',
     REPORT_UPDATE: '신고 수정',
     REPORT_DELETE: '신고 삭제',
+    REPORT_STATISTICS_VIEW: '신고 통계 조회',
+
+    // 기존 Aspect의 코드명을 그대로 유지합니다.
+    // STATUS가 아니라 STATES로 작성되어 있는 코드입니다.
     REPORT_STATES_CHANGE: '신고 상태 변경',
 
-    // 신고 답변
+    REPORT_REPLY_CREATE: '신고 답변 작성',
     REPORT_REPLY_LIST: '신고 답변 목록 조회',
     REPORT_REPLY_VIEW: '신고 답변 상세 조회',
     REPORT_REPLY_UPDATE: '신고 답변 수정',
     REPORT_REPLY_DELETE: '신고 답변 삭제',
 
-    // 공지
+    // =====================================================
+    // 13. 공지사항
+    // =====================================================
+
     NOTICE_CREATE: '공지 작성',
     NOTICE_LIST: '공지 목록 조회',
-    NOTICE_DETAIL_VIEW: '공지 상세 조회',
-    NOTICE_UPDATE: '공지 수정',
-    NOTICE_DELETE: '공지 삭제',
+
+    // 통합 Aspect에서 사용하는 NOTICE_DETAIL에 맞춥니다.
     NOTICE_DETAIL: '공지 상세 조회',
 
-    // 회원
+    NOTICE_DELETE: '공지 삭제',
+    NOTICE_UPDATE: '공지 수정',
+
+    // =====================================================
+    // 14. 회원 정보·관리자 회원 관리
+    // =====================================================
+
+    MEMBER_INFO_VIEW: '내 회원 정보 조회',
     MEMBER_PROFILE_UPDATE: '회원 정보 수정',
     MEMBER_PASSWORD_CHANGE: '비밀번호 변경',
-    MEMBER_INFO_VIEW: '내 회원 정보 조회',
     MEMBER_CODE_SEARCH: '회원 코드 검색',
     MEMBER_PROFILE_VIEW: '회원 프로필 조회',
 
-    // 회원 관리자
     ADMIN_MEMBER_LIST: '관리자 회원 목록 조회',
-    ADMIN_MEMBER_AUTHORITY_CHANGE: '회원 권한 변경',
     ADMIN_MEMBER_WITHDRAW: '관리자 회원 탈퇴 처리',
+    ADMIN_MEMBER_AUTHORITY_CHANGE: '회원 권한 변경',
 
-    // 학습 카테고리 관리자
+    // =====================================================
+    // 15. 통계
+    // =====================================================
+
+    STATISTICS_VIEW: '통계 조회',
+
+    // =====================================================
+    // 16. 관리자 학습 설정·이용 현황
+    // =====================================================
+
     ADMIN_CATEGORY_CREATE: '학습 카테고리 등록',
     ADMIN_CATEGORY_UPDATE: '학습 카테고리 수정',
     ADMIN_CATEGORY_STATUS_CHANGE: '학습 카테고리 상태 변경',
 
-    // 학습 과목 관리자
     ADMIN_SUBJECT_CREATE: '학습 과목 등록',
     ADMIN_SUBJECT_UPDATE: '학습 과목 수정',
     ADMIN_SUBJECT_STATUS_CHANGE: '학습 과목 상태 변경',
 
-    // 통계, 포인트
-    STATISTICS_VIEW: '통계 조회',
-    POINT_PAYMENT: '포인트 결제 처리'
+    ADMIN_SELFSTUDY_USAGE_VIEW: '학습 이용 현황 조회',
+
+    // =====================================================
+    // 17. 포인트
+    // =====================================================
+
+    POINT_PAYMENT: '포인트 결제 처리',
+
+    // =====================================================
+    // 18. 출석
+    // =====================================================
+
+    ATTENDANCE_CHECK: '출석 체크',
+    ATTENDANCE_MONTH_VIEW: '월별 출석 조회',
+
+    // =====================================================
+    // 19. 커뮤니티
+    // =====================================================
+
+    // 커뮤니티 게시글
+    COMMUNITY_POST_CREATE: '게시글 작성',
+    COMMUNITY_POST_LIST: '게시글 목록 조회',
+    COMMUNITY_MY_POST_LIST: '내 게시글 조회',
+    COMMUNITY_POST_UPDATE: '게시글 수정',
+    COMMUNITY_POST_DELETE: '게시글 삭제',
+    COMMUNITY_POST_LIKE: '게시글 좋아요',
+
+    // 커뮤니티 댓글 활동
+    COMMUNITY_COMMENT_LIST: '댓글 목록 조회',
+    COMMUNITY_COMMENT_CREATE: '댓글 작성',
+    COMMUNITY_COMMENT_UPDATE: '댓글 수정',
+    COMMUNITY_COMMENT_DELETE: '댓글 삭제',
+
+    // =====================================================
+    // 20. 알림
+    // =====================================================
+
+    NOTIFICATION_UNREAD_LIST: '읽지 않은 알림 조회',
+    NOTIFICATION_LIST: '알림 목록 조회',
+    NOTIFICATION_READ: '알림 읽음 처리',
+    NOTIFICATION_READ_ALL: '알림 전체 읽음 처리',
+
+    // =====================================================
+    // 21. 교육 뉴스
+    // =====================================================
+
+    EDUCATION_NEWS_LIST: '교육 뉴스 조회',
+
+    // =====================================================
+    // 22. 관리자 대시보드
+    // =====================================================
+
+    ADMIN_DASHBOARD_VIEW: '관리자 대시보드 조회'
 };
 
 // 서버가 보낸 날짜를 한국 시간으로 표시합니다.
@@ -326,6 +459,16 @@ const ActivityLogManagement: React.FC = () => {
                 // 조회한 데이터를 useState에 저장합니다.
                 setLogList(response.data.logs);
                 setPageInfo(response.data.page);
+
+                // 로그 삭제 등으로 페이지 수가 줄어들면 백엔드가 마지막 유효 페이지로 보정할 수 있습니다.
+                const serverPage = response.data.page.nowPage;
+
+                if (serverPage !== query.cPage) {
+                    setQuery(previous => ({
+                        ...previous,
+                        cPage: serverPage
+                    }));
+                }
 
             } catch (requestError) {
                 // 취소한 요청은 오류 메시지를 표시하지 않습니다.

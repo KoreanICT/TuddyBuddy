@@ -161,6 +161,9 @@ export const StudyHistory: React.FC<Props> = ({
                             <span>
                               점수: {result.selfstudyTotalScore}점
                             </span>
+                            {typeof result.quizTimeSeconds === 'number' && <span>
+                              풀이 시간: {Math.floor(result.quizTimeSeconds / 60)}분 {result.quizTimeSeconds % 60}초
+                            </span>}
                             <span>
                               제출일: {formatDate(result.submittedAt)}
                             </span>

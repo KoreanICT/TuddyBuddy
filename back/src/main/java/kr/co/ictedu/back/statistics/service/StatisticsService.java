@@ -6,14 +6,13 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestTemplate;
 
 import kr.co.ictedu.back.statistics.dao.StatisticsDao;
 import kr.co.ictedu.back.statistics.dto.PredictionDTO;
 import kr.co.ictedu.back.statistics.dto.StatisticsDTO;
+import kr.co.ictedu.back.statistics.client.StatisticsPythonApiClient;
 import kr.co.ictedu.back.point.service.PointService;
 
 @Service
@@ -24,15 +23,15 @@ public class StatisticsService {
 	@Autowired
 	private PointService pointService;
 
-	@Value("${fastapi.url}")
-	private String fastapiUrl;
+	@Autowired
+	private StatisticsPythonApiClient statisticsPythonApiClient;
 
-	public List<String> selectCategories(Long memberNum) {
+	public List<Map<String, Object>> selectCategories(Long memberNum) {
 		//역할: 회원번호 null 검증
 		validateMemberNum(memberNum);
 		// 카테고리 추출
 		//역할: 카테고리 조회 결과 null 검증
-		List<String> categories = validateCategories(statisticsDao.selectCategories_Statistics(memberNum));
+		List<Map<String, Object>> categories = validateCategories(statisticsDao.selectCategories_Statistics(memberNum));
 		return categories;
 	}
 
@@ -48,11 +47,15 @@ public class StatisticsService {
 		// 분석이 정상 완료되지 않으면 포인트 차감과 로그도 함께 롤백한다.
 		pointService.usePoint(memberNum, 1_000L, description);
 
+		//역할: 차트와 LLM이 함께 사용하는 회차별 시험 이력 조회
+		List<Map<String, Object>> historyList = validateHistoryList(
+				statisticsDao.selectHistoryStatistics(memberNum));
+
 		// (1) LLM 데이터(피드백) 추출 메서드 호출
-		StatisticsDTO llmFeedback = getLlmFeedbackData(memberNum);
+		StatisticsDTO llmFeedback = getLlmFeedbackData(memberNum, historyList);
 		System.out.println("llmFeedback데이터: " + llmFeedback);
 		// (2) 차트 데이터 추출 메서드 호출
-		Map<String, Object> chartData = getChartData(memberNum);
+		Map<String, Object> chartData = getChartData(memberNum, historyList);
 		System.out.println("chart데이터: " + chartData);
 		// (3) 두 데이터를 하나의 맵으로 묶어서 리액트로 반환
 		Map<String, Object> finalResult = new HashMap<>();
@@ -65,7 +68,7 @@ public class StatisticsService {
 	/**
 	 * 2. DB 조인 쿼리를 활용한 LLM 피드백 데이터 추출 및 FastAPI 통신 메서드
 	 */
-	private StatisticsDTO getLlmFeedbackData(Long memberNum) {
+	private StatisticsDTO getLlmFeedbackData(Long memberNum, List<Map<String, Object>> historyList) {
 		// (1) 모든 제출 결과에서 회원의 전체 카테고리 풀이 로그 조회
 		//역할: 전체 카테고리 풀이 로그 목록 검증
 		List<Map<String, Object>> quizLogs = validateQuizLogs(
@@ -75,12 +78,12 @@ public class StatisticsService {
 		Map<String, Object> requestPayload = new HashMap<>();
 		requestPayload.put("user_id", memberNum);
 		requestPayload.put("quiz_logs", quizLogs);
+		requestPayload.put("category_scores", historyList);
 
 		// (3) FastAPI의 카테고리별 피드백 응답 수신
-		RestTemplate restTemplate = new RestTemplate();
 		//역할: 카테고리별 LLM 응답과 필수 필드 검증
 		StatisticsDTO llmFeedback = validateStatisticsFeedback(
-				restTemplate.postForObject(fastapiUrl + "/statistics", requestPayload, StatisticsDTO.class));
+				statisticsPythonApiClient.requestStatistics(requestPayload));
 
 		System.out.println("카테고리별 평가분석 응답 수신: " + llmFeedback.getCategoryAnalyses().size());
 		return llmFeedback;
@@ -89,12 +92,10 @@ public class StatisticsService {
 	/**
 	 * 3. 차트 데이터(history, prediction, subjectShare) 추출 메서드
 	 */
-	private Map<String, Object> getChartData(Long memberNum) {
+	private Map<String, Object> getChartData(Long memberNum, List<Map<String, Object>> historyList) {
 		Map<String, Object> chartData = new HashMap<>();
 
-		// DB에서 실제 history 데이터 조회
-		//역할: 히스토리 조회 결과 null 검증
-		List<Map<String, Object>> historyList = validateHistoryList(statisticsDao.selectHistoryStatistics(memberNum));
+		// DB에서 조회한 회차별 시험 이력을 차트 데이터로 재사용
 		System.out.println("historyList : " + historyList);
 		chartData.put("history", historyList);
 
@@ -125,16 +126,17 @@ public class StatisticsService {
 		 * 평균',score: 63.7, type: 'actual' }, {name: '다음 시험 예측', score: 82.0,
 		 * type:'predict' }, ]
 		 */
-		RestTemplate restTemplate = new RestTemplate();
 		//역할: 카테고리별 예측 LLM 응답 및 필수 필드 검증
 		PredictionDTO llmFeedback = validatePredictionFeedback(
-				restTemplate.postForObject(fastapiUrl + "/prediction", categoryStatsList, PredictionDTO.class));
+				statisticsPythonApiClient.requestPrediction(categoryStatsList));
 
 		System.out.println("카테고리별 성적예측 응답 수신: " + llmFeedback.getCategoryPredictions().size());
 		return llmFeedback;
 	
 	}
 
+	//=========================== 검증 메서드 영역 ==============================
+	
 	//역할: 회원번호 인자가 null인지 검증
 	private Long validateMemberNum(Long memberNum) {
 		if (memberNum == null || memberNum <= 0) {
@@ -152,7 +154,7 @@ public class StatisticsService {
 	}
 
 	//역할: 카테고리 조회 결과가 null인지 검증
-	private List<String> validateCategories(List<String> categories) {
+	private List<Map<String, Object>> validateCategories(List<Map<String, Object>> categories) {
 		if (categories == null) {
 			throw new IllegalArgumentException("카테고리 조회 결과가 없습니다.");
 		}
@@ -215,6 +217,7 @@ public class StatisticsService {
 				|| feedback.getCategoryPredictions().isEmpty()) {
 			throw new IllegalArgumentException("성적 예측 LLM 응답 데이터가 올바르지 않습니다.");
 		}
+		
 		for (PredictionDTO.CategoryPredictionDTO categoryPrediction : feedback.getCategoryPredictions()) {
 			if (categoryPrediction == null || categoryPrediction.getCategoryIds() == null
 					|| categoryPrediction.getCategoryIds().isEmpty()

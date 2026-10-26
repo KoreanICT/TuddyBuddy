@@ -137,7 +137,7 @@ export const Detail_Document: React.FC<GetGroupNum> = ({ groupNum }) => {
                                         다운로드 {document.hit}
                                     </span>
                                     <span>
-                                        {document.updated_at ? document.updated_at : document.created_at}
+                                        {document.updated_at ? document.updated_at.replace('T', ' ').slice(0, 16) : document.created_at.replace('T', ' ').slice(0, 16)}
                                     </span>
                                 </div>
                                 {document.can_manage === 1 && (
