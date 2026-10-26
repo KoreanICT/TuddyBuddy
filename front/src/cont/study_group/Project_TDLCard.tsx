@@ -112,7 +112,7 @@ export const Project_TDLCard: React.FC<TDLProps> = ({ tdl, disableClick, onEdit,
             <div className={styles.tdl_card_footer}>
                 {tdl.due_at && (
                     <span className={deadlineReached ? styles.tdl_deadline_warning : styles.tdl_deadline}>
-                        마감 {tdl.due_at}
+                        마감 {tdl.due_at.replace('T', ' ').slice(0, 16)}
                     </span>
                 )}
                 {isRepeatTdl && (
@@ -139,20 +139,20 @@ export const Project_TDLCard: React.FC<TDLProps> = ({ tdl, disableClick, onEdit,
 
                     <div>
                         <span>등록일</span>
-                        <strong>{tdl.created_at}</strong>
+                        <strong>{tdl.created_at.replace('T', ' ').slice(0, 16)}</strong>
                     </div>
 
                     {tdl.updated_at && (
                         <div>
                             <span>수정일</span>
-                            <strong>{tdl.updated_at}</strong>
+                            <strong>{tdl.updated_at.replace('T', ' ').slice(0, 16)}</strong>
                         </div>
                     )}
 
                     {tdl.completed_at && (
                         <div>
                             <span>완료일</span>
-                            <strong>{tdl.completed_at}</strong>
+                            <strong>{tdl.completed_at.replace('T', ' ').slice(0, 16)}</strong>
                         </div>
                     )}
                 </div>

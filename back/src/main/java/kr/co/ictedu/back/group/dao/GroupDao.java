@@ -16,6 +16,7 @@ import kr.co.ictedu.back.group.vo.TagVO;
 @Mapper
 public interface GroupDao {
 	void addGroup(GroupVO groupvo);
+	void joinGroup(@Param("group_num") Long groupNum, @Param("member_num") Long memberNum);
 	List<TagVO> searchTags(@Param("keyword") String keyword);
 	TagVO findTagByName(@Param("tag_name") String tagName);
 	void addTag(TagVO tagvo);
@@ -26,4 +27,7 @@ public interface GroupDao {
 	GroupVO findGroupByInviteCode(@Param("invite_code") String inviteCode);
 	int countGroupMember(@Param("group_num") Long groupNum, @Param("member_num") Long memberNum);
 	int countGroupMembers(@Param("group_num") Long groupNum);
+	GroupVO getJoinGroup(@Param("group_num") Long groupNum);
+	Long getGroupLeader(@Param("group_num") Long groupNum);
+	String getMemberNick(@Param("member_num") Long memberNum);
 }

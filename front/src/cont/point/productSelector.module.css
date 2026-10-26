@@ -1,86 +1,155 @@
-/*김진규*/
+/* Point product chooser styles are module-scoped to avoid affecting other pages. */
 .wrapper {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   min-height: 100vh;
+  padding: 32px 16px;
 }
 
 .card {
   width: 100%;
-  max-width: 600px;
+  max-width: 960px;
+  padding: 32px;
   background-color: var(--background);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 32px;
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08);
 }
 
+.balancePanel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+  padding: 14px 18px;
+  background: var(--background-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.balancePanel > div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.balanceLabel {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.balanceAmount,
+.balanceStatus {
+  color: var(--text);
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.balanceError {
+  color: #b42318;
+  font-size: 13px;
+}
+
 .title {
+  margin-bottom: 24px;
+  color: var(--text);
   font-size: 1.5rem;
   font-weight: 700;
-  color: var(--text);
-  margin-bottom: 24px;
   text-align: center;
 }
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
-  margin-bottom: 32px;
+  margin-bottom: 28px;
 }
 
-/* Hover 및 Active 효과 */
 .productItem {
+  position: relative;
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  padding: 16px 20px;
+  min-width: 0;
+  min-height: 142px;
+  align-items: center;
+  overflow: hidden;
+  padding: 18px 20px;
+  color: var(--text);
+  text-align: left;
+  background-color: var(--background);
   border: 2px solid var(--border);
   border-radius: var(--radius-md);
-  background-color: var(--background);
-  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
 
 .productItem:hover {
+  z-index: 1;
   border-color: var(--primary);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.12);
+  box-shadow: 0 5px 14px rgba(37, 99, 235, 0.12);
 }
 
 .productItem.selected {
   border-color: var(--primary);
-  background-color: var(--background-secondary);
+  background-color: var(--background);
   box-shadow: 0 0 0 1px var(--primary);
 }
 
+.productItem:focus-visible {
+  outline: 3px solid rgba(37, 99, 235, 0.28);
+  outline-offset: 2px;
+}
+
+.productCopy {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  width: 66%;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
 .productName {
-  font-size: 1.1rem;
-  font-weight: 600;
   color: var(--text);
+  font-size: 1.15rem;
+  font-weight: 700;
 }
 
 .productPrice {
-  font-size: 0.95rem;
   color: var(--text-secondary);
-  margin-top: 4px;
+  font-size: 1rem;
 }
 
-/* 주문 버튼 구역 */
+.productPortrait {
+  position: absolute;
+  right: 4px;
+  bottom: 0;
+  width: 38%;
+  height: 136px;
+  object-fit: contain;
+  object-position: center bottom;
+  pointer-events: none;
+}
+
 .orderSection {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 16px;
-  border-top: 1px solid var(--border);
   padding-top: 24px;
+  border-top: 1px solid var(--border);
 }
 
 .selectedInfo {
-  font-size: 1rem;
   color: var(--text-secondary);
+  font-size: 1rem;
+  text-align: center;
 }
 
 .selectedInfo strong {
@@ -89,13 +158,16 @@
 
 .orderButton {
   width: 100%;
-  padding: 14px 0;
-  background-color: var(--primary);
+  min-height: 50px;
+  padding: 14px 18px;
   color: #fff;
-  font-size: 1.05rem;
-  font-weight: 600;
+  background-color: var(--primary);
+  border: 1px solid var(--primary);
   border-radius: var(--radius-md);
-  transition: background-color 0.2s ease;
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s ease, opacity 0.2s ease;
 }
 
 .orderButton:hover:not(:disabled) {
@@ -103,7 +175,33 @@
 }
 
 .orderButton:disabled {
-  background-color: var(--border);
   color: var(--text-secondary);
+  background-color: var(--border);
+  border-color: var(--border);
   cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+  .wrapper {
+    min-height: auto;
+    padding: 24px 12px;
+  }
+
+  .card {
+    padding: 20px 16px;
+  }
+
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .productItem {
+    min-height: 128px;
+  }
+
+  .productPortrait {
+    height: 122px;
+    width: 34%;
+  }
 }

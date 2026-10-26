@@ -10,7 +10,7 @@ import './MyPage.css';
 import MyReportList from './report/MyReportList';
 import MyFriend from './friend/MyFriend';
 import MyPosts from './posts/MyPosts';
-import PointHistory from './PointHistory';
+import PointHistory, { PointHistoryItem } from './PointHistory';
 import Modal from '../cont/modal/Modal';
 import { useAppDispatch } from '../login/reducers/store';
 import { logoutAction } from '../login/authActions/authActions';
@@ -51,8 +51,48 @@ const MyPageContent: React.FC<{ sessionKey: string }> = ({ sessionKey }) => {
     // 메뉴 상태
     const [activeMenu, setActiveMenu] = useState('info');
     const [showPointHistory, setShowPointHistory] = useState(false);
+    const [pointHistory, setPointHistory] = useState<PointHistoryItem[]>([]);
+    const [pointHistoryLoading, setPointHistoryLoading] = useState(false);
+    const [pointHistoryError, setPointHistoryError] = useState('');
     const pointHistoryButton = useRef<HTMLButtonElement>(null);
     const pointHistoryDialog = useRef<HTMLDivElement>(null);
+
+    const openPointHistory = async () => {
+        if (!isCurrentSession()) return;
+
+        setShowPointHistory(true);
+        setPointHistoryLoading(true);
+        setPointHistoryError('');
+
+        const token = currentToken();
+        if (!token) {
+            setPointHistoryError('로그인이 필요합니다. 다시 로그인한 뒤 확인해주세요.');
+            setPointHistoryLoading(false);
+            return;
+        }
+
+        try {
+            const response = await axios.get<PointHistoryItem[]>(
+                `${API_URL}/api/member/point-history`,
+                memberSessionConfig(sessionKey, {
+                    headers: { Authorization: `Bearer ${token}` },
+                    signal: operations.current.signal,
+                })
+            );
+
+            if (!isCurrentSession()) return;
+            if (!Array.isArray(response.data)) {
+                throw new Error('포인트 내역 응답 형식이 올바르지 않습니다.');
+            }
+            setPointHistory(response.data);
+        } catch (error) {
+            if (axios.isCancel(error) || !isCurrentSession()) return;
+            console.error('포인트 내역 조회 실패:', error);
+            setPointHistoryError('포인트 내역을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.');
+        } finally {
+            if (isCurrentSession()) setPointHistoryLoading(false);
+        }
+    };
 
     useEffect(() => {
         if (!showPointHistory) return;
@@ -348,17 +388,6 @@ const MyPageContent: React.FC<{ sessionKey: string }> = ({ sessionKey }) => {
                     >
                         친구 목록
                     </button>
-
-                    <button
-                        className={
-                            activeMenu === 'example3'
-                                ? 'sidebar-menu active'
-                                : 'sidebar-menu'
-                        }
-                        onClick={() => setActiveMenu('example3')}
-                    >
-                        나의 스터디 그룹 - 중령오진석
-                    </button>
                 </aside>
 
                 {/* 오른쪽 본문 */}
@@ -441,7 +470,7 @@ const MyPageContent: React.FC<{ sessionKey: string }> = ({ sessionKey }) => {
                                             className="point-link"
                                             ref={pointHistoryButton}
                                             aria-haspopup="dialog"
-                                            onClick={() => setShowPointHistory(true)}
+                                            onClick={() => void openPointHistory()}
                                         >
                                             포인트 내역 보기
                                         </button>
@@ -613,22 +642,17 @@ const MyPageContent: React.FC<{ sessionKey: string }> = ({ sessionKey }) => {
                     {/* 친구 목록 */}
                     {activeMenu === 'friend' && <MyFriend />}
 
-                    {/* 나의 스터디 그룹 */}
-                    {activeMenu === 'example3' && (
-                        <div className="menu-panel">
-                            <h2>나의 스터디 그룹</h2>
-
-                            <p>
-                                내가 참여한 스터디 그룹을 보여주는 영역입니다.
-                            </p>
-                        </div>
-                    )}
-
+                   
                 </main>
                 {showPointHistory && (
                     <div ref={pointHistoryDialog} role="dialog" aria-modal="true" aria-label="포인트 내역">
                         <Modal isOpen={showPointHistory} onClose={() => setShowPointHistory(false)} title="포인트 내역">
-                            <PointHistory embedded />
+                            <PointHistory
+                                history={pointHistory}
+                                loading={pointHistoryLoading}
+                                error={pointHistoryError}
+                                embedded
+                            />
                         </Modal>
                     </div>
                 )}

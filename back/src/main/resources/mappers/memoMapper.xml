@@ -13,7 +13,7 @@
 	
 	<select id="getMemoById" resultType="memolistdto">
 		SELECT m.memo_num, m.group_num, mb.member_nick, m.memo_content, m.created_at, m.updated_at,
-		FN_GROUP_RESOURCE_PERMISSION(m.group_num, m.member_num, #{member_num})
+		FN_GROUP_RESOURCE_PERMISSION(m.group_num, m.member_num, #{member_num}) AS can_manage
 		FROM memo m JOIN member mb ON m.member_num = mb.member_num
 		WHERE m.memo_num = #{memo_num}
 	</select>

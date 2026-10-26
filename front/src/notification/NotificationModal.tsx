@@ -1,6 +1,6 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import styles from './notification.module.css';
-import { NotificationData } from './NotificationAPI';
+import { answerJoin, NotificationData } from './NotificationAPI';
 import { useNotification } from './NotificationProvider';
 
 interface NotificationModalProps {
@@ -8,31 +8,81 @@ interface NotificationModalProps {
     onClose: () => void;
 }
 
-const NotificationModal: React.FC<NotificationModalProps> = ({ notifications, onClose }) => {
+export const NotificationModal: React.FC<NotificationModalProps> = ({ notifications, onClose }) => {
 
     const [selectedId, setSelectedId] = useState<number | null>(null);
     // 최신 날짜부터 정렬
-    const { markAsRead } = useNotification();
+    const { markAsRead, loading, error, retry, changeNotification } = useNotification();
+    const [pendingId, setPendingId] = useState<number | null>(null);
+    const [readError, setReadError] = useState<string | null>(null);
+
+    const busyRef = useRef<boolean>(false);
+
     const sortedNotifications = useMemo(() => {
         return [...notifications].sort((a, b) =>
             new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         );
     }, [notifications]);
 
-    const handleNotificationClick = async (notification: NotificationData) => {
+    const handleAnswer = async (notificationNum: number, accept: boolean): Promise<void> => {
+        if (busyRef.current) return;
 
-        if (notification.is_checked === 0) {
-            await markAsRead(
-                notification.notification_num
+        busyRef.current = true;
+        setPendingId(notificationNum);
+        setReadError(null);
+
+        try {
+            const category = await answerJoin(
+                notificationNum, accept
             );
+
+            changeNotification(notificationNum, category);
+        } catch {
+            setReadError(
+                "처리에 실패했습니다. 이미 처리된 요청인지, 정원이 남아 있는지 확인해주세요."
+            );
+        } finally {
+            busyRef.current = false;
+            setPendingId(null);
+        }
+    };
+
+    const handleNotificationClick = async (notification: NotificationData): Promise<void> => {
+
+        if (busyRef.current) {
+            return;
         }
 
-        setSelectedId((prev) => prev === notification.notification_num ? null : notification.notification_num);
+        if (selectedId === notification.notification_num) {
+            setSelectedId(null);
+            return;
+        }
+
+        setReadError(null);
+
+        if (notification.is_checked === 0) {
+            busyRef.current = true;
+            setPendingId(notification.notification_num);
+
+            try {
+                await markAsRead(
+                    notification.notification_num
+                );
+            } catch (error) {
+                setReadError("읽음 처리에 실패하였습니다. 다시 눌러주세요.");
+                return;
+            } finally {
+                busyRef.current = false;
+                setPendingId(null);
+            }
+        }
+
+        setSelectedId(notification.notification_num);
     };
 
     const getTypeLabel = (type: string): string => {
         switch (type) {
-            case 'JOIN': return '스터디';
+            case 'JOIN': return '스터디룸 참여';
             case 'REPORT': return '신고';
             case 'COMMENT': return '댓글';
             default: return '';
@@ -48,60 +98,134 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ notifications, on
                     type="button"
                     onClick={onClose}
                     className={styles.closeButton}
+                    aria-label="알림 창 닫기"
                 >
                     ×
                 </button>
             </div>
 
             <div className={styles.notificationList}>
-                {sortedNotifications.length === 0 ? (
+                {loading && (
+                    <p role="status">
+                        알림을 불러오는 중입니다.
+                    </p>
+                )}
+
+                {error && (
+                    <div role="alert">
+                        <p>{error}</p>
+
+                        <button
+                            type="button"
+                            onClick={retry}
+                            disabled={loading}
+                        >
+                            다시 시도
+                        </button>
+                    </div>
+                )}
+
+                {readError && (
+                    <p role="alert">{readError}</p>
+                )}
+
+                {!loading && !error && notifications.length === 0 && (
                     <div className={styles.empty}>
                         새로운 알림이 없습니다.
                     </div>
-                ) : (
-                    sortedNotifications.map((notification) => {
-
-                        const isReport = notification.notification_type === 'REPORT';
-                        const isSelected = selectedId === notification.notification_num;
+                )}
+                {notifications.map(
+                    (notification: NotificationData) => {
+                        const id: number = notification.notification_num;
+                        const isSelected: boolean = selectedId === id;
+                        const isUnread: boolean = notification.is_checked === 0;
+                        const isReport: boolean = notification.category === "REPORT";
 
                         return (
                             <div
-                                key={notification.notification_num}
-                                className={`${styles.notificationItem} ${isReport
+                                key={id}
+                                className={[
+                                    styles.notificationItem,
+                                    isReport
                                         ? styles.reportNotification
-                                        : ''
-                                    }`}
+                                        : "",
+                                ].join(" ")}
                             >
                                 <button
                                     type="button"
                                     className={styles.notificationTitle}
-                                    onClick={() =>
-                                        handleNotificationClick(notification)
-                                    }
+                                    disabled={pendingId !== null}
+                                    aria-expanded={isSelected}
+                                    onClick={() => {
+                                        void handleNotificationClick(
+                                            notification
+                                        );
+                                    }}
                                 >
                                     <span>
-                                        {isReport && '⚠️ '}
-                                        [{getTypeLabel(notification.notification_type)}]
+                                        {isReport && "⚠️ "}
+                                        {isUnread && "● "}
+                                        [{getTypeLabel(
+                                            notification.category
+                                        )}]
                                         {notification.title}
+                                        {pendingId === id
+                                            && " (처리 중)"}
                                     </span>
 
-                                    <span className={styles.notificationDate}>
-                                        {new Date(notification.created_at).toLocaleString()}
+                                    <span
+                                        className={
+                                            styles.notificationDate
+                                        }
+                                    >
+                                        {new Date(
+                                            notification.created_at
+                                        ).toLocaleString()}
                                     </span>
                                 </button>
 
                                 {isSelected && (
                                     <div className={styles.notificationContent}>
-                                        {notification.message}
+                                        <p>{notification.message}</p>
+
+                                        {notification.category === "JOIN" && (
+                                            <div>
+                                                <button
+                                                    type="button"
+                                                    disabled={pendingId !== null || loading}
+                                                    onClick={() => {
+                                                        void handleAnswer(id, true);
+                                                    }}
+                                                >
+                                                    수락
+                                                </button>
+
+                                                <button
+                                                    type="button"
+                                                    disabled={pendingId !== null || loading}
+                                                    onClick={() => {
+                                                        void handleAnswer(id, false);
+                                                    }}
+                                                >
+                                                    거절
+                                                </button>
+                                            </div>
+                                        )}
+
+                                        {notification.category === "JOIN_APPROVED" && (
+                                            <p>수락 처리된 알림입니다.</p>
+                                        )}
+
+                                        {notification.category === "JOIN_REJECTED" && (
+                                            <p>거절 처리된 알림입니다.</p>
+                                        )}
                                     </div>
                                 )}
                             </div>
                         );
-                    })
+                    }
                 )}
             </div>
         </div>
     );
 };
-
-export default NotificationModal;

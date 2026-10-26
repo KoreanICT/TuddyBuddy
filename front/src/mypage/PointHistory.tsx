@@ -5,16 +5,19 @@ import { memberSessionKey } from '../login/session';
 import MemberSessionBoundary from './MemberSessionBoundary';
 import './PointHistory.css';
 
-interface PointHistoryItem {
+interface PointHistoryProps {
+  history?: PointHistoryItem[];
+  embedded?: boolean;
+  loading?: boolean;
+  error?: string;
+}
+
+export interface PointHistoryItem {
   point_num: number;
   regdate: string | null;
   amount: number;
   balance_after: number;
   description: string | null;
-}
-
-interface PointHistoryProps {
-  embedded?: boolean;
 }
 
 interface PointHistoryContentProps extends PointHistoryProps {

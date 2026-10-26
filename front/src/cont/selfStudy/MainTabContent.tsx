@@ -6,12 +6,11 @@ import {
 } from './types';
 
 import styles from './selfstudy.module.css';
+import { useSharedTimerContext } from '../timer/UseTimer';
 
 interface Props {
   onSubmit: () => void;
-  onStartQuiz: () => void;
   quizStarted: boolean;
-  quizElapsedSeconds: number;
   submitting: boolean;
   submitted: boolean;
   score: number | null;
@@ -37,9 +36,7 @@ interface Props {
 
 export const MainTabContent: React.FC<Props> = ({
   onSubmit,
-  onStartQuiz,
   quizStarted,
-  quizElapsedSeconds,
   submitting,
   submitted,
   score,
@@ -57,16 +54,21 @@ export const MainTabContent: React.FC<Props> = ({
   restoring,
   deleting,
 }) => {
+  const sharedTimer = useSharedTimerContext();
+  const [startError, setStartError] = React.useState('');
+  const startQuiz = async () => {
+    setStartError('');
+    if (!sharedTimer) {
+      setStartError('문제 풀이 타이머를 불러오지 못했습니다. 화면을 새로고침해주세요.');
+      return;
+    }
+    const started = await sharedTimer.startQuizTimer();
+    if (!started && sharedTimer.timer.error) setStartError(sharedTimer.timer.error);
+  };
   const busy =
     submitting ||
     restoring ||
     deleting;
-
-  const timerMinutes = Math.floor(quizElapsedSeconds / 60);
-  const timerSeconds = quizElapsedSeconds % 60;
-  const formattedQuizTime =
-    `${String(timerMinutes).padStart(2, '0')}:` +
-    `${String(timerSeconds).padStart(2, '0')}`;
 
   return (
     <main className={styles.mainContainer}>
@@ -201,7 +203,7 @@ export const MainTabContent: React.FC<Props> = ({
                         onSubmit={(e) => {
                           e.preventDefault();
 
-                          if (!quizStarted || submitted || busy) return;
+                          if (submitted || busy) return;
 
                           const answer = new FormData(
                             e.currentTarget
@@ -225,14 +227,14 @@ export const MainTabContent: React.FC<Props> = ({
                           defaultValue={
                             quiz.quizUserResponse ?? ''
                           }
-                          disabled={!quizStarted || submitted || busy}
+                          disabled={submitted || busy}
                           required
                           maxLength={1000}
                         />
 
                         <button
                           type="submit"
-                          disabled={!quizStarted || submitted || busy}
+                          disabled={submitted || busy}
                         >
                           답 확인
                         </button>
@@ -253,7 +255,7 @@ export const MainTabContent: React.FC<Props> = ({
                                 : ''
                             }`}
                             onClick={() => {
-                              if (quizStarted && !submitted && !busy) {
+                              if (!submitted && !busy) {
                                 handleSelectAnswer(
                                   quiz.quizId,
                                   opt
@@ -262,7 +264,7 @@ export const MainTabContent: React.FC<Props> = ({
                             }}
                             style={{
                               cursor:
-                                !quizStarted || submitted || busy
+                                submitted || busy
                                   ? 'default'
                                   : 'pointer',
                             }}
@@ -369,12 +371,6 @@ export const MainTabContent: React.FC<Props> = ({
 
         {quizList.length > 0 && (
           <div className={styles.actionBar}>
-            {activeTab === 'quiz' && (!submitted || quizStarted) && (
-              <strong style={{ marginRight: 'auto', alignSelf: 'center' }}>
-                풀이 시간: {formattedQuizTime}
-              </strong>
-            )}
-
             {score !== null && (
               <strong>
                 점수: {score}점
@@ -412,28 +408,24 @@ export const MainTabContent: React.FC<Props> = ({
 
       {quizList.length > 0 && !quizStarted && !submitted && (
         <div className={styles.modalOverlay}>
-          <div
-            className={styles.modalContent}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="quizStartTitle"
-          >
+          <div className={styles.modalContent} role="dialog" aria-modal="true" aria-labelledby="quizStartTitle">
             <div className={styles.modalHeader}>
               <h3 id="quizStartTitle">문제가 준비됐어요</h3>
             </div>
-            <p>시험 시작을 누르면 풀이 시간 측정이 시작됩니다.</p>
+            <p>시험 시작을 누르면 오른쪽 타이머가 시작되고 풀이 시간이 기록됩니다.</p>
+            <p>제한 시간: {sharedTimer?.quizTimerMinutes ?? 25}분</p>
+            {(sharedTimer?.timer.error || startError) && (
+              <p role="alert" className={styles.quizStartError}>{sharedTimer?.timer.error || startError}</p>
+            )}
             <div className={styles.modalFooter}>
-              <button
-                type="button"
-                className={styles.submitBtn}
-                onClick={onStartQuiz}
-              >
+              <button type="button" className={styles.submitBtn} disabled={busy} onClick={() => void startQuiz()}>
                 시험 시작
               </button>
             </div>
           </div>
         </div>
       )}
+
     </main>
   );
 };

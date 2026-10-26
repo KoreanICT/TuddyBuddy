@@ -35,8 +35,6 @@ public class GroupChatRestController {
 	            required = false
 	        ) Long beforeChatNum,
 	        Principal principal) {
-
-		System.out.println("되는지 보자고");
 	    return ResponseEntity.ok(
 	        service.getHistory(groupNum, beforeChatNum, principal)
 	    );

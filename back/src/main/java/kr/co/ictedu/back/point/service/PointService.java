@@ -140,6 +140,10 @@ public class PointService {
 
 		insertPointChange(memberNum, pointAmount, paymentPrice, pointType, description);
 	}
+	
+	
+	//=========================== 검증 메서드 영역 ==============================
+	
 
 	//역할: 결제 요청 Map이 null인지 검증
 	private void validatePaymentMap(Map<String, Object> paymentMap) {

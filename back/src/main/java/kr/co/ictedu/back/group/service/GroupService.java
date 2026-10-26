@@ -1,7 +1,6 @@
 //작성자 : 오진석
 package kr.co.ictedu.back.group.service;
 
-import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -15,21 +14,25 @@ import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import jakarta.annotation.PostConstruct;
-import kr.co.ictedu.back.group.dao.DiagramDao;
 import kr.co.ictedu.back.group.dao.GroupDao;
 import kr.co.ictedu.back.group.dto.GroupCreateRequest;
 import kr.co.ictedu.back.group.dto.GroupListDTO;
 import kr.co.ictedu.back.group.dto.GroupTagDTO;
 import kr.co.ictedu.back.group.dto.PublicGroupListDTO;
-import kr.co.ictedu.back.group.vo.DiagramVO;
 import kr.co.ictedu.back.group.vo.GroupMemberVO;
 import kr.co.ictedu.back.group.vo.GroupVO;
 import kr.co.ictedu.back.group.vo.TagVO;
+import kr.co.ictedu.back.notification.NotificationPublisher;
+import kr.co.ictedu.back.notification.NotificationEvent.Category;
+import kr.co.ictedu.back.notification.dao.NotificationDao;
+import kr.co.ictedu.back.notification.dto.NotificationDTO;
 
 @Service
 public class GroupService {
@@ -37,6 +40,12 @@ public class GroupService {
 	@Autowired
 	private GroupDao dao;
 
+	@Autowired
+	private NotificationPublisher notificationPublisher;
+
+	@Autowired
+	private NotificationDao notificationDao;
+	
 	@Value("${file.upload.group-thumbnail}")
 	private String uploadPath;
 
@@ -48,6 +57,13 @@ public class GroupService {
 		return dao.searchTags(keyword.trim());
 	}
 
+	public void joinGroup(Long groupNum, Long memberNum) {
+	    throw new org.springframework.web.server.ResponseStatusException(
+	        org.springframework.http.HttpStatus.CONFLICT,
+	        "가입 신청 후 방장 승인이 필요합니다."
+	    );
+	}
+	
 	@Transactional
 	public Long addGroup(GroupCreateRequest request, MultipartFile thumbnail, Long memberNum) {
 		if (request == null || request.getGroup() == null) {
@@ -224,37 +240,136 @@ public class GroupService {
 			throw new RuntimeException("썸네일 저장에 실패했습니다.", e);
 		}
 	}
+	@Transactional
+	public void requestJoin(Long groupNum, Long memberNum) {
+	    GroupVO group = dao.getJoinGroup(groupNum);
 
-//	@Transactional
-//	public Long joinByInviteCode(String inviteCode, Long memberNum) {
-//		GroupVO group = dao.findGroupByInviteCode(inviteCode);
-//		if (group == null) {
-//			throw new IllegalArgumentException("존재하지 않는 초대코드입니다.");
-//		}
-//		
-//		int exists = dao.existsGroupMember(group.getGroup_num(), memberNum);
-//		
-//		int currentMembers = dao.countGroupMembers( group.getGroup_num() );
-//		
-//		if (currentMembers >= group.getGroup_maxMembers()) {
-//			throw new IllegalStateException("스터디룸 정원이 가득 찼습니다.");
-//		}
-//		
-//		GroupMemberVO member = new GroupMemberVO();
-//		
-//		member.setGroup_num(group.getGroup_num());
-//		member.setMember_num(memberNum);
-//		
-//		member.setIs_leader(0);
-//		dao.addGroupMember(member);
-//		
-//		return group.getGroup_num();
-//	}
-	
-	@PostConstruct
-	public void checkUploadPath() {
-		System.out.println("===== 실제 uploadPath =====");
-		System.out.println(uploadPath);
-		System.out.println("==========================");
+	    if (group == null) {
+	        throw new ResponseStatusException(
+	            HttpStatus.NOT_FOUND, "스터디가 없습니다."
+	        );
+	    }
+	    
+	    if (dao.countGroupMember(groupNum, memberNum) > 0) {
+	        throw new ResponseStatusException(
+	            HttpStatus.CONFLICT, "이미 가입한 회원입니다."
+	        );
+	    }
+
+	    Long leaderNum = dao.getGroupLeader(groupNum);
+
+	    if (leaderNum == null) {
+	        throw new ResponseStatusException(
+	            HttpStatus.CONFLICT, "방장이 없습니다."
+	        );
+	    }
+
+	    String targetUrl = "/group/" + groupNum + "/join-requests?applicant=" + memberNum;
+
+	    if (notificationDao.countJoinRequest(targetUrl) > 0) {
+	        throw new ResponseStatusException(
+	            HttpStatus.CONFLICT, "이미 참여 요청을 보냈습니다."
+	        );
+	    }
+
+	    String memberNick = dao.getMemberNick(memberNum);
+
+	    // 다른 알림 기능과 동일한 발행 방식
+	    notificationPublisher.send(
+	        leaderNum,
+	        Category.JOIN,
+	        "스터디룸 참여 요청",
+	        memberNick + "님이 "
+	            + group.getGroup_title()
+	            + " 스터디룸에 참여를 희망하였습니다.",
+	        targetUrl
+	    );
+	}
+	@Transactional
+	public String answerJoin(Long memberNum,Long notificationNum,boolean accept) {
+
+	    NotificationDTO notification =notificationDao.getJoinNotification(memberNum, notificationNum);
+
+	    if (notification == null
+	            || !"JOIN".equals(notification.getCategory())) {
+	        throw new ResponseStatusException(
+	            HttpStatus.CONFLICT, "처리할 참여 요청이 없습니다."
+	        );
+	    }
+
+	    // 저장된 알림에서 스터디 번호와 신청자 번호 확인
+	    java.util.regex.Matcher matcher =
+	        java.util.regex.Pattern.compile(
+	            "^/group/([1-9][0-9]*)/join-requests\\?applicant=([1-9][0-9]*)$"
+	        ).matcher(
+	            notification.getTarget_url() == null
+	                ? ""
+	                : notification.getTarget_url()
+	        );
+
+	    if (!matcher.matches()) {
+	        throw new ResponseStatusException(
+	            HttpStatus.BAD_REQUEST, "참여 요청 정보가 올바르지 않습니다."
+	        );
+	    }
+
+	    Long groupNum;
+	    Long applicantNum;
+
+	    try {
+	        groupNum = Long.valueOf(matcher.group(1));
+	        applicantNum = Long.valueOf(matcher.group(2));
+	    } catch (NumberFormatException e) {
+	        throw new ResponseStatusException(
+	            HttpStatus.BAD_REQUEST, "참여 요청 번호가 올바르지 않습니다."
+	        );
+	    }
+
+	    GroupVO group = dao.getJoinGroup(groupNum);
+
+	    if (group == null) {
+	        throw new ResponseStatusException(
+	            HttpStatus.NOT_FOUND, "스터디가 없습니다."
+	        );
+	    }
+
+	    if (!memberNum.equals(dao.getGroupLeader(groupNum))) {
+	        throw new ResponseStatusException(
+	            HttpStatus.FORBIDDEN, "방장만 처리할 수 있습니다."
+	        );
+	    }
+
+	    if (accept) {
+	        if (dao.countGroupMember(groupNum, applicantNum) > 0) {
+	            throw new ResponseStatusException(
+	                HttpStatus.CONFLICT, "이미 가입한 회원입니다."
+	            );
+	        }
+
+	        if (dao.countGroupMembers(groupNum)
+	                >= group.getGroup_maxMembers()) {
+	            throw new ResponseStatusException(
+	                HttpStatus.CONFLICT, "정원이 가득 찼습니다."
+	            );
+	        }
+	    }
+
+	    String category = accept
+	        ? Category.JOIN_APPROVED.name()
+	        : Category.JOIN_REJECTED.name();
+
+	    int updated = notificationDao.answerJoin(memberNum, notificationNum, category);
+
+	    if (updated == 0) {
+	        throw new ResponseStatusException(
+	            HttpStatus.CONFLICT, "이미 처리된 요청입니다."
+	        );
+	    }
+
+	    if (accept) {
+	        dao.joinGroup(groupNum, applicantNum);
+	    }
+
+	    return category;
 	}
 }

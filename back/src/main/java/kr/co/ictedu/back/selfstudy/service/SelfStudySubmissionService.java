@@ -1,12 +1,16 @@
 package kr.co.ictedu.back.selfstudy.service;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import kr.co.ictedu.back.selfstudy.dao.SelfStudyDao;
 import kr.co.ictedu.back.selfstudy.dto.QuizResponseDto;
@@ -20,13 +24,9 @@ import kr.co.ictedu.back.selfstudy.vo.SelfStudyResultVO;
 @Transactional(readOnly = true)
 public class SelfStudySubmissionService {
     private final SelfStudyDao selfStudyDao;
-    private final SelfStudyHistoryService historyService;
 
-    public SelfStudySubmissionService(
-            SelfStudyDao selfStudyDao,
-            SelfStudyHistoryService historyService) {
+    public SelfStudySubmissionService(SelfStudyDao selfStudyDao) {
         this.selfStudyDao = selfStudyDao;
-        this.historyService = historyService;
     }
     @Transactional
     public SelfStudyResultVO submitQuiz(
@@ -46,6 +46,11 @@ public class SelfStudySubmissionService {
             throw new IllegalArgumentException("회원 정보가 없습니다.");
         }
 
+        Long quizTimeSeconds = request.getQuiz_time_seconds();
+        if (quizTimeSeconds != null && (quizTimeSeconds < 0 || quizTimeSeconds > 14_400)) {
+            throw new IllegalArgumentException("문제 풀이 시간은 0~240분 범위여야 합니다.");
+        }
+
         if (request.getResponses() == null|| request.getResponses().isEmpty()) {
             throw new IllegalArgumentException("제출할 답안이 없습니다.");
         }
@@ -57,10 +62,10 @@ public class SelfStudySubmissionService {
         if (session == null) {
             throw new IllegalArgumentException("존재하지 않는 퀴즈 세션입니다.");
         }
-
-        historyService.requireSessionOwner(
-                request.getQuiz_sessionid(),
-                request.getMember_num());
+        if (!Objects.equals(session.getMember_num(), request.getMember_num())) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN, "본인의 학습 세션만 사용할 수 있습니다.");
+        }
 
         var expectedQuizzes =
                 selfStudyDao.selectQuizzes(
@@ -93,6 +98,7 @@ public class SelfStudySubmissionService {
 
         // 채점
         int correctCount = 0;
+        var responses = new ArrayList<QuizResponseVO>(request.getResponses().size());
         for (QuizResponseDto answer : request.getResponses()) {
             QuizVO quiz = quizzesById.get(answer.getQuiz_id());
             if (quiz == null) {
@@ -114,6 +120,12 @@ public class SelfStudySubmissionService {
             if (correct) {
                 correctCount++;
             }
+
+            QuizResponseVO response = new QuizResponseVO();
+            response.setQuiz_id(answer.getQuiz_id());
+            response.setQuiz_user_response(answer.getQuiz_user_response());
+            response.setQuiz_correct(correct ? "Y" : "N");
+            responses.add(response);
         }
 
         // 점수 계산
@@ -130,6 +142,7 @@ public class SelfStudySubmissionService {
                 request.getMember_num());
 
         result.setSelfstudy_total_score(totalScore);
+        result.setQuiz_time_seconds(quizTimeSeconds == null ? 0L : quizTimeSeconds);
 
         int insertResult =
                 selfStudyDao.insertSelfStudyResult(result);
@@ -138,36 +151,10 @@ public class SelfStudySubmissionService {
             throw new IllegalStateException("학습 결과 저장에 실패했습니다.");
         }
 
-        // 문제별 답안 저장
-        for (QuizResponseDto answer : request.getResponses()) {
-            QuizVO quiz = quizzesById.get(answer.getQuiz_id());
-            boolean correct =
-                    quiz.getQuiz_correct_answer() != null
-                    && answer.getQuiz_user_response() != null
-                    && quiz.getQuiz_correct_answer()
-                            .trim()
-                            .equalsIgnoreCase(
-                                    answer.getQuiz_user_response().trim());
-
-            QuizResponseVO response = new QuizResponseVO();
-            response.setSelfstudy_results_id(
-                    result.getSelfstudy_results_id());
-
-            response.setQuiz_id(
-                    answer.getQuiz_id());
-
-            response.setQuiz_user_response(
-                    answer.getQuiz_user_response());
-
-            response.setQuiz_correct(correct ? "Y" : "N");
-
-            int insertResponse =
-                    selfStudyDao.insertQuizResponse(response);
-
-            if (insertResponse != 1) {
-                throw new IllegalStateException("문제 답안 저장에 실패했습니다.");
-            }
-        }
+        // 답안을 채점하면서 VO로 구성한 뒤 한 번의 Oracle PL/SQL 호출로 저장합니다.
+        responses.forEach(response ->
+                response.setSelfstudy_results_id(result.getSelfstudy_results_id()));
+        selfStudyDao.insertQuizResponses(responses);
 
         return result;
     }

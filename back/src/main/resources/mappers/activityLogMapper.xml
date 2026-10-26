@@ -10,9 +10,8 @@
 	
 		INSERT INTO 
 			user_activity_log (
-				activity_log_num, member_num, activity_occurred_at, activity_category,
-				activity_action, activity_result
-		)
+				activity_log_num, member_num, activity_occurred_at, 
+				activity_category, activity_action, activity_result)
 		VALUES (
 			user_activity_log_seq.NEXTVAL, #{member_num},
 			#{activity_occurred_at, jdbcType=TIMESTAMP_WITH_TIMEZONE},
@@ -27,6 +26,7 @@
 		id="countActivityLogs" parameterType="map" resultType="int"> 
 		SELECT COUNT(*) FROM user_activity_log 
 		
+		<!-- 전체 조건 중에서 원하는 조건에 맞는 기록만 골라넣기 위해서 사용합니다. -->
 		<where>
 			<!-- 회원 번호를 입력한 경우 -->
 			<if test="memberNum != null">

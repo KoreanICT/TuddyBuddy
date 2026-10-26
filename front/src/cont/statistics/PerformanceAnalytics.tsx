@@ -1,13 +1,12 @@
 //김진규
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import {
-    LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Cell
-} from 'recharts';
-import { AlertTriangle, Award, BookOpen, Brain, MessageSquareQuote, TrendingUp } from 'lucide-react';
+import { AlertTriangle, BookOpen, Brain, MessageSquareQuote, TrendingUp, BarChart3 } from 'lucide-react';
 import { CategoryOption, ChartDataState, LLMFeedbackState, PersistedStatisticsAnalysis, StatisticsApiResponse } from './types';
+import { StatisticsDetailCharts, StatisticsOverviewCharts } from './StatisticsCharts';
 import './PerformanceAnalytics.css';
 import { useAuth } from '../../login/hooks/useAuth';
+import { BACKEND_URL } from '../../login/authHttp';
 
 const STATISTICS_ANALYSIS_STORAGE_KEY = 'tuddybuddy:statistics-analysis';
 
@@ -34,6 +33,42 @@ export default function PerformanceAnalytics() {
     const [analysisOwnerMemberNum, setAnalysisOwnerMemberNum] = useState<number | null>(null);
     const [errorMessage, setErrorMessage] = useState<string>('');
     const [showPurchaseModal, setShowPurchaseModal] = useState<boolean>(false);
+    const [pointBalance, setPointBalance] = useState<number | null>(null);
+    const [pointBalanceLoading, setPointBalanceLoading] = useState<boolean>(false);
+    const [pointBalanceError, setPointBalanceError] = useState<string>('');
+
+    // 기존 회원 정보 조회 API에서 결제 모달에 표시할 현재 잔액을 가져옵니다.
+    const loadPointBalance = async () => {
+        setPointBalanceLoading(true);
+        setPointBalanceError('');
+        try {
+            if (typeof token !== 'string' || token.trim() === '' || memberNum == null) {
+                throw new Error('로그인 정보를 확인할 수 없습니다.');
+            }
+            const response = await axios.get<{ member_num: number; point: number | string }>(
+                `${BACKEND_URL}/api/member/me`,
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            const balance = Number(response.data.point);
+            if (response.data.member_num !== memberNum || !Number.isFinite(balance)) {
+                throw new Error('회원 포인트 응답을 확인할 수 없습니다.');
+            }
+            setPointBalance(balance);
+        } catch (error) {
+            console.error('평가분석 결제 전 포인트 잔액 조회 실패:', error);
+            setPointBalance(null);
+            setPointBalanceError('현재 포인트를 확인하지 못했어요. 다시 불러와 주세요.');
+        } finally {
+            setPointBalanceLoading(false);
+        }
+    };
+
+    const openPurchaseModal = () => {
+        setErrorMessage('');
+        setPointBalance(null);
+        setShowPurchaseModal(true);
+        void loadPointBalance();
+    };
 
     // 결제 확인 모달이 열린 동안 Escape 키로 닫을 수 있게 키보드 이벤트를 등록합니다.
     useEffect(() => {
@@ -280,6 +315,25 @@ export default function PerformanceAnalytics() {
         }
     };
 
+    // 전체 응답의 회차 이력으로 카테고리별 평균과 응시 횟수를 계산합니다.
+    const allHistory = allStatistics?.chartData.history ?? [];
+    const overviewMetrics = categories.map((category) => {
+        const scores = allHistory
+            .filter((item) => item.categoryId === category.categoryId)
+            .map((item) => item.score)
+            .filter((score) => Number.isFinite(score));
+        return {
+            categoryId: category.categoryId,
+            categoryName: category.categoryName,
+            attempts: scores.length,
+            averageScore: scores.length
+                ? Number((scores.reduce((total, score) => total + score, 0) / scores.length).toFixed(1))
+                : 0,
+        };
+    }).filter((category) => category.attempts > 0);
+    const overallAverage = allHistory.length
+        ? allHistory.reduce((total, item) => total + item.score, 0) / allHistory.length
+        : 0;
     // 분석 결과가 없거나 현재 로그인 회원의 결과가 아니면 결제 안내 화면을 표시합니다.
     if (!analysisUnlocked || analysisOwnerMemberNum !== memberNum) {
         return (
@@ -309,10 +363,7 @@ export default function PerformanceAnalytics() {
                         <button
                             className="analytics-gate-button"
                             type="button"
-                            onClick={() => {
-                                setErrorMessage('');
-                                setShowPurchaseModal(true);
-                            }}
+                            onClick={openPurchaseModal}
                             disabled={loading}
                         >
                             {loading ? '카테고리 및 분석 데이터를 불러오는 중...' : '1,000포인트로 분석 시작'}
@@ -338,14 +389,36 @@ export default function PerformanceAnalytics() {
                                 </div>
                                 <h2 id="analytics-purchase-title">평가분석을 시작할까요?</h2>
                                 <p id="analytics-purchase-description" className="analytics-purchase-modal-description">
-                                    전체 카테고리의 성적 분석과 맞춤 학습 안내를 확인할 수 있어요!
+                                    응시 기록과 오답을 살펴보고, 다음 학습 방향을 함께 찾아볼게요.
                                 </p>
-                                <div className="analytics-purchase-modal-price">
-                                    <span>사용 포인트</span>
-                                    <strong>1,000P</strong>
+                                <div className="analytics-purchase-modal-balance" aria-live="polite">
+                                    {pointBalanceLoading ? (
+                                        <p className="analytics-purchase-balance-status">현재 포인트를 확인하고 있어요…</p>
+                                    ) : pointBalanceError ? (
+                                        <div className="analytics-purchase-balance-error">
+                                            <p>{pointBalanceError}</p>
+                                            <button type="button" onClick={() => void loadPointBalance()}>다시 확인</button>
+                                        </div>
+                                    ) : pointBalance !== null ? (
+                                        <>
+                                            <div><span>현재 포인트</span><strong>{pointBalance.toLocaleString('ko-KR')}P</strong></div>
+                                            <div><span>분석 이용료</span><strong>−1,000P</strong></div>
+                                            <div className="analytics-purchase-balance-after">
+                                                <span>예상 잔액</span>
+                                                <strong>{pointBalance >= 1_000
+                                                    ? `${(pointBalance - 1_000).toLocaleString('ko-KR')}P`
+                                                    : '결제할 수 없어요'}</strong>
+                                            </div>
+                                        </>
+                                    ) : null}
                                 </div>
+                                {pointBalance !== null && pointBalance < 1_000 && (
+                                    <p className="analytics-purchase-insufficient" role="alert">
+                                        포인트가 조금 부족해요. 충전한 뒤 다시 이용해 주세요!
+                                    </p>
+                                )}
                                 <p className="analytics-purchase-modal-notice">
-                                    분석 결과는 로그인 중에만 저장돼요. 로그아웃하면 결과가 사라지며, 다시 분석할 때 1,000포인트가 사용됩니다.
+                                    분석 결과는 로그인 중에 저장돼요. 로그아웃하면 결과가 사라지고, 다시 분석할 때 이용료가 발생해요.
                                 </p>
                                 <div className="analytics-purchase-modal-actions">
                                     <button
@@ -360,8 +433,9 @@ export default function PerformanceAnalytics() {
                                         className="analytics-purchase-confirm"
                                         type="button"
                                         onClick={handleStartAnalysis}
+                                        disabled={pointBalanceLoading || pointBalanceError !== '' || pointBalance === null || pointBalance < 1_000}
                                     >
-                                        확인하고 분석 시작
+                                        {pointBalance !== null && pointBalance < 1_000 ? '포인트 충전이 필요해요' : '확인하고 분석 시작'}
                                     </button>
                                 </div>
                             </section>
@@ -376,16 +450,42 @@ export default function PerformanceAnalytics() {
         <div className="analytics-page">
             <div className="container">
 
+                {/* 이미 받은 전체 카테고리 이력으로 종합 지표와 비교 차트를 만듭니다. 별도 통계 API를 호출하지 않습니다. */}
+                <section className="analytics-overview card" aria-labelledby="analytics-overview-title">
+                    <div className="analytics-overview-heading">
+                        <div className="analytics-overview-icon"><BarChart3 size={20} /></div>
+                        <div>
+                            <h1 id="analytics-overview-title">전체 학습 한눈에 보기</h1>
+                            <p>지금까지의 시험 기록을 모아 카테고리별 흐름을 정리했어요.</p>
+                        </div>
+                    </div>
+                    <div className="analytics-overview-summary">
+                        <article>
+                            <span>전체 응시</span>
+                            <strong>{allHistory.length.toLocaleString('ko-KR')}회</strong>
+                        </article>
+                        <article>
+                            <span>전체 평균</span>
+                            <strong>{allHistory.length ? `${overallAverage.toFixed(1)}점` : '기록 없음'}</strong>
+                        </article>
+                        <article>
+                            <span>분석 카테고리</span>
+                            <strong>{overviewMetrics.length.toLocaleString('ko-KR')}개</strong>
+                        </article>
+                    </div>
+                    <StatisticsOverviewCharts metrics={overviewMetrics} />
+                </section>
+
                 {/* 상단 제목과 카테고리 선택 컨트롤입니다. 선택 변경은 아래 필터링 효과를 다시 실행합니다. */}
                 <header className="analytics-header">
                     <div className="header-title">
-                        <h1>📊 AI 학습 성적 분석 & 멘토링</h1>
-                        <p>성적 이력과 오답 로그를 바탕으로 LLM 성적 예측과 평가분석 컨설팅을 제공합니다.</p>
+                        <h2>카테고리별 상세 분석</h2>
+                        <p>궁금한 카테고리를 선택하면 성적 변화와 맞춤 학습 안내를 볼 수 있어요.</p>
                     </div>
 
                     <div className="category-selector">
                         <BookOpen className="icon" size={18} />
-                        <label htmlFor="subject-select" className="label">학습 과목:</label>
+                        <label htmlFor="subject-select" className="label">분석 카테고리:</label>
                         <select
                             id="subject-select"
                             value={selectedCategoryId ?? ''}
@@ -402,100 +502,27 @@ export default function PerformanceAnalytics() {
                 </header>
 
                 {/* 현재 선택 카테고리에 대한 시험 이력, 예측 점수, 과목별 오답 현황 차트입니다. */}
-                {chartData && (
-                    <section className="charts-grid">
-
-                        {/* 시험 이력의 회차별 점수를 선 그래프로 표시합니다. */}
-                        <div className="card chart-card">
-                            <div className="card-header">
-                                <TrendingUp className="icon primary" size={20} />
-                                <h2>지난 성적 변화 추이</h2>
-                            </div>
-                            <div className="chart-wrapper">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <LineChart data={chartData.history}>
-                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
-                                        <XAxis dataKey="round" stroke="var(--text-secondary)" fontSize={12} />
-                                        <YAxis domain={[0, 100]} stroke="var(--text-secondary)" fontSize={12} />
-                                        <Tooltip />
-                                        <Line type="monotone" dataKey="score" stroke="var(--primary)" strokeWidth={3} dot={{ r: 5, fill: 'var(--primary)' }} name="점수" />
-                                    </LineChart>
-                                </ResponsiveContainer>
-                            </div>
-                        </div>
-
-                        {/* 최근 평균과 LLM 예측 점수를 막대 그래프로 비교합니다. */}
-                        <div className="card chart-card">
-                            <div className="card-header">
-                                <Award className="icon success" size={20} />
-                                <h2>LLM 성적 예측</h2>
-                            </div>
-                            <div className="chart-wrapper">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={chartData.prediction}>
-                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
-                                        <XAxis dataKey="name" stroke="var(--text-secondary)" fontSize={12} />
-                                        <YAxis domain={[0, 100]} stroke="var(--text-secondary)" fontSize={12} />
-                                        <Tooltip />
-                                        <Bar dataKey="score" radius={[8, 8, 0, 0]} barSize={40} name="예측 점수">
-                                            {chartData.prediction.map((entry, index) => (
-                                                <Cell key={`cell-${index}`} fill={entry.type === 'predict' ? '#059669' : '#94a3b8'} />
-                                            ))}
-                                        </Bar>
-                                    </BarChart>
-                                </ResponsiveContainer>
-                            </div>
-                        </div>
-
-                        {/* API가 제공하는 과목별 오답 건수를 가로 막대 그래프로 표시합니다. */}
-                        <div className="card chart-card analytics-subject-errors-card">
-                            <div className="card-header">
-                                <TrendingUp className="icon warning" size={20} />
-                                <h2>과목별 오답 현황</h2>
-                            </div>
-                            {chartData.subjectShare.length === 0 ? (
-                                <p className="analytics-subject-errors-empty">표시할 과목별 오답 데이터가 없습니다.</p>
-                            ) : (
-                                <div className="chart-wrapper analytics-subject-errors-chart">
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <BarChart
-                                            data={[...chartData.subjectShare].sort((a, b) => b.value - a.value)}
-                                            layout="vertical"
-                                            margin={{ top: 4, right: 16, bottom: 4, left: 8 }}
-                                        >
-                                            <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="var(--border)" />
-                                            <XAxis type="number" allowDecimals={false} stroke="var(--text-secondary)" fontSize={12} />
-                                            <YAxis type="category" dataKey="name" width={112} stroke="var(--text-secondary)" fontSize={12} />
-                                            <Tooltip formatter={(value) => [`${value}건`, '오답 수']} />
-                                            <Bar dataKey="value" fill="var(--primary)" radius={[0, 6, 6, 0]} barSize={22} name="오답 수" />
-                                        </BarChart>
-                                    </ResponsiveContainer>
-                                </div>
-                            )}
-                        </div>
-
-                    </section>
-                )}
+                <StatisticsDetailCharts chartData={chartData} />
 
                 {/* 선택한 카테고리의 LLM 평가분석, 취약점, 맞춤 학습 경로를 표시합니다. */}
                 {llmFeedback && (
                     <section className="card feedback-card">
                         {llmFeedback.categoryAnalyses.length === 0 ? (
-                            <p>선택한 카테고리의 평가분석 데이터가 없습니다.</p>
+                            <p>아직 이 카테고리의 분석 결과가 없어요. 시험 기록이 쌓이면 여기에서 확인할 수 있습니다.</p>
                         ) : llmFeedback.categoryAnalyses.map((analysis) => (
                             <div className="feedback-section" key={analysis.categoryIds.join('-')}>
-                                <div className="card-header danger">
+                                <div className="card-header feedback-category-header">
                                     <MessageSquareQuote size={22} />
-                                    <h2>{analysis.categoryName} 평가분석</h2>
+                                    <h2>{analysis.categoryName} 학습 피드백</h2>
                                 </div>
                                 <div className="mentor-speech-box">
-                                    <p>"{analysis.mentorComment}"</p>
+                                    <p>{analysis.mentorComment}</p>
                                 </div>
 
                                 <div className="consulting-grid">
                                     <div className="consulting-col">
                                         <h3 className="section-title">
-                                            <AlertTriangle className="icon warning" size={16} /> 집중 보완 단원 및 원인 분석
+                                            <AlertTriangle className="icon warning" size={16} /> 다음에 함께 살펴볼 부분
                                         </h3>
                                         <div className="weakness-list">
                                             {analysis.weaknesses.map((weakness, idx) => (
@@ -508,7 +535,7 @@ export default function PerformanceAnalytics() {
 
                                     <div className="consulting-col">
                                         <h3 className="section-title">
-                                            <Brain className="icon primary" size={16} /> 맞춤형 성적 탈출 컨설팅 경로
+                                            <Brain className="icon primary" size={16} /> 다음 학습 추천
                                         </h3>
                                         <ol className="consulting-path">
                                             {analysis.consultingPath.map((step, idx) => (

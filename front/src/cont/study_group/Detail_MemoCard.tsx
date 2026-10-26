@@ -210,9 +210,9 @@ export const Detail_MemoCard: React.FC<MemoCardProps> = ({
                     <div className={styles.memoDate}>
                         {!memo.updated_at ? (
                             <span>
-                                작성 {memo.created_at}
+                                작성 {memo.created_at.replace('T', ' ').slice(0, 16)}
                             </span>) : (<span>
-                                수정 {memo.updated_at}
+                                수정 {memo.updated_at.replace('T', ' ').slice(0, 16)}
                             </span>)}
                     </div>
 

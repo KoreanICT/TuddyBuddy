@@ -1,8 +1,8 @@
 //작성자 : 오진석
 import React, { useEffect, useMemo, useState } from 'react';
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from "recharts"
+import { PieChart, Pie, Tooltip, ResponsiveContainer, Legend } from "recharts"
 import styles from './detail.module.css';
-import { GetGroupNum, TDLData } from './GroupAPI'
+import { GetGroupNum } from './GroupAPI'
 import NoticeBanner from '../notice/NoticeBanner';
 import api from './api';
 
@@ -24,6 +24,7 @@ interface OverviewSchedule {
     schedule_date: string;
     start_at?: string;
 }
+
 export const Detail_Overview: React.FC<GetGroupNum> = ({ groupNum }) => {
 
     const [tdls, setTdls] = useState<OverviewTdl[]>([]);
@@ -61,7 +62,8 @@ export const Detail_Overview: React.FC<GetGroupNum> = ({ groupNum }) => {
     const chartData = useMemo(() => {
         return tdlSummary.map((item) => ({
             name: item.status === "To Do" ? "할 일" : item.status === "In Progress" ? "진행 중" : item.status === "Done" ? "완료" : item.status,
-            value: item.count
+            value: item.count,
+            fill: item.status === "To Do" ? "#f59e0b" : item.status === "In Progress" ? "#3b82f6" : "#22c55e"
         }));
     }, [tdlSummary])
 
@@ -130,9 +132,6 @@ export const Detail_Overview: React.FC<GetGroupNum> = ({ groupNum }) => {
                                                     innerRadius={55}
                                                     outerRadius={80}
                                                 >
-                                                    {chartData.map((_, index) => (
-                                                        <Cell key={index} />
-                                                    ))}
                                                 </Pie>
                                                 <Tooltip />
                                                 <Legend />
@@ -226,7 +225,7 @@ export const Detail_Overview: React.FC<GetGroupNum> = ({ groupNum }) => {
 
             {/* 최근 공지 영역 */}
             <div className={styles.detail_section_card}>
-                <h3 className={styles.section_title}>최근 업데이트</h3>
+                <h3 className={styles.section_title}>최신 공지</h3>
                 <NoticeBanner limit={5} />
             </div>
         </div>

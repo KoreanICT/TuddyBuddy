@@ -77,6 +77,14 @@ public class SelfStudyAdminController {
         return ResponseEntity.ok(Map.of("message", "카테고리 상태가 변경되었습니다."));
     }
 
+    @Operation(summary = "카테고리 완전 삭제", description = "카테고리와 연결된 과목, 문제 세션, 문제, 제출 결과, 답안을 영구 삭제합니다.")
+    @DeleteMapping("/categories/{categoryId}")
+    public ResponseEntity<?> permanentlyDeleteCategory(@PathVariable("categoryId") Long categoryId) {
+        authenticatedMember.requireAdmin();
+        selfStudyAdminService.permanentlyDeleteCategory(categoryId);
+        return ResponseEntity.ok(Map.of("message", "카테고리가 완전히 삭제되었습니다."));
+    }
+
     @Operation(summary = "전체 과목 조회", description = "비활성 과목 포함")
     @GetMapping("/subjects")
     public ResponseEntity<List<SubjectVO>> getSubjects() {

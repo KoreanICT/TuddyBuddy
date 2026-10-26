@@ -6,6 +6,8 @@ import java.util.List;
 
 @Schema(description = "QuizGenerateResponseDto 데이터")
 public record QuizGenerateResponseDto(
+		@Schema(description = "원본 이미지 SHA-256") String imageHash,
+		@Schema(description = "기존 세션 분류 재사용 여부") boolean cached,
 		@Schema(description = "문제 생성 세션 번호", example = "1") Long quizSessionId,
 		@Schema(description = "분류된 카테고리 번호") Long categoryId,
 		@Schema(description = "분류된 카테고리명", example = "프로그래밍") String categoryName,
