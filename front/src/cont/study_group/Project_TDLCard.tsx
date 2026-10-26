@@ -89,16 +89,8 @@ export const Project_TDLCard: React.FC<TDLProps> = ({ tdl, disableClick, onEdit,
         <div
             ref={setNodeRef}
             style={dragStyle}
-            {...(
-                isIncomplete
-                    ? {}
-                    : listeners
-            )}
-            {...(
-                isIncomplete
-                    ? {}
-                    : attributes
-            )}
+            {...(isIncomplete ? {} : listeners)}
+            {...(isIncomplete ? {} : attributes)}
             className={`${styles.tdl_card} ${isExpanded ? styles.tdl_card_expanded : ''} ${deadlineReached ? styles.tdl_card_deadline : ''} ${isRepeatTdl ? styles.tdl_card_repeat : ''}`}
             onClick={() => { if (!disableClick) { setIsExpanded((prev) => !prev); } }}>
             <div className={styles.tdl_card_title}>

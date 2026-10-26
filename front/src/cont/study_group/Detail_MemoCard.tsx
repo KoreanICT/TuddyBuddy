@@ -110,10 +110,12 @@ export const Detail_MemoCard: React.FC<MemoCardProps> = ({
                     editContent
                 );
             } else {
-                await onUpdate(
-                    memo.memo_num,
-                    editContent
-                )
+                if (memo.can_manage === 1) {
+                    await onUpdate(memo.memo_num, editContent);
+                } else if (memo.can_manage === 0) {
+                    alert("이 메모에 대한 수정 권한이 없습니다.");
+                    return;
+                }
             }
             setIsExpanded(false);
         } catch (error) {
@@ -238,10 +240,9 @@ export const Detail_MemoCard: React.FC<MemoCardProps> = ({
                                 onClick={() => {
                                     if (memo.isDraft) {
                                         onCancelDraft(memo.memo_num);
-                                    } else {
-                                        setEditContent(memo.memo_content);
-                                        setIsExpanded(false);
                                     }
+                                    setEditContent(memo.memo_content);
+                                    setIsExpanded(false);
                                 }}
                             >
                                 닫기

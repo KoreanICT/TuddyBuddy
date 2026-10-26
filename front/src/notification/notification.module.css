@@ -304,10 +304,60 @@
     background: #f9fafb;
     color: #6b7280;
 }
-
+.retrybtn {
+    padding: 7px 12px;
+    background-color: var(--primary);
+    color: var(--background);
+    font-size: 10px;
+    font-weight: 600;
+}
 .error {
     background: #fff1f2;
     color: #b91c1c;
+}
+.allowbtnWrapper {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 6px;
+    margin-top: 12px;
+}
+.allowbtn {
+    padding: 7px 12px;
+
+    border-radius: var(--radius-sm);
+    background-color: var(--primary);
+    color: var(--background);
+    font-size: 10px;
+    font-weight: 600;
+}
+
+.allowbtn:hover {
+    background-color: var(--primary-hover);
+}
+.refusebtn {
+    padding: 7px 12px;
+    background-color: #dc2626;
+    border-radius: var(--radius-sm);
+    color: var(--background);
+    font-size: 10px;
+    font-weight: 600;
+}
+
+.refusebtn:hover {
+    background-color: #a11d1d;
+}
+
+.allowText {
+    margin-top: 10px;
+    font-size:10px;
+    color:var(--primary);
+}
+
+.refuseText {
+    margin-top: 10px;
+    font-size:10px;
+    color: #dc2626;
 }
 
 @media (max-width: 600px) {

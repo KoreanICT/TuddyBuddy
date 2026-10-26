@@ -121,6 +121,7 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({ notificati
                         <button
                             type="button"
                             onClick={retry}
+                            className={styles.retrybtn}
                             disabled={loading}
                         >
                             다시 시도
@@ -196,10 +197,11 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({ notificati
                                         )}
 
                                         {notification.category === "JOIN" && (
-                                            <div>
+                                            <div className={styles.allowbtnWrapper}>
                                                 <button
                                                     type="button"
                                                     disabled={pendingId !== null || loading}
+                                                    className={styles.allowbtn}
                                                     onClick={() => {
                                                         void handleAnswer(id, true);
                                                     }}
@@ -210,6 +212,7 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({ notificati
                                                 <button
                                                     type="button"
                                                     disabled={pendingId !== null || loading}
+                                                    className={styles.refusebtn}
                                                     onClick={() => {
                                                         void handleAnswer(id, false);
                                                     }}
@@ -220,11 +223,11 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({ notificati
                                         )}
 
                                         {notification.category === "JOIN_APPROVED" && (
-                                            <p>수락 처리된 알림입니다.</p>
+                                            <p className={styles.allowText}>수락 처리된 알림입니다.</p>
                                         )}
 
                                         {notification.category === "JOIN_REJECTED" && (
-                                            <p>거절 처리된 알림입니다.</p>
+                                            <p className={styles.refuseText}>거절 처리된 알림입니다.</p>
                                         )}
                                     </div>
                                 )}
