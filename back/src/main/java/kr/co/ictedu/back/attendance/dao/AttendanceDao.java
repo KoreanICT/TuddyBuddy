@@ -15,6 +15,7 @@ public interface AttendanceDao {
             @Param("monthStart") String monthStart);
     /** 서버가 한 번 읽은 today에 해당 회원의 출석이 있는지 건수로 확인한다. */
     int existsToday(@Param("memberNum") Long memberNum, @Param("today") String today);
-    /** 동일한 서버 today로 출석 한 건을 저장하며 mapper가 reward_point를 0으로 고정한다. */
-    int insertToday(@Param("memberNum") Long memberNum, @Param("today") String today);
+    /** 동일한 서버 today와 서버가 결정한 보상 포인트로 출석 한 건을 저장한다. */
+    int insertToday(@Param("memberNum") Long memberNum, @Param("today") String today,
+            @Param("rewardPoint") long rewardPoint);
 }

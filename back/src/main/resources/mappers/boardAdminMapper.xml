@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.ictedu.back.admin.dao.BoardAdminDao">
+    <sql id="filter">
+        <if test="keyword != ''">
+            WHERE INSTR(LOWER(c.community_title), LOWER(#{keyword})) &gt; 0
+               OR INSTR(LOWER(c.community_nickname), LOWER(#{keyword})) &gt; 0
+        </if>
+    </sql>
+    <select id="count" resultType="int">
+        SELECT COUNT(*) FROM community_section c <include refid="filter"/>
+    </select>
+    <select id="list" resultType="map">
+        SELECT "postNum", "title", "content", "author", "category", "createdAt"
+        FROM (
+            SELECT c.community_id AS "postNum", c.community_title AS "title",
+                   c.community_content AS "content", c.community_nickname AS "author",
+                   c.community_category AS "category", c.community_date AS "createdAt",
+                   ROW_NUMBER() OVER (ORDER BY c.community_id DESC) AS rn
+            FROM community_section c <include refid="filter"/>
+        ) WHERE rn BETWEEN #{begin} AND #{end} ORDER BY rn
+    </select>
+    <select id="lockPost" resultType="long">
+        SELECT community_id FROM community_section WHERE community_id = #{num} FOR UPDATE
+    </select>
+    <delete id="deleteComments">DELETE FROM community_comment WHERE post_id = #{num}</delete>
+    <delete id="deletePost">DELETE FROM community_section WHERE community_id = #{num}</delete>
+</mapper>

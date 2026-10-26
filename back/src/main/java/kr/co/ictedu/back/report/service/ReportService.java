@@ -2,6 +2,10 @@
 
 package kr.co.ictedu.back.report.service;
 
+import kr.co.ictedu.back.notification.NotificationPublisher;
+import kr.co.ictedu.back.notification.NotificationEvent.Category;
+import kr.co.ictedu.back.member.dao.MemberDAO;
+
 import java.util.List;
 import java.util.Map;
 import java.nio.charset.StandardCharsets;
@@ -19,6 +23,10 @@ import kr.co.ictedu.back.report.vo.ReportCountVO;
 
 @Service
 public class ReportService {
+    @Autowired
+    private NotificationPublisher notifications;
+    @Autowired
+    private MemberDAO members;
 	private static final int REPORT_REASON_MAX_BYTES = 50;
 	
 	@Autowired
@@ -31,6 +39,11 @@ public class ReportService {
 	public void add(ReportVO vo) {
 		validateAdd(vo);
 		reportDao.add(vo);
+        for (Long managerNum : members.findManagerNums()) {
+            notifications.send(managerNum, Category.REPORT,
+                    "새 신고가 접수되었습니다", "신고 #" + vo.getNum() + "의 내용을 확인해주세요.",
+                    "/admin/reportDetail/" + vo.getNum());
+        }
 	}
 
 	private void validateAdd(ReportVO vo) {
@@ -165,7 +178,19 @@ public class ReportService {
         if (reportDao.updateStatus(vo) != 1) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "신고 상태 변경에 실패했습니다.");
         }
+        notifications.send(report.getMember_num(), Category.REPORT,
+                "신고 처리 상태가 변경되었습니다", "신고 #" + report.getNum() + "의 상태: " + statusLabel(vo.getStatus()),
+                "/report/replyDetail/" + report.getNum());
         return 1;
+    }
+
+    private String statusLabel(String status) {
+        return switch (status) {
+            case "REVIEWING" -> "검토 중";
+            case "COMPLETED" -> "처리 완료";
+            case "REJECTED" -> "반려";
+            default -> "접수";
+        };
     }
 
     public void validateTransition(String current, String next) {

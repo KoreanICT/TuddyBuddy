@@ -83,6 +83,7 @@ const UserMenu: React.FC = () => {
             type="button"
             className={styles.profileButton}
             onClick={() => {
+              retry();
               setIsNotiOpen(true);
             }}
             aria-label="알림 목록 열기"
