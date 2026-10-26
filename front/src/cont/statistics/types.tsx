@@ -6,6 +6,24 @@ export interface CategoryOption {
     categoryName: string;
 }
 
+// 종합 차트에서 카테고리별 평균 점수와 응시 비중을 표시하는 집계 항목입니다.
+export interface CategoryAverageScore {
+    categoryId: number;
+    categoryName: string;
+    attempts: number;
+    averageScore: number;
+}
+
+// 종합 차트 컴포넌트에 전달하는 기존 화면 집계 데이터입니다.
+export interface StatisticsOverviewChartsProps {
+    metrics: CategoryAverageScore[];
+}
+
+// 선택 카테고리의 기존 차트 데이터를 표시하는 컴포넌트 입력입니다.
+export interface StatisticsDetailChartsProps {
+    chartData: ChartDataState | null;
+}
+
 // 성적 추이 차트에 표시하는 제출 결과 한 건입니다.
 export interface HistoryItem {
     categoryId: number;

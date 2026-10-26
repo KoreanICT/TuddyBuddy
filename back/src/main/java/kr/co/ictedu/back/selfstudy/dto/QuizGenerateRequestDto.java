@@ -15,6 +15,9 @@ public class QuizGenerateRequestDto {
 
     @Schema(description = "기존 과목 번호 (자동 분류 시 생략 가능)", example = "1")
     private Long subject_id;
+    private String image_hash;
+    private String category_name;
+    private String subject_name;
     @Schema(description = "회원 번호", example = "1")
     private Long member_num;
 

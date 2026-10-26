@@ -6,14 +6,13 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestTemplate;
 
 import kr.co.ictedu.back.statistics.dao.StatisticsDao;
 import kr.co.ictedu.back.statistics.dto.PredictionDTO;
 import kr.co.ictedu.back.statistics.dto.StatisticsDTO;
+import kr.co.ictedu.back.statistics.client.StatisticsPythonApiClient;
 import kr.co.ictedu.back.point.service.PointService;
 
 @Service
@@ -24,8 +23,8 @@ public class StatisticsService {
 	@Autowired
 	private PointService pointService;
 
-	@Value("${fastapi.url}")
-	private String fastapiUrl;
+	@Autowired
+	private StatisticsPythonApiClient statisticsPythonApiClient;
 
 	public List<Map<String, Object>> selectCategories(Long memberNum) {
 		//역할: 회원번호 null 검증
@@ -82,10 +81,9 @@ public class StatisticsService {
 		requestPayload.put("category_scores", historyList);
 
 		// (3) FastAPI의 카테고리별 피드백 응답 수신
-		RestTemplate restTemplate = new RestTemplate();
 		//역할: 카테고리별 LLM 응답과 필수 필드 검증
 		StatisticsDTO llmFeedback = validateStatisticsFeedback(
-				restTemplate.postForObject(fastapiUrl + "/statistics", requestPayload, StatisticsDTO.class));
+				statisticsPythonApiClient.requestStatistics(requestPayload));
 
 		System.out.println("카테고리별 평가분석 응답 수신: " + llmFeedback.getCategoryAnalyses().size());
 		return llmFeedback;
@@ -128,16 +126,17 @@ public class StatisticsService {
 		 * 평균',score: 63.7, type: 'actual' }, {name: '다음 시험 예측', score: 82.0,
 		 * type:'predict' }, ]
 		 */
-		RestTemplate restTemplate = new RestTemplate();
 		//역할: 카테고리별 예측 LLM 응답 및 필수 필드 검증
 		PredictionDTO llmFeedback = validatePredictionFeedback(
-				restTemplate.postForObject(fastapiUrl + "/prediction", categoryStatsList, PredictionDTO.class));
+				statisticsPythonApiClient.requestPrediction(categoryStatsList));
 
 		System.out.println("카테고리별 성적예측 응답 수신: " + llmFeedback.getCategoryPredictions().size());
 		return llmFeedback;
 	
 	}
 
+	//=========================== 검증 메서드 영역 ==============================
+	
 	//역할: 회원번호 인자가 null인지 검증
 	private Long validateMemberNum(Long memberNum) {
 		if (memberNum == null || memberNum <= 0) {
@@ -218,6 +217,7 @@ public class StatisticsService {
 				|| feedback.getCategoryPredictions().isEmpty()) {
 			throw new IllegalArgumentException("성적 예측 LLM 응답 데이터가 올바르지 않습니다.");
 		}
+		
 		for (PredictionDTO.CategoryPredictionDTO categoryPrediction : feedback.getCategoryPredictions()) {
 			if (categoryPrediction == null || categoryPrediction.getCategoryIds() == null
 					|| categoryPrediction.getCategoryIds().isEmpty()

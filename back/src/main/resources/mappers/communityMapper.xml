@@ -9,10 +9,11 @@
 		SELECT community_section_seq.NEXTVAL FROM dual
 		</selectKey>
 		INSERT INTO community_section ( community_id, community_title,
-		community_content, community_nickname, community_category, member_num )
-		VALUES ( #{post.postNum}, #{post.title, jdbcType=VARCHAR},
-		#{post.content, jdbcType=VARCHAR}, #{post.author, jdbcType=VARCHAR},
-		#{post.category, jdbcType=VARCHAR}, #{memberNum} ) </insert>
+		community_content, community_nickname, community_category, member_num,
+		community_date, view_count ) VALUES ( #{post.postNum}, #{post.title,
+		jdbcType=VARCHAR}, #{post.content, jdbcType=VARCHAR}, #{post.author,
+		jdbcType=VARCHAR}, #{post.category, jdbcType=VARCHAR}, #{memberNum},
+		SYSDATE, 0 ) </insert>
 
 	<select id="countPosts" resultType="int">
 		SELECT COUNT(*) FROM community_section
@@ -21,25 +22,29 @@
 	<!-- 전체 게시글을 최신 번호순으로 페이지 조회 -->
 	<select id="findPosts" resultType="kr.co.ictedu.back.common.vo.MyPostVO">
 		SELECT
-		community_id AS "postNum",
-		community_title AS "title",
-		community_content AS "content",
-		community_category AS "category",
-		community_nickname AS "author",
-		like_count AS "likeCount"
-		FROM (
-		SELECT
-		community_id,
-		community_title,
-		community_content,
-		community_category,
-		community_nickname,
-		like_count,
-		ROW_NUMBER() OVER (ORDER BY community_id DESC) AS row_num
-		FROM community_section
-		)
-		WHERE row_num BETWEEN #{startRow} AND #{endRow}
-		ORDER BY row_num
+        community_id AS "postNum",
+        community_title AS "title",
+        community_content AS "content",
+        community_category AS "category",
+        community_nickname AS "author",
+        like_count AS "likeCount",
+        community_date AS "communityDate",
+        view_count AS "viewCount"
+    FROM (
+        SELECT
+            community_id,
+            community_title,
+            community_content,
+            community_category,
+            community_nickname,
+            like_count,
+            community_date,
+            view_count,
+            ROW_NUMBER() OVER (ORDER BY community_id DESC) AS row_num
+        FROM community_section
+    )
+    WHERE row_num BETWEEN #{startRow} AND #{endRow}
+    ORDER BY row_num
 	</select>
 
 	<!-- 로그인한 회원이 작성한 게시글 수 -->
@@ -51,19 +56,29 @@
 
 	<!-- 본인 게시글을 최신 번호순으로 페이지 조회 -->
 	<select id="findMyPosts" resultType="kr.co.ictedu.back.common.vo.MyPostVO">
-		SELECT community_id AS "postNum", community_title AS "title",
-		community_content AS "content", community_category AS "category",
-		community_nickname AS "author"
-		FROM (
-		SELECT community_id, community_title, community_content,
-		community_category,
-		community_nickname,
-		ROW_NUMBER() OVER (ORDER BY community_id DESC) AS row_num
-		FROM community_section
-		WHERE member_num = #{memberNum}
-		)
-		WHERE row_num BETWEEN #{startRow} AND #{endRow}
-		ORDER BY row_num
+    SELECT
+        community_id AS "postNum",
+        community_title AS "title",
+        community_content AS "content",
+        community_category AS "category",
+        community_nickname AS "author",
+        community_date AS "communityDate",
+        view_count AS "viewCount"
+    FROM (
+        SELECT
+            community_id,
+            community_title,
+            community_content,
+            community_category,
+            community_nickname,
+            community_date,
+            view_count,
+            ROW_NUMBER() OVER (ORDER BY community_id DESC) AS row_num
+        FROM community_section
+        WHERE member_num = #{memberNum}
+    )
+    WHERE row_num BETWEEN #{startRow} AND #{endRow}
+    ORDER BY row_num
 	</select>
 
 	<!-- 1. 게시글 쓰기 -->
@@ -142,6 +157,12 @@
 		UPDATE COMMUNITY_SECTION
 		SET LIKE_COUNT = NVL(LIKE_COUNT, 0) + 1
 		WHERE COMMUNITY_ID = #{id}
+	</update>
+	
+	<update id="increaseViewCount" parameterType="int">
+    	UPDATE COMMUNITY_SECTION
+    	SET VIEW_COUNT = NVL(VIEW_COUNT, 0) + 1
+    	WHERE COMMUNITY_ID = #{id}
 	</update>
 
 </mapper>
