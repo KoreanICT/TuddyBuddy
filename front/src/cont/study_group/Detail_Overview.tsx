@@ -152,7 +152,7 @@ export const Detail_Overview: React.FC<GetGroupNum> = ({ groupNum }) => {
                                                 </span>
 
                                                 <strong>
-                                                    {item.value}
+                                                    {item.value}개
                                                 </strong>
                                             </div>
                                         ))}
