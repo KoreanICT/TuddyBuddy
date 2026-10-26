@@ -135,4 +135,12 @@ public class SelfStudyAdminController {
 
         return ResponseEntity.ok(Map.of("message", "과목 상태가 변경되었습니다."));
     }
+
+    @Operation(summary = "과목 완전 삭제", description = "과목과 연결된 문제 세션, 문제, 제출 결과, 답안을 영구 삭제합니다.")
+    @DeleteMapping("/subjects/{subjectId}")
+    public ResponseEntity<?> permanentlyDeleteSubject(@PathVariable("subjectId") Long subjectId) {
+        authenticatedMember.requireAdmin();
+        selfStudyAdminService.permanentlyDeleteSubject(subjectId);
+        return ResponseEntity.ok(Map.of("message", "과목이 완전히 삭제되었습니다."));
+    }
 }

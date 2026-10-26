@@ -102,6 +102,39 @@
 		WHERE subject_id = #{subjectId}
 	</update>
 
+	<!-- 과목의 답안, 결과, 문제, 세션을 자식부터 영구 삭제 -->
+	<delete id="deleteQuizResponsesBySubject">
+		DELETE FROM quiz_responses
+		WHERE selfstudy_results_id IN (
+			SELECT sr.selfstudy_results_id
+			FROM selfstudy_results sr
+			JOIN quiz_sessions qs ON qs.quiz_session_id = sr.quiz_session_id
+			WHERE qs.subject_id = #{subjectId}
+		)
+	</delete>
+
+	<delete id="deleteResultsBySubject">
+		DELETE FROM selfstudy_results
+		WHERE quiz_session_id IN (
+			SELECT quiz_session_id FROM quiz_sessions WHERE subject_id = #{subjectId}
+		)
+	</delete>
+
+	<delete id="deleteQuizzesBySubject">
+		DELETE FROM quizzes
+		WHERE quiz_session_id IN (
+			SELECT quiz_session_id FROM quiz_sessions WHERE subject_id = #{subjectId}
+		)
+	</delete>
+
+	<delete id="deleteQuizSessionsBySubject">
+		DELETE FROM quiz_sessions WHERE subject_id = #{subjectId}
+	</delete>
+
+	<delete id="deleteSubject">
+		DELETE FROM subjects WHERE subject_id = #{subjectId}
+	</delete>
+
 	<!-- 선택 기간 셀프스터디 이용 요약 -->
 	<select id="selectUsageSummary" resultType="selfStudyUsageSummaryVO">
 		SELECT

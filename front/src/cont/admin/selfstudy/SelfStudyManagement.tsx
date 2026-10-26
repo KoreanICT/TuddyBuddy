@@ -84,6 +84,14 @@ const SelfStudyManagement: React.FC = () => {
     if (!window.confirm(`과목 "${subject.subjectName}"을(를) ${verb}할까요?`)) return;
     await run(() => selfStudyAdminApi.setSubjectStatus(subject.subjectId, next));
   };
+  const permanentlyDeleteSubject = async (subject: Subject) => {
+    const confirmed = window.confirm(
+      `"${subject.subjectName}" 과목과 연결된 셀프스터디 데이터를 영구 삭제할까요?\n` +
+      '생성된 문제, 제출 결과, 답안도 함께 삭제되며 복구할 수 없습니다. 보존하려면 삭제(비활성)를 사용해주세요.'
+    );
+    if (!confirmed) return;
+    await run(() => selfStudyAdminApi.permanentlyDeleteSubject(subject.subjectId));
+  };
 
   const visibleSubjects = selectedCategoryId === null ? subjects : subjects.filter(s => s.categoryId === selectedCategoryId);
   const busy = loading || saving;
@@ -110,13 +118,14 @@ const SelfStudyManagement: React.FC = () => {
             <colgroup>
               <col className={styles.categoryIdColumn} />
               <col className={styles.categoryNameColumn} />
+              <col className={styles.subjectNameColumn} />
               <col className={styles.categoryStatusColumn} />
               <col className={styles.categoryActionsColumn} />
             </colgroup>
-            <thead><tr><th>번호</th><th>카테고리명</th><th>상태</th><th>관리</th></tr></thead><tbody>
+            <thead><tr><th>번호</th><th colSpan={2}>카테고리명</th><th>상태</th><th>관리</th></tr></thead><tbody>
             {visibleCategories.map(c => <tr key={c.categoryId} className={selectedCategoryId === c.categoryId ? styles.selected : ''}>
               <td>{c.categoryId}</td>
-              <td><button type="button" className={styles.linkButton} onClick={() => setSelectedCategoryId(c.categoryId)}>{c.categoryName}</button></td>
+              <td colSpan={2}><button type="button" className={styles.linkButton} onClick={() => setSelectedCategoryId(c.categoryId)}>{c.categoryName}</button></td>
               <td>{c.categoryStatus === 'Y' ? '활성' : '비활성'}</td>
               <td><div className={styles.actions}>
                 <button type="button" className={styles.secondaryButton} disabled={busy} onClick={() => void editCategory(c)}><Pencil size={14}/> 수정</button>
@@ -126,23 +135,34 @@ const SelfStudyManagement: React.FC = () => {
                 <button type="button" className={styles.dangerButton} disabled={busy} onClick={() => void permanentlyDeleteCategory(c)}><Trash2 size={14}/> 완전 삭제</button>
               </div></td>
             </tr>)}
-            {!loading && visibleCategories.length === 0 && <tr><td colSpan={4} className={styles.empty}>{showCategoryTrash ? '휴지통에 카테고리가 없습니다.' : '등록된 활성 카테고리가 없습니다.'}</td></tr>}
+            {!loading && visibleCategories.length === 0 && <tr><td colSpan={5} className={styles.empty}>{showCategoryTrash ? '휴지통에 카테고리가 없습니다.' : '등록된 활성 카테고리가 없습니다.'}</td></tr>}
           </tbody></table>
           </div>
         </section>
         <section className={styles.panel}>
           <div className={styles.panelHeader}><h2>과목 관리</h2><button type="button" className={styles.addButton} disabled={busy || selectedCategoryId === null || selectedCategory?.categoryStatus !== 'Y'} onClick={() => void addSubject()}><Plus size={16}/> 과목 등록</button></div>
           <div className={styles.filter}><label htmlFor="categoryFilter">카테고리</label><select id="categoryFilter" value={selectedCategoryId ?? ''} onChange={e => setSelectedCategoryId(e.target.value ? Number(e.target.value) : null)}><option value="">전체 보기</option>{categories.map(c => <option key={c.categoryId} value={c.categoryId}>{c.categoryName}</option>)}</select></div>
-          <table className={styles.table}><thead><tr><th>번호</th><th>카테고리</th><th>과목명</th><th>상태</th><th>관리</th></tr></thead><tbody>
+          <div className={styles.tableScroll}>
+          <table className={`${styles.table} ${styles.subjectTable}`}>
+            <colgroup>
+              <col className={styles.categoryIdColumn} />
+              <col className={styles.categoryNameColumn} />
+              <col className={styles.subjectNameColumn} />
+              <col className={styles.categoryStatusColumn} />
+              <col className={styles.categoryActionsColumn} />
+            </colgroup>
+            <thead><tr><th>번호</th><th>카테고리</th><th>과목명</th><th>상태</th><th>관리</th></tr></thead><tbody>
             {visibleSubjects.map(s => <tr key={s.subjectId}>
               <td>{s.subjectId}</td><td>{categories.find(c => c.categoryId === s.categoryId)?.categoryName ?? s.categoryId}</td><td>{s.subjectName}</td><td>{s.subjectStatus === 'Y' ? '활성' : '비활성'}</td>
               <td><div className={styles.actions}>
                 <button type="button" className={styles.secondaryButton} disabled={busy} onClick={() => void editSubject(s)}><Pencil size={14}/> 수정</button>
-                <button type="button" className={styles.secondaryButton} disabled={busy} onClick={() => void toggleSubject(s)}>{s.subjectStatus === 'Y' ? <Trash2 size={14}/> : <RotateCcw size={14}/>} {s.subjectStatus === 'Y' ? '삭제(비활성)' : '복구'}</button>
+                <button type="button" className={styles.secondaryButton} disabled={busy} onClick={() => void toggleSubject(s)}>{s.subjectStatus === 'Y' ? <Trash2 size={14}/> : <RotateCcw size={14}/>} {s.subjectStatus === 'Y' ? '비활성화' : '복구'}</button>
+                <button type="button" className={styles.dangerButton} disabled={busy} onClick={() => void permanentlyDeleteSubject(s)}><Trash2 size={14}/> 완전 삭제</button>
               </div></td>
             </tr>)}
             {!loading && visibleSubjects.length === 0 && <tr><td colSpan={5} className={styles.empty}>등록된 과목이 없습니다.</td></tr>}
           </tbody></table>
+          </div>
         </section>
         </> : <UsageDashboard />}
       </div>
