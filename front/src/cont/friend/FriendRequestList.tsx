@@ -21,7 +21,7 @@ interface FriendVO {
     counterpart_nick: string | null;
 }
 
-const FriendRequestList: React.FC = () => {
+const FriendRequestList: React.FC<{ embedded?: boolean }> = ({ embedded = false }) => {
     const [requests, setRequests] = useState<FriendVO[]>([]);
     const [loadError, setLoadError] = useState('');
     const [loading, setLoading] = useState(false);
@@ -150,7 +150,7 @@ const FriendRequestList: React.FC = () => {
     };
 
     return (
-        <div className={styles.page}>
+        <div className={`${styles.page} ${embedded ? styles.embeddedPage : ''}`}>
             <div className={styles.container}>
 
                 {/* Header */}
@@ -162,7 +162,7 @@ const FriendRequestList: React.FC = () => {
                 </div>
 
                 {/* 친구 관리 메뉴 */}
-                <FriendMenu />
+                {!embedded && <FriendMenu />}
 
                 {/* Summary */}
                 <div className={styles.summary}>

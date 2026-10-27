@@ -354,3 +354,6 @@
     padding: 55px 16px;
   }
 }
+
+.embeddedPage { min-height: 0; padding: 0; background: transparent; }
+.embeddedPage > .container { max-width: none; }

@@ -27,7 +27,7 @@ interface MemberProfile {
     MEMBER_CODE: string;
 }
 
-const FriendList: React.FC = () => {
+const FriendList: React.FC<{ embedded?: boolean }> = ({ embedded = false }) => {
     const [friends, setFriends] = useState<FriendVO[]>([]);
     const [inviteFriend, setInviteFriend] = useState<FriendVO | null>(null);
 
@@ -123,7 +123,7 @@ const FriendList: React.FC = () => {
     };
 
     return (
-        <div className={styles.page}>
+        <div className={`${styles.page} ${embedded ? styles.embeddedPage : ''}`}>
             <div className={styles.container}>
 
                 {/* Header */}
@@ -135,7 +135,7 @@ const FriendList: React.FC = () => {
                 </div>
 
                 {/* 친구 관리 메뉴 */}
-                <FriendMenu />
+                {!embedded && <FriendMenu />}
 
                 {/* Summary */}
                 <div className={styles.summary}>

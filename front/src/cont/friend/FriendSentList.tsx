@@ -21,7 +21,7 @@ interface FriendVO {
     counterpart_nick: string | null;
 }
 
-const FriendSentList: React.FC = () => {
+const FriendSentList: React.FC<{ embedded?: boolean }> = ({ embedded = false }) => {
     const [sentList, setSentList] = useState<FriendVO[]>([]);
     const { memberNum, token } = useAuth();
     const cancellingRef = useRef(false);
@@ -114,7 +114,7 @@ const FriendSentList: React.FC = () => {
     };
 
     return (
-        <div className={styles.page}>
+        <div className={`${styles.page} ${embedded ? styles.embeddedPage : ''}`}>
             <div className={styles.container}>
 
                 {/* Header */}
@@ -126,7 +126,7 @@ const FriendSentList: React.FC = () => {
                 </div>
 
                 {/* 친구 관리 메뉴 */}
-                <FriendMenu />
+                {!embedded && <FriendMenu />}
 
                 {/* Summary */}
                 <div className={styles.summary}>
