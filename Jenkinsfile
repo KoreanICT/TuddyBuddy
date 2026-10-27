@@ -74,6 +74,33 @@ pipeline {
                 }
             }
         }
+        stage('Sync quiz AI token') {
+            steps {
+                withCredentials([string(credentialsId: 'quiz.ai.token', variable: 'QUIZ_AI_TOKEN')]) {
+                    sshagent(credentials: ['deploy-server-ssh']) {
+                        sh '''
+                            set +x
+                            set -eu
+                            test -n "$QUIZ_AI_TOKEN"
+                            printf '%s' "$QUIZ_AI_TOKEN" | \
+                                ssh -o BatchMode=yes -o StrictHostKeyChecking=yes "$DEPLOY_HOST" '
+set -euo pipefail
+export KUBECONFIG=/home/ubuntu/.kube/config
+umask 077
+TOKEN_FILE=$(mktemp)
+trap "rm -f $TOKEN_FILE" EXIT
+cat > "$TOKEN_FILE"
+test -s "$TOKEN_FILE"
+kubectl create secret generic tuddybuddy-quiz-ai \
+    --namespace=default \
+    --from-file=token="$TOKEN_FILE" \
+    --dry-run=client -o yaml | kubectl apply --namespace=default -f -
+'
+                        '''
+                    }
+                }
+            }
+        }
         stage('Deploy and verify rollout') {
             steps {
                 sshagent(credentials: ['deploy-server-ssh']) {
