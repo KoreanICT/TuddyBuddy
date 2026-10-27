@@ -9,7 +9,7 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.stereotype.Controller;
 
-import kr.co.ictedu.back.groupchat.GroupChatService;
+import kr.co.ictedu.back.groupchat.service.GroupChatService;
 import kr.co.ictedu.back.groupchat.vo.GroupChatVO;
 import kr.co.ictedu.back.member.vo.MemberVO;
 

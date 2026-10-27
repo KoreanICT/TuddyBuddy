@@ -1,6 +1,6 @@
 // back/src/main/java/kr/co/ictedu/back/roomchat/RoomChatService.java
 
-package kr.co.ictedu.back.groupchat;
+package kr.co.ictedu.back.groupchat.service;
 
 import java.security.Principal;
 import java.util.HashMap;

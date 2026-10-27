@@ -89,22 +89,10 @@ export const Project_Calendar: React.FC<GetGroupNum> = ({ groupNum }) => {
     const totalDays = lastDay.getDate();
     /*
      * 이번 달 1일의 요일
-     *
-     * 일요일 = 0
-     * 월요일 = 1
-     * ...
-     * 토요일 = 6
      */
     const startDayOfWeek = firstDay.getDay();
 
-    /**
-     * 날짜 셀 배열 생성
-     *
-     * 예:
-     *
-     *     1 2 3 4
-     * 5 6 7 8 9 10 11
-     */
+    
     const loadData = async () => {
 
         try {
@@ -129,6 +117,10 @@ export const Project_Calendar: React.FC<GetGroupNum> = ({ groupNum }) => {
         loadData();
     }, [groupNum])
 
+    /**
+     * 날짜 셀 배열 생성
+     */
+    
     const calendarDays = useMemo(() => {
         const days: Array<number | null> = [];
 
@@ -459,8 +451,7 @@ export const Project_Calendar: React.FC<GetGroupNum> = ({ groupNum }) => {
                                     );
                                 }
 
-                                const date =
-                                    createDateString(day);
+                                const date = createDateString(day);
 
                                 const daySchedules = getSchedulesByDate(date);
 
