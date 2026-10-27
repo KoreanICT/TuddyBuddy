@@ -312,6 +312,7 @@ const actionNames: Record<string, string> = {
     // =====================================================
 
     POINT_PAYMENT: '포인트 결제 처리',
+    ATTENDANCE_POINT_HISTORY_VIEW: '포인트 내역 조회',
 
     // =====================================================
     // 18. 출석
@@ -359,6 +360,11 @@ const actionNames: Record<string, string> = {
     // 22. 관리자 대시보드
     // =====================================================
 
+    ADMIN_BOARD_LIST: '관리자 게시글 목록·검색',
+    ADMIN_BOARD_DELETE: '관리자 게시글 삭제',
+    ADMIN_STUDY_LIST: '관리자 스터디 목록·검색',
+    ADMIN_STUDY_DELETE: '관리자 스터디 삭제',
+    ADMIN_SUBJECT_DELETE: '학습 과목 완전 삭제',
     ADMIN_DASHBOARD_VIEW: '관리자 대시보드 조회'
 };
 
