@@ -7,7 +7,6 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import kr.co.ictedu.back.group.dto.DocumentListDTO;
-import kr.co.ictedu.back.group.dto.GroupUpdateDTO;
 import kr.co.ictedu.back.group.vo.DocumentVO;
 
 @Mapper

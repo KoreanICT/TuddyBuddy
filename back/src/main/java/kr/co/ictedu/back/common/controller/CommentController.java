@@ -13,11 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
-
-
 import kr.co.ictedu.back.common.service.CommentService;
-import kr.co.ictedu.back.common.service.CommunityService;
 import kr.co.ictedu.back.common.vo.CommentVO;
 import kr.co.ictedu.back.common.vo.CommunityVO;
 import kr.co.ictedu.back.member.service.MemberService;

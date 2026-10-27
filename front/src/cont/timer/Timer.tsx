@@ -75,7 +75,6 @@ function TimerView({ timer, minutes, setMinutes, startLabel = '시작', embedded
     pause,
     resume,
     finish,
-    refresh,
   } = timer;
 
   const formatTime = (seconds: number) => {

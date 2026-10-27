@@ -1,3 +1,4 @@
+import { BACKEND_URL } from '../../login/authHttp';
 // 주용현
 
 import axios from 'axios';
@@ -64,7 +65,7 @@ const NoticeList: React.FC = () => {
         setErrorMessage('');
 
         try {
-            const urls = "http://localhost:80/back/api/notice/noticeList";
+            const urls = `${BACKEND_URL}/api/notice/noticeList`;
             const response = await axios.get<NoticeListResponse>(urls, {
                 headers: getAuthHeaders(),
                 params: { cPage, searchType: searchField, searchValue: searchKeyword }

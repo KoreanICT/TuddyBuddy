@@ -15,10 +15,8 @@ export const Group_Home: React.FC = () => {
     const [searchType, setSearchType] = useState<'name' | 'tag'>('name');
     const [searchTerm, setSearchTerm] = useState<string>('');
 
-    // const [isCreateModalOpen, setIsCreateModalOpen] = useState<boolean>(false);
     const openCreateModal = () => setIsModalOpen(true);
     const closeCreateModal = () => setIsModalOpen(false);
-    const [selectedGroupNum, setSelectedGroupNum] = useState<number | null>(null);
 
     const navigate = useNavigate();
 
@@ -36,7 +34,7 @@ export const Group_Home: React.FC = () => {
 
             <div className={styles.study_page_layout}>
                 {/* 1. 좌측 렌더링 영역 (탭 선택에 따라 자식 컴포넌트 교체) */}
-                <Group_List mode={currentTab} searchType={searchType} searchTerm={searchTerm}  onEnterGroup={(groupNum) => {setSelectedGroupNum(groupNum)}}/>
+                <Group_List mode={currentTab} searchType={searchType} searchTerm={searchTerm}/>
 
                 {/* 2. 우측 고정 사이드바 */}
                 <Group_Sidebar

@@ -1,3 +1,4 @@
+import { BACKEND_URL } from '../../../login/authHttp';
 import axios from 'axios';
 import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -29,7 +30,7 @@ const ReportTargetPreview: React.FC<{ reportNum: number; type: ReportType; targe
         downloadRef.current = true;
         setDownloading(true);
         try {
-            const response = await axios.get(`http://localhost:80/back/api/detail/document/download/${targetNum}`, {
+            const response = await axios.get(`${BACKEND_URL}/api/detail/document/download/${targetNum}`, {
                 headers: token ? { Authorization: `Bearer ${token}` } : {}, responseType: 'blob'
             });
             const url = URL.createObjectURL(response.data);
@@ -53,7 +54,7 @@ const ReportTargetPreview: React.FC<{ reportNum: number; type: ReportType; targe
         setLoading(true);
         setTarget(null);
         setError('');
-        void axios.get<TargetDetail>('http://localhost:80/back/api/report/reportTargetDetail', {
+        void axios.get<TargetDetail>(`${BACKEND_URL}/api/report/reportTargetDetail`, {
             headers: token ? { Authorization: `Bearer ${token}` } : {}, params: { num: reportNum }
         }).then(response => { if (active) setTarget(response.data); })
             .catch(() => { if (active) setError('신고 대상 정보를 불러오지 못했습니다.'); })

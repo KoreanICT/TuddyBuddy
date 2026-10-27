@@ -28,3 +28,7 @@ front/src/.env
 .DS_Store
 Thumbs.db
 .metadata/
+
+# Operator-only deployment settings; never commit credentials.
+deploy/secrets/
+deploy/scripts/__pycache__/

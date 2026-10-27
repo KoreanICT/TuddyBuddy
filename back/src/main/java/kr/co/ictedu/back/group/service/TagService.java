@@ -1,7 +1,6 @@
 //작성자 : 오진석
 package kr.co.ictedu.back.group.service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;

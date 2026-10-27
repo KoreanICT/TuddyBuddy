@@ -1,7 +1,11 @@
 import axios, { AxiosHeaders, AxiosInstance, AxiosRequestConfig, InternalAxiosRequestConfig } from 'axios';
 import { beginAuthAttempt, clearSession, currentToken, memberSessionKey, refreshBlocked, saveSession, sessionFromResponse, sessionGeneration, sessionIdentity } from './session';
 
-export const BACKEND_URL = (process.env.REACT_APP_BACK_END_URL || 'http://localhost/back').replace(/\/$/, '');
+// 같은 도메인 배포는 /back, 별도 API 서버는 전체 URL을 지정합니다.
+export const BACKEND_URL = new URL(
+  (process.env.REACT_APP_BACK_END_URL || '/back').trim().replace(/\/+$/, ''),
+  window.location.origin
+).href.replace(/\/+$/, '');
 const backend = new URL(BACKEND_URL, window.location.origin);
 // Only known historical backend origins may be redirected; arbitrary external URLs never receive credentials.
 const legacyOrigins = new Set(['http://localhost', 'http://127.0.0.1', 'http://192.168.0.19', 'http://192.168.0.20', 'http://192.168.0.11']);

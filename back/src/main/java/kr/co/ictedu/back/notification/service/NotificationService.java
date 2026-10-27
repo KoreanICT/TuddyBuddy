@@ -6,14 +6,10 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import kr.co.ictedu.back.group.dao.GroupDao;
-import kr.co.ictedu.back.group.vo.GroupVO;
 import kr.co.ictedu.back.notification.SseEmitterRepository;
 import kr.co.ictedu.back.notification.dao.NotificationDao;
 import kr.co.ictedu.back.notification.dto.NotificationDTO;

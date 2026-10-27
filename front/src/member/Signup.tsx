@@ -1,3 +1,4 @@
+import { BACKEND_URL } from '../login/authHttp';
 
 import React, { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -10,8 +11,7 @@ const Signup: React.FC = () => {
 
     // 백엔드 주소
     const backendUrl =
-        process.env.REACT_APP_BACK_END_URL ||
-        'http://192.168.0.11/back';
+        BACKEND_URL;
 
     // 회원가입 입력값
     const [email, setEmail] = useState('');

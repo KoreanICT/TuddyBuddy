@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React from 'react';
 import styles from './layout.module.css';
 
 import Navbar from './Navbar';
@@ -8,75 +8,7 @@ interface LayoutProps {
   children: React.ReactNode;
 }
 
-interface Position {
-  x: number;
-  y: number;
-}
-
 const Layout: React.FC<LayoutProps> = ({ children }) => {
-
-  const [position, setPosition] = useState<Position>({
-    x: 20,
-    y: 100
-  });
-
-  const dragOffset = useRef<Position>({
-    x: 0,
-    y: 0
-  });
-
-  const handlePointerDown = (
-    e: React.PointerEvent<HTMLDivElement>
-  ) => {
-
-    dragOffset.current = {
-      x: e.clientX - position.x,
-      y: e.clientY - position.y
-    };
-
-    e.currentTarget.setPointerCapture(e.pointerId);
-  };
-
-
-  const handlePointerMove = (
-    e: React.PointerEvent<HTMLDivElement>
-  ) => {
-
-    if (!e.currentTarget.hasPointerCapture(e.pointerId)) {
-      return;
-    }
-
-    const modalWidth = 360;
-    const modalHeight = 300;
-
-    let x = e.clientX - dragOffset.current.x;
-    let y = e.clientY - dragOffset.current.y;
-
-    // 화면 밖으로 못 나가게 제한
-    x = Math.max(
-      0,
-      Math.min(x, window.innerWidth - modalWidth)
-    );
-
-    y = Math.max(
-      0,
-      Math.min(y, window.innerHeight - modalHeight)
-    );
-
-    setPosition({
-      x,
-      y
-    });
-  };
-
-
-  const handlePointerUp = (
-    e: React.PointerEvent<HTMLDivElement>
-  ) => {
-
-    e.currentTarget.releasePointerCapture(e.pointerId);
-  };
-
 
   return (
     <div className={styles.layout}>

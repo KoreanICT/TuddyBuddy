@@ -19,71 +19,32 @@ export const Project_TDLCard: React.FC<TDLProps> = ({ tdl, disableClick, onEdit,
     const [isExpanded, setIsExpanded] = useState<boolean>(false);
     const isIncomplete = tdl.status === 'Incomplete';
 
-    const {
-        attributes,
-        listeners,
-        setNodeRef,
-        transform,
-        isDragging
-    } = useDraggable({
-
+    const {attributes,listeners,setNodeRef,transform,isDragging} = useDraggable({
         id: tdl.tdl_num,
-
         disabled: isIncomplete
     });
-    const isRepeatTdl =
-        !tdl.due_at &&
-        tdl.repeat_type !== null;
-    const isDeadlineReached =
-        (): boolean => {
-            if (
-                !tdl.due_at ||
-                tdl.status === 'Done'
-            ) {
+    const isRepeatTdl = !tdl.due_at && tdl.repeat_type !== null;
+    const isDeadlineReached = (): boolean => {
+            if (!tdl.due_at || tdl.status === 'Done') {
                 return false;
             }
             const now = new Date();
             const dueDate = new Date(tdl.due_at);
             return (
-                now.getTime() >=
-                dueDate.getTime()
+                now.getTime() >= dueDate.getTime()
             );
         };
-    const deadlineReached =
-        isDeadlineReached();
-    const dragStyle:
-        React.CSSProperties = {
-
-        transform:
-            transform
-                ? `translate3d(
-                    ${transform.x}px,
-                    ${transform.y}px,
-                    0
-                )`
-                : undefined,
-
-        opacity:
-            isDragging
-                ? 0.05
-                : 1
+    const deadlineReached = isDeadlineReached();
+    const dragStyle: React.CSSProperties = {
+        transform: transform ? `translate3d( ${transform.x}px, ${transform.y}px, 0)` : undefined,
+        opacity: isDragging ? 0.05 : 1
     };
-    const handleDelete =
-        async (
-            event:
-                React.MouseEvent<HTMLButtonElement>
-        ): Promise<void> => {
+    const handleDelete = async (event: React.MouseEvent<HTMLButtonElement>): Promise<void> => {
             event.stopPropagation();
-            if (
-                !window.confirm(
-                    '이 TDL을 삭제하시겠습니까?'
-                )
-            ) {
+            if (!window.confirm('이 TDL을 삭제하시겠습니까?')) {
                 return;
             }
-            await onDelete(
-                tdl.tdl_num
-            );
+            await onDelete(tdl.tdl_num);
         };
     return (
         <div

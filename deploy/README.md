@@ -1,5 +1,8 @@
 # TuddyBuddy deployment
 
+운영 설정 전체 확인·Secret 보존 갱신 절차: [ENVIRONMENT.md](ENVIRONMENT.md).
+AI 주소는 현재 로컬 설정의 AWS 주소를 Deployment에 추가했다. 연결·기능 성공 여부는 별도 검증한다.
+
 ## Servers
 
 | Server | Role | Private address |

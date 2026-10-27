@@ -1,3 +1,4 @@
+import { BACKEND_URL } from '../../login/authHttp';
 
  // 주용현
 
@@ -17,7 +18,7 @@ interface MemberVO {
     member_code: string;
 }
 
-const FriendAdd: React.FC = () => {
+const FriendAdd: React.FC<{ embedded?: boolean }> = ({ embedded = false }) => {
     const [memberCode, setMemberCode] = useState('');
     const [searched, setSearched] = useState(false);
     const [searchedMember, setSearchedMember] = useState<MemberVO | null>(null);
@@ -33,7 +34,6 @@ const FriendAdd: React.FC = () => {
     }), [token]);
     const { profile, loading } = useMyProfileInfo();
     const myMemberCode = profile?.member_code ?? '';
-    const myMemberNick = profile?.member_nick ?? '';
 
     // 회원 코드 검색
     const handleSearch = async () => {
@@ -52,8 +52,7 @@ const FriendAdd: React.FC = () => {
         setRequestSent(false);
 
         try {
-            // TODO: 실제 회원 검색 API 경로 확인
-            const urls = 'http://localhost:80/back/api/member/memberCodeSearch';
+            const urls = `${BACKEND_URL}/api/member/memberCodeSearch`;
             const response = await axios.get<MemberVO | null>(urls, {
                 headers: getAuthHeaders(),
                 params: { member_code: code }
@@ -96,7 +95,7 @@ const FriendAdd: React.FC = () => {
         setAdding(true);
 
         try {
-            const urls = 'http://localhost:80/back/api/friend/friendAdd';
+            const urls = `${BACKEND_URL}/api/friend/friendAdd`;
             const formData = new FormData();
 
             formData.append('request_num', String(memberNum));
@@ -128,7 +127,7 @@ const FriendAdd: React.FC = () => {
     };
 
     return (
-        <div className={styles.page}>
+        <div className={`${styles.page} ${embedded ? styles.embeddedPage : ''}`}>
             <div className={styles.container}>
 
                 {/* Header */}

@@ -1,3 +1,4 @@
+import { BACKEND_URL } from '../../login/authHttp';
 
  // 주용현
 
@@ -20,7 +21,7 @@ interface FriendVO {
     counterpart_nick: string | null;
 }
 
-const FriendSentList: React.FC = () => {
+const FriendSentList: React.FC<{ embedded?: boolean }> = ({ embedded = false }) => {
     const [sentList, setSentList] = useState<FriendVO[]>([]);
     const { memberNum, token } = useAuth();
     const cancellingRef = useRef(false);
@@ -39,7 +40,7 @@ const FriendSentList: React.FC = () => {
         setLoading(true);
         setErrorMessage('');
         try {
-            const urls = "http://localhost:80/back/api/friend/friendResponseList";
+            const urls = `${BACKEND_URL}/api/friend/friendResponseList`;
             const response = await axios.get(urls, {
                 headers: getAuthHeaders(),
                 params: { request_num: memberNum }
@@ -70,7 +71,7 @@ const FriendSentList: React.FC = () => {
         cancellingRef.current = true;
         setCancelling(friendNum);
         try {
-            await axios.delete('http://localhost:80/back/api/friend/friendCancel', {
+            await axios.delete(`${BACKEND_URL}/api/friend/friendCancel`, {
                 headers: getAuthHeaders(), params: { num: friendNum }
             });
             setSentList(previous => previous.filter(friend => friend.num !== friendNum));
@@ -113,7 +114,7 @@ const FriendSentList: React.FC = () => {
     };
 
     return (
-        <div className={styles.page}>
+        <div className={`${styles.page} ${embedded ? styles.embeddedPage : ''}`}>
             <div className={styles.container}>
 
                 {/* Header */}
@@ -125,7 +126,7 @@ const FriendSentList: React.FC = () => {
                 </div>
 
                 {/* 친구 관리 메뉴 */}
-                <FriendMenu />
+                {!embedded && <FriendMenu />}
 
                 {/* Summary */}
                 <div className={styles.summary}>

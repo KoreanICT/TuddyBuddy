@@ -311,6 +311,7 @@ public class ActivityLogAspect {
 			case "updateSubjectStatus" -> "ADMIN_SUBJECT_STATUS_CHANGE";
 			case "getUsage" -> "ADMIN_SELFSTUDY_USAGE_VIEW";
 			case "permanentlyDeleteCategory" -> "ADMIN_CATEGORY_DELETE";
+			case "permanentlyDeleteSubject" -> "ADMIN_SUBJECT_DELETE";
 			default -> null;
 		};
 		return recordSelectedActivity(jp, "SELFSTUDY", action);
@@ -470,8 +471,33 @@ public class ActivityLogAspect {
 		// 기존 채팅 메시지를 그대로 반환합니다.
 		return response;
 	}	
-	
-	
+
+	// =====================================================
+	// 25. 관리자 게시글 관리
+	// =====================================================
+	@Around("execution(* kr.co.ictedu.back.admin.controller.BoardAdminController.*(..))")
+	public Object adminBoardActivities(ProceedingJoinPoint jp) throws Throwable {
+		String action = switch (jp.getSignature().getName()) {
+	        case "list" -> "ADMIN_BOARD_LIST";
+	        case "delete" -> "ADMIN_BOARD_DELETE";
+			default -> null;
+		};
+		return recordSelectedActivity(jp, "ADMIN", action);
+	}	
+
+	// =====================================================
+	// 26. 관리자 스터디 관리
+	// =====================================================
+	@Around("execution(* kr.co.ictedu.back.admin.controller.StudyAdminController.*(..))")
+	public Object adminStudyActivities(ProceedingJoinPoint jp) throws Throwable {
+		String action = switch (jp.getSignature().getName()) {
+	        case "list" -> "ADMIN_STUDY_LIST";
+	        case "delete" -> "ADMIN_STUDY_DELETE";
+			default -> null;
+		};
+		return recordSelectedActivity(jp, "ADMIN", action);
+	}	
+		
 	// =====================================================
 	// 공통 처리 1: 기록 대상 여부 확인
 	// =====================================================

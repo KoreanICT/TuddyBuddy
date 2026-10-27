@@ -1,6 +1,5 @@
 package kr.co.ictedu.back.group.controller;
 
-import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,7 +9,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import kr.co.ictedu.back.group.dto.OverviewScheduleDTO;
 import kr.co.ictedu.back.group.service.OverviewService;
 
 @RestController

@@ -1,3 +1,4 @@
+import { BACKEND_URL } from '../authHttp';
 
  // 주용현
 
@@ -45,7 +46,7 @@ export const useMyProfileInfo  = () => {
             setError(null);
 
             try {
-                const urls = 'http://localhost:80/back/api/member/memberProfile';
+                const urls = `${BACKEND_URL}/api/member/memberProfile`;
 
                 const response = await axios.get<MyProfileResponse>(urls, {
                     headers: getAuthHeaders(),

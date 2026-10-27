@@ -6,6 +6,9 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import kr.co.ictedu.back.notification.NotificationPublisher;
+import kr.co.ictedu.back.notification.NotificationEvent.Category;
 
 import kr.co.ictedu.back.friend.dao.FriendDao;
 import kr.co.ictedu.back.friend.vo.FriendVO;
@@ -16,7 +19,11 @@ public class FriendService {
 	@Autowired
 	private FriendDao friendDao;
 
+    @Autowired
+    private NotificationPublisher notifications;
+
 	// 친구 요청
+    @Transactional
 	public void add(FriendVO vo) {
 
 		Long request_num = vo.getRequest_num();
@@ -36,6 +43,8 @@ public class FriendService {
 			throw new IllegalArgumentException("이미 친구이거나 친구 요청이 진행 중입니다.");
 
 		friendDao.add(vo);
+        notifications.send(response_num, Category.FRIEND_REQUEST, "새로운 친구 요청",
+                "새로운 친구 요청이 도착했습니다. 받은 요청에서 확인해주세요.", "/friend/request");
 	}
 
 	// 받은 친구 요청 목록
@@ -54,10 +63,18 @@ public class FriendService {
 	}
 
 	// 친구 요청 수락
+    @Transactional
 	public void accept(Long num, Long response_num) {
 		int result = friendDao.accept(num, response_num);
-		if (result == 0)
+		if (result != 1)
 			throw new IllegalArgumentException("존재하지 않거나 수락할 수 없는 친구 요청입니다.");
+        FriendVO accepted = friendDao.detail(num);
+        if (accepted == null || accepted.getRequest_num() == null
+                || !response_num.equals(accepted.getResponse_num())) {
+            throw new IllegalStateException("수락한 친구 요청을 확인할 수 없습니다.");
+        }
+        notifications.send(accepted.getRequest_num(), Category.FRIEND_ACCEPTED, "친구 요청이 수락되었습니다",
+                "보낸 친구 요청이 수락되었습니다. 내 친구 목록에서 확인해주세요.", "/friend/list");
 	}
 
 	// 친구 요청 거절

@@ -1,6 +1,10 @@
-import api from "../cont/study_group/api";
+import axios from 'axios';
+import { BACKEND_URL, installAuthInterceptors } from '../login/authHttp';
 
-export type NotificationType = 'JOIN' | 'REPORT' | 'COMMENT' | 'STUDY_DELETED';
+const api = axios.create({ baseURL: `${BACKEND_URL}/api`, timeout: 15000 });
+installAuthInterceptors(api);
+
+export type NotificationType = 'JOIN' | 'REPORT' | 'COMMENT' | 'STUDY_DELETED' | 'FRIEND_REQUEST' | 'FRIEND_ACCEPTED';
 
 export interface NotificationData {
     notification_num: number;

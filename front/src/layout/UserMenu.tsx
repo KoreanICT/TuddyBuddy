@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
+import { CalendarCheck } from 'lucide-react';
 
 import { useAppDispatch } from '../login/reducers/store';
 import { logoutAction } from '../login/authActions/authActions';
@@ -12,7 +13,6 @@ import RoleGate from '../login/auth/RoleGate';
 import { useRoleAccess } from '../login/hooks/useRoleAccess';
 import { useNotification } from '../notification/NotificationProvider';
 import { NotificationModal } from '../notification/NotificationModal';
-import { NotificationList } from "../notification/NotificationList";
 const UserMenu: React.FC = () => {
 
   // Redux JWT 로그인 상태
@@ -78,6 +78,12 @@ const UserMenu: React.FC = () => {
     <>
       {/* 알림 버튼 */}
       <div className={styles.userMenu}>
+        <RoleGate allowedRoles={ROLE_ACCESS.member}>
+          <NavLink to="/attendance" className={({ isActive }) => `${styles.profileButton} ${isActive ? styles.attendanceActive : ''}`}>
+            <span className={styles.profileIcon}><CalendarCheck size={18} aria-hidden="true" /></span>
+            <span>출석</span>
+          </NavLink>
+        </RoleGate>
         <div className={styles.notificationWrapper}>
           <button
             type="button"

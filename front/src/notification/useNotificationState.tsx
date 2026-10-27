@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { fetchEventSource } from "@microsoft/fetch-event-source";
+import { BACKEND_URL, authenticatedFetch } from "../login/authHttp";
 
 import type { NotificationData } from "./NotificationAPI";
 import {
@@ -154,74 +155,41 @@ export const useNotificationState = (token: string | null, memberNum: number | n
 
         void loadNotifications();
 
-        /* 현재 스프링 부트 과부하 현상이 의심됨에 따라 주석처리해놨습니다. 사용할때는 주석 해제하시면 됩니다. */
-        // void fetchEventSource(
-        //     "http://localhost/back/api/notification/subscribe",
-        //     {
-        //         headers: {
-        //             Authorization: `Bearer ${token}`,
-        //             memberNum: String(currentOwner),
-        //         },
-        //         signal: controller.signal,
-
-        //         onmessage(event) {
-        //             if (
-        //                 !isCurrent()
-        //                 || event.event !== "notification"
-        //             ) {
-        //                 return;
-        //             }
-
-        //             try {
-        //                 const data = JSON.parse(
-        //                     event.data
-        //                 ) as NotificationData;
-
-        //                 if (
-        //                     !Number.isSafeInteger(
-        //                         data.notification_num
-        //                     )
-        //                     || !data.created_at
-        //                     || Number.isNaN(
-        //                         Date.parse(data.created_at)
-        //                     )
-        //                 ) {
-        //                     console.error(
-        //                         "알림 ID 또는 생성 시각이 없습니다.",
-        //                         data
-        //                     );
-        //                     return;
-        //                 }
-
-        //                 setStore((prev: NotificationStore) => {
-        //                     if (prev.owner !== currentOwner) {
-        //                         return prev;
-        //                     }
-
-        //                     return {
-        //                         ...prev,
-        //                         notifications: mergeNotifications(
-        //                             prev.notifications,
-        //                             [data]
-        //                         ),
-        //                     };
-        //                 });
-        //             } catch (cause: unknown) {
-        //                 console.error(
-        //                     "알림 이벤트 처리 실패",
-        //                     cause
-        //                 );
-        //             }
-        //         },
-        //     }
-        // ).catch((cause: unknown) => {
-        //     if (isCurrent()) {
-        //         console.error(
-        //             "실시간 알림 연결 실패",
-        //             cause
-        //         );
-        //     }
-        // });
+        let failures = 0;
+        void fetchEventSource(`${BACKEND_URL}/api/notification/subscribe`, {
+            fetch: (input, init) => authenticatedFetch(typeof input === 'string' ? input : input instanceof URL ? input.href : input.url, init),
+            signal: controller.signal,
+            async onopen(response) {
+                if (!response.ok || !response.headers.get('content-type')?.includes('text/event-stream')) {
+                    if (response.status === 401 || response.status === 403) controller.abort();
+                    throw new Error('알림 연결 실패');
+                }
+                // 연결이 끊긴 동안 저장된 알림도 다시 조회한다.
+                void loadNotifications();
+            },
+            onmessage(event) {
+                if (!isCurrent()) return;
+                if (event.event === 'connect') return;
+                if (event.event !== 'notification') return;
+                try {
+                    const data = JSON.parse(event.data) as NotificationData;
+                    if (!Number.isSafeInteger(data.notification_num) || !data.created_at ||
+                        Number.isNaN(Date.parse(data.created_at)) || typeof data.category !== 'string') return;
+                    failures = 0;
+                    setStore(prev => prev.owner === currentOwner
+                        ? {...prev, notifications: mergeNotifications(prev.notifications, [data])} : prev);
+                    window.dispatchEvent(new CustomEvent('notification-received', {detail: {category: data.category}}));
+                } catch { /* 잘못된 이벤트는 목록에 추가하지 않는다. */ }
+            },
+            onclose() { throw new Error('알림 연결 종료'); },
+            onerror(error) {
+                if (!isCurrent() || ++failures >= 5) throw error;
+                return Math.min(30000, 2000 * 2 ** (failures - 1));
+            },
+        }).catch(() => {
+            if (isCurrent()) setStore(prev => prev.owner === currentOwner
+                ? {...prev, error: '실시간 알림 연결이 끊겼습니다. 다시 시도해주세요.'} : prev);
+        });
 
         return cleanup;
     }, [token, owner, retryCount]);

@@ -1,5 +1,5 @@
 //김진규
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { AlertTriangle, BookOpen, Brain, MessageSquareQuote, TrendingUp, BarChart3 } from 'lucide-react';
@@ -251,7 +251,7 @@ export default function PerformanceAnalytics() {
             // 두 API 요청에서 공통으로 사용할 JWT Bearer 인증 헤더를 구성합니다.
             const headers = { Authorization: `Bearer ${token}` };
             // 먼저 회원이 시험을 본 카테고리를 조회합니다. 여기서는 포인트를 차감하지 않습니다.
-            const categoriesResponse = await axios.post<CategoryOption[]>(`${process.env.REACT_APP_BACK_END_URL}/api/statistics/getCategories`, {
+            const categoriesResponse = await axios.post<CategoryOption[]>(`${BACKEND_URL}/api/statistics/getCategories`, {
                 memberNum,
             }, { headers });
 
@@ -272,7 +272,7 @@ export default function PerformanceAnalytics() {
             statisticsRequestStarted = true;
 
             // 회원번호와 결제 설명을 보내 분석을 요청합니다. 백엔드에서 포인트 차감 후 LLM 결과를 반환합니다.
-            const response = await axios.post<StatisticsApiResponse>(`${process.env.REACT_APP_BACK_END_URL}/api/statistics/getStatistics`, {
+            const response = await axios.post<StatisticsApiResponse>(`${BACKEND_URL}/api/statistics/getStatistics`, {
                 memberNum,
                 description: '평가분석 및 성적예측 이용',
             }, { headers });
