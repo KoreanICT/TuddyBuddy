@@ -18,7 +18,7 @@ interface MemberVO {
     member_code: string;
 }
 
-const FriendAdd: React.FC = () => {
+const FriendAdd: React.FC<{ embedded?: boolean }> = ({ embedded = false }) => {
     const [memberCode, setMemberCode] = useState('');
     const [searched, setSearched] = useState(false);
     const [searchedMember, setSearchedMember] = useState<MemberVO | null>(null);
@@ -53,7 +53,6 @@ const FriendAdd: React.FC = () => {
         setRequestSent(false);
 
         try {
-            // TODO: 실제 회원 검색 API 경로 확인
             const urls = `${BACKEND_URL}/api/member/memberCodeSearch`;
             const response = await axios.get<MemberVO | null>(urls, {
                 headers: getAuthHeaders(),
@@ -129,7 +128,7 @@ const FriendAdd: React.FC = () => {
     };
 
     return (
-        <div className={styles.page}>
+        <div className={`${styles.page} ${embedded ? styles.embeddedPage : ''}`}>
             <div className={styles.container}>
 
                 {/* Header */}

@@ -53,6 +53,17 @@
   background: #f5f7fa;
 }
 
+.actions button.active {
+  border-color: #7560b6;
+  background: #7560b6;
+  color: #fff;
+}
+
+.actions button:focus-visible {
+  outline: 3px solid #baa8e6;
+  outline-offset: 3px;
+}
+
 .summary {
   display: flex;
   align-items: center;

@@ -1,162 +1,36 @@
-import { BACKEND_URL } from '../../login/authHttp';
-
-// 주용현
-
-import axios from 'axios';
-import React, { useCallback, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Users, UserRound, UserPlus, Inbox, Send } from 'lucide-react';
-
-import { useAuth } from '../../login/hooks/useAuth';
+import React, { useState } from 'react';
+import { Users, UserPlus, Inbox, Send } from 'lucide-react';
+import FriendList from '../../cont/friend/FriendList';
+import FriendAdd from '../../cont/friend/FriendAdd';
+import FriendRequestList from '../../cont/friend/FriendRequestList';
+import FriendSentList from '../../cont/friend/FriendSentList';
 import styles from './myFriend.module.css';
-import ReportButton from '../../cont/report/ReportButton';
-import FriendStudyInviteModal from '../../cont/friend/FriendStudyInviteModal';
 
-interface FriendVO {
-    num: number;
-    request_num: number;
-    response_num: number;
-    status: string;
-    member_nick?: string;
-}
-
-interface MemberProfile {
-    MEMBER_NICK?: string;
-    member_nick?: string;
-}
-
-const API_URL = `${BACKEND_URL}/api`;
+type FriendView = 'list' | 'add' | 'request' | 'sent';
+const menus = [
+    { key: 'list' as const, label: '내 친구', icon: Users },
+    { key: 'add' as const, label: '친구 추가', icon: UserPlus },
+    { key: 'request' as const, label: '받은 요청', icon: Inbox },
+    { key: 'sent' as const, label: '보낸 요청', icon: Send },
+];
 
 const MyFriend: React.FC = () => {
-    const [friends, setFriends] = useState<FriendVO[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [inviteFriend, setInviteFriend] = useState<FriendVO | null>(null);
-    const { memberNum, token } = useAuth();
-    const navigate = useNavigate();
-
-    const getAuthHeaders = useCallback(() => ({
-        ...(token ? { Authorization: `Bearer ${token}` } : {})
-    }), [token]);
-
-    // 내 친구 목록 조회
-    useEffect(() => {
-        if (!token || memberNum == null) {
-            setFriends([]);
-            setLoading(false);
-            return;
-        }
-
-        let cancelled = false;
-
-        const fetchFriends = async () => {
-            setLoading(true);
-
-            try {
-                const urls = `${API_URL}/friend/friendList`;
-                const response = await axios.get<FriendVO[]>(urls, {
-                    headers: getAuthHeaders(),
-                    params: { member_num: memberNum }
-                });
-
-                const friendProfiles = await Promise.all(response.data.map(async friend => {
-                    const friendNum = Number(friend.request_num) === Number(memberNum)
-                        ? friend.response_num : friend.request_num;
-
-                    try {
-                        const profileUrl = `${API_URL}/member/memberProfile`;
-                        const profile = await axios.get<MemberProfile>(profileUrl, {
-                            headers: getAuthHeaders(),
-                            params: { member_num: friendNum }
-                        });
-
-                        return {
-                            ...friend,
-                            member_nick: profile.data.MEMBER_NICK ?? profile.data.member_nick ?? '알 수 없는 회원'
-                        };
-                    } catch (error) {
-                        console.error('친구 닉네임 조회 실패:');
-                        return { ...friend, member_nick: '알 수 없는 회원' };
-                    }
-                }));
-
-                if (!cancelled) setFriends(friendProfiles);
-            } catch (error) {
-                console.error('내 친구 목록 조회 실패:');
-                if (!cancelled) setFriends([]);
-            } finally {
-                if (!cancelled) setLoading(false);
-            }
-        };
-
-        fetchFriends();
-
-        return () => { cancelled = true; };
-    }, [memberNum, token, getAuthHeaders]);
-
+    const [view, setView] = useState<FriendView>('list');
     return (
         <div className={styles.container}>
-            {/* Header */}
-            <div className={styles.header}>
-                <div>
-                    <h2>내 친구</h2>
-                    <p>등록된 친구를 확인하고 관리할 수 있습니다.</p>
-                </div>
-            </div>
-
-            {/* 친구 관리 버튼 */}
-            <div className={styles.actions}>
-                <button type="button" onClick={() => navigate('/friend/add')}>
-                    <UserPlus size={17} /> 친구 추가
-                </button>
-                <button type="button" onClick={() => navigate('/friend/request')}>
-                    <Inbox size={17} /> 받은 요청
-                </button>
-                <button type="button" onClick={() => navigate('/friend/sent')}>
-                    <Send size={17} /> 보낸 요청
-                </button>
-            </div>
-
-            {/* 친구 수 */}
-            <div className={styles.summary}>
-                <Users size={18} />
-                <span>등록된 친구</span>
-                <strong>{friends.length}명</strong>
-            </div>
-
-            {/* 친구 목록 */}
-            <div className={styles.list}>
-                {loading ? (
-                    <div className={styles.empty}>친구 목록을 불러오는 중입니다.</div>
-                ) : friends.length > 0 ? (
-                    friends.map(friend => (
-                        <div key={friend.num} className={styles.friend}>
-                            <div className={styles.avatar}>
-                                <UserRound size={23} />
-                            </div>
-                            <div className={styles.info}>
-                                <strong>{friend.member_nick || '알 수 없는 회원'}</strong>
-                                <span>친구</span>
-                            </div>
-                            <div className={styles.friendActions}>
-                                <button type="button" className={styles.inviteButton}
-                                    onClick={() => setInviteFriend(friend)} aria-haspopup="dialog"
-                                    aria-label={`${friend.member_nick || '친구'}님에게 스터디 초대 문구 만들기`}>스터디 초대</button>
-                                <ReportButton type="user" targetNum={Number(friend.request_num) === Number(memberNum)
-                                    ? Number(friend.response_num) : Number(friend.request_num)}
-                                    aria-label={`${friend.member_nick || '친구'} 회원 신고`}>신고</ReportButton>
-                            </div>
-                        </div>
-                    ))
-                ) : (
-                    <div className={styles.empty}>
-                        <Users size={30} />
-                        <h3>등록된 친구가 없습니다.</h3>
-                        <p>친구 추가에서 새로운 친구를 찾아보세요.</p>
-                    </div>
-                )}
-            </div>
-            {inviteFriend && <FriendStudyInviteModal key={inviteFriend.num}
-                friendNick={inviteFriend.member_nick || '친구'} onClose={() => setInviteFriend(null)} />}
+            <nav className={styles.actions} aria-label="마이페이지 친구 관리">
+                {menus.map(({ key, label, icon: Icon }) => (
+                    <button key={key} type="button" aria-pressed={view === key}
+                        className={view === key ? styles.active : undefined}
+                        onClick={() => setView(key)}>
+                        <Icon size={17} aria-hidden="true" />{label}
+                    </button>
+                ))}
+            </nav>
+            {view === 'list' && <FriendList embedded />}
+            {view === 'add' && <FriendAdd embedded />}
+            {view === 'request' && <FriendRequestList embedded />}
+            {view === 'sent' && <FriendSentList embedded />}
         </div>
     );
 };
