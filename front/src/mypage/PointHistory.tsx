@@ -10,6 +10,7 @@ interface PointHistoryProps {
   embedded?: boolean;
   loading?: boolean;
   error?: string;
+  onRetry?: () => void;
 }
 
 export interface PointHistoryItem {
@@ -24,7 +25,7 @@ interface PointHistoryContentProps extends PointHistoryProps {
   sessionKey: string;
 }
 
-const validHistory = (value: unknown): value is PointHistoryItem[] => Array.isArray(value) && value.every(item =>
+export const validHistory = (value: unknown): value is PointHistoryItem[] => Array.isArray(value) && value.every(item =>
   item !== null && typeof item === 'object' && Number.isSafeInteger(item.point_num) &&
   Number.isSafeInteger(item.amount) && Number.isSafeInteger(item.balance_after) &&
   (item.regdate === null || typeof item.regdate === 'string') &&
@@ -37,7 +38,6 @@ const formatDate = (value: string | null) => {
 };
 
 const PointHistoryContent: React.FC<PointHistoryContentProps> = ({ embedded = false, sessionKey }) => {
-  const Heading = embedded ? 'h3' : 'h2';
   const [histories, setHistories] = useState<PointHistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -51,7 +51,7 @@ const PointHistoryContent: React.FC<PointHistoryContentProps> = ({ embedded = fa
     setError('');
     const load = async () => {
       try {
-        const response = await axios.get<unknown>(`${BACKEND_URL}/api/attendance/point-history`,
+        const response = await axios.get<unknown>(`${BACKEND_URL}/api/member/point-history`,
           memberSessionConfig(sessionKey, { signal: controller.signal, timeout: 15000 }));
         if (!isCurrent()) return;
         if (!validHistory(response.data)) throw new Error('잘못된 포인트 내역 응답');
@@ -70,6 +70,12 @@ const PointHistoryContent: React.FC<PointHistoryContentProps> = ({ embedded = fa
     return () => controller.abort();
   }, [sessionKey, retry]);
 
+  return <PointHistoryView history={histories} embedded={embedded} loading={loading} error={error}
+    onRetry={() => setRetry(value => value + 1)} />;
+};
+
+const PointHistoryView: React.FC<PointHistoryProps> = ({ history = [], embedded = false, loading = false, error = '', onRetry }) => {
+  const Heading = embedded ? 'h3' : 'h2';
   return (
     <section className={`point-history-page${embedded ? ' point-history-embedded' : ''}`} aria-label="포인트 내역" aria-busy={loading}>
       <div className="point-history-container">
@@ -79,14 +85,14 @@ const PointHistoryContent: React.FC<PointHistoryContentProps> = ({ embedded = fa
         {loading ? <p className="point-history-state" role="status">포인트 내역을 불러오는 중입니다.</p>
           : error ? <div className="point-history-state">
             <p role="alert">{error}</p>
-            <button type="button" onClick={() => setRetry(value => value + 1)}>다시 시도</button>
+            {onRetry && <button type="button" onClick={onRetry}>다시 시도</button>}
           </div>
-            : histories.length === 0 ? <p className="point-history-state">포인트 변동 내역이 없습니다.</p>
+            : history.length === 0 ? <p className="point-history-state">포인트 변동 내역이 없습니다.</p>
               : <div className="point-history-scroll">
                 <table className="point-history-table">
                   <caption className="point-history-caption">포인트 변동 내역</caption>
                   <thead><tr><th scope="col">변동일</th><th scope="col">변동 포인트</th><th scope="col">변동 후 잔액</th><th scope="col">변동 사유</th></tr></thead>
-                  <tbody>{histories.map(item => <tr key={item.point_num}>
+                  <tbody>{history.map(item => <tr key={item.point_num}>
                     <td>{formatDate(item.regdate)}</td>
                     <td className={item.amount < 0 ? 'point-minus' : 'point-plus'}>{item.amount > 0 ? '+' : ''}{item.amount.toLocaleString('ko-KR')}P</td>
                     <td>{item.balance_after.toLocaleString('ko-KR')}P</td>
@@ -99,8 +105,8 @@ const PointHistoryContent: React.FC<PointHistoryContentProps> = ({ embedded = fa
   );
 };
 
-const PointHistory: React.FC<PointHistoryProps> = props => (
-  <MemberSessionBoundary>{key => <PointHistoryContent {...props} sessionKey={key} />}</MemberSessionBoundary>
-);
+const PointHistory: React.FC<PointHistoryProps> = props => props.history !== undefined
+  ? <PointHistoryView {...props} />
+  : <MemberSessionBoundary>{key => <PointHistoryContent {...props} sessionKey={key} />}</MemberSessionBoundary>;
 
 export default PointHistory;
