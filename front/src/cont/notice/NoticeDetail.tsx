@@ -1,3 +1,4 @@
+import { BACKEND_URL } from '../../login/authHttp';
 // 주용현
 
 import axios from 'axios';
@@ -37,7 +38,7 @@ const NoticeDetail: React.FC = () => {
         setLoading(true);
 
         try {
-            const urls = "http://localhost:80/back/api/notice/noticeDetail";
+            const urls = `${BACKEND_URL}/api/notice/noticeDetail`;
             const response = await axios.get<NoticeVO>(urls, {
                 headers: getAuthHeaders(),
                 params: { num }
@@ -115,7 +116,7 @@ const NoticeDetail: React.FC = () => {
                                         첨부 이미지
                                     </div>
                                     <img
-                                        src={`http://localhost:80/back/imgfile/${encodeURIComponent(notice.imgn)}`}
+                                        src={`${BACKEND_URL}/imgfile/${encodeURIComponent(notice.imgn)}`}
                                         alt="공지사항 첨부 이미지"
                                         className={styles.noticeImage}
                                     />

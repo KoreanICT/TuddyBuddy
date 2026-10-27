@@ -1,3 +1,4 @@
+import { BACKEND_URL } from '../../login/authHttp';
 
  // 주용현
 
@@ -39,7 +40,7 @@ const FriendSentList: React.FC = () => {
         setLoading(true);
         setErrorMessage('');
         try {
-            const urls = "http://localhost:80/back/api/friend/friendResponseList";
+            const urls = `${BACKEND_URL}/api/friend/friendResponseList`;
             const response = await axios.get(urls, {
                 headers: getAuthHeaders(),
                 params: { request_num: memberNum }
@@ -70,7 +71,7 @@ const FriendSentList: React.FC = () => {
         cancellingRef.current = true;
         setCancelling(friendNum);
         try {
-            await axios.delete('http://localhost:80/back/api/friend/friendCancel', {
+            await axios.delete(`${BACKEND_URL}/api/friend/friendCancel`, {
                 headers: getAuthHeaders(), params: { num: friendNum }
             });
             setSentList(previous => previous.filter(friend => friend.num !== friendNum));

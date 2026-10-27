@@ -93,8 +93,7 @@ export const Project_Discussion: React.FC<GetGroupNum> = ({ groupNum }) => {
 
                 setMember(response.data);
 
-                // 기존 api.ts의 http://localhost:80/back/api에서
-                // WebSocket 주소 http://localhost:80/back/ws를 구합니다.
+                // 환경설정 기반 API 주소에서 같은 서버의 WebSocket 경로를 구합니다.
                 const baseURL = api.defaults.baseURL;
                 if (!baseURL) {
                     throw new Error('서버 주소가 없습니다.');

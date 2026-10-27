@@ -1,3 +1,4 @@
+import { BACKEND_URL } from '../../login/authHttp';
 import api from './api';
 //작성자 : 오진석
 import React, { useEffect, useRef, useState } from 'react'
@@ -68,7 +69,7 @@ export const Group_EditModal: React.FC<GroupEditProps> = ({ groupNum, isOpen, on
 
                 if (data.group_thumbnail) {
                     setPreviewUrl(
-                        `http://localhost/back/api/group/thumbnail/${encodeURIComponent(
+                        `${BACKEND_URL}/api/group/thumbnail/${encodeURIComponent(
                             data.group_thumbnail
                         )}`
                     )

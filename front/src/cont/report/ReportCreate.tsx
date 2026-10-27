@@ -1,3 +1,4 @@
+import { BACKEND_URL } from '../../login/authHttp';
 // 주용현
 
 import React, { useCallback, useState } from 'react';
@@ -81,7 +82,7 @@ const ReportCreate: React.FC = () => {
             formData.append('content', form.content.trim());
 
             const response = await axios.post(
-                'http://localhost:80/back/api/report/reportAdd',
+                `${BACKEND_URL}/api/report/reportAdd`,
                 formData,
                 { headers: getAuthHeaders() }
             );

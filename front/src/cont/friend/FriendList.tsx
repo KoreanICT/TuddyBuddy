@@ -1,3 +1,4 @@
+import { BACKEND_URL } from '../../login/authHttp';
 
 // 주용현
 
@@ -55,7 +56,7 @@ const FriendList: React.FC = () => {
         if (!token || memberNum == null) return;
 
         try {
-            const urls = "http://localhost:80/back/api/friend/friendList";
+            const urls = `${BACKEND_URL}/api/friend/friendList`;
             const response = await axios.get<FriendVO[]>(urls, {
                 headers: getAuthHeaders(),
                 params: { member_num: memberNum }
@@ -64,7 +65,7 @@ const FriendList: React.FC = () => {
             // 친구 회원 번호로 닉네임 조회
             const friendProfiles = await Promise.all(response.data.map(async friend => {
                 try {
-                    const profileUrl = "http://localhost:80/back/api/member/memberProfile";
+                    const profileUrl = `${BACKEND_URL}/api/member/memberProfile`;
                     const profile = await axios.get<MemberProfile>(profileUrl, {
                         headers: getAuthHeaders(),
                         params: { member_num: getFriendMemberNum(friend) }
@@ -103,7 +104,7 @@ const FriendList: React.FC = () => {
         if (!confirmed) return;
 
         try {
-            const urls = "http://localhost:80/back/api/friend/friendDelete";
+            const urls = `${BACKEND_URL}/api/friend/friendDelete`;
 
             await axios.delete(urls, {
                 headers: getAuthHeaders(),
