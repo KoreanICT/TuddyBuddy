@@ -1,4 +1,4 @@
-import { authenticatedFetch } from '../../login/authHttp';
+import { authenticatedFetch, BACKEND_URL } from '../../login/authHttp';
 // 허승표
 
 import React, { useEffect, useRef, useState } from 'react'
@@ -196,7 +196,7 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
                 // 현재 사용자의 저장된 세션이 없으면 생성
                 if (nextChatNum === null) {
                     const response = await authenticatedFetch(
-                        'http://localhost:80/back/api/chatbot/session',
+                        `${BACKEND_URL}/api/chatbot/session`,
                         {
                             method: 'POST',
                             headers: getAuthHeaders(isLogin ? currentToken : null),
@@ -257,7 +257,7 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
                 // 현재 사용자의 기존 대화 조회
                 // X로 닫앗다 다시 열면 같은 세션의 기록 복원
                 const response = await authenticatedFetch(
-                    `http://localhost:80/back/api/chatbot/message/session/${nextChatNum}`,
+                    `${BACKEND_URL}/api/chatbot/message/session/${nextChatNum}`,
                     {
                         headers: getAuthHeaders(isLogin ? currentToken : null),
                         credentials: 'include'
@@ -419,7 +419,7 @@ const ChatBot: React.FC<ChatBotProps> = (props) => {
         try {
             // Spring Boot에 AI 질문 요청
             const response = await authenticatedFetch(
-                'http://localhost:80/back/api/chatbot/ai',
+                `${BACKEND_URL}/api/chatbot/ai`,
                 {
                     method: 'POST',
                     credentials: 'include',

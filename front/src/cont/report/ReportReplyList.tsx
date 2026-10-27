@@ -1,3 +1,4 @@
+import { BACKEND_URL } from '../../login/authHttp';
 // 주용현
 
 import axios from 'axios';
@@ -28,7 +29,7 @@ const ReportReplyList: React.FC = () => {
     // 신고 답변 목록 조회
     const fetchReplyList = useCallback(async () => {
         try {
-            const urls = "http://localhost:80/back/api/report/reportReplyList"; // '/back/api/report/reportReplyList',
+            const urls = `${BACKEND_URL}/api/report/reportReplyList`; // '/back/api/report/reportReplyList',
 
             const response = await axios.get(urls, {
                 headers: getAuthHeaders(),

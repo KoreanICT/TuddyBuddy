@@ -46,6 +46,15 @@
   color: var(--primary);
 }
 
+.attendanceActive {
+  color: var(--primary);
+}
+
+.attendanceActive .profileIcon {
+  border-color: currentColor;
+  background: #f3f0ff;
+}
+
 .profileIcon {
   display: flex;
   align-items: center;

@@ -409,3 +409,6 @@
     padding: 8px 10px;
   }
 }
+
+.embeddedPage { min-height: 0; padding: 0; background: transparent; }
+.embeddedPage > .container { max-width: none; }

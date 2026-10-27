@@ -128,6 +128,12 @@ const actionNames: Record<string, string> = {
     GROUP_LEAVE: '그룹 탈퇴',
     GROUP_DELETE: '그룹 삭제',
 
+    // 그룹 가입 신청·승인·거절
+    // 거절 처리도 정상 완료되면 결과는 SUCCESS입니다.
+    GROUP_JOIN_REQUEST: '그룹 가입 신청',
+    GROUP_JOIN_APPROVE: '그룹 가입 승인',
+    GROUP_JOIN_REJECT: '그룹 가입 거절',
+
     // =====================================================
     // 3. 그룹 문서
     // =====================================================
@@ -173,6 +179,7 @@ const actionNames: Record<string, string> = {
     TDL_LIST: '할 일 목록 조회',
     TDL_STATUS_CHANGE: '할 일 상태 변경',
     TDL_UPDATE: '할 일 수정',
+    TDL_DELETE: '할 일 삭제',
 
     // =====================================================
     // 7-1. 그룹 채팅 활동 
@@ -193,6 +200,7 @@ const actionNames: Record<string, string> = {
     QUIZ_RESULT_VIEW: '학습 결과 상세 조회',
     QUIZ_RESPONSE_LIST: '답안 내역 조회',
     QUIZ_SESSION_DELETE: '학습 세션 삭제',
+    QUIZ_CLASSIFY: 'AI 이미지 분류',
 
     // =====================================================
     // 9. 타이머
@@ -272,6 +280,7 @@ const actionNames: Record<string, string> = {
     MEMBER_PASSWORD_CHANGE: '비밀번호 변경',
     MEMBER_CODE_SEARCH: '회원 코드 검색',
     MEMBER_PROFILE_VIEW: '회원 프로필 조회',
+    MEMBER_POINT_HISTORY_VIEW: '내 포인트 내역 조회',
 
     ADMIN_MEMBER_LIST: '관리자 회원 목록 조회',
     ADMIN_MEMBER_WITHDRAW: '관리자 회원 탈퇴 처리',
@@ -290,6 +299,7 @@ const actionNames: Record<string, string> = {
     ADMIN_CATEGORY_CREATE: '학습 카테고리 등록',
     ADMIN_CATEGORY_UPDATE: '학습 카테고리 수정',
     ADMIN_CATEGORY_STATUS_CHANGE: '학습 카테고리 상태 변경',
+    ADMIN_CATEGORY_DELETE: '학습 카테고리 완전 삭제',
 
     ADMIN_SUBJECT_CREATE: '학습 과목 등록',
     ADMIN_SUBJECT_UPDATE: '학습 과목 수정',
@@ -302,6 +312,7 @@ const actionNames: Record<string, string> = {
     // =====================================================
 
     POINT_PAYMENT: '포인트 결제 처리',
+    ATTENDANCE_POINT_HISTORY_VIEW: '포인트 내역 조회',
 
     // =====================================================
     // 18. 출석
@@ -321,6 +332,7 @@ const actionNames: Record<string, string> = {
     COMMUNITY_POST_UPDATE: '게시글 수정',
     COMMUNITY_POST_DELETE: '게시글 삭제',
     COMMUNITY_POST_LIKE: '게시글 좋아요',
+    COMMUNITY_POST_VIEW: '게시글 열람',
 
     // 커뮤니티 댓글 활동
     COMMUNITY_COMMENT_LIST: '댓글 목록 조회',
@@ -336,6 +348,7 @@ const actionNames: Record<string, string> = {
     NOTIFICATION_LIST: '알림 목록 조회',
     NOTIFICATION_READ: '알림 읽음 처리',
     NOTIFICATION_READ_ALL: '알림 전체 읽음 처리',
+    NOTIFICATION_DELETE: '알림 삭제',
 
     // =====================================================
     // 21. 교육 뉴스
@@ -347,6 +360,11 @@ const actionNames: Record<string, string> = {
     // 22. 관리자 대시보드
     // =====================================================
 
+    ADMIN_BOARD_LIST: '관리자 게시글 목록·검색',
+    ADMIN_BOARD_DELETE: '관리자 게시글 삭제',
+    ADMIN_STUDY_LIST: '관리자 스터디 목록·검색',
+    ADMIN_STUDY_DELETE: '관리자 스터디 삭제',
+    ADMIN_SUBJECT_DELETE: '학습 과목 완전 삭제',
     ADMIN_DASHBOARD_VIEW: '관리자 대시보드 조회'
 };
 

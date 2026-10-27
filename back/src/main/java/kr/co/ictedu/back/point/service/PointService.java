@@ -13,6 +13,7 @@ import kr.co.ictedu.back.point.vo.PointVO;
 
 @Service
 public class PointService {
+    public static final long ATTENDANCE_REWARD = 300L;
 
 	//포인트타임 : 체크 제약조건 검증용 리스트
 	private static final List<String> VALID_POINT_TYPES = List.of(
@@ -38,7 +39,7 @@ public class PointService {
 		validateMemberNumber(memberNum);
 		//역할: 출석 보상 설명 검증
 		validateDescription(description);
-		long amount = 300L;
+		long amount = ATTENDANCE_REWARD;
 		//역할: 출석 보상 포인트 양수 검증
 		validatePositiveAmount(amount, "출석 보상 포인트");
 		insertPointChange(memberNum, amount, 0L, "PAYMENT", description);

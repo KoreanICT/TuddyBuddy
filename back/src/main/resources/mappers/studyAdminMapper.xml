@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.ictedu.back.admin.dao.StudyAdminDao">
+    <sql id="filter">
+        <if test="keyword != ''">
+            WHERE INSTR(LOWER(g.group_title), LOWER(#{keyword})) &gt; 0
+            OR EXISTS (SELECT 1 FROM group_member gm JOIN member m ON m.member_num = gm.member_num
+                       WHERE gm.group_num = g.group_num AND gm.is_leader = 1
+                       AND INSTR(LOWER(m.member_nick), LOWER(#{keyword})) &gt; 0)
+        </if>
+    </sql>
+    <select id="count" resultType="int">SELECT COUNT(*) FROM studygroup g <include refid="filter"/></select>
+    <select id="list" resultType="map">
+        SELECT "groupNum", "title", "description", "leader", "isPrivate", "currentMembers", "maxMembers", "createdAt"
+        FROM (
+            SELECT g.group_num AS "groupNum", g.group_title AS "title", g.group_desc AS "description",
+                (SELECT MAX(m.member_nick) FROM group_member gm JOIN member m ON m.member_num = gm.member_num
+                 WHERE gm.group_num = g.group_num AND gm.is_leader = 1) AS "leader",
+                g.group_isPrivate AS "isPrivate", g.group_maxMembers AS "maxMembers", g.created_at AS "createdAt",
+                (SELECT COUNT(*) FROM group_member gm WHERE gm.group_num = g.group_num) AS "currentMembers",
+                ROW_NUMBER() OVER (ORDER BY g.group_num DESC) AS rn
+            FROM studygroup g <include refid="filter"/>
+        ) WHERE rn BETWEEN #{begin} AND #{end} ORDER BY rn
+    </select>
+    <select id="lockGroup" resultType="groupvo">
+        SELECT group_num, group_title, group_thumbnail FROM studygroup WHERE group_num = #{num} FOR UPDATE
+    </select>
+    <select id="memberNums" resultType="long">SELECT DISTINCT member_num FROM group_member WHERE group_num = #{num}</select>
+    <select id="documentPaths" resultType="string">SELECT document_path FROM group_document WHERE group_num = #{num}</select>
+    <select id="tableExists" resultType="int">SELECT COUNT(*) FROM user_tables WHERE table_name = #{name}</select>
+    <delete id="deleteChat">DELETE FROM group_chat WHERE group_num = #{num}</delete>
+    <delete id="deleteMemos">DELETE FROM memo WHERE group_num = #{num}</delete>
+    <delete id="deleteSchedules">DELETE FROM schedule WHERE group_num = #{num}</delete>
+    <delete id="deleteTdls">DELETE FROM tdl WHERE group_num = #{num}</delete>
+    <delete id="deleteDiagrams">DELETE FROM diagram WHERE group_num = #{num}</delete>
+    <delete id="deleteDocuments">DELETE FROM group_document WHERE group_num = #{num}</delete>
+    <delete id="deleteTags">DELETE FROM group_tag WHERE group_num = #{num}</delete>
+    <delete id="deleteMembers">DELETE FROM group_member WHERE group_num = #{num}</delete>
+    <delete id="deleteJoinRequests">
+        DELETE FROM notification WHERE category IN ('JOIN', 'JOIN_APPROVED', 'JOIN_REJECTED')
+        AND REGEXP_LIKE(target_url, '^/group/' || #{num} || '/join-requests\?applicant=[1-9][0-9]*$')
+    </delete>
+    <delete id="deleteGroup">DELETE FROM studygroup WHERE group_num = #{num}</delete>
+</mapper>

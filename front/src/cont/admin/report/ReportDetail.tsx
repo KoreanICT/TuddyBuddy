@@ -1,3 +1,4 @@
+import { BACKEND_URL } from '../../../login/authHttp';
 // 주용현
 
 import axios from 'axios';
@@ -74,10 +75,10 @@ const ReportDetail: React.FC = () => {
                 setEditingReply(false);
 
                 const [response, replyResponse] = await Promise.all([axios.get<ReportVO>(
-                    'http://localhost:80/back/api/report/reportDetail',
+                    `${BACKEND_URL}/api/report/reportDetail`,
                     { headers: getAuthHeaders(), params: { num: id } }
                 ), axios.get<ReportReplyVO | null>(
-                    'http://localhost:80/back/api/report/reportReplyDetail',
+                    `${BACKEND_URL}/api/report/reportReplyDetail`,
                     { headers: getAuthHeaders(), params: { report_num: id } }
                 )]);
 
@@ -139,7 +140,7 @@ const ReportDetail: React.FC = () => {
             formData.append('status', status);
 
             const response = await axios.put<number>(
-                'http://localhost:80/back/api/report/reportStatusUpdate',
+                `${BACKEND_URL}/api/report/reportStatusUpdate`,
                 formData,
                 { headers: getAuthHeaders() }
             );
@@ -151,6 +152,7 @@ const ReportDetail: React.FC = () => {
 
             alert(`신고 상태가 "${getStatusText(status)}" 상태로 변경되었습니다.`);
 
+            window.dispatchEvent(new Event('report-status-changed'));
             // 수정된 상태를 화면에 반영
             setReport(prev => prev ? { ...prev, status } : null);
 
@@ -182,10 +184,10 @@ const ReportDetail: React.FC = () => {
             formData.append('num', String(reply.num));
             formData.append('content', replyDraft.trim());
             const response = remove
-                ? await axios.delete<number>('http://localhost:80/back/api/report/reportReplyDelete', {
+                ? await axios.delete<number>(`${BACKEND_URL}/api/report/reportReplyDelete`, {
                     headers: getAuthHeaders(), params: { num: reply.num }
                 })
-                : await axios.put<number>('http://localhost:80/back/api/report/reportReplyUpdate', formData, {
+                : await axios.put<number>(`${BACKEND_URL}/api/report/reportReplyUpdate`, formData, {
                     headers: getAuthHeaders()
                 });
             if (typeof response.data !== 'number' || response.data < 1) throw new Error('답변 처리 실패');

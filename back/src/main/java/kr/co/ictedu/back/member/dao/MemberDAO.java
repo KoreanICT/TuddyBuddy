@@ -10,6 +10,7 @@ import kr.co.ictedu.back.member.vo.MemberVO;
 
 @Mapper
 public interface MemberDAO {
+    List<Long> findManagerNums();
 
 	// 일반 회원가입
 	void insertMember(MemberVO vo);

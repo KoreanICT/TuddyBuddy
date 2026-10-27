@@ -1,3 +1,4 @@
+import { BACKEND_URL } from '../../login/authHttp';
 import api from './api';
 //작성자 : 오진석
 import React, { useEffect, useState } from 'react';
@@ -150,7 +151,7 @@ export const Group_List: React.FC<GroupPublicProps> = ({ mode, searchType, searc
                                 <div className={styles.study_card_header}>
                                     <div className={styles.study_thumbnail}>
                                         {group.group_thumbnail ? (
-                                            <img src={`http://localhost/back/api/group/thumbnail/` + encodeURIComponent(group.group_thumbnail)} alt="" className={styles.study_thumbnail_img} />
+                                            <img src={`${BACKEND_URL}/api/group/thumbnail/` + encodeURIComponent(group.group_thumbnail)} alt="" className={styles.study_thumbnail_img} />
                                         ) : (
                                             <span>
                                                 {getFirstLetter(group.group_title)}

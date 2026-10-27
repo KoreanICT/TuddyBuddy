@@ -150,14 +150,21 @@
   justify-content: center;
 }
 
+.subjectTable {
+  min-width: 780px;
+  table-layout: fixed;
+}
+
 .categoryIdColumn { width: 10%; }
-.categoryNameColumn { width: 38%; }
+.categoryNameColumn { width: 19%; }
+.subjectNameColumn { width: 19%; }
 .categoryStatusColumn { width: 12%; }
 .categoryActionsColumn { width: 40%; }
 
 .actions {
   display: flex;
   align-items: center;
+  justify-content: center;
   flex-wrap: wrap;
   gap: 6px;
 }

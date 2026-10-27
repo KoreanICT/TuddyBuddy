@@ -1,8 +1,11 @@
+import { UserRoundPlus, ArrowRight } from 'lucide-react';
 import React, { useEffect, useState } from "react";
 import styles from './notification.module.css'
 import { getAllNotifications, deleteNotification } from "./NotificationAPI";
 import type { NotificationData } from "./NotificationAPI";
 import { useNotification } from "./NotificationProvider";
+import { Link } from 'react-router-dom';
+import { reportNotificationLink } from './reportNotificationLink';
 
 export const NotificationList: React.FC = () => {
     const [notifications, setNotifications] =
@@ -11,11 +14,24 @@ export const NotificationList: React.FC = () => {
     const [loading, setLoading] = useState<boolean>(true);
     const [deleting, setDeleting] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
+    const [revision, setRevision] = useState(0);
+
+    useEffect(() => {
+        const refresh = () => setRevision(value => value + 1);
+        window.addEventListener('notification-refresh', refresh);
+        window.addEventListener('notification-received', refresh);
+        return () => {
+            window.removeEventListener('notification-refresh', refresh);
+            window.removeEventListener('notification-received', refresh);
+        };
+    }, []);
 
     const { changeNotification } = useNotification();
 
     useEffect(() => {
         const controller = new AbortController();
+        setLoading(true);
+        setError(null);
 
         const loadNotifications = async (): Promise<void> => {
             try {
@@ -42,7 +58,7 @@ export const NotificationList: React.FC = () => {
         return () => {
             controller.abort();
         };
-    }, []);
+    }, [revision]);
 
     const handleDelete = async (
         notification: NotificationData
@@ -125,6 +141,8 @@ export const NotificationList: React.FC = () => {
                                     ? "신고"
                                     : notification.category === "COMMENT"
                                         ? "댓글"
+                                        : notification.category === "STUDY_DELETED" ? "스터디 삭제"
+                                        : notification.category === "FRIEND_REQUEST" ? "친구 요청"
                                         : "스터디"}
                             </span>
 
@@ -167,6 +185,11 @@ export const NotificationList: React.FC = () => {
                             )}
 
                             <footer className={styles.contentFooter}>
+                                {notification.category === 'STUDY_DELETED' && <Link to="/group">스터디 목록으로 이동</Link>}
+                                {notification.category === 'FRIEND_REQUEST' && <Link className={styles.friendRequestLink} to="/friend/request"><UserRoundPlus size={16} aria-hidden="true" />받은 요청 보기<ArrowRight size={15} aria-hidden="true" /></Link>}
+                                {reportNotificationLink(notification.category, notification.target_url) && (
+                                    <Link to={notification.target_url}>신고 내용 확인</Link>
+                                )}
                                 <span className={styles.fullDate}>
                                     {new Date(
                                         notification.created_at

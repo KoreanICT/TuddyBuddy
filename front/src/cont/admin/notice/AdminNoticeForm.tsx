@@ -1,3 +1,4 @@
+import { BACKEND_URL } from '../../../login/authHttp';
 // 주용현
 
 import React, { useCallback, useEffect, useState } from 'react';
@@ -18,7 +19,7 @@ interface NoticeVO {
     updated_date?: string;
 }
 
-const API_URL = 'http://localhost:80/back/api/notice';
+const API_URL = `${BACKEND_URL}/api/notice`;
 
 const AdminNoticeForm: React.FC = () => {
     const navigate = useNavigate();

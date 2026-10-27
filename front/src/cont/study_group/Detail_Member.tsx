@@ -4,6 +4,8 @@ import styles from './detail.module.css';
 import { GetGroupNum } from './GroupAPI'
 import { useNavigate } from 'react-router-dom';
 import api from './api';
+import ProfileDetailModal from '../profile/ProfileDetailModal';
+import { useAuth } from '../../login/hooks/useAuth';
 
 interface MemberData {
     member_num: number;
@@ -20,6 +22,10 @@ interface MemberRequestData {
 export const Detail_Member: React.FC<GetGroupNum> = ({ groupNum }) => {
     const [members, setMembers] = useState<MemberData[]>([]);
     const [isMeLeader, setIsMeLeader] = useState(false);
+    const { memberNum: myMemberNum, token } = useAuth();
+    const [profileMember, setProfileMember] = useState<MemberData | null>(null);
+
+    useEffect(() => { setProfileMember(null); }, [groupNum, myMemberNum, token]);
 
     const getMembers = async () => {
         try {
@@ -150,13 +156,17 @@ export const Detail_Member: React.FC<GetGroupNum> = ({ groupNum }) => {
                             )}
 
                             {/* 동그란 썸네일 */}
-                            <div className={styles.avatar_wrapper}>
+                            <button type="button" className={`${styles.avatar_wrapper} ${styles.member_profile_button}`}
+                                disabled={!token || member.member_num === Number(myMemberNum)}
+                                aria-label={`${member.member_nick} 회원 프로필 보기`}
+                                aria-haspopup="dialog"
+                                onClick={() => setProfileMember(member)}>
                                 <img
                                     src={`https://picsum.photos/100?random=${member.member_num}`}
                                     alt={member.member_nick}
                                     className={styles.avatar_img}
                                 />
-                            </div>
+                            </button>
 
                             {/* 닉네임 및 이름 */}
                             <div className={styles.member_info}>
@@ -172,6 +182,11 @@ export const Detail_Member: React.FC<GetGroupNum> = ({ groupNum }) => {
                     ))}
                 </div>
             </div>
+            {profileMember && token && profileMember.member_num !== Number(myMemberNum) && (
+                <ProfileDetailModal key={profileMember.member_num} memberNum={profileMember.member_num}
+                    avatarSrc={`https://picsum.photos/100?random=${profileMember.member_num}`}
+                    onClose={() => setProfileMember(null)} />
+            )}
         </div>
     );
 };

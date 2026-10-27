@@ -4,15 +4,17 @@ import { createPortal } from 'react-dom';
 import { useAuth } from '../../login/hooks/useAuth';
 import ReportButton from '../report/ReportButton';
 import styles from './profile.module.css';
+import { BACKEND_URL } from '../../login/authHttp';
 
 interface ProfileDetailModalProps {
     memberNum: number;
     onClose: () => void;
+    avatarSrc?: string;
 }
 
-const API_URL = 'http://localhost:80/back/api';
+const API_URL = `${BACKEND_URL}/api`;
 
-const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({ memberNum, onClose }) => {
+const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({ memberNum, onClose, avatarSrc }) => {
     const { memberNum: myMemberNum, token } = useAuth();
     const dialogRef = useRef<HTMLDialogElement | null>(null);
     const requestRef = useRef(false);
@@ -86,7 +88,7 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({ memberNum, onCl
                 <h2>회원 프로필</h2>
                 {loading ? <p role="status">불러오는 중...</p> : error ? <p role="alert">{error}</p> : (
                     <>
-                        <img className={styles.avatar} src={`${process.env.PUBLIC_URL}/images/default-profile.svg`} alt="회원 프로필" />
+                        <img className={styles.avatar} src={avatarSrc || `${process.env.PUBLIC_URL}/images/default-profile.svg`} alt="회원 프로필" />
                         <h3>{nick}</h3>
                         <div className={styles.actions}>
                             <button type="button" disabled={adding || sent} onClick={addFriend}>

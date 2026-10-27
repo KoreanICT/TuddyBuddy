@@ -1,3 +1,4 @@
+import { BACKEND_URL } from '../../../login/authHttp';
 
 import axios from 'axios';
 import { useAuth } from '../../../login/hooks/useAuth';
@@ -58,7 +59,7 @@ const AdminNoticeList: React.FC = () => {
         setLoading(true);
 
         try {
-            const urls = "http://localhost:80/back/api/notice/noticeList";
+            const urls = `${BACKEND_URL}/api/notice/noticeList`;
             const response = await axios.get<NoticeListResponse>(urls, {
                 headers: getAuthHeaders(),
                 params: { cPage, searchType: searchField, searchValue: searchKeyword }
@@ -99,7 +100,7 @@ const AdminNoticeList: React.FC = () => {
         if (!confirmed) return;
 
         try {
-            const urls = "http://localhost:80/back/api/notice/noticeDelete";
+            const urls = `${BACKEND_URL}/api/notice/noticeDelete`;
 
             await axios.delete(urls, {
                 headers: getAuthHeaders(),

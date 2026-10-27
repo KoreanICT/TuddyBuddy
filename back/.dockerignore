@@ -1,0 +1,5 @@
+# Include only the prebuilt executable JAR in the Docker build context.
+**
+!build/
+!build/libs/
+!build/libs/back-0.0.1-SNAPSHOT.jar

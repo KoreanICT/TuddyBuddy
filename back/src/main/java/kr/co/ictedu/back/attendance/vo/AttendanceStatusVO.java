@@ -8,7 +8,7 @@ import java.util.List;
  * @param today 요청 중 한 번 읽은 DB 한국 날짜(YYYY-MM-DD)
  * @param timezone 날짜 기준 시간대(Asia/Seoul)
  * @param checkedToday 조회 월과 관계없는 오늘의 출석 여부
- * @param rewardPerCheck 현재 출석 1회 지급 정책이며 0으로 고정
+ * @param rewardPerCheck 현재 출석 1회 지급 포인트
  * @param items 조회 월의 출석일과 기록된 포인트 목록
  */
 public record AttendanceStatusVO(String month, String today, String timezone,

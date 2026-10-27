@@ -716,6 +716,20 @@
     object-fit: cover;
 }
 
+.member_profile_button {
+    display: block;
+    padding: 0;
+    background: transparent;
+    cursor: pointer;
+}
+.member_profile_button:disabled {
+    cursor: default;
+}
+.member_profile_button:focus-visible {
+    outline: 3px solid var(--primary);
+    outline-offset: 3px;
+}
+
 /* 멤버 이름 영역 */
 .member_info {
     display: flex;

@@ -1,3 +1,4 @@
+import { BACKEND_URL } from '../../../login/authHttp';
 import React, { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import styles from './memberManagement.module.css';
@@ -25,7 +26,7 @@ interface MemberPage {
     endPage: number;
 }
 
-const API_URL = `${(process.env.REACT_APP_BACK_END_URL || 'http://192.168.0.19/back').replace(/\/$/, '')}/api/member`;
+const API_URL = `${BACKEND_URL}/api/member`;
 
 const errorMessage = (error: unknown, fallback: string): string => {
     if (axios.isAxiosError(error)) {

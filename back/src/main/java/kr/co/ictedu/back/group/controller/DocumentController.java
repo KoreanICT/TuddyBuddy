@@ -107,7 +107,7 @@ public class DocumentController {
         }
 
         String encodedFileName = URLEncoder.encode(
-                document.getOriginal_name(),
+                document.getOriginal_name() + (document.getDocument_type() == null || document.getDocument_type().isBlank() ? "" : "." + document.getDocument_type()),
                 StandardCharsets.UTF_8
         ).replace("+", "%20");
 

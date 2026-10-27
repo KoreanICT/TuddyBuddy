@@ -1,5 +1,7 @@
 package kr.co.ictedu.back.attendance.controller;
 
+import java.util.List;
+
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +19,7 @@ import kr.co.ictedu.back.attendance.service.AttendanceService.AttendanceCheckRes
 import kr.co.ictedu.back.attendance.vo.AttendanceStatusVO;
 import kr.co.ictedu.back.member.service.MemberService;
 import kr.co.ictedu.back.member.vo.MemberVO;
+import kr.co.ictedu.back.point.vo.PointVO;
 
 /** 출석 HTTP 요청을 받고 인증된 회원을 확인한 뒤 서비스에 조회·저장을 위임한다. */
 @RestController
@@ -30,6 +33,7 @@ public class AttendanceController {
         this.attendance = attendance;
         this.members = members;
     }
+
 
     /** GET /api/attendance: month 생략 시 DB 한국 날짜의 현재 월을 조회한다. 정상 응답은 200이다. */
     @GetMapping

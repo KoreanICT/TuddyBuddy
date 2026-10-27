@@ -47,6 +47,12 @@ public class ActivityLogAspect {
 			case "joinByInviteCode" -> "GROUP_JOIN";
 			case "getMyGroups" -> "GROUP_MY_LIST";
 			case "getPublicGroups" -> "GROUP_PUBLIC_LIST";
+			case "requestJoin" -> "GROUP_JOIN_REQUEST";
+			// 방장이 가입 신청을 승인하거나 거절한 활동입니다.
+			// 현재 Controller 인수 순서:
+			// answerJoin(notificationNum, accept, authentication)
+			// 따라서 두 번째 인수인 [1]이 승인 여부입니다.
+			case "answerJoin" -> Boolean.TRUE.equals(jp.getArgs()[1]) ? "GROUP_JOIN_APPROVE" : "GROUP_JOIN_REJECT";
 			default -> null;
 		};
 		return recordSelectedActivity(jp, "GROUP", action);
@@ -97,6 +103,7 @@ public class ActivityLogAspect {
 	        case "getMethodName" -> "TDL_LIST";
 	        case "updateTdlStatus" -> "TDL_STATUS_CHANGE";
 	        case "updateTdl" -> "TDL_UPDATE";
+	        case "deleteTdl" -> "TDL_DELETE";
 			default -> null;
 		};
 		return recordSelectedActivity(jp, "GROUP", action);
@@ -162,6 +169,7 @@ public class ActivityLogAspect {
 			case "getResult" -> "QUIZ_RESULT_VIEW";
 			case "getResponses" -> "QUIZ_RESPONSE_LIST";
 			case "deleteSession" -> "QUIZ_SESSION_DELETE";
+			case "classifyQuiz" -> "QUIZ_CLASSIFY";
 			default -> null;
 		};
 		return recordSelectedActivity(jp, "SELFSTUDY", action);
@@ -274,6 +282,7 @@ public class ActivityLogAspect {
 			case "memberList" -> "ADMIN_MEMBER_LIST";
 			case "withdrawManagedMember" -> "ADMIN_MEMBER_WITHDRAW";
 			case "updateAuthority" -> "ADMIN_MEMBER_AUTHORITY_CHANGE";
+			case "getMyPointHistory" -> "MEMBER_POINT_HISTORY_VIEW";
 			default -> null;
 		};
 		return recordSelectedActivity(jp, "MEMBER", action);
@@ -301,6 +310,8 @@ public class ActivityLogAspect {
 			case "updateSubject" -> "ADMIN_SUBJECT_UPDATE";
 			case "updateSubjectStatus" -> "ADMIN_SUBJECT_STATUS_CHANGE";
 			case "getUsage" -> "ADMIN_SELFSTUDY_USAGE_VIEW";
+			case "permanentlyDeleteCategory" -> "ADMIN_CATEGORY_DELETE";
+			case "permanentlyDeleteSubject" -> "ADMIN_SUBJECT_DELETE";
 			default -> null;
 		};
 		return recordSelectedActivity(jp, "SELFSTUDY", action);
@@ -331,6 +342,7 @@ public class ActivityLogAspect {
 	        case "updatePost" -> "COMMUNITY_POST_UPDATE";
 	        case "deletePost" -> "COMMUNITY_POST_DELETE";
 	        case "like" -> "COMMUNITY_POST_LIKE";
+	        case "increaseViewCount" -> "COMMUNITY_POST_VIEW";
 			default -> null;
 		};
 		return recordSelectedActivity(jp, "COMMUNITY", action);
@@ -346,6 +358,7 @@ public class ActivityLogAspect {
 	        case "getAllNotification" -> "NOTIFICATION_LIST";
 	        case "readNotification" -> "NOTIFICATION_READ";
 	        case "readAll" -> "NOTIFICATION_READ_ALL";
+	        case "deleteNotification" -> "NOTIFICATION_DELETE";
 			default -> null;
 		};
 		return recordSelectedActivity(jp, "NOTIFICATION", action);
@@ -458,8 +471,33 @@ public class ActivityLogAspect {
 		// 기존 채팅 메시지를 그대로 반환합니다.
 		return response;
 	}	
-	
-	
+
+	// =====================================================
+	// 25. 관리자 게시글 관리
+	// =====================================================
+	@Around("execution(* kr.co.ictedu.back.admin.controller.BoardAdminController.*(..))")
+	public Object adminBoardActivities(ProceedingJoinPoint jp) throws Throwable {
+		String action = switch (jp.getSignature().getName()) {
+	        case "list" -> "ADMIN_BOARD_LIST";
+	        case "delete" -> "ADMIN_BOARD_DELETE";
+			default -> null;
+		};
+		return recordSelectedActivity(jp, "ADMIN", action);
+	}	
+
+	// =====================================================
+	// 26. 관리자 스터디 관리
+	// =====================================================
+	@Around("execution(* kr.co.ictedu.back.admin.controller.StudyAdminController.*(..))")
+	public Object adminStudyActivities(ProceedingJoinPoint jp) throws Throwable {
+		String action = switch (jp.getSignature().getName()) {
+	        case "list" -> "ADMIN_STUDY_LIST";
+	        case "delete" -> "ADMIN_STUDY_DELETE";
+			default -> null;
+		};
+		return recordSelectedActivity(jp, "ADMIN", action);
+	}	
+		
 	// =====================================================
 	// 공통 처리 1: 기록 대상 여부 확인
 	// =====================================================

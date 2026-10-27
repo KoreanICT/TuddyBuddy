@@ -1,3 +1,4 @@
+import { BACKEND_URL } from '../../login/authHttp';
 // 주용현
 
 import axios from 'axios';
@@ -58,11 +59,11 @@ const ReportReplyDetail: React.FC = () => {
 
                 const [reportResponse, replyResponse] = await Promise.all([
                     axios.get<ReportVO>(
-                        'http://localhost:80/back/api/report/reportDetail',
+                        `${BACKEND_URL}/api/report/reportDetail`,
                         { headers: getAuthHeaders(), params: { num: id } }
                     ),
                     axios.get<ReportReplyVO>(
-                        'http://localhost:80/back/api/report/reportReplyDetail',
+                        `${BACKEND_URL}/api/report/reportReplyDetail`,
                         { headers: getAuthHeaders(), params: { report_num: id } }
                     )
                 ]);
@@ -104,7 +105,7 @@ const ReportReplyDetail: React.FC = () => {
     // =========================
     // 신고 또는 답변이 없는 경우
     // =========================
-    if (!report || !reply) {
+    if (!report) {
         return (
             <div className={styles.replyDetail}>
                 <div className={styles.notFound}>존재하지 않는 신고 답변입니다.</div>
@@ -123,7 +124,7 @@ const ReportReplyDetail: React.FC = () => {
 
             {/* Header */}
             <div className={styles.replyDetailHeader}>
-                <h1>신고 답변 상세</h1>
+                <h1>신고 처리 내역</h1>
                 <p>신고 내용과 관리자의 처리 답변을 확인합니다.</p>
             </div>
 
@@ -155,6 +156,11 @@ const ReportReplyDetail: React.FC = () => {
                     <div className={styles.replyContentBox}>{report.content}</div>
                 </div>
 
+                <div className={styles.replyDetailRow}>
+                    <div className={styles.replyDetailLabel}>처리 상태</div>
+                    <div className={styles.replyDetailValue}>{({PENDING: '접수', REVIEWING: '검토 중', COMPLETED: '처리 완료', REJECTED: '반려'} as Record<string, string>)[report.status] ?? report.status}</div>
+                </div>
+
                 {/* 관리자 답변 */}
                 <div className={styles.replyDivider}>
                     신고 처리 답변
@@ -162,17 +168,17 @@ const ReportReplyDetail: React.FC = () => {
 
                 <div className={styles.replyDetailRow}>
                     <div className={styles.replyDetailLabel}>답변 번호</div>
-                    <div className={styles.replyDetailValue}>{reply.num}</div>
+                    <div className={styles.replyDetailValue}>{reply?.num ?? '아직 답변이 등록되지 않았습니다.'}</div>
                 </div>
 
                 <div className={styles.replyDetailRow}>
                     <div className={styles.replyDetailLabel}>답변일</div>
-                    <div className={styles.replyDetailValue}>{reply.created_date}</div>
+                    <div className={styles.replyDetailValue}>{reply?.created_date ?? '-'}</div>
                 </div>
 
                 <div className={styles.replyDetailContent}>
                     <div className={styles.replyDetailLabel}>관리자 답변</div>
-                    <div className={styles.replyContentBox}>{reply.content}</div>
+                    <div className={styles.replyContentBox}>{reply?.content ?? '관리자가 신고 내용을 확인하고 있습니다.'}</div>
                 </div>
 
             </div>

@@ -1,21 +1,11 @@
 import axios from 'axios';
-import store from '../../login/reducers/store';
+import { BACKEND_URL, installAuthInterceptors } from '../../login/authHttp';
 
 const api = axios.create({
-    baseURL: 'http://localhost/back/api',
+    baseURL: `${BACKEND_URL}/api`,
+    timeout: 15000,
 });
 
-api.interceptors.request.use((config) => {
-    // 요청 시점의 Redux 로그인 정보
-    const { token } = store.getState().auth;
-
-    if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-    } else {
-        delete config.headers.Authorization;
-    }
-
-    return config;
-});
+installAuthInterceptors(api);
 
 export default api;

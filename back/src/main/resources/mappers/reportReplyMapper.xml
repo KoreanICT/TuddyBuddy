@@ -22,11 +22,13 @@
 
 	<!-- 신고 번호로 답변 조회 -->
 	<select id="detail" parameterType="long" resultType="rerevo">
-		SELECT num, content, created_date, report_num, admin_num FROM
-		report_reply
-		WHERE report_num = #{report_num}
-		ORDER BY num DESC
-		FETCH FIRST 1 ROW ONLY
+		SELECT * FROM (
+			SELECT num, content, created_date, report_num, admin_num FROM
+			report_reply
+			WHERE report_num = #{report_num}
+			ORDER BY num DESC
+		)
+		WHERE ROWNUM &lt;= 1
 	</select>
 
 	<select id="findByNum" parameterType="long" resultType="rerevo">

@@ -1,3 +1,4 @@
+import { BACKEND_URL } from '../../login/authHttp';
 
 // 주용현
 
@@ -26,7 +27,7 @@ interface MemberProfile {
     MEMBER_CODE: string;
 }
 
-const FriendList: React.FC = () => {
+const FriendList: React.FC<{ embedded?: boolean }> = ({ embedded = false }) => {
     const [friends, setFriends] = useState<FriendVO[]>([]);
     const [inviteFriend, setInviteFriend] = useState<FriendVO | null>(null);
 
@@ -55,7 +56,7 @@ const FriendList: React.FC = () => {
         if (!token || memberNum == null) return;
 
         try {
-            const urls = "http://localhost:80/back/api/friend/friendList";
+            const urls = `${BACKEND_URL}/api/friend/friendList`;
             const response = await axios.get<FriendVO[]>(urls, {
                 headers: getAuthHeaders(),
                 params: { member_num: memberNum }
@@ -64,7 +65,7 @@ const FriendList: React.FC = () => {
             // 친구 회원 번호로 닉네임 조회
             const friendProfiles = await Promise.all(response.data.map(async friend => {
                 try {
-                    const profileUrl = "http://localhost:80/back/api/member/memberProfile";
+                    const profileUrl = `${BACKEND_URL}/api/member/memberProfile`;
                     const profile = await axios.get<MemberProfile>(profileUrl, {
                         headers: getAuthHeaders(),
                         params: { member_num: getFriendMemberNum(friend) }
@@ -103,7 +104,7 @@ const FriendList: React.FC = () => {
         if (!confirmed) return;
 
         try {
-            const urls = "http://localhost:80/back/api/friend/friendDelete";
+            const urls = `${BACKEND_URL}/api/friend/friendDelete`;
 
             await axios.delete(urls, {
                 headers: getAuthHeaders(),
@@ -122,7 +123,7 @@ const FriendList: React.FC = () => {
     };
 
     return (
-        <div className={styles.page}>
+        <div className={`${styles.page} ${embedded ? styles.embeddedPage : ''}`}>
             <div className={styles.container}>
 
                 {/* Header */}
@@ -134,7 +135,7 @@ const FriendList: React.FC = () => {
                 </div>
 
                 {/* 친구 관리 메뉴 */}
-                <FriendMenu />
+                {!embedded && <FriendMenu />}
 
                 {/* Summary */}
                 <div className={styles.summary}>

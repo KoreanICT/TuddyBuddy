@@ -48,6 +48,16 @@ public interface SelfStudyAdminDao {
             @Param("subjectId") Long subjectId,
             @Param("status") String status);
 
+    int deleteQuizResponsesBySubject(@Param("subjectId") Long subjectId);
+
+    int deleteResultsBySubject(@Param("subjectId") Long subjectId);
+
+    int deleteQuizzesBySubject(@Param("subjectId") Long subjectId);
+
+    int deleteQuizSessionsBySubject(@Param("subjectId") Long subjectId);
+
+    int deleteSubject(@Param("subjectId") Long subjectId);
+
     SelfStudyUsageSummaryVO selectUsageSummary(
             @Param("fromDate") java.time.LocalDateTime fromDate,
             @Param("toDateExclusive") java.time.LocalDateTime toDateExclusive);
