@@ -55,6 +55,11 @@ spec:
             # Connectivity and AI business functionality still need acceptance tests.
             - name: QUIZ_AI_BASE_URL
               value: http://13.124.62.97:8000/
+            - name: QUIZ_AI_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: tuddybuddy-quiz-ai
+                  key: token
             - name: QUIZ_AI_TIMEOUT_SECONDS
               value: "180"
             - name: FASTAPI_URL
