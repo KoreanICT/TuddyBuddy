@@ -1,3 +1,4 @@
+import { UserRoundPlus, ArrowRight } from 'lucide-react';
 import React, { useEffect, useState } from "react";
 import styles from './notification.module.css'
 import { getAllNotifications, deleteNotification } from "./NotificationAPI";
@@ -18,7 +19,11 @@ export const NotificationList: React.FC = () => {
     useEffect(() => {
         const refresh = () => setRevision(value => value + 1);
         window.addEventListener('notification-refresh', refresh);
-        return () => window.removeEventListener('notification-refresh', refresh);
+        window.addEventListener('notification-received', refresh);
+        return () => {
+            window.removeEventListener('notification-refresh', refresh);
+            window.removeEventListener('notification-received', refresh);
+        };
     }, []);
 
     const { changeNotification } = useNotification();
@@ -137,6 +142,7 @@ export const NotificationList: React.FC = () => {
                                     : notification.category === "COMMENT"
                                         ? "댓글"
                                         : notification.category === "STUDY_DELETED" ? "스터디 삭제"
+                                        : notification.category === "FRIEND_REQUEST" ? "친구 요청"
                                         : "스터디"}
                             </span>
 
@@ -180,6 +186,7 @@ export const NotificationList: React.FC = () => {
 
                             <footer className={styles.contentFooter}>
                                 {notification.category === 'STUDY_DELETED' && <Link to="/group">스터디 목록으로 이동</Link>}
+                                {notification.category === 'FRIEND_REQUEST' && <Link className={styles.friendRequestLink} to="/friend/request"><UserRoundPlus size={16} aria-hidden="true" />받은 요청 보기<ArrowRight size={15} aria-hidden="true" /></Link>}
                                 {reportNotificationLink(notification.category, notification.target_url) && (
                                     <Link to={notification.target_url}>신고 내용 확인</Link>
                                 )}

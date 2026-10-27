@@ -4,13 +4,14 @@ import { createPortal } from 'react-dom';
 import { useAuth } from '../../login/hooks/useAuth';
 import ReportButton from '../report/ReportButton';
 import styles from './profile.module.css';
+import { BACKEND_URL } from '../../login/authHttp';
 
 interface ProfileDetailModalProps {
     memberNum: number;
     onClose: () => void;
 }
 
-const API_URL = 'http://localhost:80/back/api';
+const API_URL = `${BACKEND_URL}/api`;
 
 const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({ memberNum, onClose }) => {
     const { memberNum: myMemberNum, token } = useAuth();

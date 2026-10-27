@@ -390,3 +390,30 @@
         padding: 18px 16px;
     }
 }
+.friendRequestLink {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    padding: 11px 16px;
+    border: 1px solid #6c50d8;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #7959e6, #6044cb);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.4;
+    text-decoration: none;
+    box-shadow: 0 4px 12px #6c50d826;
+    transition: background .15s ease, box-shadow .15s ease;
+}
+.friendRequestLink:hover {
+    background: #593bbb;
+    color: #fff;
+    text-decoration: none;
+    box-shadow: 0 5px 16px #6c50d83d;
+}
+.friendRequestLink:focus-visible {
+    outline: 3px solid #bca8f5;
+    outline-offset: 3px;
+}

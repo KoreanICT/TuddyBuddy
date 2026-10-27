@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import axios from 'axios';
 import { BACKEND_URL } from '../../login/authHttp';
 import { useAuth } from '../../login/hooks/useAuth';
@@ -62,6 +63,32 @@ const AttendanceCalendar: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [loadError, setLoadError] = useState('');
     const [notice, setNotice] = useState('');
+    const [rewardPopup, setRewardPopup] = useState<{ scope: string; amount: number } | null>(null);
+    const rewardConfirm = useRef<HTMLButtonElement>(null);
+    const visibleReward = rewardPopup?.scope === scope ? rewardPopup : null;
+
+    useEffect(() => {
+        if (!visibleReward) return;
+        const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        rewardConfirm.current?.focus();
+        const onKey = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                event.preventDefault();
+                setRewardPopup(null);
+            } else if (event.key === 'Tab') {
+                event.preventDefault();
+                rewardConfirm.current?.focus();
+            }
+        };
+        document.addEventListener('keydown', onKey);
+        return () => {
+            document.body.style.overflow = previousOverflow;
+            document.removeEventListener('keydown', onKey);
+            if (previousFocus?.isConnected) previousFocus.focus();
+        };
+    }, [visibleReward]);
     const [saving, setSaving] = useState(false);
     const saveLock = useRef(false);
     const postController = useRef<AbortController | null>(null);
@@ -107,6 +134,7 @@ const AttendanceCalendar: React.FC = () => {
 
     useEffect(() => {
         setNotice('');
+        setRewardPopup(null);
         setSaving(false);
         saveLock.current = false;
         return () => {
@@ -156,6 +184,9 @@ const AttendanceCalendar: React.FC = () => {
         try {
             // The server determines member, current Seoul date and reward. No body is sent.
             const response = await axios.post<{ rewardPoint: number }>(`${BACKEND_URL}/api/attendance/check`, undefined, { signal: controller.signal, timeout: 15000 });
+            if (unchanged() && Number.isSafeInteger(response.data?.rewardPoint) && response.data.rewardPoint > 0) {
+                setRewardPopup({ scope, amount: response.data.rewardPoint });
+            }
             if (unchanged()) setNotice(Number.isSafeInteger(response.data?.rewardPoint) && response.data.rewardPoint >= 0
                 ? `출석 완료! ${response.data.rewardPoint}P가 지급되었습니다.`
                 : '요청이 처리되었습니다. 서버에서 출석 기록을 다시 확인합니다.');
@@ -247,6 +278,24 @@ const AttendanceCalendar: React.FC = () => {
                 </aside>
             </div>
             <p className={styles.notice} role="status" aria-live="polite" aria-atomic="true">{notice}</p>
+            {visibleReward && createPortal(
+                <div className={styles.rewardOverlay} onClick={event => {
+                    if (event.target === event.currentTarget) setRewardPopup(null);
+                }}>
+                    <section className={styles.rewardDialog} role="dialog" aria-modal="true"
+                        aria-labelledby="attendance-reward-title" aria-describedby="attendance-reward-description">
+                        <div className={styles.rewardCoin} aria-hidden="true">P<span>✓</span></div>
+                        <p className={styles.rewardEyebrow}>오늘의 출석 보상</p>
+                        <h2 id="attendance-reward-title">포인트가 도착했어요!</h2>
+                        <div className={styles.rewardAmount}>+{visibleReward.amount.toLocaleString('ko-KR')}<span>P</span></div>
+                        <p id="attendance-reward-description" className={styles.rewardDescription}>
+                            오늘도 한 걸음 성장했어요.<br />출석 보상이 내 포인트에 적립되었어요.
+                        </p>
+                        <p className={styles.rewardStamp}>✓ 오늘 출석 완료 · 하루 한 번 지급</p>
+                        <button ref={rewardConfirm} type="button" className={styles.rewardConfirm}
+                            onClick={() => setRewardPopup(null)}>좋아요!</button>
+                    </section>
+                </div>, document.body)}
         </section>
     );
 };
