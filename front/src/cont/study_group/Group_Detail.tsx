@@ -1,3 +1,4 @@
+import { BACKEND_URL } from '../../login/authHttp';
 import api from './api';
 //작성자 : 오진석
 import React, { useEffect, useRef, useState } from 'react';
@@ -98,7 +99,7 @@ export const Group_Detail: React.FC = () => {
                     <div className={styles.group_header_card}>
                         <div className={styles.group_icon}>
                             {groupData?.group_thumbnail ? (
-                                <img src={`http://localhost/back/api/group/thumbnail/${encodeURIComponent(
+                                <img src={`${BACKEND_URL}/api/group/thumbnail/${encodeURIComponent(
                                     groupData.group_thumbnail
                                 )}`} alt="" className={styles.study_thumbnail_img} />
                             ) : (

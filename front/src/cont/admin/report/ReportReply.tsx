@@ -1,3 +1,4 @@
+import { BACKEND_URL } from '../../../login/authHttp';
 // 주용현
 
 import axios from 'axios';
@@ -67,10 +68,10 @@ const ReportReply: React.FC = () => {
                 setStatus('COMPLETED');
 
                 const [response, replyResponse] = await Promise.all([axios.get<ReportVO>(
-                    'http://localhost:80/back/api/report/reportDetail',
+                    `${BACKEND_URL}/api/report/reportDetail`,
                     { headers: getAuthHeaders(), params: { num: id } }
                 ), axios.get<{ num: number } | null>(
-                    'http://localhost:80/back/api/report/reportReplyDetail',
+                    `${BACKEND_URL}/api/report/reportReplyDetail`,
                     { headers: getAuthHeaders(), params: { report_num: id } }
                 )]);
 
@@ -146,7 +147,7 @@ const ReportReply: React.FC = () => {
             replyFormData.append('sendNotification', String(sendNotification));
 
             await axios.post(
-                'http://localhost:80/back/api/report/reportReplyAdd',
+                `${BACKEND_URL}/api/report/reportReplyAdd`,
                 replyFormData,
                 { headers: getAuthHeaders() }
             );

@@ -1,3 +1,4 @@
+import { BACKEND_URL } from '../../../login/authHttp';
 
 // 주용현, 이주화
 
@@ -67,7 +68,7 @@ const ReportList: React.FC = () => {
         setStatistics(null);
         setStatisticsLoading(true);
         setStatisticsError('');
-        void axios.get<ReportStatistics>('http://localhost:80/back/api/report/reportStatistics', {
+        void axios.get<ReportStatistics>(`${BACKEND_URL}/api/report/reportStatistics`, {
             headers: getAuthHeaders(),
             params: statusFilter === 'ALL' ? {} : { status: statusFilter }
         }).then(response => {
@@ -101,7 +102,7 @@ const ReportList: React.FC = () => {
                 }
 
                 const response = await axios.get<ReportListResponse>(
-                    'http://localhost:80/back/api/report/reportList',
+                    `${BACKEND_URL}/api/report/reportList`,
                     { headers: getAuthHeaders(), params }
                 );
 
