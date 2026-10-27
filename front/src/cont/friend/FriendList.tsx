@@ -3,7 +3,8 @@ import { BACKEND_URL } from '../../login/authHttp';
 // 주용현
 
 import axios from 'axios';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { UserRound, Trash2, Users } from 'lucide-react';
 
 import styles from './friendList.module.css';
@@ -30,9 +31,39 @@ interface MemberProfile {
 const FriendList: React.FC<{ embedded?: boolean }> = ({ embedded = false }) => {
     const [friends, setFriends] = useState<FriendVO[]>([]);
     const [inviteFriend, setInviteFriend] = useState<FriendVO | null>(null);
+    const [deleteTarget, setDeleteTarget] = useState<FriendVO | null>(null);
+    const [deleting, setDeleting] = useState(false);
+    const [deleteError, setDeleteError] = useState('');
+    const [deleteNotice, setDeleteNotice] = useState('');
+    const deleteDialog = useRef<HTMLDialogElement>(null);
+    const cancelButton = useRef<HTMLButtonElement>(null);
+    const deleteRequest = useRef<AbortController | null>(null);
 
     // 커스텀 훅에서 member_num 가져오기
     const { memberNum, token } = useAuth();
+
+    useEffect(() => {
+        setDeleteTarget(null);
+        setDeleteNotice('');
+        return () => { deleteRequest.current?.abort(); deleteRequest.current = null; };
+    }, [memberNum, token]);
+
+    useEffect(() => {
+        if (!deleteTarget) return;
+        const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+        const previousOverflow = document.body.style.overflow;
+        const dialog = deleteDialog.current;
+        dialog?.showModal();
+        document.body.style.overflow = 'hidden';
+        cancelButton.current?.focus();
+        return () => {
+            dialog?.close();
+            document.body.style.overflow = previousOverflow;
+            if (previousFocus?.isConnected) previousFocus.focus();
+        };
+    }, [deleteTarget]);
+
+    const closeDelete = () => { if (!deleteRequest.current) setDeleteTarget(null); };
 
     const getAuthHeaders = useCallback(() => ({
         ...(token ? { Authorization: `Bearer ${token}` } : {})
@@ -94,19 +125,20 @@ const FriendList: React.FC<{ embedded?: boolean }> = ({ embedded = false }) => {
     }, [memberNum, token, fetchFriendList]);
 
     // 친구 삭제
-    const handleDeleteFriend = async (friendNum: number) => {
-        if (!token || memberNum == null) {
-            alert('로그인 정보가 없습니다.');
-            return;
-        }
-
-        const confirmed = window.confirm('친구를 삭제하시겠습니까?');
-        if (!confirmed) return;
+    const handleDeleteFriend = async () => {
+        if (!token || memberNum == null || !deleteTarget || deleteRequest.current) return;
+        const friendNum = deleteTarget.num;
+        const controller = new AbortController();
+        deleteRequest.current = controller;
+        setDeleting(true);
+        setDeleteError('');
 
         try {
             const urls = `${BACKEND_URL}/api/friend/friendDelete`;
 
             await axios.delete(urls, {
+                signal: controller.signal,
+                timeout: 15000,
                 headers: getAuthHeaders(),
                 params: {
                     num: friendNum,
@@ -114,11 +146,17 @@ const FriendList: React.FC<{ embedded?: boolean }> = ({ embedded = false }) => {
                 }
             });
 
+            if (controller.signal.aborted) return;
             setFriends(prev => prev.filter(friend => friend.num !== friendNum));
-            alert('친구가 삭제되었습니다.');
+            setDeleteTarget(null);
+            setDeleteNotice('친구 목록에서 삭제되었습니다.');
         } catch (error) {
-            console.error('친구 삭제 실패:', error);
-            alert('친구 삭제에 실패했습니다.');
+            if (!controller.signal.aborted) setDeleteError('삭제를 완료하지 못했습니다. 목록을 확인한 후 다시 시도해주세요.');
+        } finally {
+            if (deleteRequest.current === controller) {
+                deleteRequest.current = null;
+                setDeleting(false);
+            }
         }
     };
 
@@ -152,6 +190,7 @@ const FriendList: React.FC<{ embedded?: boolean }> = ({ embedded = false }) => {
                 </div>
 
                 {/* Friend List */}
+                {deleteNotice && <p className={styles.deleteNotice} role="status">{deleteNotice}</p>}
                 <div className={styles.list}>
                     {friends.length > 0 ? (
                         friends.map(friend => (
@@ -177,7 +216,8 @@ const FriendList: React.FC<{ embedded?: boolean }> = ({ embedded = false }) => {
                                     <button
                                         type="button"
                                         className={styles.deleteButton}
-                                        onClick={() => handleDeleteFriend(friend.num)}
+                                        onClick={() => { setDeleteError(''); setDeleting(false); setDeleteTarget(friend); }}
+                                        aria-haspopup="dialog"
                                         aria-label="친구 삭제"
                                         title="친구 삭제"
                                     >
@@ -199,6 +239,22 @@ const FriendList: React.FC<{ embedded?: boolean }> = ({ embedded = false }) => {
             </div>
             {inviteFriend && <FriendStudyInviteModal key={inviteFriend.num}
                 friendNick={inviteFriend.member_nick || '친구'} onClose={() => setInviteFriend(null)} />}
+            {deleteTarget && createPortal(
+                <dialog ref={deleteDialog} className={styles.deleteDialog} aria-labelledby="friend-delete-title"
+                    aria-describedby="friend-delete-description" onCancel={event => { event.preventDefault(); closeDelete(); }}
+                    onClick={event => { if (event.target === event.currentTarget) closeDelete(); }}>
+                    <div className={styles.deleteDialogBody}>
+                        <div className={styles.deleteDialogIcon}><Trash2 size={26} aria-hidden="true" /></div>
+                        <h2 id="friend-delete-title">친구를 삭제할까요?</h2>
+                        <p id="friend-delete-description">친구 목록에서 아래 회원을 삭제합니다.<br />다시 친구가 되려면 새로운 요청이 필요해요.</p>
+                        <div className={styles.deleteFriendCard}><UserRound size={22} aria-hidden="true" /><strong>{deleteTarget.member_nick || '알 수 없는 회원'}</strong></div>
+                        {deleteError && <p className={styles.deleteError} role="alert">{deleteError}</p>}
+                        <div className={styles.deleteDialogActions}>
+                            <button ref={cancelButton} type="button" disabled={deleting} onClick={closeDelete}>취소</button>
+                            <button type="button" disabled={deleting} onClick={() => void handleDeleteFriend()}>{deleting ? '삭제 중…' : '친구 삭제'}</button>
+                        </div>
+                    </div>
+                </dialog>, document.body)}
         </div>
     );
 };

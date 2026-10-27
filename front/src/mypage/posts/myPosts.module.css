@@ -40,7 +40,7 @@
     border-bottom: 1px solid #edf0f6;
 }
 
-.postButton {
+.postRow {
     display: flex;
     align-items: center;
     gap: 12px;
@@ -51,11 +51,6 @@
     color: inherit;
     font: inherit;
     text-align: left;
-    cursor: pointer;
-}
-
-.postButton:hover {
-    background: #f8f9fc;
 }
 
 .category {
@@ -77,20 +72,6 @@
     overflow-wrap: anywhere;
 }
 
-.indicator {
-    flex-shrink: 0;
-    color: #788198;
-    font-size: 20px;
-}
-
-.content {
-    padding: 4px 12px 24px;
-    color: #596379;
-    font-size: 14px;
-    line-height: 1.8;
-    white-space: pre-wrap;
-    overflow-wrap: anywhere;
-}
 
 .state {
     padding: 44px 12px;
@@ -148,7 +129,7 @@
         font-size: 23px;
     }
 
-    .postButton {
+    .postRow {
         gap: 8px;
     }
 }

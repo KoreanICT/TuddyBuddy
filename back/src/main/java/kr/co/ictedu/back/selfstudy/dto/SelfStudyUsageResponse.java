@@ -3,8 +3,6 @@ package kr.co.ictedu.back.selfstudy.dto;
 
 import java.util.List;
 
-import org.apache.ibatis.type.Alias;
-
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "셀프스터디 이용 현황 조회 응답")

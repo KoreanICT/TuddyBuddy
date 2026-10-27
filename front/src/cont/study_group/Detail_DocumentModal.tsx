@@ -16,7 +16,6 @@ export const Detail_DocumentModal: React.FC<DocumentModalProps> = ({isOpen,onClo
 
     const [title, setTitle] = useState<string>('');
     const [file, setFile] = useState<File | null>(null);
-    const [fileName, setFileName] = useState('');
     
     const [isSaving, setIsSaving] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -31,7 +30,6 @@ export const Detail_DocumentModal: React.FC<DocumentModalProps> = ({isOpen,onClo
                 const response = await api.get(`/detail/document/getPatchDocument/${documentNum}`);
                 const data = response.data;
                 setTitle(data.document_title ?? '');
-                setFileName(data.original_name ?? '');
                 setFile(null);
             } catch (error) {
                 console.error('문서 수정 정보 조회 실패', error)

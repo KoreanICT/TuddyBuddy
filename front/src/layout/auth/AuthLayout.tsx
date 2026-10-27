@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import styles from './authLayout.module.css';
 
 interface AuthLayoutProps {
@@ -7,8 +7,9 @@ interface AuthLayoutProps {
 }
 
 const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
+    const isMyPage = useLocation().pathname === '/auth/mypage';
     return (
-        <div className={styles.authLayout}>
+        <div className={`${styles.authLayout} ${isMyPage ? styles.myPageLayout : ''}`}>
 
             {/* 홈 이동 로고 */}
             <Link to="/" className={styles.logo}>

@@ -40,7 +40,6 @@ interface SchedulePatchRequest {
 export const Project_Calendar: React.FC<GetGroupNum> = ({ groupNum }) => {
 
     const today = new Date();
-    const [isLoading, setIsLoading] = useState(false);
     const [editingScheduleNum, setEditingScheduleNum] = useState<number | null>(null);
     /*
      * 현재 달력에서 보고 있는 년 / 월
@@ -108,7 +107,6 @@ export const Project_Calendar: React.FC<GetGroupNum> = ({ groupNum }) => {
     const loadData = async () => {
 
         try {
-            setIsLoading(true);
             const response = await api.get(
                 `/detail/schedule/getEvents/${groupNum}`
             )
@@ -120,8 +118,6 @@ export const Project_Calendar: React.FC<GetGroupNum> = ({ groupNum }) => {
 
         } catch (error) {
 
-        } finally {
-            setIsLoading(false);
         }
     }
 
@@ -250,7 +246,6 @@ export const Project_Calendar: React.FC<GetGroupNum> = ({ groupNum }) => {
         };
 
         try {
-            setIsLoading(true);
             await api.post(
                 `/detail/schedule/addSchedule/${groupNum}`,
                 newSchedule
@@ -260,8 +255,6 @@ export const Project_Calendar: React.FC<GetGroupNum> = ({ groupNum }) => {
         } catch (error) {
             console.log('등록 실패', error);
             alert("등록에 실패하였습니다.");
-        } finally {
-            setIsLoading(false);
         }
         setIsRegisterOpen(false); 
     };
@@ -319,7 +312,6 @@ export const Project_Calendar: React.FC<GetGroupNum> = ({ groupNum }) => {
         };
 
         try {
-            setIsLoading(true);
             await api.patch(
                 `/detail/schedule/updateSchedule/${editingScheduleNum}`,
                 updateSchedule
@@ -332,8 +324,6 @@ export const Project_Calendar: React.FC<GetGroupNum> = ({ groupNum }) => {
         } catch (error) {
             console.log('수정 실패', error);
             alert("수정에 실패하였습니다.");
-        } finally {
-            setIsLoading(false);
         }
 
         setIsRegisterOpen(false);

@@ -1,6 +1,5 @@
 package kr.co.ictedu.back.group.vo;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import org.apache.ibatis.type.Alias;

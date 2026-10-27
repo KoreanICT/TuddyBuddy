@@ -25,11 +25,8 @@ export const MOCK_PRODUCTS: Product[] = [
   { id: 6, porint: 50000, price: 50000, image: '/images/point-products/buddy-50000.png', portraitAlt: '그랜트 스타일 버디' },
 ];
 
-interface ProductSelectorProps {
-  onSelectOrder?: (selectedProduct: Product) => void;
-}
 
-export const ProductSelector: React.FC<ProductSelectorProps> = ({ onSelectOrder }) => {
+export const ProductSelector: React.FC = () => {
   const { token, memberNum } = useAuth();
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isLoading, setIsLoading] = useState(false);

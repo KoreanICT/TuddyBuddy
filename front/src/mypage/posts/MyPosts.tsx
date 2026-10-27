@@ -7,7 +7,6 @@ import styles from './myPosts.module.css';
 interface MyPost {
     postNum: number;
     title: string;
-    content: string;
     category: string;
 }
 
@@ -26,13 +25,11 @@ const MyPosts: React.FC = () => {
     const [retry, setRetry] = useState(0);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [expandedPost, setExpandedPost] = useState<number | null>(null);
     const [snapshot, setSnapshot] = useState<{ owner: number; response: MyPostsResponse } | null>(null);
     const result = isLoggedIn && snapshot && snapshot.owner === memberNum ? snapshot.response : null;
 
     useEffect(() => {
         const controller = new AbortController();
-        setExpandedPost(null);
         setSnapshot(null);
         setError('');
 
@@ -72,14 +69,13 @@ const MyPosts: React.FC = () => {
 
     const changePage = (nextPage: number) => {
         setPage(nextPage);
-        setExpandedPost(null);
     };
 
     return (
         <section className={styles.container} aria-labelledby="mypage-posts-title" aria-busy={loading}>
             <header className={styles.header}>
                 <h2 id="mypage-posts-title">나의 게시글</h2>
-                <p>작성한 게시글을 확인할 수 있습니다. 제목을 누르면 본문이 펼쳐집니다.</p>
+                <p>내가 작성한 게시글 목록을 확인할 수 있습니다.</p>
             </header>
 
             {loading ? (
@@ -93,28 +89,14 @@ const MyPosts: React.FC = () => {
                 <>
                     <p className={styles.summary}>전체 <strong>{result.totalItems.toLocaleString('ko-KR')}</strong>건</p>
                     <ul className={styles.list}>
-                        {result.data.map(post => {
-                            const expanded = expandedPost === post.postNum;
-                            const contentId = `mypage-post-content-${post.postNum}`;
-                            return (
+                        {result.data.map(post => (
                                 <li key={post.postNum} className={styles.item}>
-                                    <button
-                                        type="button"
-                                        className={styles.postButton}
-                                        aria-expanded={expanded}
-                                        aria-controls={contentId}
-                                        onClick={() => setExpandedPost(expanded ? null : post.postNum)}
-                                    >
+                                    <div className={styles.postRow}>
                                         <span className={styles.category}>{post.category || '미분류'}</span>
                                         <span className={styles.title}>{post.title || '제목 없음'}</span>
-                                        <span className={styles.indicator} aria-hidden="true">{expanded ? '−' : '+'}</span>
-                                    </button>
-                                    <div id={contentId} className={styles.content} hidden={!expanded}>
-                                        {post.content || '본문이 없습니다.'}
                                     </div>
                                 </li>
-                            );
-                        })}
+                        ))}
                     </ul>
                     {result.totalPages > 1 && (
                         <nav className={styles.pagination} aria-label="나의 게시글 페이지">

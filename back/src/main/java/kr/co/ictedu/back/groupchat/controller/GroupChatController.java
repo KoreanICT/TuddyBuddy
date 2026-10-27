@@ -11,8 +11,6 @@ import org.springframework.stereotype.Controller;
 
 import kr.co.ictedu.back.groupchat.GroupChatService;
 import kr.co.ictedu.back.groupchat.vo.GroupChatVO;
-import kr.co.ictedu.back.member.vo.MemberVO;
-
 @Controller
 public class GroupChatController {
 

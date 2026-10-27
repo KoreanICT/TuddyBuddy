@@ -13,7 +13,6 @@ interface Props {
   restoring: boolean;
   deleting: boolean;
   historyError: string;
-  onRefreshHistory: () => Promise<void>;
   onRestoreSession: (sessionId: number) => Promise<void>;
   onDeleteSession: (sessionId: number) => Promise<void>;
 }

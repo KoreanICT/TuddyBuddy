@@ -301,3 +301,29 @@
   .summary { margin-bottom: 24px; padding: 14px 18px; }
   .embeddedPage { padding: 0; }
 }
+.deleteDialog {
+  width: min(400px, calc(100vw - 32px));
+  max-height: calc(100dvh - 40px);
+  padding: 0;
+  border: 1px solid #eee9f4;
+  border-radius: 24px;
+  background: #fff;
+  color: #29324a;
+  box-shadow: 0 24px 80px #21143d33;
+}
+.deleteDialog::backdrop { background: #19152d80; backdrop-filter: blur(4px); }
+.deleteDialogBody { padding: 30px 26px 24px; text-align: center; }
+.deleteDialogIcon { display: grid; place-items: center; width: 60px; height: 60px; margin: 0 auto 20px; border-radius: 20px; background: #fff0f1; color: #df5366; }
+.deleteDialogBody h2 { margin: 0 0 12px; font-size: 23px; font-weight: 700; letter-spacing: -.6px; }
+.deleteDialogBody > p { margin: 0; color: #73798b; font-size: 13px; line-height: 1.8; }
+.deleteFriendCard { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 22px 0; padding: 15px; border: 1px solid #ece8f4; border-radius: 12px; background: #f9f7fd; color: #72608f; }
+.deleteFriendCard strong { color: #343047; overflow-wrap: anywhere; min-width: 0; }
+.deleteDialogActions { display: flex; gap: 10px; margin-top: 24px; }
+.deleteDialogActions button { flex: 1; padding: 12px 10px; border: 1px solid #e3dfeb; border-radius: 11px; background: #fff; color: #5d566d; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+.deleteDialogActions button:last-child { border-color: #dd5265; background: #dd5265; color: #fff; }
+.deleteDialogActions button:hover:not(:disabled) { background: #f5f2fa; }
+.deleteDialogActions button:last-child:hover:not(:disabled) { background: #c94355; }
+.deleteDialogActions button:focus-visible { outline: 3px solid #bba6e3; outline-offset: 3px; }
+.deleteDialogActions button:disabled { opacity: .6; cursor: wait; }
+.deleteDialogBody .deleteError { color: #ba3048; }
+.deleteNotice { margin: 16px 0; padding: 12px 16px; border-radius: 10px; background: #f2eefb; color: #695192; font-size: 13px; }

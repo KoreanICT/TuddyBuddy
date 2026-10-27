@@ -7,8 +7,6 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import kr.co.ictedu.back.notice.dao.NoticeDao;
 import kr.co.ictedu.back.notice.vo.NoticeVO;
 

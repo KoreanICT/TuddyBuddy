@@ -1,7 +1,5 @@
 package kr.co.ictedu.back.attendance.controller;
 
-import java.util.List;
-
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,8 +17,6 @@ import kr.co.ictedu.back.attendance.service.AttendanceService.AttendanceCheckRes
 import kr.co.ictedu.back.attendance.vo.AttendanceStatusVO;
 import kr.co.ictedu.back.member.service.MemberService;
 import kr.co.ictedu.back.member.vo.MemberVO;
-import kr.co.ictedu.back.point.vo.PointVO;
-
 /** 출석 HTTP 요청을 받고 인증된 회원을 확인한 뒤 서비스에 조회·저장을 위임한다. */
 @RestController
 @RequestMapping("/api/attendance")

@@ -6,7 +6,7 @@ import MyPage from "../mypage/MyPage";
 import { ProductSelector } from "../cont/point/ProductSelector";
 import PerformanceAnalytics from "../cont/statistics/PerformanceAnalytics";
 import React from "react";
-import { Route, Routes, useLocation, Navigate } from "react-router-dom";
+import { Route, Routes, useLocation } from "react-router-dom";
 import { Group_Home } from "../cont/study_group/Group_Home";
 import { Group_Detail } from "../cont/study_group/Group_Detail";
 import AdminHome from "../cont/admin/AdminHome";

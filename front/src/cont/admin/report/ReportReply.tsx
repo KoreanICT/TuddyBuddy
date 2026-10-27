@@ -298,7 +298,7 @@ const ReportReply: React.FC = () => {
                             onChange={(e) => setSendNotification(e.target.checked)}
                             disabled={submitting}
                         />
-                        신고자에게 처리 결과 알림 보내기 (구현 예정)
+                        신고자에게 처리 결과 알림 보내기
                     </label>
                     <p>현재 알림 기능은 연결되지 않았으며, 답변만 등록됩니다.</p>
                 </div>
