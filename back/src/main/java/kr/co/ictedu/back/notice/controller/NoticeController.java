@@ -8,6 +8,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,8 +31,6 @@ import org.springframework.web.multipart.MultipartFile;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
@@ -76,6 +75,35 @@ public class NoticeController {
     @Value("${spring.servlet.multipart.location}")
     private String filePath;
 
+    private Path saveNoticeImage(MultipartFile file, Path uploadDir) throws IOException {
+        String original = file.getOriginalFilename();
+        if (original == null || original.isBlank()) {
+            throw new IllegalArgumentException("파일명이 올바르지 않습니다.");
+        }
+        int dot = original.lastIndexOf('.');
+        String extension = dot < 0 ? "" : original.substring(dot);
+        if (!extension.matches("\\.[A-Za-z0-9]{1,5}")) extension = "";
+        Files.createDirectories(uploadDir);
+        // Atomic reservation: no original filename is ever used as a storage path.
+        Path target = Files.createFile(uploadDir.resolve("notice-" + UUID.randomUUID() + extension));
+        try {
+            file.transferTo(target);
+            return target;
+        } catch (IOException | RuntimeException error) {
+            Files.deleteIfExists(target);
+            throw error;
+        }
+    }
+
+    private void removeNewImage(Path path) {
+        if (path == null) return;
+        try {
+            Files.deleteIfExists(path);
+        } catch (IOException error) {
+            error.printStackTrace();
+        }
+    }
+
     // 파일 업로드 경로 확인
     @Operation(
         summary = "파일 업로드 경로 확인",
@@ -105,29 +133,22 @@ public class NoticeController {
         vo.setMember_num(requireManager(authentication).getMember_num());
         MultipartFile mf = vo.getMfile();
         Path uploadDir = Paths.get(filePath);
+        Path newImage = null;
+        vo.setImgn(null);
 
         try {
             if (mf != null && !mf.isEmpty()) {
-                String oriFn = mf.getOriginalFilename();
-
-                if (oriFn == null || oriFn.isBlank()) {
-                    return ResponseEntity.badRequest().body("파일명이 올바르지 않습니다.");
-                }
-
-                System.out.println("파일 이름 : " + oriFn);
-
-                if (!Files.exists(uploadDir)) {
-                    Files.createDirectories(uploadDir);
-                }
-
-                Path savePath = uploadDir.resolve(oriFn);
-                mf.transferTo(savePath);
-                vo.setImgn(oriFn);
+                newImage = saveNoticeImage(mf, uploadDir);
+                vo.setImgn(newImage.getFileName().toString());
             }
 
             noticeService.add(vo);
 
+        } catch (IllegalArgumentException e) {
+            removeNewImage(newImage);
+            return ResponseEntity.badRequest().body("파일명이 올바르지 않습니다.");
         } catch (Exception e) {
+            removeNewImage(newImage);
             e.printStackTrace();
             return ResponseEntity.internalServerError().body("업로드 실패");
         }
@@ -243,19 +264,8 @@ public class NoticeController {
         try {
             // 2. 새 이미지 업로드
             if (mf != null && !mf.isEmpty()) {
-                Files.createDirectories(uploadDir);
-
-                String oriFn = mf.getOriginalFilename();
-
-                if (oriFn == null || oriFn.isBlank()) {
-                    return ResponseEntity.badRequest().body("파일명이 올바르지 않습니다.");
-                }
-
-                String saveName = oriFn;
-                newFilePath = uploadDir.resolve(saveName);
-
-                mf.transferTo(newFilePath);
-                vo.setImgn(saveName);
+                newFilePath = saveNoticeImage(mf, uploadDir);
+                vo.setImgn(newFilePath.getFileName().toString());
 
             } else if (deleteImage) {
                 // 3. 기존 이미지 삭제 요청
@@ -278,7 +288,10 @@ public class NoticeController {
             if (imageChanged &&
                     oldImgn != null &&
                     !oldImgn.isBlank() &&
-                    !oldImgn.equals(vo.getImgn())) {
+                    !oldImgn.equals(vo.getImgn()) &&
+                    oldImgn.matches("notice-[a-f0-9-]{36}(?:\\.[A-Za-z0-9]{1,5})?")) {
+
+                // Legacy original filenames may be shared by other notices. Keep them.
 
                 Path oldFilePath = uploadDir.resolve(oldImgn);
 
@@ -291,6 +304,9 @@ public class NoticeController {
 
             return ResponseEntity.ok(result);
 
+        } catch (IllegalArgumentException e) {
+            removeNewImage(newFilePath);
+            return ResponseEntity.badRequest().body("파일명이 올바르지 않습니다.");
         } catch (Exception e) {
             e.printStackTrace();
 

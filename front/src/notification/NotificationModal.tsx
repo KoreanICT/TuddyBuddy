@@ -1,5 +1,5 @@
 import { UserRoundPlus, ArrowRight } from 'lucide-react';
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import styles from './notification.module.css';
 import { answerJoin, NotificationData } from './NotificationAPI';
 import { useNotification } from './NotificationProvider';
@@ -21,11 +21,6 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({ notificati
 
     const busyRef = useRef<boolean>(false);
 
-    const sortedNotifications = useMemo(() => {
-        return [...notifications].sort((a, b) =>
-            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-        );
-    }, [notifications]);
 
     const handleAnswer = async (notificationNum: number, accept: boolean): Promise<void> => {
         if (busyRef.current) return;
@@ -89,6 +84,7 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({ notificati
             case 'STUDY_DELETED': return '스터디 삭제';
             case 'REPORT': return '신고';
             case 'FRIEND_REQUEST': return '친구 요청';
+            case 'FRIEND_ACCEPTED': return '친구 수락';
             case 'COMMENT': return '댓글';
             default: return '';
         }
@@ -195,6 +191,7 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({ notificati
                                         <p>{notification.message}</p>
                                         {notification.category === 'STUDY_DELETED' && <p><Link to="/group" onClick={onClose}>스터디 목록으로 이동</Link></p>}
                                         {notification.category === 'FRIEND_REQUEST' && <p><Link className={styles.friendRequestLink} to="/friend/request" onClick={onClose}><UserRoundPlus size={16} aria-hidden="true" />받은 요청 보기<ArrowRight size={15} aria-hidden="true" /></Link></p>}
+                                        {notification.category === 'FRIEND_ACCEPTED' && <p><Link className={styles.friendRequestLink} to="/friend/list" onClick={onClose}><UserRoundPlus size={16} aria-hidden="true" />내 친구 보기<ArrowRight size={15} aria-hidden="true" /></Link></p>}
                                         {reportNotificationLink(notification.category, notification.target_url) && (
                                             <p><Link to={notification.target_url} onClick={onClose}>신고 내용 확인</Link></p>
                                         )}

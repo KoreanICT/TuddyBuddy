@@ -143,6 +143,7 @@ export const NotificationList: React.FC = () => {
                                         ? "댓글"
                                         : notification.category === "STUDY_DELETED" ? "스터디 삭제"
                                         : notification.category === "FRIEND_REQUEST" ? "친구 요청"
+                                        : notification.category === "FRIEND_ACCEPTED" ? "친구 수락"
                                         : "스터디"}
                             </span>
 
@@ -187,6 +188,7 @@ export const NotificationList: React.FC = () => {
                             <footer className={styles.contentFooter}>
                                 {notification.category === 'STUDY_DELETED' && <Link to="/group">스터디 목록으로 이동</Link>}
                                 {notification.category === 'FRIEND_REQUEST' && <Link className={styles.friendRequestLink} to="/friend/request"><UserRoundPlus size={16} aria-hidden="true" />받은 요청 보기<ArrowRight size={15} aria-hidden="true" /></Link>}
+                                {notification.category === 'FRIEND_ACCEPTED' && <Link className={styles.friendRequestLink} to="/friend/list"><UserRoundPlus size={16} aria-hidden="true" />내 친구 보기<ArrowRight size={15} aria-hidden="true" /></Link>}
                                 {reportNotificationLink(notification.category, notification.target_url) && (
                                     <Link to={notification.target_url}>신고 내용 확인</Link>
                                 )}

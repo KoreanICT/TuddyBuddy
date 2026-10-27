@@ -1,7 +1,6 @@
 //김진규
 package kr.co.ictedu.back.point.controller;
 
-import java.sql.Date;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,8 +9,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.co.ictedu.back.point.service.PointService;
-import kr.co.ictedu.back.point.vo.PointVO;
-
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

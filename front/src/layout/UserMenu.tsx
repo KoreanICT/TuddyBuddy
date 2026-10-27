@@ -13,7 +13,6 @@ import RoleGate from '../login/auth/RoleGate';
 import { useRoleAccess } from '../login/hooks/useRoleAccess';
 import { useNotification } from '../notification/NotificationProvider';
 import { NotificationModal } from '../notification/NotificationModal';
-import { NotificationList } from "../notification/NotificationList";
 const UserMenu: React.FC = () => {
 
   // Redux JWT 로그인 상태

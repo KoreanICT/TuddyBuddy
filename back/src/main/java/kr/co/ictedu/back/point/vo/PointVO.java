@@ -2,8 +2,6 @@
 package kr.co.ictedu.back.point.vo;
 
 import java.sql.Date;
-import java.time.LocalDateTime;
-
 import org.apache.ibatis.type.Alias;
 
 import lombok.Getter;

@@ -8,7 +8,6 @@ import org.apache.ibatis.annotations.Mapper;
 
 import org.apache.ibatis.annotations.Param;
 
-import kr.co.ictedu.back.group.dto.GroupListDTO;
 import kr.co.ictedu.back.group.vo.GroupMemberVO;
 import kr.co.ictedu.back.group.vo.GroupVO;
 import kr.co.ictedu.back.group.vo.TagVO;

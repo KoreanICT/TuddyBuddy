@@ -12,7 +12,6 @@ interface Props {
   restoring: boolean;
   deleting: boolean;
   historyError: string;
-  onRefreshHistory: () => void | Promise<void>;
   onRestoreSession: (sessionId: number) => void | Promise<void>;
   onDeleteSession: (sessionId: number) => void | Promise<void>;
 }
@@ -25,7 +24,6 @@ export const StudyHistory: React.FC<Props> = ({
   restoring,
   deleting,
   historyError,
-  onRefreshHistory,
   onRestoreSession,
   onDeleteSession,
 }) => {

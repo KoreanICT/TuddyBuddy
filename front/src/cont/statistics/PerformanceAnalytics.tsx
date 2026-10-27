@@ -1,5 +1,5 @@
 //김진규
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { AlertTriangle, BookOpen, Brain, MessageSquareQuote, TrendingUp, BarChart3 } from 'lucide-react';

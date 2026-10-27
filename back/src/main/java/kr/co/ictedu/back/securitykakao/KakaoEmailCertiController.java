@@ -11,8 +11,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import kr.co.ictedu.back.member.dao.CertiNumRedisDao;
 import kr.co.ictedu.back.member.service.EmailSender;
-import kr.co.ictedu.back.member.vo.EmailCheckVO;
-
 @RestController
 @RequestMapping("/api/auth/kakao/email")
 public class KakaoEmailCertiController {

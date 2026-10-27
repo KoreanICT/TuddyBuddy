@@ -34,7 +34,6 @@ const FriendAdd: React.FC<{ embedded?: boolean }> = ({ embedded = false }) => {
     }), [token]);
     const { profile, loading } = useMyProfileInfo();
     const myMemberCode = profile?.member_code ?? '';
-    const myMemberNick = profile?.member_nick ?? '';
 
     // 회원 코드 검색
     const handleSearch = async () => {

@@ -14,8 +14,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.co.ictedu.back.group.dto.DiagramDTO;
 import kr.co.ictedu.back.group.service.DiagramService;
 import kr.co.ictedu.back.group.vo.DiagramVO;
-import kr.co.ictedu.back.member.service.MemberService;
-
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 

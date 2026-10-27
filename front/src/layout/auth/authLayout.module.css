@@ -39,6 +39,15 @@
     min-height: 100vh;
 }
 
+.myPageLayout .logo {
+    top: 16px;
+    left: max(28px, calc((100% - 1160px) / 2));
+}
+
+.myPageLayout .logoImage {
+    height: 52px;
+}
+
 @media (max-width: 768px) {
 
     .logo {
@@ -47,6 +56,15 @@
     }
 
     .logoImage {
+        height: 48px;
+    }
+
+    .myPageLayout .logo {
+        top: 16px;
+        left: 16px;
+    }
+
+    .myPageLayout .logoImage {
         height: 48px;
     }
 
