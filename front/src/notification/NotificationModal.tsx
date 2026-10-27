@@ -1,3 +1,4 @@
+import { UserRoundPlus, ArrowRight } from 'lucide-react';
 import React, { useMemo, useRef, useState } from 'react';
 import styles from './notification.module.css';
 import { answerJoin, NotificationData } from './NotificationAPI';
@@ -87,6 +88,7 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({ notificati
             case 'JOIN': return '스터디룸 참여';
             case 'STUDY_DELETED': return '스터디 삭제';
             case 'REPORT': return '신고';
+            case 'FRIEND_REQUEST': return '친구 요청';
             case 'COMMENT': return '댓글';
             default: return '';
         }
@@ -192,6 +194,7 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({ notificati
                                     <div className={styles.notificationContent}>
                                         <p>{notification.message}</p>
                                         {notification.category === 'STUDY_DELETED' && <p><Link to="/group" onClick={onClose}>스터디 목록으로 이동</Link></p>}
+                                        {notification.category === 'FRIEND_REQUEST' && <p><Link className={styles.friendRequestLink} to="/friend/request" onClick={onClose}><UserRoundPlus size={16} aria-hidden="true" />받은 요청 보기<ArrowRight size={15} aria-hidden="true" /></Link></p>}
                                         {reportNotificationLink(notification.category, notification.target_url) && (
                                             <p><Link to={notification.target_url} onClick={onClose}>신고 내용 확인</Link></p>
                                         )}

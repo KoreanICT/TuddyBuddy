@@ -9,6 +9,7 @@ import styles from './friendRequestList.module.css';
 import { useAuth } from '../../login/hooks/useAuth';
 import FriendMenu from './FriendMenu';
 import ProfileCard from '../profile/ProfileCard';
+import { BACKEND_URL } from '../../login/authHttp';
 
 interface FriendVO {
     num: number;
@@ -22,6 +23,9 @@ interface FriendVO {
 
 const FriendRequestList: React.FC = () => {
     const [requests, setRequests] = useState<FriendVO[]>([]);
+    const [loadError, setLoadError] = useState('');
+    const [loading, setLoading] = useState(false);
+    const loadController = useRef<AbortController | null>(null);
     const { memberNum, token } = useAuth();
     const processingRef = useRef(false);
     const [processing, setProcessing] = useState<number | null>(null);
@@ -33,18 +37,25 @@ const FriendRequestList: React.FC = () => {
     // 받은 친구 요청 목록 조회
     const fetchRequestList = useCallback(async () => {
         if (!token || memberNum == null) return;
+        loadController.current?.abort();
+        const controller = new AbortController();
+        loadController.current = controller;
+        setLoading(true);
+        setLoadError('');
 
         try {
-            const urls = "http://localhost:80/back/api/friend/friendRequestList";
+            const urls = `${BACKEND_URL}/api/friend/friendRequestList`;
             const response = await axios.get(urls, {
                 headers: getAuthHeaders(),
-                params: { response_num: memberNum }
+                params: { response_num: memberNum },
+                signal: controller.signal, timeout: 15000
             });
 
-            setRequests(response.data);
+            if (!controller.signal.aborted) setRequests(response.data);
         } catch (error) {
-            console.error('받은 친구 요청 조회 실패:', error);
-            setRequests([]);
+            if (!controller.signal.aborted) setLoadError('받은 친구 요청을 불러오지 못했습니다. 다시 시도해주세요.');
+        } finally {
+            if (!controller.signal.aborted) setLoading(false);
         }
     }, [memberNum, token, getAuthHeaders]);
 
@@ -54,6 +65,19 @@ const FriendRequestList: React.FC = () => {
             return;
         }
         fetchRequestList();
+        const refresh = () => { if (!document.hidden) void fetchRequestList(); };
+        const received = (event: Event) => {
+            if ((event as CustomEvent).detail?.category === 'FRIEND_REQUEST') refresh();
+        };
+        window.addEventListener('focus', refresh);
+        window.addEventListener('notification-received', received);
+        document.addEventListener('visibilitychange', refresh);
+        return () => {
+            loadController.current?.abort();
+            window.removeEventListener('focus', refresh);
+            window.removeEventListener('notification-received', received);
+            document.removeEventListener('visibilitychange', refresh);
+        };
     }, [memberNum, token, fetchRequestList]);
 
     // 친구 요청 수락
@@ -67,7 +91,7 @@ const FriendRequestList: React.FC = () => {
         processingRef.current = true;
         setProcessing(friendNum);
         try {
-            const urls = "http://localhost:80/back/api/friend/friendAccept";
+            const urls = `${BACKEND_URL}/api/friend/friendAccept`;
 
             await axios.put(urls, null, {
                 headers: getAuthHeaders(),
@@ -103,7 +127,7 @@ const FriendRequestList: React.FC = () => {
         processingRef.current = true;
         setProcessing(friendNum);
         try {
-            const urls = "http://localhost:80/back/api/friend/friendReject";
+            const urls = `${BACKEND_URL}/api/friend/friendReject`;
 
             await axios.put(urls, null, {
                 headers: getAuthHeaders(),
@@ -156,7 +180,9 @@ const FriendRequestList: React.FC = () => {
 
                 {/* Request List */}
                 <div className={styles.list}>
-                    {requests.length > 0 ? (
+                    {loading ? <p role="status">받은 요청을 확인하고 있습니다.</p>
+                    : loadError ? <div role="alert"><p>{loadError}</p><button type="button" onClick={() => void fetchRequestList()}>다시 시도</button></div>
+                    : requests.length > 0 ? (
                         requests.map(request => (
                             <div key={request.num} className={styles.request}>
                                 <div className={styles.profile}>
