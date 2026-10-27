@@ -10,7 +10,7 @@ import './MyPage.css';
 import MyReportList from './report/MyReportList';
 import MyFriend from './friend/MyFriend';
 import MyPosts from './posts/MyPosts';
-import PointHistory, { PointHistoryItem } from './PointHistory';
+import PointHistory, { PointHistoryItem, validHistory } from './PointHistory';
 import Modal from '../cont/modal/Modal';
 import { useAppDispatch } from '../login/reducers/store';
 import { logoutAction } from '../login/authActions/authActions';
@@ -63,6 +63,7 @@ const MyPageContent: React.FC<{ sessionKey: string }> = ({ sessionKey }) => {
         setShowPointHistory(true);
         setPointHistoryLoading(true);
         setPointHistoryError('');
+        setPointHistory([]);
 
         const token = currentToken();
         if (!token) {
@@ -77,11 +78,12 @@ const MyPageContent: React.FC<{ sessionKey: string }> = ({ sessionKey }) => {
                 memberSessionConfig(sessionKey, {
                     headers: { Authorization: `Bearer ${token}` },
                     signal: operations.current.signal,
+                    timeout: 15000,
                 })
             );
 
             if (!isCurrentSession()) return;
-            if (!Array.isArray(response.data)) {
+            if (!validHistory(response.data)) {
                 throw new Error('포인트 내역 응답 형식이 올바르지 않습니다.');
             }
             setPointHistory(response.data);
@@ -651,6 +653,7 @@ const MyPageContent: React.FC<{ sessionKey: string }> = ({ sessionKey }) => {
                                 history={pointHistory}
                                 loading={pointHistoryLoading}
                                 error={pointHistoryError}
+                                onRetry={() => void openPointHistory()}
                                 embedded
                             />
                         </Modal>

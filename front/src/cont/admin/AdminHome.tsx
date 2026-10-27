@@ -156,14 +156,12 @@ const AdminHome: React.FC = () => {
                         : <div className={styles.empty}>{loading ? '조회 중입니다.' : '데이터를 조회할 수 없습니다.'}</div>}
                 </div>
                 <div className={styles.panel}>
-                    <div className={styles.panelHeading}><h2>최근 게시글</h2><span className={styles.note}>커뮤니티 · 최근 5건</span></div>
+                    <div className={styles.panelHeading}><h2>최근 게시글</h2><Link to="/admin/boardManagement">게시판 관리</Link></div>
+                    <p className={`${styles.note} ${styles.postSubtitle}`}>커뮤니티 · 최근 5건</p>
                     {data ? data.recentPosts.length ? <ul className={styles.list}>
-                        {data.recentPosts.map(post => <li key={post.postNum}>
-                            <details className={styles.postItem}>
-                                <summary>{post.title || `게시글 #${post.postNum}`}</summary>
-                                <div className={styles.postContent}>{post.content}</div>
-                            </details>
-                            <p className={styles.note}>{post.category} · {post.nickname} · #{post.postNum}</p>
+                        {data.recentPosts.map(post => <li key={post.postNum} className={styles.postRow}>
+                            <p className={styles.postTitle} title={post.title || '제목 없음'}>{post.title || '제목 없음'}</p>
+                            <p className={styles.postMeta} title={`${post.category} · ${post.nickname}`}>{post.category} · {post.nickname}</p>
                         </li>)}
                     </ul> : <div className={styles.empty}>최근 게시글이 없습니다.</div>
                         : <div className={styles.empty}>{loading ? '조회 중입니다.' : '데이터를 조회할 수 없습니다.'}</div>}

@@ -34,16 +34,6 @@ public class AttendanceController {
         this.members = members;
     }
 
-    /** 마이페이지 포인트 내역. 클라이언트 회원번호 대신 인증된 본인 번호로 조회한다. */
-    @GetMapping("/point-history")
-    public List<PointVO> getPointHistory(Authentication authentication) {
-        try {
-            return attendance.getPointHistory(memberNum(authentication));
-        } catch (DataAccessException | TransactionException e) {
-            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
-                    "포인트 내역을 조회할 수 없습니다. 잠시 후 다시 시도해주세요.");
-        }
-    }
 
     /** GET /api/attendance: month 생략 시 DB 한국 날짜의 현재 월을 조회한다. 정상 응답은 200이다. */
     @GetMapping
