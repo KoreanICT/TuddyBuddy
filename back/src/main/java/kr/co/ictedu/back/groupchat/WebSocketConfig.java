@@ -29,12 +29,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
             .setAllowedOriginPatterns(
-                "http://localhost:3000",
-                "http://192.168.0.11:3000"
+                "http://localhost:3000"
             )
             .withSockJS();
-
-        registry.addEndpoint("/ws-postman");
     }
 
     @Override

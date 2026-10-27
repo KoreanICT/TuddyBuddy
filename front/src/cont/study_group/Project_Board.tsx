@@ -1,27 +1,15 @@
 //작성자 : 오진석
 import React, { useState } from 'react';
 import styles from './project.module.css';
-import {
-    DndContext,
-    DragEndEvent,
-    DragStartEvent,
-    DragOverlay,
-    PointerSensor,
-    useDroppable,
-    useSensor,
-    useSensors
-} from '@dnd-kit/core';
-
+import { DndContext, DragEndEvent, DragStartEvent, DragOverlay, PointerSensor, useDroppable, useSensor, useSensors} from '@dnd-kit/core';
 import { TDLData } from './GroupAPI';
 import { TDLStatus } from './Type';
 import { Project_TDLCard } from './Project_TDLCard';
-
 
 const TODO_ID = 'tdl-To_Do';
 const IN_PROGRESS_ID = 'tdl-In_Progress';
 const DONE_ID = 'tdl-Done';
 const INCOMPLETE_ID = 'tdl-Incomplete';
-
 
 interface TdlBoardProps {
     tdls: TDLData[];
@@ -45,12 +33,8 @@ interface BoardColumnProps {
 
 export const Project_Board: React.FC<TdlBoardProps> = ({ tdls, onStatusChange, onCreate, onEdit, onDelete }) => {
 
-    const [draggingId, setDraggingId] =
-        useState<number | null>(null);
-
-    const [recentlyDraggedId, setRecentlyDraggedId] =
-        useState<number | null>(null);
-
+    const [draggingId, setDraggingId] = useState<number | null>(null);
+    const [recentlyDraggedId, setRecentlyDraggedId] = useState<number | null>(null);
 
     const pointerSensor = useSensor(
         PointerSensor,

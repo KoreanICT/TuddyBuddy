@@ -16,6 +16,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Component;
 
+import kr.co.ictedu.back.groupchat.service.GroupChatService;
 import kr.co.ictedu.back.securityjwt.JwtTokenProvider;
 
 @Component
