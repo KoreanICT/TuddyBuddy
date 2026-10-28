@@ -6,7 +6,7 @@ import MyPage from "../mypage/MyPage";
 import { ProductSelector } from "../cont/point/ProductSelector";
 import PerformanceAnalytics from "../cont/statistics/PerformanceAnalytics";
 import React from "react";
-import { Route, Routes, useLocation } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { Group_Home } from "../cont/study_group/Group_Home";
 import { Group_Detail } from "../cont/study_group/Group_Detail";
 import AdminHome from "../cont/admin/AdminHome";
@@ -30,7 +30,7 @@ import EducationNews from "../cont/educationNews/EducationNews";
 import AttendanceCalendar from "../cont/attendance/AttendanceCalendar";
 
 import PointHistory from "../mypage/PointHistory";
-import Member_Edit from "../mypage/Member_edit";
+
 
 import ReportReplyList from "../cont/report/ReportReplyList";
 import ReportReplyDetail from "../cont/report/ReportReplyDetail";
@@ -116,7 +116,7 @@ const AppRoutes: React.FC = () => {
         { path: '/auth/mypage', element: <RequireAuth allowedRoles={ROLE_ACCESS.member}><MyPage /></RequireAuth> },
 
         { path: '/point_history', element: <RequireAuth allowedRoles={ROLE_ACCESS.member}><PointHistory /></RequireAuth> },
-        { path: '/member_edit', element: <RequireAuth allowedRoles={ROLE_ACCESS.member}><Member_Edit /></RequireAuth> },
+        { path: '/member_edit', element: <RequireAuth allowedRoles={ROLE_ACCESS.member}><Navigate to="/auth/mypage?view=edit" replace /></RequireAuth> },
         { path: '/auth/kakao/signup', element: <KakaoSignup /> },
         { path: '*', element: <NotFound /> },
         { path: "/notification", element: <NotificationList /> },
