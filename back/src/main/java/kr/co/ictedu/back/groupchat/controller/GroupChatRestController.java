@@ -29,10 +29,8 @@ public class GroupChatRestController {
     }
 	
 	@GetMapping("/history/{groupNum}")
-	public ResponseEntity<List<GroupChatVO>> getHistory(@PathVariable("groupNum") Long groupNum, @RequestParam(
-	            name = "beforeChatNum",
-	            required = false
-	        ) Long beforeChatNum,
+	public ResponseEntity<List<GroupChatVO>> getHistory(@PathVariable("groupNum") Long groupNum, 
+			@RequestParam(name = "beforeChatNum",required = false) Long beforeChatNum,
 	        Principal principal) {
 	    return ResponseEntity.ok(
 	        service.getHistory(groupNum, beforeChatNum, principal)

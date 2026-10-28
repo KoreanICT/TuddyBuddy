@@ -53,9 +53,7 @@ export const Detail_MemoBoard: React.FC<MemoBoardProps> = ({ memos, onInsert, on
     // ==========================
     // Drag 종료
     // ==========================
-    const handleDragEnd = (
-        event: DragEndEvent
-    ): void => {
+    const handleDragEnd = (event: DragEndEvent): void => {
         const { active, over } = event;
         const memoNum = Number(active.id);
         setDraggingId(null);
@@ -87,9 +85,7 @@ export const Detail_MemoBoard: React.FC<MemoBoardProps> = ({ memos, onInsert, on
     // 실제 DELETE 실행
     // ==========================
 
-    const handleCrumpleComplete = async (
-        memoNum: number
-    ): Promise<void> => {
+    const handleCrumpleComplete = async (memoNum: number): Promise<void> => {
         try {
             await onDelete(memoNum);
         } catch (error) {

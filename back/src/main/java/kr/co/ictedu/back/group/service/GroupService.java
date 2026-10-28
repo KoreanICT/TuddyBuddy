@@ -274,15 +274,10 @@ public class GroupService {
 	    String memberNick = dao.getMemberNick(memberNum);
 
 	    // 다른 알림 기능과 동일한 발행 방식
-	    notificationPublisher.send(
-	        leaderNum,
-	        Category.JOIN,
-	        "스터디룸 참여 요청",
+	    notificationPublisher.send(leaderNum,Category.JOIN,"스터디룸 참여 요청",
 	        memberNick + "님이 "
 	            + group.getGroup_title()
-	            + " 스터디룸에 참여를 희망하였습니다.",
-	        targetUrl
-	    );
+	            + " 스터디룸에 참여를 희망하였습니다.",targetUrl);
 	}
 	@Transactional
 	public String answerJoin(Long memberNum,Long notificationNum,boolean accept) {
