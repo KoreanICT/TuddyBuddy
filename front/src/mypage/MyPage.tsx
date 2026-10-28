@@ -3,13 +3,14 @@ import { currentToken, memberSessionKey, sessionIdentity } from '../login/sessio
 import MemberSessionBoundary from './MemberSessionBoundary';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 
 import './MyPage.css';
 import MyReportList from './report/MyReportList';
 import MyFriend from './friend/MyFriend';
 import MyPosts from './posts/MyPosts';
+import MemberEdit from './Member_edit';
 import PointHistory, { PointHistoryItem, validHistory } from './PointHistory';
 import Modal from '../cont/modal/Modal';
 import { useAppDispatch } from '../login/reducers/store';
@@ -49,7 +50,27 @@ const MyPageContent: React.FC<{ sessionKey: string }> = ({ sessionKey }) => {
     const [withdrawError, setWithdrawError] = useState('');
     const withdrawLock = useRef(false);
     // 메뉴 상태
-    const [activeMenu, setActiveMenu] = useState('info');
+    const [selectedMenu, setSelectedMenu] = useState('info');
+    const [searchParams, setSearchParams] = useSearchParams();
+    const isEditing = searchParams.get('view') === 'edit';
+    const activeMenu = isEditing ? 'info' : selectedMenu;
+    const [profileRevision, setProfileRevision] = useState(0);
+    const closeEditor = () => {
+        setSelectedMenu('info');
+        setSearchParams(previous => {
+            const next = new URLSearchParams(previous);
+            next.delete('view');
+            return next;
+        }, { replace: true });
+    };
+    const setActiveMenu = (menu: string) => {
+        setSelectedMenu(menu);
+        if (isEditing) setSearchParams(previous => {
+            const next = new URLSearchParams(previous);
+            next.delete('view');
+            return next;
+        });
+    };
     const [showPointHistory, setShowPointHistory] = useState(false);
     const [pointHistory, setPointHistory] = useState<PointHistoryItem[]>([]);
     const [pointHistoryLoading, setPointHistoryLoading] = useState(false);
@@ -222,7 +243,7 @@ const MyPageContent: React.FC<{ sessionKey: string }> = ({ sessionKey }) => {
         return () => {
             controller.abort();
         };
-    }, [sessionKey]);
+    }, [sessionKey, profileRevision]);
 
     // 포인트 표시
     const formatPoint = (point?: number | null) => {
@@ -291,7 +312,11 @@ const MyPageContent: React.FC<{ sessionKey: string }> = ({ sessionKey }) => {
     // 회원정보 수정 페이지 이동
     const handleMemberEdit = () => {
         if (!isCurrentSession()) return;
-        navigate('/member_edit');
+        setSearchParams(previous => {
+            const next = new URLSearchParams(previous);
+            next.set('view', 'edit');
+            return next;
+        });
     };
 
     const handleWithdraw = async () => {
@@ -396,7 +421,12 @@ const MyPageContent: React.FC<{ sessionKey: string }> = ({ sessionKey }) => {
                 <main className="mypage-content">
 
                     {/* 회원정보 */}
-                    {activeMenu === 'info' && (
+                    {isEditing && <MemberEdit embedded onCancel={closeEditor} onSaved={() => {
+                        if (!isCurrentSession()) return;
+                        setProfileRevision(value => value + 1);
+                        closeEditor();
+                    }} />}
+                    {activeMenu === 'info' && !isEditing && (
                         <div className="mypage-container">
                             <h2 className="mypage-title">마이페이지</h2>
 
