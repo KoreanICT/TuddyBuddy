@@ -18,6 +18,7 @@ interface Post {
 }
 
 interface Comment {
+  memberNum?: number;
   commentNum?: number;
   postId?: number;
   author?: string;
@@ -1517,6 +1518,7 @@ const Community: React.FC = () => {
                             <div className="d-flex justify-content-between align-items-center mb-2">
                               <strong>{comment.author || "익명"}</strong>
 
+                              {isLoggedIn && memberNum != null && Number(comment.memberNum) === Number(memberNum) && (
                               <div className="d-flex gap-2">
                                 {editingCommentNum !== comment.commentNum && (
                                   <button
@@ -1541,6 +1543,7 @@ const Community: React.FC = () => {
                                   삭제
                                 </button>
                               </div>
+                              )}
                             </div>
 
                             {editingCommentNum === comment.commentNum ? (

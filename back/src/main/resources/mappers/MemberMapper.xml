@@ -369,4 +369,10 @@
     <select id="findManagerNums" resultType="long">
         SELECT member_num FROM member WHERE authority IN ('ADMIN', 'SUB_ADMIN')
     </select>
+    <select id="findRecoveryEmails" resultType="string">
+        SELECT member_email FROM member
+        WHERE member_name = #{name}
+        AND REGEXP_REPLACE(member_phone, '[^0-9]', '') = #{phone}
+        ORDER BY member_num
+    </select>
 </mapper>

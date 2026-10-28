@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 import kr.co.ictedu.back.common.service.CommentService;
 import kr.co.ictedu.back.common.vo.CommentVO;
 import kr.co.ictedu.back.common.vo.CommunityVO;
@@ -173,11 +174,14 @@ public class CommentController {
     // =========================================================
     @DeleteMapping("/delete")
     public ResponseEntity<?> deleteComment(
-            @RequestParam("commentNum") int commentNum) {
+            @RequestParam("commentNum") int commentNum, Authentication authentication) {
+        Long memberNum = authenticatedMemberNum(authentication);
 
         try {
 
-            commentService.deleteComment(commentNum);
+            if (commentService.deleteComment(commentNum, memberNum) == 0) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("본인의 댓글만 삭제할 수 있습니다. 삭제된 댓글인지 확인해주세요.");
+            }
 
             return ResponseEntity.ok().build();
 
@@ -205,16 +209,19 @@ public class CommentController {
     // /api/community/comment/update?commentNum=1
     // =========================================================
     @PutMapping("/update")
-    public ResponseEntity<?> updateComment(@RequestBody CommunityVO vo) {
+    public ResponseEntity<?> updateComment(@RequestBody CommunityVO vo, Authentication authentication) {
+        Long memberNum = authenticatedMemberNum(authentication);
         try {
-            int result = commentService.updateComment(vo);
+            int result = commentService.updateComment(vo, memberNum);
 
             if (result > 0) {
                 return ResponseEntity.ok("댓글 수정 성공");
             }
 
-            return ResponseEntity.badRequest().body("댓글 수정 실패");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("본인의 댓글만 수정할 수 있습니다. 삭제된 댓글인지 확인해주세요.");
 
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(500).body("댓글 수정 중 오류가 발생했습니다.");
@@ -222,4 +229,15 @@ public class CommentController {
     }
     
     
+    private Long authenticatedMemberNum(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()
+                || authentication instanceof AnonymousAuthenticationToken) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
+        }
+        MemberVO member = memberService.getMemberByEmail(authentication.getName());
+        if (member == null || member.getMember_num() == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인 회원 정보를 찾을 수 없습니다.");
+        }
+        return member.getMember_num();
+    }
 }
