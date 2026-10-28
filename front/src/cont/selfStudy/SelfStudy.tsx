@@ -1143,7 +1143,6 @@ const SelfStudy: React.FC = () => {
           restoring={restoring}
           deleting={deleting}
           historyError={historyError}
-          onRefreshHistory={loadHistory}
           onRestoreSession={handleRestoreSession}
           onDeleteSession={handleDeleteSession}
         />

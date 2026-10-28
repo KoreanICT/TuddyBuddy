@@ -14,7 +14,6 @@ export const Project_TDL: React.FC<GetGroupNum> = ({ groupNum }) => {
 
     const [viewMode, setViewMode] = useState<ViewMode>('board');
     const [tdls, setTdls] = useState<TDLData[]>([]);
-    const [isSaving, setIsSaving] = useState(false);
     const [createStatus, setCreateStatus] = useState<TDLStatus>('To Do');
     const [isCreateOpen, setIsCreateOpen] = useState<boolean>(false);
     const [editingTdl, setEditingTdl] = useState<TDLData | null>(null);
@@ -91,7 +90,6 @@ export const Project_TDL: React.FC<GetGroupNum> = ({ groupNum }) => {
     const handleInsertTdl = async (tdl_name: string, tdl_detail: string, repeat_type: Repeat_type, due_at: string | null): Promise<void> => {
 
         try {
-            setIsSaving(true)
             await api.post(
                 `/detail/tdl/addTdl/${groupNum}`, {
                 tdl_name, tdl_detail, status: createStatus, repeat_type, due_at
@@ -102,8 +100,6 @@ export const Project_TDL: React.FC<GetGroupNum> = ({ groupNum }) => {
             alert("등록에 실패했습니다.");
             console.error("등록에 실패했습니다.", error);
             throw error;
-        } finally {
-            setIsSaving(false)
         }
     }
 
@@ -114,7 +110,6 @@ export const Project_TDL: React.FC<GetGroupNum> = ({ groupNum }) => {
         }
 
         try{
-            setIsSaving(true);
             await api.patch(
                 `/detail/tdl/patchTdl/${editingTdl.tdl_num}`,
                 {
@@ -126,8 +121,6 @@ export const Project_TDL: React.FC<GetGroupNum> = ({ groupNum }) => {
         } catch(error) {
             console.error('변경 실패.', error);
             throw error;
-        } finally {
-            setIsSaving(false);
         }
     }
 

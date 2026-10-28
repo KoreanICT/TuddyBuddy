@@ -22,6 +22,10 @@ spec:
             - name: http
               containerPort: 80
           env:
+            - name: SERVER_PORT
+              value: "80"
+            - name: SERVER_SERVLET_CONTEXT_PATH
+              value: /back
             - name: SPRING_CONFIG_ADDITIONAL_LOCATION
               value: file:/app/config/application.properties
             - name: SPRING_DATASOURCE_URL
@@ -47,6 +51,21 @@ spec:
             # HTTP test deployment; set true after enabling HTTPS.
             - name: AUTH_REFRESH_COOKIE_SECURE
               value: "false"
+            # Addresses verified against the local application.properties.
+            # Connectivity and AI business functionality still need acceptance tests.
+            - name: QUIZ_AI_BASE_URL
+              value: http://13.124.62.97:8000/
+            - name: QUIZ_AI_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: tuddybuddy-quiz-ai
+                  key: token
+            - name: QUIZ_AI_TIMEOUT_SECONDS
+              value: "180"
+            - name: FASTAPI_URL
+              value: http://3.34.123.123:8001
+            - name: CHATBOT_AI_BASE_URL
+              value: http://43.203.220.155:8000/
             - name: TZ
               value: Asia/Seoul
             - name: JAVA_TOOL_OPTIONS

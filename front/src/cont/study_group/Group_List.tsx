@@ -11,7 +11,6 @@ interface GroupPublicProps {
     mode: 'my' | 'public';
     searchType: 'name' | 'tag';
     searchTerm: string;
-    onEnterGroup: (groupNum: number) => void;
 }
 
 export interface GroupListItem {
@@ -50,7 +49,7 @@ export interface PublicGroupListItem {
     tags: TagItem[];
 }
 
-export const Group_List: React.FC<GroupPublicProps> = ({ mode, searchType, searchTerm, onEnterGroup }) => {
+export const Group_List: React.FC<GroupPublicProps> = ({ mode, searchType, searchTerm }) => {
     const [groups, setGroups] = useState<GroupListItem[]>([]);
     const [mygroups, setMygroups] = useState<GroupListItem[]>([]);
     const [loading, setLoading] = useState(false);

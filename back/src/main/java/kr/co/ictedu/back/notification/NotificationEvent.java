@@ -11,7 +11,7 @@ public class NotificationEvent {
 	private final String message;
 	private final String url;
 	
-	public enum Category {JOIN, JOIN_APPROVED, JOIN_REJECTED, REPORT, COMMENT, STUDY_DELETED, FRIEND_REQUEST}
+	public enum Category {JOIN, JOIN_APPROVED, JOIN_REJECTED, REPORT, COMMENT, STUDY_DELETED, FRIEND_REQUEST, FRIEND_ACCEPTED}
 	public NotificationEvent(Long memberNum, Category category, String title, String message, String url) {
 		this.memberNum = memberNum;
 		this.category = category;
