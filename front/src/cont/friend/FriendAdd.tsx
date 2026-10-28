@@ -40,7 +40,7 @@ const FriendAdd: React.FC<{ embedded?: boolean }> = ({ embedded = false }) => {
         const code = memberCode.trim();
 
         if (!code) {
-            alert('스터던트 코드를 입력해주세요.');
+            alert('회원 코드를 입력해주세요.');
             return;
         }
 
@@ -134,7 +134,7 @@ const FriendAdd: React.FC<{ embedded?: boolean }> = ({ embedded = false }) => {
                 <div className={styles.header}>
                     <div>
                         <h1>친구 추가</h1>
-                        <p>스터던트 코드로 친구를 찾아보세요.</p>
+                        <p>회원 코드로 친구를 찾아보세요.</p>
                     </div>
 
                     {/* 내 회원 코드 */}
@@ -164,7 +164,7 @@ const FriendAdd: React.FC<{ embedded?: boolean }> = ({ embedded = false }) => {
                                 setRequestSent(false);
                             }}
                             onKeyDown={handleKeyDown}
-                            placeholder="스터던트 코드 검색"
+                            placeholder="회원 코드 검색"
                         />
 
                         {memberCode && (
@@ -195,7 +195,7 @@ const FriendAdd: React.FC<{ embedded?: boolean }> = ({ embedded = false }) => {
                             <UserRound size={30} />
                         </div>
                         <h2>친구 찾기</h2>
-                        <p>친구에게 받은 스터던트 코드를 입력해 검색해보세요.</p>
+                        <p>친구에게 받은 회원 코드를 입력해 검색해보세요.</p>
                     </div>
                 )}
 
@@ -235,7 +235,7 @@ const FriendAdd: React.FC<{ embedded?: boolean }> = ({ embedded = false }) => {
                             <UserRound size={30} />
                         </div>
                         <h2>검색 결과가 없습니다.</h2>
-                        <p>스터던트 코드를 다시 확인해주세요.</p>
+                        <p>회원 코드를 다시 확인해주세요.</p>
                     </div>
                 )}
             </div>

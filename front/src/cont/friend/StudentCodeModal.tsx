@@ -19,7 +19,7 @@ const StudentCodeModal: React.FC<StudentCodeModalProps> = ({
     const [copied, setCopied] = useState(false);
 
 
-    // 스터던트 코드 복사
+    // 회원 코드 복사
     const handleCopy = async () => {
 
         try {
@@ -35,7 +35,7 @@ const StudentCodeModal: React.FC<StudentCodeModalProps> = ({
 
         } catch (error) {
 
-            console.error('스터던트 코드 복사 실패:', error);
+            console.error('회원 코드 복사 실패:', error);
             alert('코드 복사에 실패했습니다.');
 
         }
@@ -46,7 +46,7 @@ const StudentCodeModal: React.FC<StudentCodeModalProps> = ({
         <Modal
             isOpen={isOpen}
             onClose={onClose}
-            title="내 스터던트 코드"
+            title="내 회원 코드"
         >
             <div className={styles.modalContent}>
 
