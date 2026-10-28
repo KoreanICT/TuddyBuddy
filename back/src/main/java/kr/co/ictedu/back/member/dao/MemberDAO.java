@@ -11,6 +11,7 @@ import kr.co.ictedu.back.member.vo.MemberVO;
 @Mapper
 public interface MemberDAO {
     List<Long> findManagerNums();
+    List<String> findRecoveryEmails(@Param("name") String name, @Param("phone") String phone);
 
 	// 일반 회원가입
 	void insertMember(MemberVO vo);

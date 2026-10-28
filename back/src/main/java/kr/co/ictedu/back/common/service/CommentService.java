@@ -34,12 +34,16 @@ public class CommentService {
         return commentMapper.insertComment(comment);
     }
 
-    public int deleteComment(int commentNum) {
-        return commentMapper.deleteComment(commentNum);
+    public int deleteComment(int commentNum, Long memberNum) {
+        return commentMapper.deleteComment(commentNum, memberNum);
     }
     
-    public int updateComment(CommunityVO vo) {
-        return commentMapper.updateComment(vo);
+    public int updateComment(CommunityVO vo, Long memberNum) {
+        if (vo.getContent() == null || vo.getContent().isBlank()) {
+            throw new IllegalArgumentException("댓글 내용을 입력해주세요.");
+        }
+        vo.setContent(vo.getContent().trim());
+        return commentMapper.updateComment(vo, memberNum);
     }
 	
 }

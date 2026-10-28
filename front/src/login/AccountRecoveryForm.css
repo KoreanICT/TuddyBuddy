@@ -1,0 +1,10 @@
+.tb-recovery-description { color: #64748b; font-size: 14px; line-height: 1.7; margin: 0 0 22px; }
+.tb-recovery-result { padding: 16px; margin: 16px 0; border: 1px solid #ddd6fe; border-radius: 12px; background: #f5f3ff; color: #4338ca; line-height: 1.7; overflow-wrap: anywhere; }
+.tb-recovery-result ul { padding-left: 20px; margin: 8px 0; }
+.tb-recovery-link, .tb-recovery-back { border: 0; background: transparent; color: #4f46e5; cursor: pointer; font-size: 14px; padding: 8px 0; }
+.tb-recovery-back { display: block; margin: 18px auto 0; }
+.tb-recovery-hint { font-size: 12px; line-height: 1.6; color: #64748b; }
+.tb-recovery button:disabled { cursor: default; opacity: .55; }
+.tb-auth-recovery-links { display: flex; justify-content: center; gap: 18px; margin-top: 14px; }
+.tb-auth-recovery-links button { border: 0; background: none; color: #64748b; font-size: 13px; cursor: pointer; padding: 5px; }
+.tb-auth-recovery-links button:hover { color: #4f46e5; text-decoration: underline; }
