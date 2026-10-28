@@ -46,20 +46,20 @@
 	</insert>
 
 	<!-- 댓글 수정 -->
-	<update id="updateComment"
-		parameterType="kr.co.ictedu.back.common.vo.CommunityVO">
+	<update id="updateComment">
 
 		UPDATE COMMUNITY_COMMENT
-		SET CONTENT = #{content}
-		WHERE COMMENT_NUM = #{commentNum}
+		SET CONTENT = #{comment.content}
+		WHERE COMMENT_NUM = #{comment.commentNum}
+		AND MEMBER_NUM = #{memberNum}
 
 	</update>
 	<!-- 댓글 삭제 -->
-	<delete id="deleteComment"
-		parameterType="int">
+	<delete id="deleteComment">
 
 		DELETE FROM COMMUNITY_COMMENT
 		WHERE COMMENT_NUM = #{commentNum}
+		AND MEMBER_NUM = #{memberNum}
 
 	</delete>
 

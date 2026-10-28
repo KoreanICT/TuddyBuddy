@@ -3,6 +3,7 @@ package kr.co.ictedu.back.common.dao;
 import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import kr.co.ictedu.back.common.vo.CommentVO;
 import kr.co.ictedu.back.common.vo.CommunityVO;
@@ -14,9 +15,9 @@ public interface CommentMapper {
 
     int insertComment(CommentVO comment);
 
-    int deleteComment(int commentNum);
+    int deleteComment(@Param("commentNum") int commentNum, @Param("memberNum") Long memberNum);
     
-    int updateComment(CommunityVO vo);
+    int updateComment(@Param("comment") CommunityVO vo, @Param("memberNum") Long memberNum);
     
     int like(CommunityVO vo);
 }

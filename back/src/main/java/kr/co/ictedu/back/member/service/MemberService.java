@@ -52,7 +52,10 @@ public class MemberService {
 	// 회원 저장과 추천인 보상은 동일 트랜잭션으로 처리합니다.
 	@Transactional
 	public void create(MemberVO vo, String referralCode) {
-		String referrerCode = validateReferralCode(referralCode);
+		if (!isValidPassword(vo.getMember_pwd())) {
+            throw new IllegalArgumentException("비밀번호는 8~72자이며 영문과 숫자를 포함해야 합니다.");
+        }
+        String referrerCode = validateReferralCode(referralCode);
 		vo.setAuthority(MemberRoles.MEMBER);
 
 		System.out.println("1");
@@ -199,6 +202,11 @@ public class MemberService {
 		return normalized;
 	}
 
+    static boolean isValidPassword(String password) {
+        return password != null && password.length() >= 8 && password.length() <= 72
+                && password.matches("(?s).*[a-zA-Z].*") && password.matches("(?s).*[0-9].*");
+    }
+
 	// 일반 회원 비밀번호 변경
 	@Transactional
 	public PasswordChangeResult changePassword(String email, String currentPassword, String newPassword) {
@@ -230,8 +238,7 @@ public class MemberService {
 		}
 
 		// 새 비밀번호 검사
-		if (newPassword == null || newPassword.length() < 8 || newPassword.length() > 72
-				|| !newPassword.matches(".*[a-zA-Z].*") || !newPassword.matches(".*[0-9].*")) {
+		if (!isValidPassword(newPassword)) {
 
 			return PasswordChangeResult.INVALID_NEW_PASSWORD;
 		}

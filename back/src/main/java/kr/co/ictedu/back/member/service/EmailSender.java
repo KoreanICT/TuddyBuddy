@@ -183,4 +183,17 @@ public class EmailSender {
             return false;
         }
     }
+    public void sendRecoveryMail(String to, String subject, String text) {
+        MimeMessage message = emailSender.createMimeMessage();
+        try {
+            MimeMessageHelper helper = new MimeMessageHelper(message, false, "UTF-8");
+            helper.setFrom(mailFrom);
+            helper.setTo(to);
+            helper.setSubject(subject);
+            helper.setText(text, false);
+            emailSender.send(message);
+        } catch (MessagingException | MailException e) {
+            throw new IllegalStateException("계정 복구 메일 발송 실패", e);
+        }
+    }
 }

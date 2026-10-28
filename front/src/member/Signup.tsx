@@ -283,6 +283,11 @@ const Signup: React.FC = () => {
             return;
         }
 
+        if (pwd1.length < 8 || pwd1.length > 72 || !/[a-zA-Z]/.test(pwd1) || !/[0-9]/.test(pwd1)) {
+            alert("비밀번호는 8~72자이며 영문과 숫자를 포함해야 합니다.");
+            return;
+        }
+
         if (pwd1 !== pwd2) {
             alert('비밀번호가 일치하지 않습니다.');
             return;
@@ -494,7 +499,7 @@ TuddyBuddy(이하 "회사")는 회원가입, 원활한 고객 상담, 각종 서
 
                         <input
                             type="password"
-                            placeholder="비밀번호를 입력해주세요"
+                            placeholder="영문과 숫자를 포함한 8~72자"
                             value={pwd1}
                             onChange={(e) => setPwd1(e.target.value)}
                         />
