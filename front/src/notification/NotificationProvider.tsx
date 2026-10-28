@@ -8,8 +8,7 @@ interface NotificationProviderProps {children: React.ReactNode;}
 
 const NotificationContext = createContext<NotificationState | undefined>(undefined);
 
-export const NotificationProvider:
-    React.FC<NotificationProviderProps> = ({ children }) => {
+export const NotificationProvider: React.FC<NotificationProviderProps> = ({ children }) => {
         const token = useSelector(
             (state: RootState) => state.auth.token
         );
