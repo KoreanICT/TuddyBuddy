@@ -417,3 +417,45 @@
     outline: 3px solid #bca8f5;
     outline-offset: 3px;
 }
+
+.reportDetailLink {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    gap: 8px;
+    min-height: 42px;
+    padding: 10px 14px;
+    box-sizing: border-box;
+    border: 1px solid #b42318;
+    border-radius: 10px;
+    background: #b42318;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.4;
+    text-decoration: none;
+    box-shadow: 0 3px 8px rgba(180, 35, 24, .15);
+    transition: background-color .15s ease, border-color .15s ease, box-shadow .15s ease;
+}
+.reportDetailLink:visited {
+    color: #fff;
+}
+.reportDetailLink:hover {
+    border-color: #912018;
+    background: #912018;
+    color: #fff;
+    text-decoration: none;
+    box-shadow: 0 4px 12px rgba(180, 35, 24, .22);
+}
+.reportDetailLink:active {
+    background: #7a1b14;
+    box-shadow: none;
+}
+.reportDetailLink:focus-visible {
+    outline: 3px solid #fda29b;
+    outline-offset: 3px;
+}
+.reportDetailLink svg {
+    flex-shrink: 0;
+}

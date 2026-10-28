@@ -1,4 +1,4 @@
-import { UserRoundPlus, ArrowRight } from 'lucide-react';
+import { UserRoundPlus, ArrowRight, FileSearch } from 'lucide-react';
 import React, { useEffect, useState } from "react";
 import styles from './notification.module.css'
 import { getAllNotifications, deleteNotification } from "./NotificationAPI";
@@ -190,7 +190,7 @@ export const NotificationList: React.FC = () => {
                                 {notification.category === 'FRIEND_REQUEST' && <Link className={styles.friendRequestLink} to="/friend/request"><UserRoundPlus size={16} aria-hidden="true" />받은 요청 보기<ArrowRight size={15} aria-hidden="true" /></Link>}
                                 {notification.category === 'FRIEND_ACCEPTED' && <Link className={styles.friendRequestLink} to="/friend/list"><UserRoundPlus size={16} aria-hidden="true" />내 친구 보기<ArrowRight size={15} aria-hidden="true" /></Link>}
                                 {reportNotificationLink(notification.category, notification.target_url) && (
-                                    <Link to={notification.target_url}>신고 내용 확인</Link>
+                                    <Link className={styles.reportDetailLink} to={notification.target_url}><FileSearch size={16} aria-hidden="true" />신고 내용 확인<ArrowRight size={15} aria-hidden="true" /></Link>
                                 )}
                                 <span className={styles.fullDate}>
                                     {new Date(
