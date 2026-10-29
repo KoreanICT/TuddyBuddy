@@ -1,4 +1,4 @@
-import { UserRoundPlus, ArrowRight } from 'lucide-react';
+import { UserRoundPlus, ArrowRight, FileSearch } from 'lucide-react';
 import React, { useRef, useState } from 'react';
 import styles from './notification.module.css';
 import { answerJoin, NotificationData } from './NotificationAPI';
@@ -193,7 +193,7 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({ notificati
                                         {notification.category === 'FRIEND_REQUEST' && <p><Link className={styles.friendRequestLink} to="/friend/request" onClick={onClose}><UserRoundPlus size={16} aria-hidden="true" />받은 요청 보기<ArrowRight size={15} aria-hidden="true" /></Link></p>}
                                         {notification.category === 'FRIEND_ACCEPTED' && <p><Link className={styles.friendRequestLink} to="/friend/list" onClick={onClose}><UserRoundPlus size={16} aria-hidden="true" />내 친구 보기<ArrowRight size={15} aria-hidden="true" /></Link></p>}
                                         {reportNotificationLink(notification.category, notification.target_url) && (
-                                            <p><Link to={notification.target_url} onClick={onClose}>신고 내용 확인</Link></p>
+                                            <p><Link className={styles.reportDetailLink} to={notification.target_url} onClick={onClose}><FileSearch size={16} aria-hidden="true" />신고 내용 확인<ArrowRight size={15} aria-hidden="true" /></Link></p>
                                         )}
 
                                         {notification.category === "JOIN" && (

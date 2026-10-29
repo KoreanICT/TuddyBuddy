@@ -44,7 +44,13 @@ interface PasswordChangeResponse {
     message: string;
 }
 
-const MemberEditContent: React.FC<{ sessionKey: string }> = ({ sessionKey }) => {
+interface MemberEditProps {
+    embedded?: boolean;
+    onCancel?: () => void;
+    onSaved?: () => void;
+}
+
+const MemberEditContent: React.FC<MemberEditProps & { sessionKey: string }> = ({ sessionKey, embedded, onCancel, onSaved }) => {
     const navigate = useNavigate();
     const operations = useRef(new AbortController());
     useEffect(() => {
@@ -374,9 +380,8 @@ const MemberEditContent: React.FC<{ sessionKey: string }> = ({ sessionKey }) => 
             if (response.data > 0) {
                 console.log('===== 회원정보 수정 성공 =====');
 
-                navigate('/auth/mypage', {
-                    replace: true
-                });
+                if (onSaved) onSaved();
+                else navigate('/auth/mypage', { replace: true });
             } else {
                 setError('회원정보 수정에 실패했습니다.');
             }
@@ -526,7 +531,7 @@ const MemberEditContent: React.FC<{ sessionKey: string }> = ({ sessionKey }) => 
     };
 
     return (
-        <div className="member-edit-page">
+        <div className={`member-edit-page${embedded ? ' member-edit-embedded' : ''}`}>
             <div className="member-edit-container">
 
                 {/* Header */}
@@ -545,7 +550,7 @@ const MemberEditContent: React.FC<{ sessionKey: string }> = ({ sessionKey }) => 
                         <p>{error}</p>
                         <button
                             type="button"
-                            onClick={() => navigate('/auth/mypage')}
+                            onClick={() => onCancel ? onCancel() : navigate('/auth/mypage')}
                         >
                             마이페이지로 돌아가기
                         </button>
@@ -791,7 +796,7 @@ const MemberEditContent: React.FC<{ sessionKey: string }> = ({ sessionKey }) => 
                             <button
                                 type="button"
                                 className="member-edit-cancel-button"
-                                onClick={() => navigate('/auth/mypage')}
+                                onClick={() => onCancel ? onCancel() : navigate('/auth/mypage')}
                                 disabled={saving || passwordChanging}
                             >
                                 취소
@@ -812,6 +817,6 @@ const MemberEditContent: React.FC<{ sessionKey: string }> = ({ sessionKey }) => 
     );
 };
 
-const Member_edit: React.FC = () => <MemberSessionBoundary>{key => <MemberEditContent sessionKey={key} />}</MemberSessionBoundary>;
+const Member_edit: React.FC<MemberEditProps> = props => <MemberSessionBoundary>{key => <MemberEditContent sessionKey={key} {...props} />}</MemberSessionBoundary>;
 
 export default Member_edit;

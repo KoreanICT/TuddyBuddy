@@ -18,6 +18,9 @@ public class VerifiedSignupService {
 
     @Transactional
     public void signup(SignupRequest request) {
+        if (!MemberService.isValidPassword(request.getMember_pwd())) {
+            throw new IllegalArgumentException("비밀번호는 8~72자이며 영문과 숫자를 포함해야 합니다.");
+        }
         MemberVO member = request.toMember();
         member.setMember_email(SignupEmailVerificationService.normalizeEmail(request.getMember_email()));
         String referral = members.validateReferralCode(request.getReferral_code());

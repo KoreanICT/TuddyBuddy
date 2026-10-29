@@ -7,6 +7,7 @@ import { useAppDispatch } from './reducers/store';
 import { login } from './authActions/authActions';
 
 import './AuthModal.css';
+import AccountRecoveryForm from './AccountRecoveryForm';
 
 interface AuthModalProps {
   onClose: () => void;
@@ -28,6 +29,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose, onSuccess, variant = 'mo
   const [errorMessage, setErrorMessage] = useState('');
 
   // 화면 단계: 이메일 입력 / 비밀번호 입력
+  const [recoveryMode, setRecoveryMode] = useState<'email' | 'password' | null>(null);
   const [step, setStep] = useState<'email' | 'password'>('email');
 
   // 팝업 내부 접근성 처리
@@ -244,7 +246,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose, onSuccess, variant = 'mo
         {/* 상단 타이틀 */}
         <div className="tb-auth-header">
           <h2 id="tb-auth-title">
-            로그인/회원가입
+            {recoveryMode === 'email' ? '가입 이메일 찾기' : recoveryMode === 'password' ? '비밀번호 찾기' : '로그인/회원가입'}
           </h2>
 
           <p>
@@ -252,6 +254,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose, onSuccess, variant = 'mo
           </p>
         </div>
 
+        {recoveryMode ? <AccountRecoveryForm key={recoveryMode} mode={recoveryMode} onBack={() => { setRecoveryMode(null); setPassword(''); setStep('email'); setErrorMessage(''); }} /> : <>
         {/* 이메일 입력 */}
         <form noValidate onSubmit={event => {
           event.preventDefault();
@@ -329,6 +332,10 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose, onSuccess, variant = 'mo
         )}
         </form>
 
+        <div className="tb-auth-recovery-links">
+          <button type="button" disabled={isLoading} onClick={() => setRecoveryMode('email')}>가입 이메일 찾기</button>
+          <button type="button" disabled={isLoading} onClick={() => setRecoveryMode('password')}>비밀번호 찾기</button>
+        </div>
         {/* 회원가입 */}
         <div className="tb-auth-signup">
           <span>처음 방문하셨나요?</span>
@@ -373,6 +380,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose, onSuccess, variant = 'mo
           신규 회원가입 시 서비스 이용약관 및
           개인정보 수집·이용 동의를 별도로 확인합니다.
         </p>
+        </>}
 
       </div>
     </div>
