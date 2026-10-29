@@ -96,6 +96,8 @@ export const Detail_Memo: React.FC<GetGroupNum> = ({ groupNum }) => {
             return;
         };
 
+        if (targetMemo.can_manage !== 1) return;
+
         await api.delete(
             `/detail/memo/deleteMemo/${memoNum}`
         );

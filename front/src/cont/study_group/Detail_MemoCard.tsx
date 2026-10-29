@@ -48,16 +48,13 @@ export const Detail_MemoCard: React.FC<MemoCardProps> = ({
 }) => {
 
     // 메모 확대 여부
-    const [isExpanded, setIsExpanded] =
-        useState<boolean>(memo.isDraft === true);
+    const [isExpanded, setIsExpanded] = useState<boolean>(memo.isDraft === true);
 
     // 수정 중인 내용
-    const [editContent, setEditContent] =
-        useState<string>(memo.memo_content);
+    const [editContent, setEditContent] = useState<string>(memo.memo_content);
 
     // 저장 중 여부
-    const [isSaving, setIsSaving] =
-        useState<boolean>(false);
+    const [isSaving, setIsSaving] = useState<boolean>(false);
     // 부모 데이터가 바뀌었을 때
     // textarea 내용도 동기화
     useEffect(() => {
