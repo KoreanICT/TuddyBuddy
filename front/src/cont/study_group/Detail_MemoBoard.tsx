@@ -56,25 +56,26 @@ export const Detail_MemoBoard: React.FC<MemoBoardProps> = ({ memos, onInsert, on
     const handleDragEnd = (event: DragEndEvent): void => {
         const { active, over } = event;
         const memoNum = Number(active.id);
+
         setDraggingId(null);
         setRecentlyDraggedId(memoNum);
-        // Drag 직후 발생할 수 있는 click 방지
+
         window.setTimeout(() => {
             setRecentlyDraggedId(null);
         }, 150);
 
-        // 휴지통에 Drop
-        if (over?.id === TRASH_ID) {
-            // 바로 삭제하지 않고
-            // 먼저 구겨지는 애니메이션 실행
-            setDeletingId(memoNum);
-        }
-        const targetMemo = memos.find((memo) => memo.memo_num === memoNum);
-        if (!targetMemo) {
-            return;
-        }
+        // 휴지통에 드롭하지 않았다면 종료
+        if (over?.id !== TRASH_ID) return;
 
+        const targetMemo = memos.find(
+            (memo) => memo.memo_num === memoNum
+        );
+
+        if (!targetMemo) return;
+
+        // 임시 메모이거나 관리 권한이 있는 경우에만 삭제
         if (!targetMemo.isDraft && targetMemo.can_manage !== 1) {
+            alert("이 메모에 대한 삭제 권한이 없습니다.");
             return;
         }
 
