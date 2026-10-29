@@ -31,8 +31,6 @@ public class BoardAdminService {
         if (dao.lockPost(num) == null)
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "게시글이 없습니다.");
         dao.deleteComments(num);
-        dao.deleteLikes(num);
-        dao.deleteViews(num);
         if (dao.deletePost(num) != 1)
             throw new ResponseStatusException(HttpStatus.CONFLICT, "게시글 삭제에 실패했습니다.");
     }

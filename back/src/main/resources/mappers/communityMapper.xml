@@ -14,9 +14,7 @@
         c.community_id AS "postNum", c.member_num AS "memberNum",
         c.community_title AS "title", c.community_content AS "content",
         c.community_category AS "category", NVL(m.member_nick, c.community_nickname) AS "author",
-        c.community_date AS "communityDate", NVL(c.view_count, 0) AS "viewCount",
-        NVL(c.like_count, 0) + (SELECT COUNT(*) FROM community_like l WHERE l.post_id = c.community_id) AS "likeCount",
-        (SELECT COUNT(*) FROM community_like l WHERE l.post_id = c.community_id AND l.member_num = #{memberNum}) AS "liked"
+        c.community_date AS "communityDate", NVL(c.view_count, 0) AS "viewCount"
     </sql>
     <insert id="savePost">
         <selectKey keyProperty="post.postNum" resultType="int" order="BEFORE">
@@ -60,30 +58,6 @@
         DELETE FROM community_section WHERE community_id = #{id} AND member_num = #{memberNum}
     </delete>
     <delete id="deleteComments">DELETE FROM community_comment WHERE post_id = #{id}</delete>
-    <delete id="deleteLikes">DELETE FROM community_like WHERE post_id = #{id}</delete>
-    <delete id="deleteViews">DELETE FROM community_view WHERE post_id = #{id}</delete>
-    <select id="hasLike" resultType="int">
-        SELECT COUNT(*) FROM community_like WHERE post_id = #{id} AND member_num = #{memberNum}
-    </select>
-    <insert id="addLike">
-        INSERT INTO community_like (post_id, member_num, created_at) VALUES (#{id}, #{memberNum}, SYSDATE)
-    </insert>
-    <delete id="removeLike">
-        DELETE FROM community_like WHERE post_id = #{id} AND member_num = #{memberNum}
-    </delete>
-    <select id="likeCount" resultType="int">
-        SELECT NVL(c.like_count, 0) + (SELECT COUNT(*) FROM community_like l WHERE l.post_id = c.community_id)
-        FROM community_section c WHERE c.community_id = #{id}
-    </select>
-    <!-- 한 회원이 같은 글을 30분 안에 반복 조회해도 카운트를 올리지 않습니다. 부모 행 잠금 후 실행합니다. -->
-    <update id="recordView">
-        MERGE INTO community_view v USING (SELECT #{id} post_id, #{memberNum} member_num FROM dual) s
-        ON (v.post_id = s.post_id AND v.member_num = s.member_num)
-        WHEN MATCHED THEN UPDATE SET v.last_viewed_at = SYSDATE
-            WHERE v.last_viewed_at &lt;= SYSDATE - 30 / 1440
-        WHEN NOT MATCHED THEN INSERT (post_id, member_num, last_viewed_at)
-            VALUES (s.post_id, s.member_num, SYSDATE)
-    </update>
     <update id="increaseViewCount">
         UPDATE community_section SET view_count = NVL(view_count, 0) + 1 WHERE community_id = #{id}
     </update>

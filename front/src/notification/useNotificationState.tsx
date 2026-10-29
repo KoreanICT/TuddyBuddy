@@ -203,8 +203,7 @@ export const useNotificationState = (token: string | null, memberNum: number | n
             );
         }
 
-        const pending =
-            pendingReadsRef.current.get(notificationNum);
+        const pending = pendingReadsRef.current.get(notificationNum);
 
         if (pending) {
             return pending;

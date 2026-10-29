@@ -10,12 +10,10 @@ import "bootstrap/dist/css/bootstrap.min.css";
 interface Post {
   postNum: number;
   memberNum: number;
-  liked: boolean;
   title: string | null;
   content: string;
   category: string;
   author: string;
-  likeCount?: number;
   communityDate?: string;
   viewCount?: number;
 }
@@ -68,7 +66,7 @@ const Community: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [writeError, setWriteError] = useState("");
 
-  // 댓글 및 좋아요 상태
+  // 댓글 상태
   const [comments, setComments] = useState<Comment[]>([]);
   const [commentsLoading, setCommentsLoading] = useState(false);
   const [newCommentContent, setNewCommentContent] = useState("");
@@ -76,7 +74,6 @@ const Community: React.FC = () => {
   const [editingCommentNum, setEditingCommentNum] = useState<number | null>(null);
   const [editingCommentContent, setEditingCommentContent] = useState("");
   const [commentEditSubmitting, setCommentEditSubmitting] = useState(false);
-  const [likeSubmitting, setLikeSubmitting] = useState(false);
   const [postDeleting, setPostDeleting] = useState(false);
   const [commentsError, setCommentsError] = useState('');
   const mounted = useRef(true);
@@ -193,7 +190,6 @@ const Community: React.FC = () => {
     setEditingCommentContent('');
     setIsEditMode(false);
     setEditError('');
-    setLikeSubmitting(false);
     setEditSaving(false);
     setPostDeleting(false);
     setCommentSubmitting(false);
@@ -412,26 +408,6 @@ const Community: React.FC = () => {
       setListing(previous => previous ? { ...previous, data: previous.data.map(post => post.postNum === id ? { ...post, viewCount } : post) } : previous);
     } catch {
       // 조회수 실패가 글 읽기를 막지는 않습니다.
-    }
-  };
-
-  const handleLike = async () => {
-    if (!selectedPost || !isLoggedIn) return;
-    const id = selectedPost.postNum, owner = sessionKey, lock = `${owner}:${id}:like`;
-    if (mutationLocks.current.has(lock)) return;
-    const liked = !selectedPost.liked;
-    mutationLocks.current.add(lock); setLikeSubmitting(true);
-    try {
-      const response = await axios.post<{ liked: boolean; likeCount: number }>(`${BACKEND_URL}/api/community/like`, { id, liked });
-      if (!isActive(owner)) return;
-      const result = response.data;
-      setSelectedPost(previous => previous?.postNum === id ? { ...previous, ...result } : previous);
-      setListing(previous => previous ? { ...previous, data: previous.data.map(post => post.postNum === id ? { ...post, ...result } : post) } : previous);
-    } catch (error) {
-      if (isActive(owner, id)) window.alert(serverError(error, '좋아요 처리에 실패했습니다.'));
-    } finally {
-      mutationLocks.current.delete(lock);
-      if (isActive(owner, id)) setLikeSubmitting(false);
     }
   };
 
@@ -734,10 +710,6 @@ const Community: React.FC = () => {
                       <span className="mx-2">·</span>
                       <span>
                         👁 {post.viewCount ?? 0}
-                      </span>
-                      <span className="mx-2">·</span>
-                      <span>
-                        ❤️ {post.likeCount ?? 0}
                       </span>
                     </span>
                     <span className="small text-primary fw-semibold">
@@ -1062,7 +1034,7 @@ const Community: React.FC = () => {
                     overflowY: "auto",
                   }}
                 >
-                  {/* 작성자 + 좋아요 */}
+                  {/* 작성자·작성일·조회수 */}
                   <div className="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
 
                     <div className="d-flex align-items-center gap-2 flex-wrap">
@@ -1083,19 +1055,7 @@ const Community: React.FC = () => {
                       </span>
                     </div>
 
-                    <button
-                      type="button"
-                      className="btn btn-outline-danger btn-sm rounded-pill px-3 fw-semibold"
-                      onClick={() => void handleLike()}
-                      disabled={likeSubmitting}
-                      aria-pressed={Boolean(selectedPost.liked)}
-                      aria-label={selectedPost.liked ? "좋아요 취소" : "좋아요"}
-                    >
-                      {likeSubmitting
-                        ? "처리 중..."
-                        : `${selectedPost.liked ? "♥ 좋아요 취소" : "♡ 좋아요"} ${selectedPost.likeCount ?? 0
-                        }`}
-                    </button>
+
                   </div>
 
                   {/* 게시글 내용 / 수정 영역 */}
