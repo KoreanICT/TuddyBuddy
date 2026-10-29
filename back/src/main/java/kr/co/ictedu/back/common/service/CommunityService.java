@@ -47,22 +47,14 @@ public class CommunityService {
     }
     public void deletePost(int id, Long memberNum) {
         requireOwner(id, memberNum);
-        dao.deleteComments(id); dao.deleteLikes(id); dao.deleteViews(id);
+        dao.deleteComments(id);
         if (dao.deletePost(id, memberNum) != 1) throw conflict();
     }
-    // 원하는 상태를 명시하여 재전송·동시 요청에도 중복 좋아요가 생기지 않습니다.
-    public Map<String, Object> like(int id, Long memberNum, boolean liked) {
+    // 기존 게시글의 조회수 컬럼만 사용합니다. 회원별 조회 이력은 저장하지 않습니다.
+    public Map<String, Object> increaseViewCount(int id) {
         requirePost(id);
-        boolean exists = dao.hasLike(id, memberNum) > 0;
-        if (liked && !exists) dao.addLike(id, memberNum);
-        if (!liked && exists) dao.removeLike(id, memberNum);
-        return Map.of("liked", liked, "likeCount", dao.likeCount(id));
-    }
-    public Map<String, Object> increaseViewCount(int id, Long memberNum) {
-        requirePost(id);
-        boolean counted = dao.recordView(id, memberNum) == 1;
-        if (counted) dao.increaseViewCount(id);
-        return Map.of("viewCount", dao.viewCount(id), "counted", counted);
+        if (dao.increaseViewCount(id) != 1) throw conflict();
+        return Map.of("viewCount", dao.viewCount(id));
     }
     private MyPostVO requirePost(int id) {
         if (id <= 0) throw bad("게시글 번호를 확인해주세요.");

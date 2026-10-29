@@ -23,8 +23,6 @@
     <select id="lockPost" resultType="long">
         SELECT community_id FROM community_section WHERE community_id = #{num} FOR UPDATE
     </select>
-    <delete id="deleteLikes">DELETE FROM community_like WHERE post_id = #{num}</delete>
-    <delete id="deleteViews">DELETE FROM community_view WHERE post_id = #{num}</delete>
     <delete id="deleteComments">DELETE FROM community_comment WHERE post_id = #{num}</delete>
     <delete id="deletePost">DELETE FROM community_section WHERE community_id = #{num}</delete>
 </mapper>
