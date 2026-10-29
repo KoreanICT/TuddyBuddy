@@ -68,21 +68,22 @@ public class CommunityController {
 	// =========================================================
 	@GetMapping("/posts")
 	public Map<String, Object> posts(@RequestParam(value = "cPage", defaultValue = "1") int cPage,
+            @RequestParam(required = false) String category, @RequestParam(defaultValue = "") String keyword,
 			Authentication authentication) {
 
-		loginMember(authentication);
+		MemberVO member = loginMember(authentication);
 
 		if (cPage < 1) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "페이지 번호는 1 이상이어야 합니다.");
 		}
 
-		int totalItems = communityService.countPosts();
+		int totalItems = communityService.countPosts(category, keyword);
 
 		PageVO page = page(totalItems, cPage);
 
 		Map<String, Object> response = pagination(totalItems, page);
 
-		response.put("data", communityService.findPosts(page.getBeginPerPage(), page.getEndPerPage()));
+		response.put("data", communityService.findPosts(member.getMember_num(), category, keyword, page.getBeginPerPage(), page.getEndPerPage()));
 
 		return response;
 	}
@@ -160,46 +161,19 @@ public class CommunityController {
 	// 4. 게시글 삭제
 	// DELETE /api/community/delete/{id}
 	// =========================================================
-	@DeleteMapping("/delete/{postNum}")
-	public ResponseEntity<?> deletePost(@PathVariable("postNum") int postNum) {
+    @DeleteMapping("/delete/{postNum}")
+    public ResponseEntity<?> deletePost(@PathVariable int postNum, Authentication authentication) {
+        communityService.deletePost(postNum, loginMember(authentication).getMember_num());
+        return ResponseEntity.ok(Map.of("message", "게시글을 삭제했습니다."));
+    }
 
-	    try {
-	        System.out.println("삭제 요청 게시글 번호 = " + postNum);
+    @PutMapping("/update/{postNum}")
+    public ResponseEntity<?> updatePost(@PathVariable int postNum, @RequestBody PostWriteRequest request,
+            Authentication authentication) {
+        communityService.updatePost(postNum, loginMember(authentication).getMember_num(), request.title(), request.content());
+        return ResponseEntity.ok(Map.of("message", "게시글을 수정했습니다."));
+    }
 
-	        communityService.deletePost(postNum);
-
-	        System.out.println("게시글 삭제 완료");
-
-	        return ResponseEntity.ok("게시글 삭제 성공");
-
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	        return ResponseEntity.status(500).body("게시글 삭제 실패");
-	    }
-	}
-	
-	// =========================================================
-	// 5. 게시글 수정
-	// DELETE /api/community/update/{id}
-	// =========================================================
-	@PutMapping("/update/{postNum}")
-	public ResponseEntity<?> updatePost(
-	        @PathVariable("postNum") int postNum,
-	        @RequestBody CommunityVO vo) {
-
-	    try {
-	        vo.setId(postNum);
-
-	        communityService.updatePost(vo);
-
-	        return ResponseEntity.ok("게시글 수정 성공");
-
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	        return ResponseEntity.status(500).body("게시글 수정 실패");
-	    }
-	}
-	
 	// =========================================================
 	// ⚠️ 댓글 관련 API는 여기에서 작성하지 않습니다.
 	//
@@ -231,53 +205,26 @@ public class CommunityController {
 	// 7. 좋아요 누르기
 	// POST /api/community/like
 	// =========================================================
-	@PostMapping("/like")
-	public ResponseEntity<?> like(@RequestBody CommunityVO vo) {
-	    try {
+    public record ReactionRequest(int id, Boolean liked) {}
+    public record ViewRequest(int id) {}
 
-	        System.out.println("좋아요 게시글 번호 = " + vo.getId());
+    @PostMapping("/like")
+    public Map<String, Object> like(@RequestBody ReactionRequest request, Authentication authentication) {
+        return communityService.like(request.id(), loginMember(authentication).getMember_num(), !Boolean.FALSE.equals(request.liked()));
+    }
 
-	        int result = communityService.like(vo);
+    @PostMapping("/view")
+    public Map<String, Object> increaseViewCount(@RequestBody ViewRequest request, Authentication authentication) {
+        return communityService.increaseViewCount(request.id(), loginMember(authentication).getMember_num());
+    }
 
-	        System.out.println("좋아요 UPDATE 결과 = " + result);
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<?> handleRequestError(ResponseStatusException e) {
+        return ResponseEntity.status(e.getStatusCode()).body(Map.of("message", e.getReason() == null ? "요청을 처리할 수 없습니다." : e.getReason()));
+    }
 
-	        if (result > 0) {
-	            return ResponseEntity.ok("좋아요 성공");
-	        } else {
-	            return ResponseEntity.status(500).body("좋아요 실패");
-	        }
-
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	        return ResponseEntity.status(500).body("좋아요 처리 중 오류");
-	    }
-	}
-	
-
-	// =========================================================
-	// 8. 게시글 조회수 증가
-	// POST /api/community/view
-	// =========================================================
-	@PostMapping("/view")
-	public ResponseEntity<?> increaseViewCount(@RequestBody CommunityVO vo) {
-	    try {
-
-	        System.out.println("조회수 증가 게시글 번호 = " + vo.getId());
-
-	        int result = communityService.increaseViewCount(vo.getId());
-
-	        System.out.println("조회수 UPDATE 결과 = " + result);
-
-	        if (result > 0) {
-	            return ResponseEntity.ok("조회수 증가 성공");
-	        } else {
-	            return ResponseEntity.status(500).body("조회수 증가 실패");
-	        }
-
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	        return ResponseEntity.status(500).body("조회수 처리 중 오류");
-	    }
-	}
-	
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<?> handleInvalidStorage(DataIntegrityViolationException e) {
+        return ResponseEntity.badRequest().body(Map.of("message", "입력한 내용의 저장 조건을 확인해주세요."));
+    }
 }

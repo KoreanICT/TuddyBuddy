@@ -148,6 +148,8 @@ public class CommentController {
             return ResponseEntity.ok().build();
 
 
+        } catch (ResponseStatusException e) {
+            return ResponseEntity.status(e.getStatusCode()).body(e.getReason());
         } catch (IllegalArgumentException e) {
 
             return ResponseEntity
@@ -185,6 +187,8 @@ public class CommentController {
 
             return ResponseEntity.ok().build();
 
+        } catch (ResponseStatusException e) {
+            return ResponseEntity.status(e.getStatusCode()).body(e.getReason());
         } catch (IllegalArgumentException e) {
 
             return ResponseEntity
@@ -220,6 +224,8 @@ public class CommentController {
 
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("본인의 댓글만 수정할 수 있습니다. 삭제된 댓글인지 확인해주세요.");
 
+        } catch (ResponseStatusException e) {
+            return ResponseEntity.status(e.getStatusCode()).body(e.getReason());
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {

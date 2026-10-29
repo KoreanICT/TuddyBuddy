@@ -11,6 +11,8 @@ public interface BoardAdminDao {
     List<Map<String, Object>> list(@Param("keyword") String keyword,
             @Param("begin") int begin, @Param("end") int end);
     Long lockPost(@Param("num") Long num);
+    int deleteLikes(@Param("num") Long num);
+    int deleteViews(@Param("num") Long num);
     int deleteComments(@Param("num") Long num);
     int deletePost(@Param("num") Long num);
 }

@@ -1,168 +1,93 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
-
 <mapper namespace="kr.co.ictedu.back.common.dao.CommunityDao">
-
-	<!-- 인증된 회원 정보로 실제 커뮤니티 게시글 저장 -->
-	<insert id="savePost">
-		<selectKey keyProperty="post.postNum" resultType="int" order="BEFORE">
-		SELECT community_section_seq.NEXTVAL FROM dual
-		</selectKey>
-		INSERT INTO community_section ( community_id, community_title,
-		community_content, community_nickname, community_category, member_num,
-		community_date, view_count ) VALUES ( #{post.postNum}, #{post.title,
-		jdbcType=VARCHAR}, #{post.content, jdbcType=VARCHAR}, #{post.author,
-		jdbcType=VARCHAR}, #{post.category, jdbcType=VARCHAR}, #{memberNum},
-		SYSDATE, 0 ) </insert>
-
-	<select id="countPosts" resultType="int">
-		SELECT COUNT(*) FROM community_section
-	</select>
-
-	<!-- 전체 게시글을 최신 번호순으로 페이지 조회 -->
-	<select id="findPosts" resultType="kr.co.ictedu.back.common.vo.MyPostVO">
-		SELECT
-        community_id AS "postNum",
-        community_title AS "title",
-        community_content AS "content",
-        community_category AS "category",
-        community_nickname AS "author",
-        like_count AS "likeCount",
-        community_date AS "communityDate",
-        view_count AS "viewCount"
-    FROM (
-        SELECT
-            community_id,
-            community_title,
-            community_content,
-            community_category,
-            community_nickname,
-            like_count,
-            community_date,
-            view_count,
-            ROW_NUMBER() OVER (ORDER BY community_id DESC) AS row_num
-        FROM community_section
-    )
-    WHERE row_num BETWEEN #{startRow} AND #{endRow}
-    ORDER BY row_num
-	</select>
-
-	<!-- 로그인한 회원이 작성한 게시글 수 -->
-	<select id="countMyPosts" resultType="int">
-		SELECT COUNT(*)
-		FROM community_section
-		WHERE member_num = #{memberNum}
-	</select>
-
-	<!-- 본인 게시글을 최신 번호순으로 페이지 조회 -->
-	<select id="findMyPosts" resultType="kr.co.ictedu.back.common.vo.MyPostVO">
-    SELECT
-        community_id AS "postNum",
-        community_title AS "title",
-        community_content AS "content",
-        community_category AS "category",
-        community_nickname AS "author",
-        community_date AS "communityDate",
-        view_count AS "viewCount"
-    FROM (
-        SELECT
-            community_id,
-            community_title,
-            community_content,
-            community_category,
-            community_nickname,
-            community_date,
-            view_count,
-            ROW_NUMBER() OVER (ORDER BY community_id DESC) AS row_num
-        FROM community_section
-        WHERE member_num = #{memberNum}
-    )
-    WHERE row_num BETWEEN #{startRow} AND #{endRow}
-    ORDER BY row_num
-	</select>
-
-	<!-- 1. 게시글 쓰기 -->
-	<insert id="insertPost"
-		parameterType="kr.co.ictedu.back.common.vo.CommunityVO"
-		useGeneratedKeys="true" keyProperty="id">
-		INSERT INTO community (
-		title,
-		content,
-		nickname,
-		category
-		) VALUES (
-		#{title},
-		#{content},
-		#{nickname},
-		#{category}
-		)
-	</insert>
-
-	<!-- 2. 게시글 삭제하기 -->
-	<delete id="deletePost" parameterType="int">
-		DELETE FROM COMMUNITY_SECTION
-		WHERE COMMUNITY_ID = #{id}
-	</delete>
-
-	<!-- 3. 게시글 수정하기 -->
-	<update id="updatePost"
-		parameterType="kr.co.ictedu.back.common.vo.CommunityVO">
-		UPDATE COMMUNITY_SECTION
-		SET
-		COMMUNITY_TITLE = #{title},
-		COMMUNITY_CONTENT = #{content}
-		WHERE COMMUNITY_ID = #{id}
-	</update>
-
-	<!-- 4. 댓글 쓰기 -->
-	<insert id="insertComment">
-		INSERT INTO community_comment (
-		post_id,
-		content,
-		nickname
-		) VALUES (
-		#{postId},
-		#{comment.content},
-		#{comment.nickname}
-		)
-	</insert>
-
-	<!-- 5. 댓글 삭제 -->
-	<delete id="deleteComment" parameterType="int">
-		DELETE FROM community_comment
-		WHERE id = #{commentId}
-	</delete>
-
-	<!-- 7. 임시글 작성 -->
-	<insert id="insertTempPost"
-		parameterType="kr.co.ictedu.back.common.vo.CommunityVO"
-		useGeneratedKeys="true" keyProperty="id">
-		INSERT INTO community (
-		title,
-		content,
-		nickname,
-		category,
-		status
-		) VALUES (
-		#{title},
-		#{content},
-		#{nickname},
-		#{category},
-		'TEMP'
-		)
-	</insert>
-
-	<!-- 8. 좋아요 누르기 -->
-	<update id="like" parameterType="kr.co.ictedu.back.common.vo.CommunityVO">
-		UPDATE COMMUNITY_SECTION
-		SET LIKE_COUNT = NVL(LIKE_COUNT, 0) + 1
-		WHERE COMMUNITY_ID = #{id}
-	</update>
-	
-	<update id="increaseViewCount" parameterType="int">
-    	UPDATE COMMUNITY_SECTION
-    	SET VIEW_COUNT = NVL(VIEW_COUNT, 0) + 1
-    	WHERE COMMUNITY_ID = #{id}
-	</update>
-
+    <sql id="filter">
+        <where>
+            <if test="category != null">c.community_category = #{category}</if>
+            <if test="keyword != ''">
+                AND (INSTR(LOWER(c.community_title), LOWER(#{keyword})) &gt; 0
+                  OR INSTR(LOWER(c.community_content), LOWER(#{keyword})) &gt; 0)
+            </if>
+        </where>
+    </sql>
+    <sql id="columns">
+        c.community_id AS "postNum", c.member_num AS "memberNum",
+        c.community_title AS "title", c.community_content AS "content",
+        c.community_category AS "category", NVL(m.member_nick, c.community_nickname) AS "author",
+        c.community_date AS "communityDate", NVL(c.view_count, 0) AS "viewCount",
+        NVL(c.like_count, 0) + (SELECT COUNT(*) FROM community_like l WHERE l.post_id = c.community_id) AS "likeCount",
+        (SELECT COUNT(*) FROM community_like l WHERE l.post_id = c.community_id AND l.member_num = #{memberNum}) AS "liked"
+    </sql>
+    <insert id="savePost">
+        <selectKey keyProperty="post.postNum" resultType="int" order="BEFORE">
+            SELECT community_section_seq.NEXTVAL FROM dual
+        </selectKey>
+        INSERT INTO community_section
+            (community_id, community_title, community_content, community_nickname,
+             community_category, member_num, community_date, view_count, like_count)
+        VALUES (#{post.postNum}, #{post.title}, #{post.content}, #{post.author},
+                #{post.category}, #{memberNum}, SYSDATE, 0, 0)
+    </insert>
+    <select id="countPosts" resultType="int">
+        SELECT COUNT(*) FROM community_section c <include refid="filter"/>
+    </select>
+    <select id="findPosts" resultType="kr.co.ictedu.back.common.vo.MyPostVO">
+        SELECT * FROM (
+            SELECT <include refid="columns"/>, ROW_NUMBER() OVER (ORDER BY c.community_id DESC) AS rn
+            FROM community_section c LEFT JOIN member m ON m.member_num = c.member_num
+            <include refid="filter"/>
+        ) WHERE rn BETWEEN #{startRow} AND #{endRow} ORDER BY rn
+    </select>
+    <select id="countMyPosts" resultType="int">
+        SELECT COUNT(*) FROM community_section WHERE member_num = #{memberNum}
+    </select>
+    <select id="findMyPosts" resultType="kr.co.ictedu.back.common.vo.MyPostVO">
+        SELECT * FROM (
+            SELECT <include refid="columns"/>, ROW_NUMBER() OVER (ORDER BY c.community_id DESC) AS rn
+            FROM community_section c LEFT JOIN member m ON m.member_num = c.member_num
+            WHERE c.member_num = #{memberNum}
+        ) WHERE rn BETWEEN #{startRow} AND #{endRow} ORDER BY rn
+    </select>
+    <select id="lockPost" resultType="kr.co.ictedu.back.common.vo.MyPostVO">
+        SELECT community_id AS "postNum", member_num AS "memberNum"
+        FROM community_section WHERE community_id = #{id} FOR UPDATE
+    </select>
+    <update id="updatePost">
+        UPDATE community_section SET community_title = #{title}, community_content = #{content}
+        WHERE community_id = #{id} AND member_num = #{memberNum}
+    </update>
+    <delete id="deletePost">
+        DELETE FROM community_section WHERE community_id = #{id} AND member_num = #{memberNum}
+    </delete>
+    <delete id="deleteComments">DELETE FROM community_comment WHERE post_id = #{id}</delete>
+    <delete id="deleteLikes">DELETE FROM community_like WHERE post_id = #{id}</delete>
+    <delete id="deleteViews">DELETE FROM community_view WHERE post_id = #{id}</delete>
+    <select id="hasLike" resultType="int">
+        SELECT COUNT(*) FROM community_like WHERE post_id = #{id} AND member_num = #{memberNum}
+    </select>
+    <insert id="addLike">
+        INSERT INTO community_like (post_id, member_num, created_at) VALUES (#{id}, #{memberNum}, SYSDATE)
+    </insert>
+    <delete id="removeLike">
+        DELETE FROM community_like WHERE post_id = #{id} AND member_num = #{memberNum}
+    </delete>
+    <select id="likeCount" resultType="int">
+        SELECT NVL(c.like_count, 0) + (SELECT COUNT(*) FROM community_like l WHERE l.post_id = c.community_id)
+        FROM community_section c WHERE c.community_id = #{id}
+    </select>
+    <!-- 한 회원이 같은 글을 30분 안에 반복 조회해도 카운트를 올리지 않습니다. 부모 행 잠금 후 실행합니다. -->
+    <update id="recordView">
+        MERGE INTO community_view v USING (SELECT #{id} post_id, #{memberNum} member_num FROM dual) s
+        ON (v.post_id = s.post_id AND v.member_num = s.member_num)
+        WHEN MATCHED THEN UPDATE SET v.last_viewed_at = SYSDATE
+            WHERE v.last_viewed_at &lt;= SYSDATE - 30 / 1440
+        WHEN NOT MATCHED THEN INSERT (post_id, member_num, last_viewed_at)
+            VALUES (s.post_id, s.member_num, SYSDATE)
+    </update>
+    <update id="increaseViewCount">
+        UPDATE community_section SET view_count = NVL(view_count, 0) + 1 WHERE community_id = #{id}
+    </update>
+    <select id="viewCount" resultType="int">
+        SELECT NVL(view_count, 0) FROM community_section WHERE community_id = #{id}
+    </select>
 </mapper>

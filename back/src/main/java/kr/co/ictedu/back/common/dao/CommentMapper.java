@@ -19,5 +19,5 @@ public interface CommentMapper {
     
     int updateComment(@Param("comment") CommunityVO vo, @Param("memberNum") Long memberNum);
     
-    int like(CommunityVO vo);
+
 }
