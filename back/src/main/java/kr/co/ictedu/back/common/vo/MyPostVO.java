@@ -10,6 +10,8 @@ import lombok.Setter;
 public class MyPostVO {
 	
     private int postNum;
+    private Long memberNum;
+    private boolean liked;
     private String title;
     private String category;
     private String content;

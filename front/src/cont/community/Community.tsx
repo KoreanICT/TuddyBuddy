@@ -1,13 +1,16 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { BACKEND_URL } from "../../login/authHttp";
+import { memberSessionKey } from "../../login/session";
 import { useAuth } from "../../login/hooks/useAuth";
 import ReportButton from "../report/ReportButton";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 interface Post {
   postNum: number;
+  memberNum: number;
+  liked: boolean;
   title: string | null;
   content: string;
   category: string;
@@ -40,6 +43,7 @@ const Community: React.FC = () => {
   const writeCategories = ["자유게시판", "합격후기", "꿀팁"];
   const { isLoggedIn, memberNum } = useAuth();
   const navigate = useNavigate();
+  const sessionKey = memberSessionKey();
 
   const [page, setPage] = useState(1);
   const [reload, setReload] = useState(0);
@@ -73,6 +77,25 @@ const Community: React.FC = () => {
   const [editingCommentContent, setEditingCommentContent] = useState("");
   const [commentEditSubmitting, setCommentEditSubmitting] = useState(false);
   const [likeSubmitting, setLikeSubmitting] = useState(false);
+  const [postDeleting, setPostDeleting] = useState(false);
+  const [commentsError, setCommentsError] = useState('');
+  const mounted = useRef(true);
+  const selectedId = useRef<number | null>(null);
+  selectedId.current = selectedPost?.postNum ?? null;
+  const commentsController = useRef<AbortController | null>(null);
+  const commentRevision = useRef(0);
+  const mutationLocks = useRef(new Set<string>());
+  const isActive = (key: string, id?: number) => mounted.current && memberSessionKey() === key
+    && (id === undefined || selectedId.current === id);
+  const serverError = (error: unknown, fallback: string) => {
+    if (!axios.isAxiosError(error)) return fallback;
+    const data = error.response?.data;
+    return typeof data === 'string' ? data : data?.message || data?.detail || fallback;
+  };
+  useEffect(() => {
+    mounted.current = true;
+    return () => { mounted.current = false; commentsController.current?.abort(); };
+  }, []);
 
   const saveLock = useRef(false);
   const titleInputRef = useRef<HTMLInputElement>(null);
@@ -98,7 +121,7 @@ const Community: React.FC = () => {
         const response = await axios.get<PostsResponse>(
           `${BACKEND_URL}/api/community/posts`,
           {
-            params: { cPage: page },
+            params: { cPage: page, category: selectedCategory, keyword: searchedKeyword },
             signal: controller.signal,
           }
         );
@@ -107,6 +130,7 @@ const Community: React.FC = () => {
 
         if (!controller.signal.aborted) {
           setListing(response.data);
+          if (response.data.currentPage !== page) setPage(response.data.currentPage);
         }
       } catch (error) {
         if (controller.signal.aborted || axios.isCancel(error)) return;
@@ -132,37 +156,52 @@ const Community: React.FC = () => {
     void loadPosts();
 
     return () => controller.abort();
-  }, [isLoggedIn, memberNum, page, reload]);
+  }, [isLoggedIn, memberNum, sessionKey, page, reload, selectedCategory, searchedKeyword]);
 
-  // 댓글 목록 조회
-  const fetchComments = async (postId: number) => {
+  // 게시글·계정·요청 순서가 맞는 응답만 반영합니다.
+  const fetchComments = useCallback(async (postId: number) => {
+    if (!mounted.current || selectedId.current !== postId || memberSessionKey() !== sessionKey) return;
+    commentsController.current?.abort();
+    const controller = new AbortController();
+    commentsController.current = controller;
+    const revision = ++commentRevision.current;
     setCommentsLoading(true);
-
+    setCommentsError('');
+    const current = () => !controller.signal.aborted && mounted.current
+      && memberSessionKey() === sessionKey && selectedId.current === postId && revision === commentRevision.current;
     try {
-      const res = await axios.get<Comment[]>(
-        `${BACKEND_URL}/api/community/comment/list`,
-        {
-          params: { postId },
-        }
-      );
-
-      setComments(Array.isArray(res.data) ? res.data : []);
+      const response = await axios.get<Comment[]>(`${BACKEND_URL}/api/community/comment/list`,
+        { params: { postId }, signal: controller.signal });
+      if (!Array.isArray(response.data)) throw new Error('잘못된 댓글 응답');
+      if (current()) setComments(response.data);
     } catch (error) {
-      console.error("댓글을 불러오지 못했습니다.", error);
+      if (current() && !axios.isCancel(error)) {
+        setComments([]);
+        setCommentsError('댓글을 불러오지 못했습니다. 다시 시도해주세요.');
+      }
     } finally {
-      setCommentsLoading(false);
+      if (current()) setCommentsLoading(false);
     }
-  };
+  }, [sessionKey]);
 
+  const postId = selectedPost?.postNum;
   useEffect(() => {
-    if (!selectedPost) {
-      setComments([]);
-      setNewCommentContent("");
-      return;
-    }
-
-    void fetchComments(selectedPost.postNum);
-  }, [selectedPost]);
+    setComments([]);
+    setCommentsError('');
+    setNewCommentContent('');
+    setEditingCommentNum(null);
+    setEditingCommentContent('');
+    setIsEditMode(false);
+    setEditError('');
+    setLikeSubmitting(false);
+    setEditSaving(false);
+    setPostDeleting(false);
+    setCommentSubmitting(false);
+    setCommentEditSubmitting(false);
+    if (postId != null) void fetchComments(postId);
+    else setCommentsLoading(false);
+    return () => { commentsController.current?.abort(); ++commentRevision.current; };
+  }, [postId, fetchComments]);
 
   useEffect(() => {
     setIsWriteModalOpen(false);
@@ -174,7 +213,7 @@ const Community: React.FC = () => {
       saveController.current?.abort();
       saveController.current = null;
     };
-  }, [memberNum]);
+  }, [memberNum, sessionKey]);
 
   useEffect(() => {
     if (isWriteModalOpen) {
@@ -201,22 +240,10 @@ const Community: React.FC = () => {
     };
   }, [isWriteModalOpen, selectedPost]);
 
-  const filteredPosts = useMemo(
-    () =>
-      (listing?.data || []).filter(
-        (post) =>
-          (selectedCategory === "전체" ||
-            post.category === selectedCategory) &&
-          (!searchedKeyword.trim() ||
-            (post.title || "")
-              .toLowerCase()
-              .includes(searchedKeyword.toLowerCase()) ||
-            post.content
-              .toLowerCase()
-              .includes(searchedKeyword.toLowerCase()))
-      ),
-    [listing, selectedCategory, searchedKeyword]
-  );
+  const filteredPosts = listing?.data || [];
+  const ownsPost = selectedPost != null && isLoggedIn && memberNum != null
+    && Number(selectedPost.memberNum) === Number(memberNum);
+  const applySearch = () => { setSearchedKeyword(searchKeyword.trim()); setPage(1); };
 
   const openWriteModal = () => {
     if (!isLoggedIn) {
@@ -247,8 +274,8 @@ const Community: React.FC = () => {
       return;
     }
 
-    if (title.length > 100 || content.length > 250) {
-      setWriteError("제목은 100자, 내용은 250자 이내로 입력해주세요.");
+    if (title.length > 30 || content.length > 250) {
+      setWriteError("제목은 30자, 내용은 250자 이내로 입력해주세요.");
       return;
     }
 
@@ -257,6 +284,7 @@ const Community: React.FC = () => {
       return;
     }
 
+    const owner = sessionKey;
     saveLock.current = true;
     setSaving(true);
     setWriteError("");
@@ -277,7 +305,7 @@ const Community: React.FC = () => {
         }
       );
 
-      if (controller.signal.aborted) return;
+      if (controller.signal.aborted || !isActive(owner)) return;
 
       setNewTitle("");
       setNewContent("");
@@ -326,462 +354,143 @@ const Community: React.FC = () => {
     }
   };
 
-  // 게시글 수정 모드 시작
   const handleStartEdit = () => {
-    if (!selectedPost) return;
-
-    setEditTitle(selectedPost.title || "");
-    setEditContent(selectedPost.content || "");
-    setEditError("");
-    setIsEditMode(true);
+    if (!selectedPost || !ownsPost) return;
+    setEditTitle(selectedPost.title || ''); setEditContent(selectedPost.content || '');
+    setEditError(''); setIsEditMode(true);
   };
 
-  // 게시글 수정
-  const handleUpdatePost = async (
-    event: React.FormEvent
-  ) => {
+  const handleUpdatePost = async (event: React.FormEvent) => {
     event.preventDefault();
-
-    if (!selectedPost || editSaving) return;
-
-    const title = editTitle.trim();
-    const content = editContent.trim();
-
-    if (!title || !content) {
-      setEditError("제목과 내용을 모두 입력해주세요.");
-      return;
+    if (!selectedPost || !ownsPost) return;
+    const id = selectedPost.postNum, owner = sessionKey, lock = `${owner}:${id}:post`;
+    if (mutationLocks.current.has(lock)) return;
+    const title = editTitle.trim(), content = editContent.trim();
+    if (!title || !content || title.length > 30 || content.length > 250) {
+      setEditError('제목은 1~30자, 내용은 1~250자로 입력해주세요.'); return;
     }
-
-    if (title.length > 100 || content.length > 250) {
-      setEditError(
-        "제목은 100자, 내용은 250자 이내로 입력해주세요."
-      );
-      return;
-    }
-
-    setEditSaving(true);
-    setEditError("");
-
+    mutationLocks.current.add(lock); setEditSaving(true); setEditError('');
     try {
-      await axios.put(
-        `${BACKEND_URL}/api/community/update/${selectedPost.postNum}`,
-        {
-          id: selectedPost.postNum,
-          title,
-          content,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      // 현재 상세 게시글 내용도 즉시 변경
-      setSelectedPost((prev) =>
-        prev
-          ? {
-            ...prev,
-            title,
-            content,
-          }
-          : null
-      );
-
-      // 목록에 표시되는 게시글도 수정
-      setListing((prev) => {
-        if (!prev) return prev;
-
-        return {
-          ...prev,
-          data: prev.data.map((post) =>
-            post.postNum === selectedPost.postNum
-              ? {
-                ...post,
-                title,
-                content,
-              }
-              : post
-          ),
-        };
-      });
-
+      await axios.put(`${BACKEND_URL}/api/community/update/${id}`, { title, content });
+      if (!isActive(owner, id)) return;
+      setSelectedPost(previous => previous?.postNum === id ? { ...previous, title, content } : previous);
+      setListing(previous => previous ? { ...previous, data: previous.data.map(post => post.postNum === id ? { ...post, title, content } : post) } : previous);
       setIsEditMode(false);
-
-      alert("게시글이 수정되었습니다.");
-
     } catch (error) {
-      console.error("게시글 수정 실패:", error);
-
-      if (axios.isAxiosError(error)) {
-        const errorMsg =
-          error.response?.data?.message ||
-          error.response?.data?.error ||
-          error.response?.data ||
-          error.message;
-
-        setEditError(
-          `게시글 수정에 실패했습니다: ${errorMsg}`
-        );
-      } else {
-        setEditError("게시글 수정에 실패했습니다.");
-      }
+      if (isActive(owner, id)) setEditError(serverError(error, '게시글 수정에 실패했습니다.'));
     } finally {
-      setEditSaving(false);
+      mutationLocks.current.delete(lock);
+      if (isActive(owner, id)) setEditSaving(false);
     }
   };
 
-
-  // 게시글 삭제
   const handleDeletePost = async () => {
-    if (!selectedPost) return;
-
-    if (!window.confirm("정말 이 게시글을 삭제하시겠습니까?")) {
-      return;
-    }
-
+    if (!selectedPost || !ownsPost) return;
+    const id = selectedPost.postNum, owner = sessionKey, lock = `${owner}:${id}:post`;
+    if (mutationLocks.current.has(lock) || !window.confirm('정말 이 게시글을 삭제하시겠습니까?')) return;
+    mutationLocks.current.add(lock); setPostDeleting(true);
     try {
-      await axios.delete(
-        `${BACKEND_URL}/api/community/delete/${selectedPost.postNum}`);
-
-      alert("게시글이 삭제되었습니다.");
-      setSelectedPost(null); // 상세 모달 닫기
-      setPage(1);            // 페이지 초기화 또는 유지
-      setReload((value) => value + 1); // 목록 새로고침
+      await axios.delete(`${BACKEND_URL}/api/community/delete/${id}`);
+      if (!isActive(owner)) return;
+      if (selectedId.current === id) setSelectedPost(null);
+      setReload(value => value + 1);
     } catch (error) {
-      console.error("게시글 삭제 실패:", error);
-
-      if (axios.isAxiosError(error)) {
-        const errorMsg =
-          error.response?.data?.message ||
-          error.response?.data?.error ||
-          error.message;
-        alert(`게시글 삭제 실패: ${errorMsg}`);
-      } else {
-        alert("게시글 삭제에 실패했습니다.");
-      }
+      if (isActive(owner, id)) window.alert(serverError(error, '게시글 삭제에 실패했습니다.'));
+    } finally {
+      mutationLocks.current.delete(lock);
+      if (isActive(owner, id)) setPostDeleting(false);
     }
   };
 
-  // ==========================================================
-  // 게시글 조회수 증가
-  // 게시글 상세 모달을 열 때 서버에 조회수 증가 요청
-  // ==========================================================
-  const increaseViewCount = async (postNum: number) => {
+  const increaseViewCount = async (id: number) => {
+    const owner = sessionKey;
     try {
-      if (!Number.isFinite(postNum) || postNum <= 0) {
-        return;
-      }
-
-      const response = await axios.post(
-        `${BACKEND_URL}/api/community/view`,
-        {
-          id: postNum,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      console.log("조회수 증가 상태 코드:", response.status);
-      console.log("조회수 서버 응답:", response.data);
-
-      // 현재 상세 게시글 조회수 +1
-      setSelectedPost((prev) =>
-        prev && prev.postNum === postNum
-          ? {
-            ...prev,
-            viewCount: (prev.viewCount ?? 0) + 1,
-          }
-          : prev
-      );
-
-      // 목록의 조회수도 +1
-      setListing((prev) => {
-        if (!prev) return prev;
-
-        return {
-          ...prev,
-          data: prev.data.map((post) =>
-            post.postNum === postNum
-              ? {
-                ...post,
-                viewCount: (post.viewCount ?? 0) + 1,
-              }
-              : post
-          ),
-        };
-      });
-    } catch (error) {
-      // 조회수 실패 때문에 게시글 열기 자체가 막히지는 않도록 처리
-      console.error("조회수 증가 실패:", error);
+      const response = await axios.post<{ viewCount: number }>(`${BACKEND_URL}/api/community/view`, { id });
+      if (!isActive(owner)) return;
+      const viewCount = response.data.viewCount;
+      setSelectedPost(previous => previous?.postNum === id ? { ...previous, viewCount } : previous);
+      setListing(previous => previous ? { ...previous, data: previous.data.map(post => post.postNum === id ? { ...post, viewCount } : post) } : previous);
+    } catch {
+      // 조회수 실패가 글 읽기를 막지는 않습니다.
     }
   };
 
-
-  // ==========================================================
-  // 좋아요 기능
-  // 좋아요 취소 없음
-  // 버튼을 누르면 서버에서 LIKE_COUNT + 1
-  // ==========================================================
   const handleLike = async () => {
-    if (!selectedPost || likeSubmitting) return;
-
-    if (!isLoggedIn) {
-      alert("로그인 후 이용해주세요.");
-      return;
-    }
-
-    const postNum = Number(selectedPost.postNum);
-
-    if (!Number.isFinite(postNum) || postNum <= 0) {
-      console.error("잘못된 게시글 번호:", selectedPost.postNum);
-      alert("게시글 번호를 확인할 수 없습니다.");
-      return;
-    }
-
-    setLikeSubmitting(true);
-
+    if (!selectedPost || !isLoggedIn) return;
+    const id = selectedPost.postNum, owner = sessionKey, lock = `${owner}:${id}:like`;
+    if (mutationLocks.current.has(lock)) return;
+    const liked = !selectedPost.liked;
+    mutationLocks.current.add(lock); setLikeSubmitting(true);
     try {
-      console.log("좋아요 요청:", {
-        id: postNum,
-        url: `${BACKEND_URL}/api/community/like`,
-      });
-
-      const response = await axios.post(
-        `${BACKEND_URL}/api/community/like`,
-        {
-          id: postNum,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      console.log("좋아요 상태 코드:", response.status);
-      console.log("좋아요 서버 응답:", response.data);
-
-      // 서버 성공 → 현재 상세 게시글 좋아요 수 +1
-      setSelectedPost((prev) =>
-        prev
-          ? {
-            ...prev,
-            likeCount: (prev.likeCount ?? 0) + 1,
-          }
-          : null
-      );
-
-      // 게시글 목록에도 좋아요 수 +1
-      setListing((prev) => {
-        if (!prev) return prev;
-
-        return {
-          ...prev,
-          data: prev.data.map((post) =>
-            post.postNum === postNum
-              ? {
-                ...post,
-                likeCount: (post.likeCount ?? 0) + 1,
-              }
-              : post
-          ),
-        };
-      });
-
+      const response = await axios.post<{ liked: boolean; likeCount: number }>(`${BACKEND_URL}/api/community/like`, { id, liked });
+      if (!isActive(owner)) return;
+      const result = response.data;
+      setSelectedPost(previous => previous?.postNum === id ? { ...previous, ...result } : previous);
+      setListing(previous => previous ? { ...previous, data: previous.data.map(post => post.postNum === id ? { ...post, ...result } : post) } : previous);
     } catch (error) {
-      console.error("좋아요 처리 실패:", error);
-
-      if (axios.isAxiosError(error)) {
-        console.error(
-          "좋아요 상태 코드:",
-          error.response?.status
-        );
-
-        console.error(
-          "좋아요 서버 응답:",
-          error.response?.data
-        );
-
-        const serverMessage =
-          typeof error.response?.data === "string"
-            ? error.response.data
-            : error.response?.data?.message ||
-            error.response?.data?.error ||
-            error.message;
-
-        alert(
-          `좋아요 처리에 실패했습니다.\n${serverMessage}`
-        );
-      } else {
-        alert("좋아요 처리에 실패했습니다.");
-      }
+      if (isActive(owner, id)) window.alert(serverError(error, '좋아요 처리에 실패했습니다.'));
     } finally {
-      setLikeSubmitting(false);
+      mutationLocks.current.delete(lock);
+      if (isActive(owner, id)) setLikeSubmitting(false);
     }
   };
 
-  // 댓글 작성
-  const handleCreateComment = async (
-    event: React.FormEvent
-  ) => {
+  const handleCreateComment = async (event: React.FormEvent) => {
     event.preventDefault();
-
-    if (!selectedPost) return;
-
-    if (!isLoggedIn) {
-      alert("로그인 후 댓글을 작성해주세요.");
-      return;
-    }
-
-    const commentText = newCommentContent.trim();
-
-    if (!commentText) return;
-
-    setCommentSubmitting(true);
-
+    if (!selectedPost || !isLoggedIn) return;
+    const id = selectedPost.postNum, owner = sessionKey, lock = `${owner}:${id}:comment`;
+    const content = newCommentContent.trim();
+    if (!content || content.length > 250 || mutationLocks.current.has(lock)) return;
+    mutationLocks.current.add(lock); setCommentSubmitting(true);
     try {
-      const postIdVal = Number(selectedPost.postNum);
-
-      await axios.post(
-        `${BACKEND_URL}/api/community/comment/write`,
-        {
-          content: commentText,
-        },
-        {
-          params: {
-            postId: postIdVal,
-          },
-        }
-      );
-
-      setNewCommentContent("");
-
-      await fetchComments(selectedPost.postNum);
+      await axios.post(`${BACKEND_URL}/api/community/comment/write`, { content }, { params: { postId: id } });
+      if (!isActive(owner, id)) return;
+      setNewCommentContent(''); await fetchComments(id);
     } catch (error) {
-      console.error("댓글 작성 실패", error);
-
-      if (axios.isAxiosError(error)) {
-        const errorMsg =
-          error.response?.data?.message ||
-          error.response?.data?.error ||
-          error.message;
-
-        alert(
-          `댓글 작성 실패 (상태코드: ${error.response?.status}): ${errorMsg}`
-        );
-      } else {
-        alert("댓글 작성에 실패했습니다. 다시 시도해 주세요.");
-      }
+      if (isActive(owner, id)) window.alert(serverError(error, '댓글 등록에 실패했습니다.'));
     } finally {
-      setCommentSubmitting(false);
+      mutationLocks.current.delete(lock);
+      if (isActive(owner, id)) setCommentSubmitting(false);
     }
   };
-
-  // 댓글 수정
 
   const handleStartEditComment = (comment: Comment) => {
-    if (comment.commentNum == null) return;
-
-    setEditingCommentNum(comment.commentNum);
-    setEditingCommentContent(comment.content);
+    if (comment.commentNum == null || Number(comment.memberNum) !== Number(memberNum)) return;
+    setEditingCommentNum(comment.commentNum); setEditingCommentContent(comment.content);
   };
 
   const handleUpdateComment = async (commentNum: number) => {
+    if (!selectedPost) return;
+    const id = selectedPost.postNum, owner = sessionKey, lock = `${owner}:${id}:comment`;
     const content = editingCommentContent.trim();
-
-    if (!content) {
-      alert("댓글 내용을 입력해주세요.");
-      return;
-    }
-
-    if (content.length > 250) {
-      alert("댓글은 250자 이내로 입력해주세요.");
-      return;
-    }
-
-    setCommentEditSubmitting(true);
-
+    if (!content || content.length > 250) { window.alert('댓글은 1~250자로 입력해주세요.'); return; }
+    if (mutationLocks.current.has(lock)) return;
+    mutationLocks.current.add(lock); setCommentEditSubmitting(true);
     try {
-      await axios.put(
-        `${BACKEND_URL}/api/community/comment/update`,
-        {
-          commentNum,
-          content,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      alert("댓글이 수정되었습니다.");
-
-      setEditingCommentNum(null);
-      setEditingCommentContent("");
-
-      if (selectedPost) {
-        await fetchComments(selectedPost.postNum);
-      }
+      await axios.put(`${BACKEND_URL}/api/community/comment/update`, { commentNum, content });
+      if (!isActive(owner, id)) return;
+      setEditingCommentNum(null); setEditingCommentContent(''); await fetchComments(id);
     } catch (error) {
-      console.error("댓글 수정 실패:", error);
-
-      if (axios.isAxiosError(error)) {
-        const errorMsg =
-          error.response?.data?.message ||
-          error.response?.data?.error ||
-          error.response?.data ||
-          error.message;
-
-        alert(`댓글 수정 실패: ${errorMsg}`);
-      } else {
-        alert("댓글 수정에 실패했습니다.");
-      }
+      if (isActive(owner, id)) window.alert(serverError(error, '댓글 수정에 실패했습니다.'));
     } finally {
-      setCommentEditSubmitting(false);
+      mutationLocks.current.delete(lock);
+      if (isActive(owner, id)) setCommentEditSubmitting(false);
     }
   };
 
-  // 댓글 삭제
-  const handleDeleteComment = async (
-    commentNum: number
-  ) => {
+  const handleDeleteComment = async (commentNum: number) => {
     if (!selectedPost) return;
-
-    if (!window.confirm("댓글을 삭제하시겠습니까?")) {
-      return;
-    }
-
+    const id = selectedPost.postNum, owner = sessionKey, lock = `${owner}:${id}:comment`;
+    if (mutationLocks.current.has(lock) || !window.confirm('댓글을 삭제하시겠습니까?')) return;
+    mutationLocks.current.add(lock); setCommentEditSubmitting(true);
     try {
-      await axios.delete(
-        `${BACKEND_URL}/api/community/comment/delete`,
-        {
-          params: {
-            commentNum: commentNum,
-          },
-        }
-      );
-
-      alert("댓글이 삭제되었습니다.");
-
-      await fetchComments(selectedPost.postNum);
+      await axios.delete(`${BACKEND_URL}/api/community/comment/delete`, { params: { commentNum } });
+      if (isActive(owner, id)) await fetchComments(id);
     } catch (error) {
-      console.error("댓글 삭제 실패:", error);
-
-      if (axios.isAxiosError(error)) {
-        const errorMsg =
-          error.response?.data?.message ||
-          error.response?.data?.error ||
-          error.message;
-
-        alert(`댓글 삭제 실패: ${errorMsg}`);
-      } else {
-        alert("댓글 삭제에 실패했습니다.");
-      }
+      if (isActive(owner, id)) window.alert(serverError(error, '댓글 삭제에 실패했습니다.'));
+    } finally {
+      mutationLocks.current.delete(lock);
+      if (isActive(owner, id)) setCommentEditSubmitting(false);
     }
   };
 
@@ -868,9 +577,7 @@ const Community: React.FC = () => {
                   ? "active bg-primary text-white shadow-sm"
                   : "text-secondary bg-transparent"
                   }`}
-                onClick={() =>
-                  setSelectedCategory(category)
-                }
+                onClick={() => { setSelectedCategory(category); setPage(1); }}
               >
                 {category}
               </button>
@@ -884,15 +591,16 @@ const Community: React.FC = () => {
             <input
               type="search"
               className="form-control border-0 shadow-none fs-6 px-3"
-              placeholder="현재 페이지의 제목이나 내용 검색"
-              aria-label="현재 페이지 게시글 검색"
+              placeholder="전체 게시글의 제목이나 내용 검색"
+              aria-label="전체 게시글 검색"
+              maxLength={100}
               value={searchKeyword}
               onChange={(event) =>
                 setSearchKeyword(event.target.value)
               }
               onKeyDown={(event) => {
                 if (event.key === "Enter") {
-                  setSearchedKeyword(searchKeyword);
+                  applySearch();
                 }
               }}
             />
@@ -900,9 +608,7 @@ const Community: React.FC = () => {
             <button
               type="button"
               className="btn btn-primary rounded-3 px-4 fw-semibold"
-              onClick={() =>
-                setSearchedKeyword(searchKeyword)
-              }
+              onClick={applySearch}
             >
               검색
             </button>
@@ -910,7 +616,7 @@ const Community: React.FC = () => {
         </div>
 
         <p className="text-muted small mb-4">
-          카테고리와 검색은 현재 페이지의 게시글에 적용됩니다.
+          카테고리와 검색은 전체 게시글에 적용됩니다.
         </p>
 
         {/* 게시글 목록 */}
@@ -971,7 +677,7 @@ const Community: React.FC = () => {
             <p className="bg-white rounded-4 p-5 text-center text-muted">
               {listing?.totalItems === 0
                 ? "아직 등록된 게시글이 없습니다."
-                : "현재 페이지에 조건과 일치하는 게시글이 없습니다."}
+                : "조건과 일치하는 게시글이 없습니다."}
             </p>
           ) : (
             <div className="d-flex flex-column gap-3">
@@ -1215,7 +921,7 @@ const Community: React.FC = () => {
                         type="text"
                         className="form-control"
                         value={newTitle}
-                        maxLength={100}
+                        maxLength={30}
                         disabled={saving}
                         onChange={(event) =>
                           setNewTitle(event.target.value)
@@ -1225,7 +931,7 @@ const Community: React.FC = () => {
                       />
 
                       <p className="small text-muted mt-1 mb-0">
-                        {newTitle.length}/100자
+                        {newTitle.length}/30자
                       </p>
                     </div>
 
@@ -1382,11 +1088,12 @@ const Community: React.FC = () => {
                       className="btn btn-outline-danger btn-sm rounded-pill px-3 fw-semibold"
                       onClick={() => void handleLike()}
                       disabled={likeSubmitting}
-                      aria-label="좋아요"
+                      aria-pressed={Boolean(selectedPost.liked)}
+                      aria-label={selectedPost.liked ? "좋아요 취소" : "좋아요"}
                     >
                       {likeSubmitting
                         ? "처리 중..."
-                        : `❤️ 좋아요 ${selectedPost.likeCount ?? 0
+                        : `${selectedPost.liked ? "♥ 좋아요 취소" : "♡ 좋아요"} ${selectedPost.likeCount ?? 0
                         }`}
                     </button>
                   </div>
@@ -1412,7 +1119,7 @@ const Community: React.FC = () => {
                           type="text"
                           className="form-control"
                           value={editTitle}
-                          maxLength={100}
+                          maxLength={30}
                           disabled={editSaving}
                           onChange={(event) =>
                             setEditTitle(event.target.value)
@@ -1503,6 +1210,11 @@ const Community: React.FC = () => {
                       <p className="text-muted small text-center py-3">
                         댓글을 불러오는 중...
                       </p>
+                    ) : commentsError ? (
+                      <div className="alert alert-warning" role="alert">
+                        <p>{commentsError}</p>
+                        <button type="button" className="btn btn-outline-primary btn-sm" onClick={() => void fetchComments(selectedPost.postNum)}>다시 시도</button>
+                      </div>
                     ) : comments.length === 0 ? (
                       <p className="text-muted small text-center py-3 bg-light rounded-3">
                         아직 작성된 댓글이 없습니다.
@@ -1524,6 +1236,7 @@ const Community: React.FC = () => {
                                   <button
                                     type="button"
                                     className="btn btn-sm btn-outline-primary"
+                                    disabled={commentSubmitting || commentEditSubmitting}
                                     onClick={() => handleStartEditComment(comment)}
                                   >
                                     수정
@@ -1533,7 +1246,7 @@ const Community: React.FC = () => {
                                 <button
                                   type="button"
                                   className="btn btn-sm btn-outline-danger"
-                                  disabled={editingCommentNum === comment.commentNum}
+                                  disabled={commentEditSubmitting || commentSubmitting || editingCommentNum === comment.commentNum}
                                   onClick={() => {
                                     if (comment.commentNum != null) {
                                       void handleDeleteComment(comment.commentNum);
@@ -1624,14 +1337,14 @@ const Community: React.FC = () => {
                               event.target.value
                             )
                           }
-                          disabled={commentSubmitting}
+                          disabled={commentSubmitting || commentEditSubmitting}
                           required
                         />
 
                         <button
                           type="submit"
                           className="btn btn-primary px-4 fw-semibold"
-                          disabled={commentSubmitting}
+                          disabled={commentSubmitting || commentEditSubmitting}
                         >
                           {commentSubmitting
                             ? "등록 중..."
@@ -1645,10 +1358,11 @@ const Community: React.FC = () => {
                 <div className="modal-footer border-top bg-light-subtle p-3 d-flex justify-content-between">
                   <div className="d-flex gap-2">
                     {/* 글 수정 */}
-                    {!isEditMode && (
+                    {ownsPost && !isEditMode && (
                       <button
                         type="button"
                         className="btn btn-outline-primary px-4 rounded-3 fw-semibold"
+                        disabled={postDeleting}
                         onClick={handleStartEdit}
                       >
                         글 수정
@@ -1656,14 +1370,14 @@ const Community: React.FC = () => {
                     )}
 
                     {/* 글 삭제 */}
-                    <button
+                    {ownsPost && <button
                       type="button"
                       className="btn btn-outline-danger px-4 rounded-3 fw-semibold"
-                      disabled={isEditMode || editSaving}
+                      disabled={isEditMode || editSaving || postDeleting}
                       onClick={() => void handleDeletePost()}
                     >
-                      글 삭제
-                    </button>
+                      {postDeleting ? "삭제 중..." : "글 삭제"}
+                    </button>}
                   </div>
 
                   {/* 닫기 */}
