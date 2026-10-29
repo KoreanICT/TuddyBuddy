@@ -6,6 +6,7 @@ import Modal from './modal/Modal';
 import StudyRoomGuide from './modal/StudyRoomGuide';
 import NoticeBanner from './notice/NoticeBanner';
 import PrivacyPolicyContent from './modal/PrivacyPolicyContent';
+import TermsContent from './modal/TermsContent';
 import FaqModal from './modal/FaqModal';
 
 const HOME_SECTIONS = [
@@ -214,20 +215,7 @@ const Home: React.FC = () => {
         onClose={() => setIsTermsOpen(false)}
         title="이용약관"
       >
-        <h3>제1조 (목적)</h3>
-
-        <p>
-          본 약관은 TuddyBuddy에서 제공하는 서비스의
-          이용과 관련하여 서비스와 회원 간의 권리,
-          의무 및 책임사항을 규정함을 목적으로 합니다.
-        </p>
-
-        <h3>제2조 (서비스 이용)</h3>
-
-        <p>
-          회원은 본 약관 및 관련 법령을 준수하여
-          서비스를 이용해야 합니다.
-        </p>
+        <TermsContent />
       </Modal>
 
 
