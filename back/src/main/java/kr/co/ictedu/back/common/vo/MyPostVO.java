@@ -11,12 +11,10 @@ public class MyPostVO {
 	
     private int postNum;
     private Long memberNum;
-    private boolean liked;
     private String title;
     private String category;
     private String content;
     private String author;
-    private int likeCount;      
     private Date communityDate;
     private int viewCount;
     

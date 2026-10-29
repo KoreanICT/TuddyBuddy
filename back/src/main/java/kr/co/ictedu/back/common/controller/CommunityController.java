@@ -68,7 +68,7 @@ public class CommunityController {
 	// =========================================================
 	@GetMapping("/posts")
 	public Map<String, Object> posts(@RequestParam(value = "cPage", defaultValue = "1") int cPage,
-            @RequestParam(required = false) String category, @RequestParam(defaultValue = "") String keyword,
+            @RequestParam(name = "category", required = false) String category, @RequestParam(name = "keyword", defaultValue = "") String keyword,
 			Authentication authentication) {
 
 		MemberVO member = loginMember(authentication);
@@ -162,13 +162,13 @@ public class CommunityController {
 	// DELETE /api/community/delete/{id}
 	// =========================================================
     @DeleteMapping("/delete/{postNum}")
-    public ResponseEntity<?> deletePost(@PathVariable int postNum, Authentication authentication) {
+    public ResponseEntity<?> deletePost(@PathVariable("postNum") int postNum, Authentication authentication) {
         communityService.deletePost(postNum, loginMember(authentication).getMember_num());
         return ResponseEntity.ok(Map.of("message", "게시글을 삭제했습니다."));
     }
 
     @PutMapping("/update/{postNum}")
-    public ResponseEntity<?> updatePost(@PathVariable int postNum, @RequestBody PostWriteRequest request,
+    public ResponseEntity<?> updatePost(@PathVariable("postNum") int postNum, @RequestBody PostWriteRequest request,
             Authentication authentication) {
         communityService.updatePost(postNum, loginMember(authentication).getMember_num(), request.title(), request.content());
         return ResponseEntity.ok(Map.of("message", "게시글을 수정했습니다."));
@@ -201,21 +201,12 @@ public class CommunityController {
 		return ResponseEntity.ok(response);
 	}
 
-	// =========================================================
-	// 7. 좋아요 누르기
-	// POST /api/community/like
-	// =========================================================
-    public record ReactionRequest(int id, Boolean liked) {}
     public record ViewRequest(int id) {}
-
-    @PostMapping("/like")
-    public Map<String, Object> like(@RequestBody ReactionRequest request, Authentication authentication) {
-        return communityService.like(request.id(), loginMember(authentication).getMember_num(), !Boolean.FALSE.equals(request.liked()));
-    }
 
     @PostMapping("/view")
     public Map<String, Object> increaseViewCount(@RequestBody ViewRequest request, Authentication authentication) {
-        return communityService.increaseViewCount(request.id(), loginMember(authentication).getMember_num());
+        loginMember(authentication);
+        return communityService.increaseViewCount(request.id());
     }
 
     @ExceptionHandler(ResponseStatusException.class)

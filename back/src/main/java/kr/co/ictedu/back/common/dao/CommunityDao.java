@@ -1,7 +1,6 @@
 package kr.co.ictedu.back.common.dao;
 
 import java.util.List;
-import java.util.Map;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import kr.co.ictedu.back.common.vo.MyPostVO;
@@ -20,13 +19,6 @@ public interface CommunityDao {
             @Param("title") String title, @Param("content") String content);
     int deletePost(@Param("id") int id, @Param("memberNum") Long memberNum);
     int deleteComments(@Param("id") int id);
-    int deleteLikes(@Param("id") int id);
-    int deleteViews(@Param("id") int id);
-    int hasLike(@Param("id") int id, @Param("memberNum") Long memberNum);
-    int addLike(@Param("id") int id, @Param("memberNum") Long memberNum);
-    int removeLike(@Param("id") int id, @Param("memberNum") Long memberNum);
-    int likeCount(@Param("id") int id);
-    int recordView(@Param("id") int id, @Param("memberNum") Long memberNum);
     int increaseViewCount(@Param("id") int id);
     int viewCount(@Param("id") int id);
 }
